@@ -33,7 +33,9 @@ namespace SenseNet.OData.IO
 
                 if (IsAllowedField(content, fieldName))
                 {
-                    if (content.Fields.TryGetValue(fieldName, out var field))
+                    if(fieldName == "Password" && content.ContentHandler is User user)
+                        fields.Add(fieldName, user.PasswordHash == null ? null : new { Hash = user.PasswordHash });
+                    else if (content.Fields.TryGetValue(fieldName, out var field))
                         fields.Add(fieldName, GetJsonObject(field, selfurl, Request));
                     else if (fieldName == ICONPROPERTY)
                         fields.Add(fieldName, content.Icon ?? content.ContentType.Icon);
