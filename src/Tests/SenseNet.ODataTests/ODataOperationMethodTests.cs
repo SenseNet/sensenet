@@ -3007,11 +3007,11 @@ namespace SenseNet.ODataTests
 
         private OperationInfo AddMethod(MethodInfo method)
         {
-            return OperationCenter.AddMethod(method);
+            return OperationCenter.AddMethod(method, null);
         }
         private OperationInfo AddMethod(TestMethodInfo method, Attribute[] attributes = null)
         {
-            return OperationCenter.AddMethod(method, attributes ?? _defaultAttributes);
+            return OperationCenter.AddMethod(method, attributes ?? _defaultAttributes, null);
         }
 
         #region Nested classes

@@ -27,6 +27,9 @@ using SenseNet.Services.Core;
 using SenseNet.Services.Core.Operations;
 using Task = System.Threading.Tasks.Task;
 using Utility = SenseNet.Tools.Utility;
+using System.Reflection;
+using Microsoft.Extensions.DependencyInjection;
+
 // ReSharper disable ArrangeThisQualifier
 
 namespace SenseNet.OData.Writers
@@ -326,7 +329,7 @@ namespace SenseNet.OData.Writers
                 return;
             }
 
-            if (content.Fields.TryGetValue(propertyName, out var field))
+            if (propertyName != null && content.Fields.TryGetValue(propertyName, out var field))
             {
                 if (field is ReferenceField refField)
                 {
@@ -419,7 +422,9 @@ namespace SenseNet.OData.Writers
             if (content == null)
                 throw new ContentNotFoundException(string.Format(SNSR.GetString("$Action,ErrorContentNotFound"), odataReq.RepositoryPath));
 
-            var action = ODataMiddleware.ActionResolver.GetAction(content, odataReq.Scenario, odataReq.PropertyName, null, null, httpContext, appConfig);
+            var action = ODataMiddleware.ActionResolver.GetAction(content, odataReq.Scenario, odataReq.PropertyName,
+                null, null, httpContext, appConfig);
+
             if (action == null)
             {
                 // check if this is a versioning action (e.g. a checkout)
@@ -454,34 +459,40 @@ namespace SenseNet.OData.Writers
             await WriteOperationResultAsync(response, httpContext, odataReq, count)
                 .ConfigureAwait(false);
         }
+
         /// <summary>
         /// Handles POST operations. Parameters come from request stream.
         /// </summary>
-        internal async Task WritePostOperationResultAsync(HttpContext httpContext, ODataRequest odataReq, IConfiguration appConfig)
+        internal async Task WritePostOperationResultAsync(HttpContext httpContext, ODataRequest odataReq,
+            IConfiguration appConfig)
         {
             var content = ODataMiddleware.LoadContentByVersionRequest(odataReq.RepositoryPath, httpContext);
 
             if (content == null)
-                throw new ContentNotFoundException(string.Format(SNSR.GetString("$Action,ErrorContentNotFound"), odataReq.RepositoryPath));
+                throw new ContentNotFoundException(string.Format(SNSR.GetString("$Action,ErrorContentNotFound"),
+                    odataReq.RepositoryPath));
 
-            var action = ODataMiddleware.ActionResolver.GetAction(content, odataReq.Scenario, odataReq.PropertyName, null, null, httpContext, appConfig);
+            var action = ODataMiddleware.ActionResolver.GetAction(content, odataReq.Scenario, odataReq.PropertyName,
+                null, null, httpContext, appConfig);
             if (action == null)
             {
                 // check if this is a versioning action (e.g. a checkout)
                 SavingAction.AssertVersioningAction(content, odataReq.PropertyName, true);
 
-                throw new InvalidContentActionException(InvalidContentActionReason.UnknownAction, content.Path, null, odataReq.PropertyName);
+                throw new InvalidContentActionException(InvalidContentActionReason.UnknownAction, content.Path, null,
+                    odataReq.PropertyName);
             }
 
-            if (action.Forbidden || (action.GetApplication() != null && !action.GetApplication().Security.HasPermission(PermissionType.RunApplication)))
+            if (action.Forbidden || (action.GetApplication() != null &&
+                                     !action.GetApplication().Security.HasPermission(PermissionType.RunApplication)))
                 throw new InvalidContentActionException("Forbidden action: " + odataReq.PropertyName);
 
             var odataAction = action as ODataOperationMethodExecutor;
             var response = odataAction != null
-            ? (odataAction.IsAsync
-                ? await odataAction.ExecuteAsync(content)
-                : action.Execute(content))
-            : action.Execute(content, await GetOperationParametersAsync(action, httpContext, odataReq));
+                ? (odataAction.IsAsync
+                    ? await odataAction.ExecuteAsync(content)
+                    : action.Execute(content))
+                : action.Execute(content, await GetOperationParametersAsync(action, httpContext, odataReq));
 
             if (response is Content responseAsContent)
             {
@@ -498,6 +509,7 @@ namespace SenseNet.OData.Writers
             await WriteOperationResultAsync(response, httpContext, odataReq, count)
                 .ConfigureAwait(false);
         }
+
         private async Task WriteOperationResultAsync(object result, HttpContext httpContext, ODataRequest odataReq, int allCount)
         {
             if (result is Content content)

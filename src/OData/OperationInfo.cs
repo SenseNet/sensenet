@@ -30,6 +30,7 @@ namespace SenseNet.OData
         public string[] OptionalParameterNames { get; set; }
         public Type[] OptionalParameterTypes { get; set; }
         public Attribute[] Attributes { get; }
+        public string ControllerName { get; set; }
 
         public bool CausesStateChange { get; private set; }
         public string[] ContentTypes { get; private set; }

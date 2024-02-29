@@ -33,6 +33,7 @@ using System.Net.Http;
 using Microsoft.Extensions.Logging;
 using Nito.AsyncEx;
 using Retrier = SenseNet.Tools.Retrier;
+using Microsoft.Extensions.DependencyInjection;
 
 // ReSharper disable UnusedMember.Global
 // ReSharper disable CommentTypo
@@ -213,6 +214,11 @@ namespace SenseNet.OData
                                 await odataWriter.WriteChildrenCollectionAsync(odataRequest.RepositoryPath, httpContext,
                                         odataRequest)
                                     .ConfigureAwait(false);
+                            else if (odataRequest.IsControllerRequest)
+                                await odataWriter.WriteContentPropertyAsync(
+                                        odataRequest.RepositoryPath, odataRequest.PropertyName,
+                                        odataRequest.IsRawValueRequest, httpContext, odataRequest, _appConfig)
+                                    .ConfigureAwait(false);
                             else if (odataRequest.IsMemberRequest)
                                 await odataWriter.WriteContentPropertyAsync(
                                         odataRequest.RepositoryPath, odataRequest.PropertyName,
@@ -225,7 +231,12 @@ namespace SenseNet.OData
 
                         break;
                     case "PUT": // update
-                        if (odataRequest.IsMemberRequest)
+                        if (odataRequest.IsControllerRequest)
+                        {
+                            throw new ODataException("Cannot access a controller with HTTP PUT.",
+                                ODataExceptionCode.IllegalInvoke);
+                        }
+                        else if (odataRequest.IsMemberRequest)
                         {
                             throw new ODataException("Cannot access a member with HTTP PUT.",
                                 ODataExceptionCode.IllegalInvoke);
@@ -249,7 +260,13 @@ namespace SenseNet.OData
                         break;
                     case "MERGE":
                     case "PATCH": // update
-                        if (odataRequest.IsMemberRequest)
+                        if (odataRequest.IsControllerRequest)
+                        {
+                            throw new ODataException(
+                                String.Concat("Cannot access a controller with HTTP ", httpMethod, "."),
+                                ODataExceptionCode.IllegalInvoke);
+                        }
+                        else if (odataRequest.IsMemberRequest)
                         {
                             throw new ODataException(
                                 String.Concat("Cannot access a member with HTTP ", httpMethod, "."),
@@ -272,7 +289,13 @@ namespace SenseNet.OData
 
                         break;
                     case "POST": // invoke an action, create content
-                        if (odataRequest.IsMemberRequest)
+                        if (odataRequest.IsControllerRequest)
+                        {
+                            // CONTROLLER REQUEST
+                            await odataWriter.WritePostOperationResultAsync(httpContext, odataRequest, _appConfig)
+                                .ConfigureAwait(false);
+                        }
+                        else if (odataRequest.IsMemberRequest)
                         {
                             // MEMBER REQUEST
                             await odataWriter.WritePostOperationResultAsync(httpContext, odataRequest, _appConfig)
@@ -296,7 +319,13 @@ namespace SenseNet.OData
 
                         break;
                     case "DELETE":
-                        if (odataRequest.IsMemberRequest)
+                        if (odataRequest.IsControllerRequest)
+                        {
+                            throw new ODataException(
+                                String.Concat("Cannot access a controller with HTTP ", httpMethod, "."),
+                                ODataExceptionCode.IllegalInvoke);
+                        }
+                        else if (odataRequest.IsMemberRequest)
                         {
                             throw new ODataException(
                                 String.Concat("Cannot access a member with HTTP ", httpMethod, "."),

@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
@@ -30,6 +31,7 @@ using SenseNet.Security;
 using SenseNet.Security.Data;
 using SenseNet.Tests.Accessors;
 using SenseNet.Tests.Core;
+using EventId = Microsoft.Extensions.Logging.EventId;
 using Task = System.Threading.Tasks.Task;
 // ReSharper disable StringLiteralTypo
 
@@ -307,6 +309,24 @@ namespace SenseNet.ODataTests
         {
             return ODataProcessRequestAsync(resource, queryString, requestBodyJson, httpMethod, services, config);
         }
+
+        public class TestILogger<T> : ILogger<T>
+        {
+            public List<string> Entries { get; } = new();
+            public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
+            {
+                if (formatter != null)
+                {
+                    Entries.Add(formatter(state, exception));
+                    return;
+                }
+                Entries.Add(state + "\r\n" + (exception?.ToString() ?? string.Empty));
+            }
+            public bool IsEnabled(LogLevel logLevel) => true;
+            public IDisposable BeginScope<TState>(TState state) where TState : notnull { throw new NotImplementedException(); }
+        }
+        protected TestILogger<ODataMiddleware> CurrentODataLogger { get; private set; }
+
         private async Task<ODataResponse> ODataProcessRequestAsync(string resource, string queryString,
             string requestBodyJson, string httpMethod, IServiceProvider services, IConfiguration config)
         {
@@ -320,8 +340,8 @@ namespace SenseNet.ODataTests
 
             httpContext.Response.Body = new MemoryStream();
 
-            var odata = new ODataMiddleware(null, config, null, 
-                NullLogger<ODataMiddleware>.Instance);
+            CurrentODataLogger = new TestILogger<ODataMiddleware>();
+            var odata = new ODataMiddleware(null, config, null, CurrentODataLogger);
             var odataRequest = ODataRequest.Parse(httpContext);
             await odata.ProcessRequestAsync(httpContext, odataRequest).ConfigureAwait(false);
 
