@@ -157,6 +157,10 @@ if (-not $DryRun) {
 	}
 
 	$ISIP=(docker inspect -f "{{ .NetworkSettings.Networks.$($NetworkName).IPAddress }}" $IdentityContainerName)
+	if ($ISIP -is [array] -and $ISIP[1] -is [string]) {
+		# workaround for "failed to get console mode for stdout: The handle is invalid."
+		$ISIP = $ISIP[1]
+	}
 	Write-Output "`n[$($date) INFO] Identity server Ip: $ISIP"
 	if ($OpenPort) {
 		Write-Output "[$($date) INFO] Identity Server url: https://localhost:$IsHostPort"

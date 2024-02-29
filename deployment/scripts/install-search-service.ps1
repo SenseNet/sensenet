@@ -171,5 +171,9 @@ if (-not $DryRun) {
 	}
 
 	$SCIP=(docker inspect -f "{{ .NetworkSettings.Networks.$($NetworkName).IPAddress }}" $SearchContainerName)
+	if ($SCIP -is [array] -and $SCIP[1] -is [string]) {
+		# workaround for "failed to get console mode for stdout: The handle is invalid."
+		$SCIP = $SCIP[1]
+	}
 	Write-Output "`n[$($date) INFO] Search Service Ip: $SCIP"
 }

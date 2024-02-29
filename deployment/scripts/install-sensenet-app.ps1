@@ -246,6 +246,10 @@ if (-not $DryRun) {
 	}
 
 	$CRIP=$(docker inspect -f "{{ .NetworkSettings.Networks.$($NetworkName).IPAddress }}" $SensenetContainerName)
+	if ($CRIP -is [array] -and $CRIP[1] -is [string]) {
+		# workaround for "failed to get console mode for stdout: The handle is invalid."
+		$CRIP = $CRIP[1]
+	}
 	Write-Output "`n[$($date) INFO] Sensenet App Ip: $CRIP"
 	if ($OpenPort) {
 		Write-Output "[$($date) INFO] Sensenet App url: https://localhost:$SnHostPort"
