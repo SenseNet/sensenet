@@ -821,6 +821,16 @@ namespace SenseNet.OData
                                     if (url.Length == 0)
                                         continue;
                                 }
+                                if (field is PasswordField && content.ContentHandler is User user)
+                                {
+                                    var text = jObject["Text"]?.Value<string>();
+                                    var hash = jObject["Hash"]?.Value<string>();
+                                    if (!string.IsNullOrEmpty(hash))
+                                        user.PasswordHash = hash;
+                                    else if (!string.IsNullOrEmpty(text))
+                                        user.Password = text;
+                                    continue;
+                                }
 
                                 field.SetData(prop.Value);
                                 continue;
