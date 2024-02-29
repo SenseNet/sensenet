@@ -164,8 +164,8 @@ $execFile = "docker"
 $params = "run", "-it", "-d", "eol",
 "--net", $NetworkName, "eol",
 "--name", $SensenetContainerName, "eol",
-"-e", "`"ASPNETCORE_URLS=$aspnetUrls`"", "eol",
-"-e", "`"ASPNETCORE_ENVIRONMENT=$AppEnvironment`"", "eol",
+"-e", "ASPNETCORE_URLS=$aspnetUrls", "eol",
+"-e", "ASPNETCORE_ENVIRONMENT=$AppEnvironment", "eol",
 "-e", "sensenet__Container__Name=$($SensenetContainerName)", "eol",
 "-e", "sensenet__identityManagement__UserProfilesEnabled=false", "eol",
 "-e", "sensenet__authentication__authority=$($IdentityPublicHost)", "eol",
@@ -201,11 +201,11 @@ if ($SnType -ne "InMem" -and -not $UseDbContainer) {
 }
 
 if ($CertPath -ne "") {
-	$params += "-e", "`"Kestrel__Certificates__Default__Path=$CertPath`"", "eol"
+	$params += "-e", "Kestrel__Certificates__Default__Path=$CertPath", "eol"
 }
 
 if ($CertPass -ne "") {
-	$params += "-e", "`"Kestrel__Certificates__Default__Password=$CertPass`"", "eol"
+	$params += "-e", "Kestrel__Certificates__Default__Password=$CertPass", "eol"
 }
 
 if ($UseVolume -and $CertFolder -ne "") {

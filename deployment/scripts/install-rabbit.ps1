@@ -72,12 +72,12 @@ Write-Output "############################"
 
 $execFile = "docker"
 $params = "run", "-d", "eol",
-	"--net", "`"$NetworkName`"", "eol",
-	"--hostname", "`"$($RabbitContainerName)`"", "eol",
-	"--name", "`"$($RabbitContainerName)`"", "eol",
-	"-e", "`"RABBITMQ_DEFAULT_USER=$RabbitUser`"", "eol",
-	"-e", "`"RABBITMQ_DEFAULT_PASS=$RabbitPsw`"", "eol",
-	"-p", "`"$($RabbitPort):15672`"", "eol",
+	"--net", "$NetworkName", "eol",
+	"--hostname", "$($RabbitContainerName)", "eol",
+	"--name", "$($RabbitContainerName)", "eol",
+	"-e", "RABBITMQ_DEFAULT_USER=$RabbitUser", "eol",
+	"-e", "RABBITMQ_DEFAULT_PASS=$RabbitPsw", "eol",
+	"-p", "$($RabbitPort):15672", "eol",
 	"$RABBIT_DOCKERIMAGE"
 
 Invoke-Cli -execFile $execFile -params $params -DryRun $DryRun -ErrorAction stop

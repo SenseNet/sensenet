@@ -95,20 +95,20 @@ $execFile = "docker"
 $params = "run", "-it", "-d", "eol",
 "--net", $NetworkName, "eol",
 "--name", $IdentityContainerName, "eol",
-"-e", "`"ASPNETCORE_URLS=$aspnetUrls`"", "eol",
-"-e", "`"ASPNETCORE_ENVIRONMENT=$AppEnvironment`"", "eol",
-"-e", "`"sensenet__LoginPage__DisplayOtherRepositoryButton=true`"", "eol",
-"-e", "`"sensenet__authentication__setDefaultClients=true`"", "eol",
-"-e", "`"IdentityServer__IssuerUri=$($IdentityPublicHost)`"", "eol",
-"-e", "`"sensenet__Clients__adminui__RepositoryHosts__0__PublicHost=$($SensenetPublicHost)`"", "eol",
-"-e", "`"sensenet__Clients__spa__RepositoryHosts__0__PublicHost=$($SensenetPublicHost)`"", "eol",
-"-e", "`"sensenet__Clients__client__RepositoryHosts__0__PublicHost=$($SensenetPublicHost)`"", "eol"
+"-e", "ASPNETCORE_URLS=$aspnetUrls", "eol",
+"-e", "ASPNETCORE_ENVIRONMENT=$AppEnvironment", "eol",
+"-e", "sensenet__LoginPage__DisplayOtherRepositoryButton=true", "eol",
+"-e", "sensenet__authentication__setDefaultClients=true", "eol",
+"-e", "IdentityServer__IssuerUri=$($IdentityPublicHost)", "eol",
+"-e", "sensenet__Clients__adminui__RepositoryHosts__0__PublicHost=$($SensenetPublicHost)", "eol",
+"-e", "sensenet__Clients__spa__RepositoryHosts__0__PublicHost=$($SensenetPublicHost)", "eol",
+"-e", "sensenet__Clients__client__RepositoryHosts__0__PublicHost=$($SensenetPublicHost)", "eol"
 
 switch($Routing) {
 	"cnt" {
-		$params += "-e", "`"sensenet__Clients__adminui__RepositoryHosts__0__InternalHost=$($SensenetContainerHost)`"", "eol"
-		$params += "-e", "`"sensenet__Clients__spa__RepositoryHosts__0__InternalHost=$($SensenetContainerHost)`"", "eol"
-		$params += "-e", "`"sensenet__Clients__client__RepositoryHosts__0__InternalHost=$($SensenetContainerHost)`"", "eol"
+		$params += "-e", "sensenet__Clients__adminui__RepositoryHosts__0__InternalHost=$($SensenetContainerHost)", "eol"
+		$params += "-e", "sensenet__Clients__spa__RepositoryHosts__0__InternalHost=$($SensenetContainerHost)", "eol"
+		$params += "-e", "sensenet__Clients__client__RepositoryHosts__0__InternalHost=$($SensenetContainerHost)", "eol"
 	}
 	"hst" {
 		$SensenetPublicHost_HOST=([System.Uri]$SensenetPublicHost).Host
@@ -117,11 +117,11 @@ switch($Routing) {
 }
 
 if ($CertPath -ne "") {
-	$params += "-e", "`"Kestrel__Certificates__Default__Path=$CertPath`"", "eol"
+	$params += "-e", "Kestrel__Certificates__Default__Path=$CertPath", "eol"
 }
 
 if ($CertPass -ne "") {
-	$params += "-e", "`"Kestrel__Certificates__Default__Password=$CertPass`"", "eol"
+	$params += "-e", "Kestrel__Certificates__Default__Password=$CertPass", "eol"
 }
 
 if ($UseVolume -and $CertFolder -ne "") {

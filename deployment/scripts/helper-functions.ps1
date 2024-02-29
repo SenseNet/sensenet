@@ -459,6 +459,7 @@ Function Wait-SnApp {
 				} else {
 					Write-Verbose "sn api not yet available!"
 					$isSnAppAvailable = $False
+					Wait-For-It -Seconds $RecheckInSeconds -Message "waiting..." -ShowSeconds $False -Silent $Silent -DryRun $DryRun 
 				}
 			}
 			catch {

@@ -119,17 +119,17 @@ $execFile = "docker"
 $params = "run", "-it", "-d", "eol",
 "--net", $NetworkName, "eol",
 "--name", $SearchContainerName, "eol",
-"-e", "`"ASPNETCORE_URLS=$aspnetUrls`"", "eol",
-"-e", "`"ASPNETCORE_ENVIRONMENT=$AppEnvironment`"", "eol",
+"-e", "ASPNETCORE_URLS=$aspnetUrls", "eol",
+"-e", "ASPNETCORE_ENVIRONMENT=$AppEnvironment", "eol",
 "-e", "ConnectionStrings__SecurityStorage=Persist Security Info=False;Initial Catalog=$($SqlDbName);Data Source=$($DataSource);User ID=$($SqlUser);Password=$($SqlPsw);TrustServerCertificate=true", "eol",
 "-e", "sensenet__security__rabbitmq__ServiceUrl=$($RabbitServiceHost)", "eol"
 
 if ($CertPath -ne "") {
-	$params += "-e", "`"Kestrel__Certificates__Default__Path=$CertPath`"", "eol"
+	$params += "-e", "Kestrel__Certificates__Default__Path=$CertPath", "eol"
 }
 
 if ($CertPass -ne "") {
-	$params += "-e", "`"Kestrel__Certificates__Default__Password=$CertPass`"", "eol"
+	$params += "-e", "Kestrel__Certificates__Default__Password=$CertPass", "eol"
 }
 
 if ($UseVolume -and $CertFolder -ne "") {
