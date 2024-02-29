@@ -18,14 +18,35 @@ namespace SenseNet.Storage.Data.MsSqlClient
         protected DbCreationException(SerializationInfo info, StreamingContext context) : base(info, context) { }
     }
 
+    /// <summary>
+    /// Options for configuring database installation.
+    /// </summary>
     [OptionsClass(sectionName: "sensenet:install:mssql")]
     public class MsSqlDatabaseInstallationOptions
     {
+        /// <summary>
+        /// Database server name.
+        /// </summary>
         public string Server { get; set; }
+        /// <summary>
+        /// Database name.
+        /// </summary>
         public string DatabaseName { get; set; }
+        /// <summary>
+        /// The user used for creating the database.
+        /// </summary>
         public string DbCreatorUserName { get; set; }
+        /// <summary>
+        /// The password of the user used for creating the database.
+        /// </summary>
         public string DbCreatorPassword { get; set; }
+        /// <summary>
+        /// The user who will be the owner of the database.
+        /// </summary>
         public string DbOwnerUserName { get; set; }
+        /// <summary>
+        /// The password of the user who will be the owner of the database.
+        /// </summary>
         public string DbOwnerPassword { get; set; }
     }
 

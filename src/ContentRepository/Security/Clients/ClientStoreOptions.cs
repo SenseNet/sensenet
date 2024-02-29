@@ -16,7 +16,17 @@ namespace SenseNet.ContentRepository.Security.Clients
         /// </summary>
         public string RepositoryUrl { get; set; }
 
+        /// <summary>
+        /// The default user for internal clients. When creating a new client, 
+        /// this user will be used if no other value was provided.
+        /// Default value is "builtin\\admin".
+        /// </summary>
         public string DefaultClientUserInternal { get; set; } = "builtin\\admin";
+        /// <summary>
+        /// The default user for external clients. When creating a new client,
+        /// this user will be used if no other value was provided.
+        /// Default value is "builtin\\publicadmin".
+        /// </summary>
         public string DefaultClientUserExternal { get; set; } = "builtin\\publicadmin";
     }
 }

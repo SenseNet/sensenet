@@ -3,6 +3,9 @@ using System.Collections.Generic;
 
 namespace SenseNet.Services.Core.Authentication
 {
+    /// <summary>
+    /// Options for configuring the user registration process.
+    /// </summary>
     [OptionsClass(sectionName: "sensenet:Registration")]
     public class RegistrationOptions
     {
