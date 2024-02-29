@@ -815,10 +815,17 @@ namespace SenseNet.ContentRepository.Storage
             var notLoadedTextPropertyTypeIds = TextPropertyIds.Where(p => !dynamicData.ContainsKey(p)).ToArray();
             var data = await DataStore.LoadTextPropertyValuesAsync(VersionId, notLoadedTextPropertyTypeIds, cancel)
                 .ConfigureAwait(false);
-            foreach (var id in notLoadedTextPropertyTypeIds)
+
+            if (notLoadedTextPropertyTypeIds.Length > 0)
             {
-                data.TryGetValue(id, out var value);
-                dynamicData[id] = value;
+                lock (_readPropertySync)
+                {
+                    foreach (var id in notLoadedTextPropertyTypeIds)
+                    {
+                        data.TryGetValue(id, out var value);
+                        dynamicData[id] = value;
+                    }
+                }
             }
         }
 
