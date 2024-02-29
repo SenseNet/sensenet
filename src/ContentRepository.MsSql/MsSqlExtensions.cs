@@ -15,7 +15,7 @@ namespace SenseNet.Extensions.DependencyInjection
     public static class MsSqlExtensions
     {
         /// <summary>
-        /// Adds all MS SQL implementations to the service collection.
+        /// Adds MS SQL implementations of data related services to the service collection.
         /// </summary>
         public static IServiceCollection AddSenseNetMsSqlProviders(this IServiceCollection services,
             Action<ConnectionStringOptions> configureConnectionStrings = null,
