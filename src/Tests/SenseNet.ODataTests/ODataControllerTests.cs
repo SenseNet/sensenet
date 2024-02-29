@@ -58,8 +58,8 @@ public class ODataControllerTests : ODataTestBase
     {
         await ODataTest2Async(services =>
         {
-            services.AddSenseNetOdataController<TestODataController1>();
-            services.AddSenseNetOdataController<TestODataController2>();
+            services.AddSenseNetODataController<TestODataController1>();
+            services.AddSenseNetODataController<TestODataController2>();
         }, async () =>
         {
             // ACTION
@@ -77,8 +77,8 @@ public class ODataControllerTests : ODataTestBase
     {
         await ODataTest2Async(services =>
         {
-            services.AddSenseNetOdataController<TestODataController1>();
-            services.AddSenseNetOdataController<TestODataController2>();
+            services.AddSenseNetODataController<TestODataController1>();
+            services.AddSenseNetODataController<TestODataController2>();
         }, async () =>
         {
             // ACTION
@@ -97,7 +97,7 @@ public class ODataControllerTests : ODataTestBase
     {
         await ODataTest2Async(services =>
         {
-            services.AddSenseNetOdataController<TestODataController1>();
+            services.AddSenseNetODataController<TestODataController1>();
         }, async () =>
         {
             // ACTION-1 Called for non-user content
@@ -140,16 +140,16 @@ public class ODataControllerTests : ODataTestBase
 
             // ACTION
             // register by default name (type name without namespace)
-            .AddSenseNetOdataController<TestODataController1>()
+            .AddSenseNetODataController<TestODataController1>()
             // register by custom name
-            .AddSenseNetOdataController<TestODataController2>("Test-OData-Controller2")
+            .AddSenseNetODataController<TestODataController2>("Test-OData-Controller2")
             // register by multiple names (empty string and null are equivalent)
-            .AddSenseNetOdataController<TestODataController3>(string.Empty)
-            .AddSenseNetOdataController<TestODataController3>(typeof(TestODataController3).FullName)
+            .AddSenseNetODataController<TestODataController3>(string.Empty)
+            .AddSenseNetODataController<TestODataController3>(typeof(TestODataController3).FullName)
 
             // overriding by name (last registration will be active)
-            .AddSenseNetOdataController<TestODataController1>("builtin")
-            .AddSenseNetOdataController<TestODataController2>("BUILTIN")
+            .AddSenseNetODataController<TestODataController1>("builtin")
+            .AddSenseNetODataController<TestODataController2>("BUILTIN")
 
             //
             .BuildServiceProvider();

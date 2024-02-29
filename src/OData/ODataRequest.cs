@@ -95,8 +95,17 @@ namespace SenseNet.OData
         /// Gets true if the URI of the requested single resource refers to its member.
         /// </summary>
         public bool IsMemberRequest { get; private set; }
+        /// <summary>
+        /// Gets a value that is true if the current request is a controller request.
+        /// </summary>
         public bool IsControllerRequest { get; set; }
+        /// <summary>
+        /// Gets the name of the requested controller if the request is a controller request.
+        /// </summary>
         public string ControllerName { get; set; }
+        /// <summary>
+        /// Gets the name of the requested controller method if the request is a controller request.
+        /// </summary>
         public string ControllerMethod { get; set; }
 
         /// <summary>

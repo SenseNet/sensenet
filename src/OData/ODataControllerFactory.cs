@@ -9,16 +9,29 @@ using SenseNet.Extensions.DependencyInjection;
 
 namespace SenseNet.OData;
 
+/// <summary>
+/// Defines methods for instantiating OData controllers.
+/// </summary>
 public interface IODataControllerFactory
 {
+    /// <summary>
+    /// Gets the type of the controller by the given name.
+    /// </summary>
     Type GetControllerType(string controllerName);
+    /// <summary>
+    /// Creates an OData controller by the given name.
+    /// </summary>
     ODataController CreateController(string controllerName);
+    /// <summary>
+    /// Initializes the factory.
+    /// </summary>
     void Initialize();
 }
 
 /// <summary>
-/// Singleton service for creating an ODataController by the registered name
+/// Singleton service for creating an ODataController by the registered name.
 /// </summary>
+/// <inheritdoc />
 public class ODataControllerFactory : IODataControllerFactory
 {
     private readonly IServiceProvider _services;

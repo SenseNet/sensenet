@@ -10,9 +10,18 @@ using SenseNet.OData.Metadata;
 // ReSharper disable once CheckNamespace
 namespace SenseNet.Extensions.DependencyInjection
 {
+    /// <summary>
+    /// Represents an OData controller in the DI container.
+    /// </summary>
     public class ODataControllerRegistration
     {
+        /// <summary>
+        /// Gets the name of the controller.
+        /// </summary>
         public string Name { get; set; }
+        /// <summary>
+        /// Gets the type of the controller.
+        /// </summary>
         public Type Type { get; set; }
     }
 
@@ -28,7 +37,7 @@ namespace SenseNet.Extensions.DependencyInjection
                 ;
         }
 
-        public static IServiceCollection AddSenseNetOdataController<TImpl>(this IServiceCollection services, string name = null)
+        public static IServiceCollection AddSenseNetODataController<TImpl>(this IServiceCollection services, string name = null)
             where TImpl : ODataController
         {
             if (name != null && name.Length == 0)
