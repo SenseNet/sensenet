@@ -239,13 +239,13 @@ namespace SenseNet.ContentRepository.Fields
             if (list == null)
                 return result;
 
-            if ((this.Compulsory ?? false) && (list.Count == 0))
+            if ((this.Compulsory ?? false) && (list.Count == 0) && !field.Content.Importing)
                 return new FieldValidationResult(CompulsoryName);
 
             if (this.Query != null)
                 if ((result = ValidateWithQuery(list, this.Query)) != FieldValidationResult.Successful)
                     return result;
-            if ((result = ValidateCount(list)) != FieldValidationResult.Successful)
+            if ((result = ValidateCount(list, field.Content.Importing)) != FieldValidationResult.Successful)
                 return result;
             if (this.AllowedTypes != null)
                 if ((result = ValidateTypes(list)) != FieldValidationResult.Successful)
@@ -300,10 +300,10 @@ namespace SenseNet.ContentRepository.Fields
             result = new FieldValidationResult("ReferenceValue");
             return list;
         }
-        private FieldValidationResult ValidateCount(List<Node> list)
+        private FieldValidationResult ValidateCount(List<Node> list, bool importing)
         {
             // Compulsory
-            bool required = this.Compulsory ?? false;
+            bool required = !importing && (this.Compulsory ?? false);
             bool allowMultiple = this.AllowMultiple ?? false;
 
             if (required && list.Count == 0)

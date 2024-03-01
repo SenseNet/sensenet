@@ -612,6 +612,14 @@ namespace SenseNet.ContentRepository
 
         internal bool ImportingExplicitVersion { get; set; }
 
+        /// <summary>
+        /// Gets or sets a flag that is true if the content is in the Import operation.
+        /// </summary>
+        /// <remarks>
+        /// In some cases, fields may behave differently when saving the owner Content.
+        /// </remarks>
+        public bool Importing { get; set; }
+
         // ========================================================================= Construction
 
         private Content(Node contentHandler, ContentType contentType)
