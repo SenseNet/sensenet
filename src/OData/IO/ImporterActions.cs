@@ -123,7 +123,7 @@ namespace SenseNet.OData.IO
 
                 var parentPath = RepositoryPath.GetParentPath(realPath);
                 var creationResult = await ODataMiddleware.CreateNewContentAsync(parentPath, type, null, requestedName,
-                    null, false, model, true, context.RequestAborted).ConfigureAwait(false);
+                    null, false, model, true, context.RequestAborted, true).ConfigureAwait(false);
 
                 targetContent = creationResult.Content;
                 brokenReferences = creationResult.BrokenReferenceFieldNames;

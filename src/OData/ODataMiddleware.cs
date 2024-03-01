@@ -598,7 +598,7 @@ namespace SenseNet.OData
         }
         public static async Task<ContentCreationResult> CreateNewContentAsync(string parentPath, string contentTypeName, string templateName,
             string contentName, string displayName, bool isMultiStepSave, JObject model,
-            bool skipBrokenReferences, CancellationToken cancel)
+            bool skipBrokenReferences, CancellationToken cancel, bool importing = false)
         {
             contentName = ContentNamingProvider.GetNameFromDisplayName(string.IsNullOrEmpty(contentName) ? displayName : contentName);
 
@@ -640,6 +640,8 @@ namespace SenseNet.OData
                 var node = ContentTemplate.CreateFromTemplate(parent, template, contentName);
                 content = Content.Create(node);
             }
+
+            content.Importing = importing;
 
             var brokenReferenceFieldNames = await UpdateFieldsAsync(content, model, skipBrokenReferences, cancel)
                 .ConfigureAwait(false);
