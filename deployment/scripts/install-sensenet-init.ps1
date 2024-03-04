@@ -28,7 +28,7 @@ Test-Docker
 
 if ($Cleanup -or $Uninstall) {
 	Write-Output "Remove $($NetworkName) network'"
-	Invoke-Cli -command "docker network rm $NetworkName" -DryRun $DryRun -ErrorAction stop
+	Invoke-Cli -command "docker network rm $($NetworkName)" -DryRun $DryRun -ErrorAction stop
     if ($Uninstall) {
         return
     }
@@ -52,7 +52,7 @@ if ($getNetwork -is [array] -and $getNetwork[1] -is [string]) {
 if ($getNetwork) {
     Write-Output "Docker network $getNetwork already exists..."
 } else {
-	Invoke-Cli -command "docker network create -d bridge $NetworkName" -DryRun $DryRun -ErrorAction stop
+	Invoke-Cli -command "docker network create -d bridge $($NetworkName)" -DryRun $DryRun -ErrorAction stop
 }
 
 Write-Output " "
