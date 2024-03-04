@@ -19,14 +19,6 @@ using SenseNet.Tools;
 
 namespace SenseNet.ContentRepository
 {
-    public static class ContentNamingProviderExtensions
-    {
-        public static IServiceCollection AddContentNamingProvider<T>(this IServiceCollection services) where T : class, IContentNamingProvider
-        {
-            return services.AddSingleton<IContentNamingProvider, T>();
-        }
-    }
-
     /// <summary>
     /// Base class that provides methods to generate and validate content names.
     /// </summary>
