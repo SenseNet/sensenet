@@ -19,6 +19,7 @@
 		<PackageLicenseUrl>https://github.com/SenseNet/sensenet/blob/master/LICENSE</PackageLicenseUrl>
 		<RepositoryUrl>https://github.com/SenseNet/sensenet.git</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
+		<LangVersion>latest</LangVersion>
 		<DebugType>portable</DebugType>
 		<PublishRepositoryUrl>true</PublishRepositoryUrl>
 		<IncludeSymbols>true</IncludeSymbols>
