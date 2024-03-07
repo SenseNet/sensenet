@@ -14,9 +14,9 @@
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.17.0" />
     <PackageReference Include="SenseNet.AI.Text.SemanticKernel" Version="0.0.2-beta1" />
     <PackageReference Include="SenseNet.AI.Vision.Azure" Version="0.0.1-beta1" />
-    <PackageReference Include="SenseNet.Preview.Aspose" Version="7.3.6" />
-    <PackageReference Include="SenseNet.Messaging.RabbitMQ" Version="1.1.2" />
-    <PackageReference Include="SenseNet.Search.Lucene29.Centralized.GrpcClient" Version="0.0.13.2" />
+    <PackageReference Include="SenseNet.Preview.Aspose" Version="7.3.6.1" />
+    <PackageReference Include="SenseNet.Messaging.RabbitMQ" Version="1.1.2.1" />
+    <PackageReference Include="SenseNet.Search.Lucene29.Centralized.GrpcClient" Version="0.0.13.3" />
     <PackageReference Include="SenseNet.Security.EFCSecurityStore" Version="3.1.1.2" />
     <PackageReference Include="SenseNet.Security.Messaging.RabbitMQ" Version="1.2.4.3" />
     <PackageReference Include="Serilog.AspNetCore" Version="6.0.1" />
