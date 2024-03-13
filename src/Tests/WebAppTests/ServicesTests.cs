@@ -621,10 +621,14 @@ namespace WebAppTests
                     {
                         typeof(SummaryGenerator),
                         typeof(ContentQueryGenerator),
+                        typeof(ContentTypeGenerator),
+                        typeof(ContentManager),
                         typeof(ImageGenerator)
                     }},
                     {typeof(ISummaryGenerator), typeof(SummaryGenerator)},
                     {typeof(IContentQueryGenerator), typeof(ContentQueryGenerator)},
+                    {typeof(IContentTypeGenerator ), typeof(ContentTypeGenerator)},
+                    {typeof(IContentManager), typeof(ContentManager)},
                     {typeof(IImageGenerator), typeof(ImageGenerator)},
                 },
                 includedProvidersByType: _defaultIncludedProvidersByType,
@@ -663,10 +667,14 @@ namespace WebAppTests
                     {
                         typeof(SummaryGenerator),
                         typeof(ContentQueryGenerator),
+                        typeof(ContentTypeGenerator),
+                        typeof(ContentManager),
                         typeof(ImageGenerator)
                     }},
                     {typeof(ISummaryGenerator), typeof(SummaryGenerator)},
                     {typeof(IContentQueryGenerator), typeof(ContentQueryGenerator)},
+                    {typeof(IContentTypeGenerator ), typeof(ContentTypeGenerator)},
+                    {typeof(IContentManager), typeof(ContentManager)},
                     {typeof(IImageGenerator), typeof(ImageGenerator)},
                 },
                 includedProvidersByType: _defaultIncludedProvidersByType,
@@ -705,10 +713,14 @@ namespace WebAppTests
                     {
                         typeof(SummaryGenerator),
                         typeof(ContentQueryGenerator),
+                        typeof(ContentTypeGenerator),
+                        typeof(ContentManager),
                         typeof(ImageGenerator)
                     }},
                     {typeof(ISummaryGenerator), typeof(SummaryGenerator)},
                     {typeof(IContentQueryGenerator), typeof(ContentQueryGenerator)},
+                    {typeof(IContentTypeGenerator ), typeof(ContentTypeGenerator)},
+                    {typeof(IContentManager), typeof(ContentManager)},
                     {typeof(IImageGenerator), typeof(ImageGenerator)},
                 },
                 includedProvidersByType: _defaultIncludedProvidersByType,
@@ -748,10 +760,14 @@ namespace WebAppTests
                     {
                         typeof(SummaryGenerator),
                         typeof(ContentQueryGenerator),
+                        typeof(ContentTypeGenerator),
+                        typeof(ContentManager),
                         typeof(ImageGenerator)
                     }},
                     {typeof(ISummaryGenerator), typeof(SummaryGenerator)},
                     {typeof(IContentQueryGenerator), typeof(ContentQueryGenerator)},
+                    {typeof(IContentTypeGenerator ), typeof(ContentTypeGenerator)},
+                    {typeof(IContentManager), typeof(ContentManager)},
                     {typeof(IImageGenerator), typeof(ImageGenerator)},
                 },
                 includedProvidersByType: _defaultIncludedProvidersByType,
@@ -800,10 +816,14 @@ namespace WebAppTests
                     {
                         typeof(SummaryGenerator),
                         typeof(ContentQueryGenerator),
+                        typeof(ContentTypeGenerator),
+                        typeof(ContentManager),
                         typeof(ImageGenerator)
                     }},
                     {typeof(ISummaryGenerator), typeof(SummaryGenerator)},
                     {typeof(IContentQueryGenerator), typeof(ContentQueryGenerator)},
+                    {typeof(IContentTypeGenerator ), typeof(ContentTypeGenerator)},
+                    {typeof(IContentManager), typeof(ContentManager)},
                     {typeof(IImageGenerator), typeof(ImageGenerator)},
                 },
                 includedProvidersByType: _defaultIncludedProvidersByType,
@@ -851,10 +871,14 @@ namespace WebAppTests
                     {
                         typeof(SummaryGenerator),
                         typeof(ContentQueryGenerator),
+                        typeof(ContentTypeGenerator),
+                        typeof(ContentManager),
                         typeof(ImageGenerator)
                     }},
                     {typeof(ISummaryGenerator), typeof(SummaryGenerator)},
                     {typeof(IContentQueryGenerator), typeof(ContentQueryGenerator)},
+                    {typeof(IContentTypeGenerator ), typeof(ContentTypeGenerator)},
+                    {typeof(IContentManager), typeof(ContentManager)},
                     {typeof(IImageGenerator), typeof(ImageGenerator)},
                 },
                 includedProvidersByType: _defaultIncludedProvidersByType,
