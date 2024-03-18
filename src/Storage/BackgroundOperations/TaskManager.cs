@@ -212,7 +212,6 @@ namespace SenseNet.BackgroundOperations
 
         private async Task<TaskAuthenticationOptions[]> GetAuthenticationInfoAsync(CancellationToken cancel)
         {
-            var exp = DateTime.UtcNow.AddHours(_options.ApiKeyExpirationHours);
             var authList = new List<TaskAuthenticationOptions>();
 
             foreach (var authenticationInfo in _options.Authentication)
@@ -234,15 +233,17 @@ namespace SenseNet.BackgroundOperations
                     _logger.LogTrace("Loaded task user {user} for {taskName}", authenticationInfo.Value.User,
                         authenticationInfo.Key);
 
-                    // load or create an api key for the admin user
+                    // load or create an api key for the task-admin user
+                    var now = DateTime.UtcNow;
                     var apiKey =
                         (await _apiKeyManager.GetApiKeysByUserAsync(user.Id, cancel).ConfigureAwait(false))
-                        .FirstOrDefault(k => k.ExpirationDate > exp);
+                        .FirstOrDefault(k => k.ExpirationDate > now);
 
                     if (apiKey == null)
                     {
                         _logger.LogTrace("Api key not found for user {user}, creating a new one.", user.Path);
 
+                        var exp = now.AddHours(_options.ApiKeyExpirationHours);
                         apiKey = await _apiKeyManager.CreateApiKeyAsync(user.Id, exp, cancel).ConfigureAwait(false);
                     }
 
