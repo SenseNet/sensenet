@@ -17,8 +17,8 @@
         "sensenet__TaskManagement__Url": "https://localhost:56484",
         "sensenet__TaskManagement__ApplicationUrl": "https://localhost:44362",
         "sensenet__TaskManagement__ApplicationId": "localhost",
-        "sensenet__TaskManagement__Authentication__Default__User": "builtin\\publicadmin",
-        "sensenet__TaskManagement__Authentication__AsposePreviewGenerator__User": "builtin\\publicadmin"
+        "sensenet__TaskManagement__Authentication__Default__User": "builtin\\admin",
+        "sensenet__TaskManagement__Authentication__AsposePreviewGenerator__User": "builtin\\admin"
       },
       "applicationUrl": "https://localhost:44362"
     },
