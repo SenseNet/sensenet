@@ -178,6 +178,7 @@ namespace SenseNet.Services.Core.Operations
                 if (ChunkStart + ChunkLength == FileLength)
                 {
                     BinaryData.CommitChunk(uploadedContent.Id, token, FileLength, PropertyName, CreateBinaryData(file, false));
+                    await uploadedContent.ContentHandler.UploadFinishedAsync(PropertyName, cancellationToken).ConfigureAwait(false);
 
                     // finalize only if the multistep save was started by this process
                     if (mustFinalize || mustCheckIn)

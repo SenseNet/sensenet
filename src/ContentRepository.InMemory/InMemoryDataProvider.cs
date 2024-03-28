@@ -294,6 +294,19 @@ namespace SenseNet.ContentRepository.InMemory
             return STT.Task.CompletedTask;
         }
 
+        public override STT.Task<long> AddChangedDataAsync(int versionId, ChangedData changedProperty, CancellationToken cancel)
+        {
+            var version = DB.Versions.FirstOrDefault(x => x.VersionId == versionId);
+            if (version != null)
+            {
+                var changedData = version.ChangedData.ToList();
+                changedData.Add(changedProperty);
+                version.ChangedData = changedData;
+            }
+
+            return STT.Task.FromResult(version.Timestamp);
+        }
+
         private void UpdateSubTreePathSafe(string oldPath, string newPath)
         {
             foreach (var nodeDoc in DB.Nodes

@@ -758,5 +758,14 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// </summary>
         /// <param name="versionId">Version id.</param>
         public void RemoveNodeDataFromCacheByVersionId(int versionId);
+
+        /// <summary>
+        /// Adds a property changing information to the ChangeData of the requested version.
+        /// </summary>
+        /// <param name="nodeData">Current node data.</param>
+        /// <param name="changedProperty">Changing information of the property.</param>
+        /// <param name="cancel">The token to monitor for cancellation requests.</param>
+        /// <returns>A Task that represents the asynchronous operation.</returns>
+        public Task PropertyChangedAsync(NodeData nodeData, ChangedData changedProperty, CancellationToken cancel);
     }
 }

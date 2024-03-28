@@ -875,5 +875,17 @@ namespace SenseNet.ContentRepository.Storage.Data
         {
             Cache.Remove(CreateNodeDataVersionIdCacheKey(versionId));
         }
+
+        public async Task PropertyChangedAsync(NodeData nodeData, ChangedData changedProperty, CancellationToken cancel)
+        {
+            var versionTimestamp = 
+                await DataProvider.AddChangedDataAsync(nodeData.VersionId, changedProperty, cancel)
+                .ConfigureAwait(false);
+
+            if (!nodeData.IsShared)
+                nodeData.VersionTimestamp = versionTimestamp;
+
+            RemoveFromCache(nodeData);
+        }
     }
 }
