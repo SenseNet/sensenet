@@ -3224,6 +3224,25 @@ namespace SenseNet.ContentRepository.Storage
         }
 
         /// <summary>
+        /// Adds the property the ChangedData of the current version
+        /// </summary>
+        /// <param name="propertyName">Name of the uploaded binary property.</param>
+        /// <param name="cancel">The token to monitor for cancellation requests.</param>
+        /// <returns>A Task that represents the asynchronous operation.</returns>
+        public Task UploadFinishedAsync(string propertyName, CancellationToken cancel)
+        {
+            return DataStore.PropertyChangedAsync(
+                Data,
+                new ChangedData
+                {
+                    Name = propertyName,
+                    Original = string.Empty,
+                    Value = string.Empty
+                },
+                cancel);
+        }
+
+        /// <summary>
         /// Ends the multi-step saving process and makes the Content available for modification.
         /// </summary>
         [Obsolete("Use async version instead.", true)]

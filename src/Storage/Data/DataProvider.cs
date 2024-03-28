@@ -280,6 +280,15 @@ namespace SenseNet.ContentRepository.Storage.Data
             CancellationToken cancellationToken);
 
         /// <summary>
+        /// Adds a property changing information to the ChangeData of the requested version.
+        /// </summary>
+        /// <param name="versionId">Id of the requested version.</param>
+        /// <param name="changedProperty">Changing information of the property.</param>
+        /// <param name="cancel">The token to monitor for cancellation requests.</param>
+        /// <returns>A Task that represents the asynchronous operation.</returns>
+        public abstract Task<long> AddChangedDataAsync(int versionId, ChangedData changedProperty, CancellationToken cancel);
+
+        /// <summary>
         /// Loads node data items by the provided versionId set. If a node is not found by it's versionId, the item must be skipped.
         /// </summary>
         /// <remarks>

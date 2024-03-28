@@ -130,7 +130,7 @@ namespace SenseNet.WebHooks
         {
             var changedFieldNames = changedFields == null
                 ? Array.Empty<string>()
-                : changedFields.Select(cf => cf.Name).ToArray();
+                : changedFields.Select(cf => cf.Name).Distinct().ToArray();
 
             return new
             {

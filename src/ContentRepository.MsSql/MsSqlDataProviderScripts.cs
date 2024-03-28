@@ -168,6 +168,17 @@ DELETE FROM LongTextProperties WHERE VersionId = @VersionId AND PropertyTypeId =
 " + InsertLongtextPropertiesScript;
         #endregion
 
+        #region LoadChangedDataScript
+        protected override string LoadChangedDataScript => @"-- MsSqlDataProvider.LoadChangedData
+SELECT ChangedData FROM Versions WHERE VersionId = @VersionId";
+        #endregion
+        #region SaveChangedDataScript
+        protected override string SaveChangedDataScript => @"-- MsSqlDataProvider.SaveChangedData
+UPDATE Versions SET [ChangedData] = @ChangedData WHERE VersionId = @VersionId
+SELECT Timestamp FROM Versions WHERE VersionId = @VersionId"
+        ;
+        #endregion
+
         #region CopyVersionAndUpdateScript
         protected override string CopyVersionAndUpdateScript => @"-- MsSqlDataProvider.CopyVersionAndUpdate
 IF(NOT EXISTS (SELECT NodeId FROM Versions WHERE VersionId = @PreviousVersionId))
