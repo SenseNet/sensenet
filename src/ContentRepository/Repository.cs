@@ -257,9 +257,6 @@ namespace SenseNet.ContentRepository
         [Obsolete("After V6.5 PATCH 9: Use RepositoryStructure.SkinGlobalFolderPath instead.")]
         public static string SkinGlobalFolderPath => RepositoryStructure.SkinGlobalFolderPath;
 
-        [Obsolete("After V6.5 PATCH 9: Use Skin.DefaultSkinName instead.", true)]
-        public static string DefaultSkinName => "sensenet";
-
         public static string WorkflowDefinitionPath { get; internal set; } = "/Root/System/Workflows/";
         public static string UserProfilePath { get; internal set; } = "/Root/Profiles";
         public static string LocalGroupsFolderName { get; internal set; } = "Groups";
@@ -311,12 +308,6 @@ namespace SenseNet.ContentRepository
         public static bool SkipImportingMissingReferences => RepositoryEnvironment.SkipImportingMissingReferences;
         [Obsolete("After V6.5 PATCH 9: Use RepositoryEnvironment.SkipReferenceNames instead.")]
         public static string[] SkipReferenceNames => RepositoryEnvironment.SkipReferenceNames;
-        [Obsolete("After V6.5 PATCH 9: Use WebApplication.EditSourceExtensions instead.", true)]
-        public static string[] EditSourceExtensions => new string[0];
-        [Obsolete("After V6.5 PATCH 9: Use Webdav.WebdavEditExtensions instead.", true)]
-        public static string[] WebdavEditExtensions => new string[0];
-        [Obsolete("After V6.5 PATCH 9: Use WebApplication.DownloadExtensions instead.", true)]
-        public static string[] DownloadExtensions => new string[0];
 
         [Obsolete("After V6.5 PATCH 9: Use Notification.DefaultEmailSender instead.")]
         public static string EmailSenderAddress => Notification.DefaultEmailSender;

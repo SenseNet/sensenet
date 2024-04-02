@@ -21,11 +21,6 @@ namespace SenseNet.ContentRepository
 {
     public sealed class ContentTemplate
     {
-        [Obsolete("Use the SenseNet.ContentRepository.Storage.Events.NodeObserverNames class instead.", true)]
-        public static readonly string NOTIFOBSERVERNAME = "SenseNet.Notification.NotificationObserver";
-        [Obsolete("Use the SenseNet.ContentRepository.Storage.Events.NodeObserverNames class instead.", true)]
-        public static readonly string WFOBSERVERNAME = "SenseNet.Workflow.WorkflowNotificationObserver";
-
         /// <summary>
         /// Gets a template instance node for the specified contenttype name. 
         /// </summary>

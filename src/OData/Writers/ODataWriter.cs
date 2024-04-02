@@ -967,69 +967,6 @@ namespace SenseNet.OData.Writers
             return projector.Project(content, httpContext);
         }
 
-        //TODO: Bad name: GetJsonObject is a method for odata serializing
-        [Obsolete("", true)]
-        internal static object GetJsonObject(Field field, string selfUrl, ODataRequest oDataRequest)
-        {
-            object data;
-            if (field is ReferenceField)
-            {
-                return ODataReference.Create(String.Concat(selfUrl, "/", field.Name));
-            }
-            else if (field is BinaryField binaryField)
-            {
-                try
-                {
-                    // load binary fields only if the content is finalized
-                    var binaryData = field.Content.ContentHandler.SavingState == ContentSavingState.Finalized
-                        ? (BinaryData) binaryField.GetData()
-                        : null;
-
-                    return ODataBinary.Create(BinaryField.GetBinaryUrl(binaryField.Content.Id, binaryField.Name, binaryData?.Timestamp ?? default),
-                        null, binaryData?.ContentType, null);
-                }
-                catch (Exception ex)
-                {
-                    SnTrace.System.WriteError(
-                        $"Error accessing field {field.Name} of {field.Content.Path} with user {User.Current.Username}: " +
-                        ex.Message);
-
-                    return null;
-                }
-            }
-            else if (ODataMiddleware.DeferredFieldNames.Contains(field.Name))
-            {
-                return ODataReference.Create(String.Concat(selfUrl, "/", field.Name));
-            }
-            try
-            {
-                data = field.GetData();
-            }
-            catch (SenseNetSecurityException)
-            {
-                // The user does not have access to this field (e.g. cannot load
-                // a referenced content). In this case we serve a null value.
-                data = null;
-
-                SnTrace.Repository.Write("PERMISSION warning: user {0} does not have access to field '{1}' of {2}.", User.LoggedInUser.Username, field.Name, field.Content.Path);
-            }
-
-            if (data is NodeType nodeType)
-                return nodeType.Name;
-            if (data is RichTextFieldValue rtfValue)
-                return GetRichTextOutput(field.Name, rtfValue, oDataRequest);
-            return data;
-        }
-        [Obsolete("", true)]
-        private static string GetRichTextOutput(string fieldName, RichTextFieldValue rtfValue, ODataRequest oDataRequest)
-        {
-            if (!oDataRequest.HasExpandedRichTextField)
-                return rtfValue.Text;
-            return oDataRequest.AllRichTextFieldExpanded || oDataRequest.ExpandedRichTextFields.Contains(fieldName)
-                ? JsonConvert.SerializeObject(rtfValue)
-                : rtfValue.Text;
-        }
-
         /// <summary>
         /// Writes an object to the webresponse.
         /// </summary>

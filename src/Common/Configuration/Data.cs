@@ -14,11 +14,6 @@ namespace SenseNet.Configuration
         /// </summary>
         public static int DbCommandTimeout { get; internal set; } = GetInt(SectionName, "DbCommandTimeout", 120, 5);
         /// <summary>
-        /// Gets the configured Sql command timeout value in seconds.
-        /// </summary>
-        [Obsolete("Use DbCommandTimeout instead.", true)]
-        public static int SqlCommandTimeout { get; internal set; } = GetInt(SectionName, "SqlCommandTimeout", DbCommandTimeout);
-        /// <summary>
         /// Maximum execution time of transactions.
         /// </summary>
         public static double TransactionTimeout { get; internal set; } = GetDouble(SectionName, "TransactionTimeout", DbCommandTimeout, DbCommandTimeout);
