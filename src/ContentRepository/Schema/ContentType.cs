@@ -793,16 +793,6 @@ namespace  SenseNet.ContentRepository.Schema
         }
 
         /// <summary>
-        /// Persist this ContentType's changes.
-        /// The name of the instance and the contained ContentTypeDefinition's name must be the same.
-        /// otherwise <see cref="ContentRegistrationException"/> will be thrown.
-        /// </summary>
-        [Obsolete("Use async version instead.", true)]
-        public override void Save()
-        {
-            SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
-        }
-        /// <summary>
         /// Asynchronously persist this ContentType's changes.
         /// The name of the instance and the contained ContentTypeDefinition's name must be the same.
         /// otherwise <see cref="ContentRegistrationException"/> will be thrown.
@@ -841,32 +831,12 @@ namespace  SenseNet.ContentRepository.Schema
             ContentTypeManager.Reset();
         }
 
-        /// <summary>
-        /// Persist this Content's changes by the given settings.
-        /// Do not use this method directly from your code.
-        /// </summary>
-        /// <param name="settings"><see cref="NodeSaveSettings"/> that contains algorithm of the persistence.</param>
-        [Obsolete("Use async version instead.", true)]
-        public override void Save(NodeSaveSettings settings)
-        {
-            SaveAsync(settings, CancellationToken.None).GetAwaiter().GetResult();
-        }
         public override async System.Threading.Tasks.Task SaveAsync(NodeSaveSettings settings, CancellationToken cancel)
         {
             this.IsSystem = true;
             await base.SaveAsync(settings, cancel).ConfigureAwait(false);
         }
 
-        /// <summary>
-        /// Deletes this <see cref="ContentType"/> and the whole subtree physically.
-        /// The operation is forbidden if an instance exists of any of these types.
-        /// In this case an <see cref="ApplicationException"/> will be thrown.
-        /// </summary>
-        [Obsolete("Use async version instead", true)]
-        public override void Delete()
-        {
-            DeleteAsync(CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
-        }
         /// <summary>
         /// Asynchronously deletes this <see cref="ContentType"/> and the whole subtree physically.
         /// The operation is forbidden if an instance exists of any of these types.

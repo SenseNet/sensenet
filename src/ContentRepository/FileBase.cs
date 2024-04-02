@@ -58,13 +58,6 @@ namespace SenseNet.ContentRepository
 		// ================================================================================= Overrides
 
 		/// <inheritdoc />
-		/// <remarks>Before saving, checks the type-consistency of an executable file, if this instance is a new one.</remarks>>
-		[Obsolete("Use async version instead.", true)]
-	    public override void Save(NodeSaveSettings settings)
-	    {
-			SaveAsync(settings, CancellationToken.None).GetAwaiter().GetResult();
-	    }
-		/// <inheritdoc />
         /// <remarks>Before saving, checks the type-consistency of an executable file, if this instance is a new one.</remarks>>
         public override async System.Threading.Tasks.Task SaveAsync(NodeSaveSettings settings, CancellationToken cancel)
         {

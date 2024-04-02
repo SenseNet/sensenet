@@ -1088,19 +1088,6 @@ namespace SenseNet.ContentRepository
         /// <summary>
         /// Defines constants for the verification of the child type.
         /// </summary>
-        [Obsolete("This enum will become private in the future.", true)]
-        public enum TypeAllow
-        {
-            /// <summary>The type is allowed and permitted.</summary>
-            Allowed,
-            /// <summary>The type is allowed but not permitted.</summary>
-            TypeIsNotPermitted,
-            /// <summary>The type is not allowed.</summary>
-            NotAllowed
-        }
-        /// <summary>
-        /// Defines constants for the verification of the child type.
-        /// </summary>
         internal enum TypePermission
         {
             /// <summary>The type is allowed and permitted.</summary>
@@ -1657,14 +1644,6 @@ namespace SenseNet.ContentRepository
             this.Path).ConfigureAwait(false).GetAwaiter().GetResult().Count;
 
         /// <summary>
-        /// Moves this Content and the whole subtree to the Trash if possible, otherwise deletes it physically.
-        /// </summary>
-        [Obsolete("Use async version instead", true)]
-        public override void Delete()
-        {
-            DeleteAsync(CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
-        }
-        /// <summary>
         /// Asynchronously moves this Content and the whole subtree to the Trash if possible, otherwise deletes it physically.
         /// </summary>
         public override System.Threading.Tasks.Task DeleteAsync(CancellationToken cancel)
@@ -1672,15 +1651,6 @@ namespace SenseNet.ContentRepository
             return DeleteAsync(false, cancel);
         }
 
-        /// <summary>
-        /// Moves this Content and the whole subtree to the Trash if possible, otherwise deletes it physically.
-        /// </summary>
-        /// <param name="bypassTrash">Specifies whether the content should be deleted physically or only to the Trash.</param>
-        [Obsolete("Use async version instead", true)]
-        public virtual void Delete(bool bypassTrash)
-        {
-            DeleteAsync(bypassTrash, CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
-        }
         /// <summary>
         /// Asynchronously moves this Content and the whole subtree to the Trash if possible, otherwise deletes it physically.
         /// </summary>
@@ -1775,16 +1745,6 @@ namespace SenseNet.ContentRepository
         }
 
         /// <summary>
-        /// Persist this Content's changes.
-        /// In derived classes to modify or extend the general persistence mechanism of a content, please
-        /// override the <see cref="Save(NodeSaveSettings)"/> method instead, to avoid duplicate Save calls.
-        /// </summary>
-        [Obsolete("Use async version instead.", true)]
-        public override void Save()
-        {
-            SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
-        }
-        /// <summary>
         /// Asynchronously persist this Content's changes.
         /// In derived classes to modify or extend the general persistence mechanism of a content, please
         /// override the <see cref="Save(NodeSaveSettings)"/> method instead, to avoid duplicate Save calls.
@@ -1807,17 +1767,6 @@ namespace SenseNet.ContentRepository
         }
 
         private bool _savingExplicitVersion;
-        /// <summary>
-        /// Persist this Content's changes by the given mode.
-        /// In derived classes to modify or extend the general persistence mechanism of a content, please
-        /// override the <see cref="Save(NodeSaveSettings)"/> method instead, to avoid duplicate Save calls.
-        /// </summary>
-        /// <param name="mode"><see cref="SavingMode"/> that controls versioning.</param>
-        [Obsolete("Use async version instead.", true)]
-        public virtual void Save(SavingMode mode)
-        {
-            SaveAsync(mode, CancellationToken.None).GetAwaiter().GetResult();
-        }
         /// <summary>
         /// Asynchronously persist this Content's changes by the given mode.
         /// In derived classes to modify or extend the general persistence mechanism of a content, please
@@ -1866,15 +1815,6 @@ namespace SenseNet.ContentRepository
             }
         }
 
-        /// <summary>
-        /// Persist this Content's changes by the given settings.
-        /// </summary>
-        /// <param name="settings"><see cref="NodeSaveSettings"/> that contains the algorithm of the persistence.</param>
-        [Obsolete("Use async version instead.", true)]
-        public override void Save(NodeSaveSettings settings)
-        {
-            SaveAsync(settings, CancellationToken.None).GetAwaiter().GetResult();
-        }
         public override async System.Threading.Tasks.Task SaveAsync(NodeSaveSettings settings, CancellationToken cancel)
         {
             await base.SaveAsync(settings, cancel).ConfigureAwait(false);
@@ -1950,16 +1890,6 @@ namespace SenseNet.ContentRepository
         }
 
         /// <summary>
-        /// Check this Content out. Enables modifications for the currently logged in user exclusively.
-        /// Enables other users to access it but only for reading.
-        /// After this operation the version of the Content is always raised even if the versioning mode is "off".
-        /// </summary>
-        [Obsolete("Use async version instead.", true)]
-        public virtual void CheckOut()
-        {
-            CheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();
-        }
-        /// <summary>
         /// Asynchronously check this Content out. Enables modifications for the currently logged in user exclusively.
         /// Enables other users to access it but only for reading.
         /// After this operation the version of the Content is always raised even if the versioning mode is "off".
@@ -1984,14 +1914,6 @@ namespace SenseNet.ContentRepository
         }
 
         /// <summary>
-        /// Commits the modifications of the checked out Content and releases the lock.
-        /// </summary>
-        [Obsolete("Use async version instead.", true)]
-        public virtual void CheckIn()
-        {
-            CheckInAsync(CancellationToken.None).GetAwaiter().GetResult();
-        }
-        /// <summary>
         /// Asynchronously commits the modifications of the checked out Content and releases the lock.
         /// </summary>
         public virtual async System.Threading.Tasks.Task CheckInAsync(CancellationToken cancel)
@@ -2007,14 +1929,6 @@ namespace SenseNet.ContentRepository
         }
 
         /// <summary>
-        /// Reverts the Content to the state before the user checked it out and reloads it.
-        /// </summary>
-        [Obsolete("Use async version instead.", true)]
-        public virtual void UndoCheckOut()
-        {
-            UndoCheckOutAsync(true, CancellationToken.None).GetAwaiter().GetResult();
-        }
-        /// <summary>
         /// Asynchronously reverts the Content to the state before the user checked it out and reloads it.
         /// </summary>
         public virtual System.Threading.Tasks.Task UndoCheckOutAsync(CancellationToken cancel)
@@ -2022,17 +1936,6 @@ namespace SenseNet.ContentRepository
             return UndoCheckOutAsync(true, cancel);
         }
 
-        /// <summary>
-        /// Reverts the Content to the state before the user checked it out.
-        /// If the "'forceRefresh" parameter is true, the Content will be reloaded.
-        /// </summary>
-        /// <param name="forceRefresh">Optional boolean value that specifies
-        /// whether the Content will be reloaded or not. Default: true.</param>
-        [Obsolete("Use async version instead.", true)]
-        public void UndoCheckOut(bool forceRefresh)
-        {
-            UndoCheckOutAsync(forceRefresh, CancellationToken.None).GetAwaiter().GetResult();
-        }
         /// <summary>
         /// Asynchronously reverts the Content to the state before the user checked it out.
         /// If the "'forceRefresh" parameter is true, the Content will be reloaded.
@@ -2056,16 +1959,6 @@ namespace SenseNet.ContentRepository
         }
 
         /// <summary>
-        /// Publishes the Content. Depending on the versioning workflow, the version
-        /// will be the next public version with Approved state or remains the same but the 
-        /// versioning state will be changed to Pending.
-        /// </summary>
-        [Obsolete("Use async version instead.", true)]
-        public virtual void Publish()
-        {
-            PublishAsync(CancellationToken.None).GetAwaiter().GetResult();
-        }
-        /// <summary>
         /// Asynchronously publishes the Content. Depending on the versioning workflow, the version
         /// will be the next public version with Approved state or remains the same but the 
         /// versioning state will be changed to Pending.
@@ -2082,15 +1975,6 @@ namespace SenseNet.ContentRepository
             }
         }
 
-        /// <summary>
-        /// Approves the Content. After this action the Content's version number
-        /// (depending on the mode) will be raised to the next public version.
-        /// </summary>
-        [Obsolete("Use async version instead.", true)]
-        public virtual void Approve()
-        {
-            ApproveAsync(CancellationToken.None).GetAwaiter().GetResult();
-        }
         /// <summary>
         /// Asynchronously approves the Content. After this action the Content's version number
         /// (depending on the mode) will be raised to the next public version.
@@ -2111,15 +1995,6 @@ namespace SenseNet.ContentRepository
             }
         }
 
-        /// <summary>
-        /// Rejects the approvable Content. After this action the Content's version number
-        /// remains the same but the versioning state of the Content will be changed to Rejected.
-        /// </summary>
-        [Obsolete("Use async version instead.", true)]
-        public virtual void Reject()
-        {
-            RejectAsync(CancellationToken.None).GetAwaiter().GetResult();
-        }
         /// <summary>
         /// Asynchronously rejects the approvable Content. After this action the Content's version number
         /// remains the same but the versioning state of the Content will be changed to Rejected.
@@ -2163,11 +2038,6 @@ namespace SenseNet.ContentRepository
             await SaveAsync(update ? SavingMode.KeepVersion : SavingMode.RaiseVersion, cancel).ConfigureAwait(false);
         }
 
-        [Obsolete("Use async version instead.", true)]
-        public override void FinalizeContent()
-        {
-            FinalizeContentAsync(CancellationToken.None).GetAwaiter().GetResult();
-        }
         public override async System.Threading.Tasks.Task FinalizeContentAsync(CancellationToken cancel)
         {
             using var op = SnTrace.ContentOperation.StartOperation("GC.FinalizeContent: SavingState:{0}, VId:{1}, Path:{2}", this.SavingState, this.VersionId, this.Path);

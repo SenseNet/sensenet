@@ -220,11 +220,6 @@ namespace SenseNet.ContentRepository
         }
         #endregion
 
-        [Obsolete("Use async version instead.", true)]
-        public override void Save(SavingMode mode)
-        {
-            SaveAsync(mode, CancellationToken.None).GetAwaiter().GetResult();
-        }
         public override async System.Threading.Tasks.Task SaveAsync(SavingMode mode, CancellationToken cancel)
         {
             // Checking for duplicated options

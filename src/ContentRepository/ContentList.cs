@@ -461,11 +461,6 @@ namespace SenseNet.ContentRepository
 
         /*================================================================================= Node, IContentList */
 
-        [Obsolete("Use async version instead.", true)]
-        public override void Save(SavingMode mode)
-        {
-            SaveAsync(mode, CancellationToken.None).GetAwaiter().GetResult();
-        }
         public override async System.Threading.Tasks.Task SaveAsync(SavingMode mode, CancellationToken cancel)
         {
             if (String.IsNullOrEmpty(this.ContentListDefinition))
@@ -474,11 +469,6 @@ namespace SenseNet.ContentRepository
             await base.SaveAsync(mode, cancel).ConfigureAwait(false);
         }
 
-        [Obsolete("Use async version instead.", true)]
-        public override void Save(NodeSaveSettings settings)
-        {
-            SaveAsync(settings, CancellationToken.None).GetAwaiter().GetResult();
-        }
         public override async System.Threading.Tasks.Task SaveAsync(NodeSaveSettings settings, CancellationToken cancel)
         {
             if (this.IsNew)
@@ -501,12 +491,6 @@ namespace SenseNet.ContentRepository
                 MailProvider.Instance.OnListEmailChanged(this);
         }
 
-        [Obsolete("Use async version instead", true)]
-        public override void ForceDelete()
-        {
-            Security.Assert(PermissionType.ManageListsAndWorkspaces);
-            base.ForceDelete();
-        }
         public override async System.Threading.Tasks.Task ForceDeleteAsync(CancellationToken cancel)
         {
             Security.Assert(PermissionType.ManageListsAndWorkspaces);

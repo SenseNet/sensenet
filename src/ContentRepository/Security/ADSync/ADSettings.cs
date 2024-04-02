@@ -29,11 +29,6 @@ namespace SenseNet.ContentRepository.Security.ADSync
 
         // ================================================================================= Overrides
 
-        [Obsolete("Use async version instead.", true)]
-        public override void Save(NodeSaveSettings settings)
-        {
-            SaveAsync(settings, CancellationToken.None).GetAwaiter().GetResult();
-        }
         public override async System.Threading.Tasks.Task SaveAsync(NodeSaveSettings settings, CancellationToken cancel)
         {
             var settingsObject = DeserializeToJObject(this.Binary.GetStream());

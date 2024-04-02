@@ -132,11 +132,6 @@ namespace SenseNet.ContentRepository
             }
         }
 
-        [Obsolete("Use async version instead.", true)]
-        public override void Save(SavingMode mode)
-        {
-            SaveAsync(mode, CancellationToken.None).GetAwaiter().GetResult();
-        }
         public override async System.Threading.Tasks.Task SaveAsync(SavingMode mode, CancellationToken cancel)
         {
             AssertTrashBinPath();
@@ -147,12 +142,6 @@ namespace SenseNet.ContentRepository
         /// <remarks>In this case returns false.</remarks>
         public override bool IsTrashable => false;
 
-        /// <inheritdoc />
-        [Obsolete("Use async version instead", true)]
-        public override void Delete()
-        {
-            DeleteAsync(CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
-        }
         /// <inheritdoc />
         public override System.Threading.Tasks.Task DeleteAsync(CancellationToken cancel)
         {
