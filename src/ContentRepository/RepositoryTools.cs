@@ -237,7 +237,7 @@ namespace SenseNet.ContentRepository
                 throw new ArgumentNullException(name);
         }
 
-        [Obsolete("Use ServiceTools.GetClientIpAddress instead.")]
+        [Obsolete("Use ServiceTools.GetClientIpAddress instead.", true)]
         public static string GetClientIpAddress()
         {
             return string.Empty;
@@ -1228,7 +1228,7 @@ namespace SenseNet.ContentRepository
         /// <param name="recurse">Irrelevant because throws SnNotSupportedException.</param>
         /// <returns>Throws SnNotSupportedException.</returns>
         /// <exception cref="SnNotSupportedException"></exception>
-        [Obsolete("Use an offline solution instead.")]
+        [Obsolete("Use an offline solution instead.", true)]
         [ODataFunction]
         public static object CheckIndexIntegrity(Content content, bool recurse)
         {

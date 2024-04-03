@@ -685,7 +685,7 @@ namespace SenseNet.ContentRepository
         /// <summary>
         /// Invalidates the pinned instances.
         /// </summary>
-        [Obsolete("Do not use this method anymore.")]
+        [Obsolete("Do not use this method anymore.", true)]
         public static void Reset()
         {
             _somebody = null;

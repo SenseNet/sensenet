@@ -132,7 +132,7 @@ namespace SenseNet.ContentRepository.Storage
         /// Gets true if the audit log is enabled.
         /// This property is obsolete. Use the SenseNet.Configuration.Logging.AuditEnabled property instead.
         /// </summary>
-        [Obsolete("After V6.5 PATCH 9: Use SenseNet.Configuration.Logging.AuditEnabled instead.")]
+        [Obsolete("After V6.5 PATCH 9: Use SenseNet.Configuration.Logging.AuditEnabled instead.", true)]
         public static bool AuditEnabled => Logging.AuditEnabled;
 
         private bool _copying;
@@ -229,13 +229,13 @@ namespace SenseNet.ContentRepository.Storage
         /// <summary>
         /// Gets the collection of child <see cref="Node"/>s. The current user needs to have See permission for every instance.
         /// </summary>
-        [Obsolete("Use GetChildren() method instead.")]
+        [Obsolete("Use GetChildren() method instead.", true)]
         public IEnumerable<Node> PhysicalChildArray => this.GetChildren();
 
         /// <summary>
         /// Gets the collection of child <see cref="Node"/>s. The current user need to have See permission for every instance.
         /// </summary>
-        protected virtual IEnumerable<Node> GetChildren()
+        public virtual IEnumerable<Node> GetChildren()
         {
             var nodeHeads = DataStore.LoadNodeHeadsAsync(QueryChildren().Identifiers, CancellationToken.None)
                 .GetAwaiter().GetResult();
@@ -1736,7 +1736,7 @@ namespace SenseNet.ContentRepository.Storage
         /// <summary>
         /// Refreshes the IsLastPublicVersion and IsLastVersion property values.
         /// </summary>
-        [Obsolete("This method will be deleted in the future.")]
+        [Obsolete("This method will be deleted in the future.", true)]
         public void RefreshVersionInfo()
         {
             SetVersionInfo(NodeHead.Get(this.Id));
@@ -4584,14 +4584,14 @@ namespace SenseNet.ContentRepository.Storage
         /// Occurs before this <see cref="Node"/> instance's permission setting is changed.
         /// </summary>
 #pragma warning disable 67
-        [Obsolete("Do not use this event anymore.")]
+        [Obsolete("Do not use this event anymore.", true)]
         public event CancellableNodeEventHandler PermissionChanging;
 #pragma warning restore 67
         /// <summary>
         /// Occurs after this <see cref="Node"/> instance's permission setting is changed.
         /// </summary>
 #pragma warning disable 67
-        [Obsolete("Do not use this event anymore.")]
+        [Obsolete("Do not use this event anymore.", true)]
         public event EventHandler<PermissionChangedEventArgs> PermissionChanged;
 #pragma warning restore 67
 
@@ -4827,12 +4827,12 @@ namespace SenseNet.ContentRepository.Storage
         /// <summary>
         /// Raises the <see cref="PermissionChanging"/> event.
         /// </summary>
-        [Obsolete("Do not use this method anymore.")]
+        [Obsolete("Do not use this method anymore.", true)]
         protected virtual void OnPermissionChanging(object sender, CancellablePermissionChangingEventArgs e) { }
         /// <summary>
         /// Raises the <see cref="PermissionChanged"/> event.
         /// </summary>
-        [Obsolete("Do not use this method anymore.")]
+        [Obsolete("Do not use this method anymore.", true)]
         protected virtual void OnPermissionChanged(object sender, PermissionChangedEventArgs e) { }
 
         #endregion

@@ -128,7 +128,9 @@ namespace SenseNet.ODataTests
                 Assert.AreEqual(fieldValue, (string)item["#CustomField"]);
 
                 // get base count
-                var countByCQ = ContentQuery.Query("#CustomField:*asdf* .AUTOFILTERS:OFF").Count;
+                var countByCQ = (await ContentQuery.QueryAsync(
+                    "#CustomField:*asdf* .AUTOFILTERS:OFF", CancellationToken.None))
+                    .Count;
 
                 // get ids by SnLinq
                 var origIds = Content.All

@@ -370,7 +370,7 @@ namespace SenseNet.ContentRepository
             // This is to make sure that only those children are copied
             // that are really under this content. E.g. SmartFolder may
             // contain real children and queried children too.
-            foreach (var childNode in sourceNode.PhysicalChildArray.Where(ch => ch.InFolder(sourceNode.Path)))
+            foreach (var childNode in sourceNode.GetChildren().Where(ch => ch.InFolder(sourceNode.Path)))
                 CreateContentRecursive(Content.Create(childNode), target);
         }
 

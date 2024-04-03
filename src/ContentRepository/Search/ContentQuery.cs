@@ -75,7 +75,7 @@ namespace SenseNet.Search
         /// </summary>
         /// <param name="text">CQL query text.</param>
         /// <returns>The <see cref="QueryResult"/> of the CQL query</returns>
-        [Obsolete("Use async version instead", false)]
+        [Obsolete("Use async version instead", true)]
         public static QueryResult Query(string text)
         {
             return QueryAsync(text, CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
@@ -96,7 +96,7 @@ namespace SenseNet.Search
         /// <param name="settings"><see cref="QuerySettings"/> that extends the query.</param>
         /// <param name="parameters">Values to substitute the parameters of the CQL query text.</param>
         /// <returns>The <see cref="QueryResult"/> of the CQL query</returns>
-        [Obsolete("Use async version instead", false)]
+        [Obsolete("Use async version instead", true)]
         public static QueryResult Query(string text, QuerySettings settings, params object[] parameters)
         {
             return QueryAsync(text, settings, CancellationToken.None, parameters)
@@ -462,7 +462,7 @@ namespace SenseNet.Search
             }
         }
 
-        [Obsolete("Use async version instead", false)]
+        [Obsolete("Use async version instead", true)]
         public static string ResolveInnerQueries(string queryText, QuerySettings querySettings)
         {
             return ResolveInnerQueriesAsync(queryText, querySettings, CancellationToken.None)

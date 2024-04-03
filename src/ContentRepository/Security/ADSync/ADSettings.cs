@@ -184,7 +184,7 @@ namespace SenseNet.ContentRepository.Security.ADSync
             return RepositoryTools.GetStreamFromString(settings.ToString());
         }
 
-        [Obsolete]
+        [Obsolete("Do not use this method anymore.", true)]
         public bool IncludePasswords()
         {
             return false;

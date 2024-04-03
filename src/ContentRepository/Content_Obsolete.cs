@@ -9,7 +9,7 @@ namespace SenseNet.ContentRepository
 {
     public partial class Content
     {
-        [Obsolete("Use Content.Create instead")]
+        [Obsolete("Use Content.Create instead", true)]
         public Content()
         {
 

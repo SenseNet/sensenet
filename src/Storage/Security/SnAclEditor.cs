@@ -183,7 +183,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <param name="entityId">The requested entity.</param>
         /// <param name="convertToExplicit">If true (default), all effective permissions will be copied explicitly.</param>
         /// <returns>A reference to this instance for calling more operations.</returns>
-        [Obsolete("Use the BreakInheritance(int entityId, EntryType[] categoriesToCopy) method instead.")]
+        [Obsolete("Use the BreakInheritance(int entityId, EntryType[] categoriesToCopy) method instead.", true)]
         public new SnAclEditor BreakInheritance(int entityId, bool convertToExplicit = true)
         {
             base.BreakInheritance(entityId, convertToExplicit);

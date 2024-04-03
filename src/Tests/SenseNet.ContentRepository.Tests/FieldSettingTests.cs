@@ -2027,7 +2027,7 @@ namespace SenseNet.ContentRepository.Tests.Schema
 							</ContentType>", string.Join("", fieldXmlFragments));
 
             InstallContentType(ctd, null);
-            return ContentTypeManager.Current.GetContentTypeByName("FieldSetting_Structure");
+            return ContentTypeManager.Instance.GetContentTypeByName("FieldSetting_Structure");
         }
 
         private bool CompareFieldXmls(string fieldXml1, string fieldXml2)
@@ -2044,7 +2044,7 @@ namespace SenseNet.ContentRepository.Tests.Schema
             {
                 var testRoot = CreateTestRoot();
 
-                var start = ContentTypeManager.Current;
+                var start = ContentTypeManager.Instance;
 
                 string ctd = @"<?xml version='1.0' encoding='utf-8'?>
                 <ContentType name='FieldSetting_Analyzer' parentType='GenericContent' handler='SenseNet.ContentRepository.GenericContent' xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition'>
@@ -2063,7 +2063,7 @@ namespace SenseNet.ContentRepository.Tests.Schema
                 </ContentType>";
                 ContentTypeInstaller.InstallContentType(ctd);
 
-                var restart = ContentTypeManager.Current;
+                var restart = ContentTypeManager.Instance;
 
                 var contentType = ContentType.GetByName("FieldSetting_Analyzer");
                 var analyzer0 = contentType.GetFieldSettingByName("TestString1").IndexingInfo.Analyzer;
@@ -2187,11 +2187,11 @@ namespace SenseNet.ContentRepository.Tests.Schema
             ed1.Load();
             ed2.Load();
 
-            ContentTypeManagerAccessor ctmAcc = new ContentTypeManagerAccessor(ContentTypeManager.Current);
+            ContentTypeManagerAccessor ctmAcc = new ContentTypeManagerAccessor(ContentTypeManager.Instance);
             ContentType cts = ctmAcc.LoadOrCreateNew(contentTypeDefInstall);
             ctmAcc.ApplyChangesInEditor(cts, ed2);
             cts.Save(false);
-            ContentTypeManager.Current.AddContentType(cts);
+            ContentTypeManager.Instance.AddContentType(cts);
 
             SchemaEditorAccessor ed2Acc = new SchemaEditorAccessor(ed2);
             TestSchemaWriter wr = new TestSchemaWriter();

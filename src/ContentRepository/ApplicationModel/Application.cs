@@ -454,7 +454,7 @@ namespace SenseNet.ApplicationModel
             return typeof(ActionBase);
         }
 
-        [Obsolete("Do not use")]
+        [Obsolete("Do not use", true)]
         protected string GetNameBase()
         {
             return Name.Split('.').FirstOrDefault();

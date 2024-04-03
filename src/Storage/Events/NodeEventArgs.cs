@@ -13,7 +13,7 @@ namespace SenseNet.ContentRepository.Storage.Events
         public string OriginalSourcePath { get; private set; }
         public IEnumerable<ChangedData> ChangedData { get; private set; }
 
-	    [Obsolete("Use the GetCustomData method instead.")]
+	    [Obsolete("Use the GetCustomData(string) method instead.", true)]
         public object CustomData => GetCustomData(CancellableNodeEventArgs.CustomDataKey);
 
 	    private readonly IDictionary<string, object> _customData;

@@ -21,61 +21,61 @@ namespace SenseNet.ContentRepository.Storage
 
     public static class TypeHandler
     {
-        [Obsolete("Use TypeResolver.CreateInstance<T>(string) instead")]
+        [Obsolete("Use TypeResolver.CreateInstance<T>(string) instead", true)]
         public static T CreateInstance<T>(string typeName) where T : new()
         {
             return TypeResolver.CreateInstance<T>(typeName);
         }
-        [Obsolete("Use TypeResolver.CreateInstance<T>(string, object[]) instead")]
+        [Obsolete("Use TypeResolver.CreateInstance<T>(string, object[]) instead", true)]
         public static T CreateInstance<T>(string typeName, params object[] args)
 		{
             return TypeResolver.CreateInstance<T>(typeName, args);
 		}
-        [Obsolete("Use TypeResolver.CreateInstance(string) instead")]
+        [Obsolete("Use TypeResolver.CreateInstance(string) instead", true)]
         public static object CreateInstance(string typeName)
         {
             return TypeResolver.CreateInstance(typeName);
         }
-        [Obsolete("Use TypeResolver.CreateInstance(string, object[]) instead")]
+        [Obsolete("Use TypeResolver.CreateInstance(string, object[]) instead", true)]
         public static object CreateInstance(string typeName, params object[] args)
         {
             return TypeResolver.CreateInstance(typeName, args);
 		}
 
-        [Obsolete("Use TypeResolver.GetType(string) instead")]
+        [Obsolete("Use TypeResolver.GetType(string) instead", true)]
         public static Type GetType(string typeName)
         {
             return TypeResolver.GetType(typeName);
         }
-        [Obsolete("Use TypeResolver.FindTypeInAppDomain(string) instead")]
+        [Obsolete("Use TypeResolver.FindTypeInAppDomain(string) instead", true)]
         internal static Type FindTypeInAppDomain(string typeName)
         {
             return TypeResolver.FindTypeInAppDomain(typeName);
         }
-        [Obsolete("Use TypeResolver.FindTypeInAppDomain(string, bool) instead")]
+        [Obsolete("Use TypeResolver.FindTypeInAppDomain(string, bool) instead", true)]
         internal static Type FindTypeInAppDomain(string typeName, bool throwOnError)
         {
             return TypeResolver.FindTypeInAppDomain(typeName, throwOnError);
         }
 
-        [Obsolete("Use TypeResolver.GetAssemblies() instead")]
+        [Obsolete("Use TypeResolver.GetAssemblies() instead", true)]
         public static Assembly[] GetAssemblies()
         {
             return TypeResolver.GetAssemblies();
         }
 
-        [Obsolete("Use TypeResolver.LoadAssembliesFrom(string) instead")]
+        [Obsolete("Use TypeResolver.LoadAssembliesFrom(string) instead", true)]
         public static string[] LoadAssembliesFrom(string path)
         {
             return TypeResolver.LoadAssembliesFrom(path);
 		}
 
-        [Obsolete("Use TypeResolver.GetTypesByInterface(Type) instead")]
+        [Obsolete("Use TypeResolver.GetTypesByInterface(Type) instead", true)]
         public static Type[] GetTypesByInterface(Type interfaceType)
         {
             return TypeResolver.GetTypesByInterface(interfaceType);
 		}
-        [Obsolete("Use TypeResolver.GetTypesByBaseType(Type) instead")]
+        [Obsolete("Use TypeResolver.GetTypesByBaseType(Type) instead", true)]
         public static Type[] GetTypesByBaseType(Type baseType)
         {
             return TypeResolver.GetTypesByBaseType(baseType);
@@ -83,19 +83,19 @@ namespace SenseNet.ContentRepository.Storage
 
         // ========================================================================= Oldschool container methods
 
-        [Obsolete("Use Providers.Instance.GetProvider<T>(name) or any instrument of the SenseNet.Tools.TypeResolver.")]
+        [Obsolete("Use Providers.Instance.GetProvider<T>(name) or any instrument of the SenseNet.Tools.TypeResolver.", true)]
         public static T ResolveProvider<T>() where T : class
         {
             return ResolveNamedType<T>(typeof(T).Name);
         }
 
-        [Obsolete("Use Providers.Instance.GetProvider<T>(name) or any instrument of the SenseNet.Tools.TypeResolver.")]
+        [Obsolete("Use Providers.Instance.GetProvider<T>(name) or any instrument of the SenseNet.Tools.TypeResolver.", true)]
         public static T ResolveNamedType<T>(string name) where T: class
         {
             return Providers.Instance.GetProvider<T>(name);
         }
 
-        [Obsolete("Use Providers.Instance.GetProvider<T>(name) or any instrument of the SenseNet.Tools.TypeResolver.")]
+        [Obsolete("Use Providers.Instance.GetProvider<T>(name) or any instrument of the SenseNet.Tools.TypeResolver.", true)]
         public static T ResolveInstance<T>(string name) where T : class
         {
             return ResolveNamedType<T>(name);

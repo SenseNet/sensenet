@@ -33,7 +33,7 @@ namespace SenseNet.Configuration
         /// DO NOT USE THIS IN YOUR CODE. This method is intended for internal use only and will be removed in the near future.
         /// </summary>
         /// <returns>A new instance of data options filled with static configuration values.</returns>
-        [Obsolete]
+        [Obsolete("Do not use this method anymore.", false)] // 17 references
         public static DataOptions GetLegacyConfiguration()
         {
             return new DataOptions()
