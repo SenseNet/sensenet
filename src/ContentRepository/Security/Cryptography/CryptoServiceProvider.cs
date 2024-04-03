@@ -21,21 +21,6 @@ namespace SenseNet.ContentRepository.Security.Cryptography
 
     public class CryptoServiceProvider
     {
-        // ================================================================================= Static API
-
-        [Obsolete("Use the ICryptoServiceProvider service instead.", true)]
-        public static string Encrypt(string plainText)
-        {
-            throw new InvalidOperationException();
-        }
-        [Obsolete("Use the ICryptoServiceProvider service instead.", true)]
-        public static string Decrypt(string encodedText)
-        {
-            throw new InvalidOperationException();
-        }
-
-        // ================================================================================= OData API
-
         /// <summary>Encrypts a short text using the current crypto service provider.</summary>
         /// <snCategory>Security</snCategory>
         /// <param name="content"></param>

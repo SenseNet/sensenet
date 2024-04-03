@@ -6,7 +6,7 @@ using System.Linq.Expressions;
 
 namespace SenseNet.ContentRepository.Linq
 {
-    [Obsolete("Use FilteredContentEnumerable instead.")]
+    [Obsolete("Use FilteredContentEnumerable instead.", true)]
     public class FilteredEnumerable : IEnumerable<Node>
     {
         private readonly IEnumerable _enumerable;

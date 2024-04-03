@@ -52,13 +52,6 @@ namespace SenseNet.ContentRepository
 
         /// <inheritdoc />
         /// <remarks>Synchronizes the modifications via the current <see cref="DirectoryProvider"/>.</remarks>
-        [Obsolete("Use async version instead.", true)]
-        public override void Save(SavingMode mode)
-        {
-            SaveAsync(mode, CancellationToken.None).GetAwaiter().GetResult();
-        }
-        /// <inheritdoc />
-        /// <remarks>Synchronizes the modifications via the current <see cref="DirectoryProvider"/>.</remarks>
         public override async System.Threading.Tasks.Task SaveAsync(SavingMode mode, CancellationToken cancel)
         {
             var originalId = this.Id;
@@ -74,13 +67,6 @@ namespace SenseNet.ContentRepository
             _syncObject = true;
         }
 
-        /// <inheritdoc />
-        /// <remarks>Synchronizes the modifications via the current <see cref="DirectoryProvider"/>.</remarks>
-        [Obsolete("Use async version instead", true)]
-	    public override void ForceDelete()
-        {
-            ForceDeleteAsync(CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
-        }
         /// <inheritdoc />
         /// <remarks>Synchronizes the modifications via the current <see cref="DirectoryProvider"/>.</remarks>
 	    public override async System.Threading.Tasks.Task ForceDeleteAsync(CancellationToken cancel)
@@ -181,28 +167,8 @@ namespace SenseNet.ContentRepository
             this.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
         }
 
-        // =================================================================================== ISecurityContainer members
-
-        /// <summary>
-        /// This method is obsolete. Use <see cref="IUser.IsInOrganizationalUnit"/> method instead.
-        /// </summary>
-        [Obsolete("Use User.IsInOrganizationalUnit instead.", true)]
-        public bool IsMember(IUser user)
-        {
-            return user.IsInOrganizationalUnit(this);
-        }
-
         // =================================================================================== ISecurityMember
 
-        /// <summary>
-        /// This method is obsolete. Use <see cref="Group.IsInGroup"/> method instead.
-        /// </summary>
-        /// <param name="securityGroupId">Id of the container group.</param>
-	    [Obsolete("Use IsInGroup instead.", true)]
-	    public bool IsInRole(int securityGroupId)
-	    {
-            return IsInGroup(securityGroupId);
-	    }
         /// <summary>
         /// Returns true if this instance is a member of an <see cref="OrganizationalUnit"/> identified by the given groupId.
         /// This method is transitive, meaning it will look for relations in the whole group graph, not 

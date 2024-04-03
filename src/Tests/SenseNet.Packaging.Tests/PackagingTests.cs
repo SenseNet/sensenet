@@ -278,10 +278,10 @@ namespace SenseNet.Packaging.Tests
             var dependency = dependencies[0];
             Assert.AreEqual(1, dependencies.Length);
             Assert.AreEqual("Component1", dependency.Id);
-            Assert.AreEqual("1.0.1", dependency.MinVersion.ToString());
-            Assert.AreEqual("1.0.1", dependency.MaxVersion.ToString());
-            Assert.IsFalse(dependency.MinVersionIsExclusive);
-            Assert.IsFalse(dependency.MaxVersionIsExclusive);
+            Assert.AreEqual("1.0.1", dependency.Boundary.MinVersion.ToString());
+            Assert.AreEqual("1.0.1", dependency.Boundary.MaxVersion.ToString());
+            Assert.IsFalse(dependency.Boundary.MinVersionIsExclusive);
+            Assert.IsFalse(dependency.Boundary.MaxVersionIsExclusive);
         }
 
         [TestMethod]
@@ -322,10 +322,10 @@ namespace SenseNet.Packaging.Tests
 
             var dependencies = manifest.Dependencies.ToArray();
             var dependency = dependencies[0];
-            Assert.AreEqual(minVer, dependency.MinVersion?.ToString());
-            Assert.AreEqual(maxVer, dependency.MaxVersion?.ToString());
-            Assert.AreEqual(minEx, dependency.MinVersionIsExclusive);
-            Assert.AreEqual(maxEx, dependency.MaxVersionIsExclusive);
+            Assert.AreEqual(minVer, dependency.Boundary.MinVersion?.ToString());
+            Assert.AreEqual(maxVer, dependency.Boundary.MaxVersion?.ToString());
+            Assert.AreEqual(minEx, dependency.Boundary.MinVersionIsExclusive);
+            Assert.AreEqual(maxEx, dependency.Boundary.MaxVersionIsExclusive);
         }
         private void ValidateDependencyVersion(string versionAttrs, PackagingExceptionType errorType)
         {

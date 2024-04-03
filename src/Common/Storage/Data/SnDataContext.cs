@@ -34,11 +34,6 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         public bool NeedToCleanupFiles { get; set; }
 
-        [Obsolete("Use the constructor that expects data options instead.", true)]
-        protected SnDataContext(CancellationToken cancellationToken) : this(new DataOptions(), 
-            new DefaultRetrier(Options.Create(new RetrierOptions()), NullLogger<DefaultRetrier>.Instance), cancellationToken)
-        {
-        }
         protected SnDataContext(DataOptions options, IRetrier retrier, CancellationToken cancel = default)
         {
             _retrier = retrier ?? new DefaultRetrier(Options.Create(new RetrierOptions()), NullLogger<DefaultRetrier>.Instance);

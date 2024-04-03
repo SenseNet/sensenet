@@ -42,7 +42,7 @@ namespace SenseNet.Configuration
     /// in the sensenet/blobstorage section. All properties have default values,
     /// no configuration is mandatory.
     /// </summary>
-    [Obsolete("Use BlobStorageOptions with DI instead.")]
+    [Obsolete("Use BlobStorageOptions with DI instead.", false)] // 12 references
     public class BlobStorage : SnConfig
     {
         private const string SectionName = "sensenet/blobstorage";
@@ -96,7 +96,7 @@ namespace SenseNet.Configuration
     [OptionsClass(sectionName: "sensenet:BlobStorage")]
     public class BlobStorageOptions
     {
-        [Obsolete("Get configuration through dependency injection instead.")]
+        [Obsolete("Get configuration through dependency injection instead.", false)] // 4 references
         public static BlobStorageOptions GetLegacyConfiguration()
         {
             return new BlobStorageOptions

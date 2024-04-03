@@ -14,11 +14,6 @@ namespace SenseNet.Storage
         protected UnknownContentHandler(NodeToken nt) : base(nt) { }
         public override bool IsContentType { get; } = false;
 
-        [Obsolete("Use async version instead.", true)]
-        public override void Save(NodeSaveSettings settings)
-        {
-            ThrowException("save");
-        }
         public override Task SaveAsync(CancellationToken cancel)
         {
             ThrowException("save");
@@ -38,31 +33,16 @@ namespace SenseNet.Storage
         {
             ThrowException("copy");
         }
-        [Obsolete("Use async version instead", true)]
-        public override void Delete()
-        {
-            ThrowException("delete");
-        }
         public override Task DeleteAsync(CancellationToken cancel)
         {
             ThrowException("delete");
             return Task.CompletedTask;
         }
 
-        [Obsolete("Use async version instead.", true)]
-        public override void FinalizeContent()
-        {
-            ThrowException("finalize");
-        }
         public override Task FinalizeContentAsync(CancellationToken cancel)
         {
             ThrowException("finalize");
             return Task.CompletedTask;
-        }
-        [Obsolete("Use async version instead", true)]
-        public override void ForceDelete()
-        {
-            ThrowException("delete");
         }
 
         public override Task ForceDeleteAsync(CancellationToken cancel)

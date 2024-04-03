@@ -69,14 +69,6 @@ namespace SenseNet.Search.Querying
         private readonly QueryFieldLevel _queryFieldLevel;
         private readonly bool _allVersions;
 
-        [Obsolete("", true)]
-        public PermissionFilter(IUser user, QueryFieldLevel queryFieldLevel, bool allVersions)
-        {
-            _userId = user.Id;
-            _user = user;
-            _queryFieldLevel = queryFieldLevel;
-            _allVersions = allVersions;
-        }
         public PermissionFilter(SnQuery query, IQueryContext context)
         {
             _userId = context.UserId;

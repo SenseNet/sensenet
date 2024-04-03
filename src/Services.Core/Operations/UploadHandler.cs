@@ -356,13 +356,6 @@ namespace SenseNet.Services.Core.Operations
         }
 
 
-        [Obsolete("Use async version instead.", true)]
-        public string FinalizeContent(Content content)
-        {
-            SetPreviewGenerationPriority(content);
-            content.FinalizeContent();
-            return string.Empty;
-        }
         public async Task<string> FinalizeContentAsync(Content content, CancellationToken cancel)
         {
             SetPreviewGenerationPriority(content);

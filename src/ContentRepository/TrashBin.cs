@@ -132,11 +132,6 @@ namespace SenseNet.ContentRepository
             }
         }
 
-        [Obsolete("Use async version instead.", true)]
-        public override void Save(SavingMode mode)
-        {
-            SaveAsync(mode, CancellationToken.None).GetAwaiter().GetResult();
-        }
         public override async System.Threading.Tasks.Task SaveAsync(SavingMode mode, CancellationToken cancel)
         {
             AssertTrashBinPath();
@@ -147,12 +142,6 @@ namespace SenseNet.ContentRepository
         /// <remarks>In this case returns false.</remarks>
         public override bool IsTrashable => false;
 
-        /// <inheritdoc />
-        [Obsolete("Use async version instead", true)]
-        public override void Delete()
-        {
-            DeleteAsync(CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
-        }
         /// <inheritdoc />
         public override System.Threading.Tasks.Task DeleteAsync(CancellationToken cancel)
         {
@@ -173,18 +162,6 @@ namespace SenseNet.ContentRepository
             return n != null && (n.Path + "/").StartsWith(TrashBinPath + "/");
         }
 
-        /// <summary>
-        /// Deletes the given Content depending on the state of the Trash Bin and Content.
-        /// The Trash Bin is used if the Trash Bin is active, the value of the content's IsTrashable property is true
-        /// and the <see cref="TrashBag"/> of the content is not too big (see <see cref="BagCapacity"/> property).
-        /// If any condition is false, the Content will be deleted permanently.
-        /// </summary>
-        /// <param name="n">The <see cref="GenericContent"/> instance that will be deleted.</param>
-        [Obsolete("Use async version instead", true)]
-        public static bool DeleteNode(GenericContent n)
-        {
-            return DeleteNodeAsync(n, CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
-        }
         /// <summary>
         /// Asynchronously deletes the given Content depending on the state of the Trash Bin and Content.
         /// The Trash Bin is used if the Trash Bin is active, the value of the content's IsTrashable property is true
@@ -210,13 +187,11 @@ namespace SenseNet.ContentRepository
         }
 
         /// <summary>
-        /// Deletes the content permanently. This method is obsolete, use node.ForceDelete instead.
+        /// Asynchronously deletes the content permanently.
         /// </summary>
-        [Obsolete("Use ForceDelete method on the given instance.", true)]
-        public static void ForceDelete(GenericContent n)
-        {
-            ForceDeleteAsync(n, CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
-        }
+        /// <param name="n">The <see cref="GenericContent"/>Content instance that will be deleted.</param>
+        /// <param name="cancel">The token to monitor for cancellation requests.</param>
+        /// <returns>A Task that represents the asynchronous operation.</returns>
         public static async System.Threading.Tasks.Task ForceDeleteAsync(GenericContent n, CancellationToken cancel)
         {
             SnTrace.Repository.Write("Trashbin: Finally deleting from Repository. NodePath:{0}", n.Path);

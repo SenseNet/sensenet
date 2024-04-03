@@ -211,7 +211,7 @@ namespace SenseNet.ContentRepository.Storage.Security
             }
         }
 
-        [Obsolete("After V6.5 PATCH 9: Use RepositoryEnvironment.DefaultLockTimeout instead.")]
+        [Obsolete("After V6.5 PATCH 9: Use RepositoryEnvironment.DefaultLockTimeout instead.", true)]
         public static int DefaultLockTimeOut => RepositoryEnvironment.DefaultLockTimeout;
 
         /// <summary>

@@ -247,15 +247,6 @@ namespace SenseNet.ContentRepository
         }
 
         /// <summary>
-        /// This method is obsolete. Use <see cref="Group.IsInGroup"/> instead.
-        /// </summary>
-        /// <param name="securityGroupId">Id of the container group.</param>
-        [Obsolete("Use IsInGroup instead.", true)]
-        public bool IsInRole(int securityGroupId)
-        {
-            return IsInGroup(securityGroupId);
-        }
-        /// <summary>
         /// Returns true if this group is a member of a group identified by the given groupId.
         /// This method is transitive, meaning it will look for relations in the whole group graph, not 
         /// only direct memberships.
@@ -356,13 +347,6 @@ namespace SenseNet.ContentRepository
 
         /// <inheritdoc />
         /// <remarks>Synchronizes the modifications via the current <see cref="DirectoryProvider"/>.</remarks>
-        [Obsolete("Use async version instead.", true)]
-        public override void Save(NodeSaveSettings settings)
-        {
-            SaveAsync(settings, CancellationToken.None).GetAwaiter().GetResult();
-        }
-        /// <inheritdoc />
-        /// <remarks>Synchronizes the modifications via the current <see cref="DirectoryProvider"/>.</remarks>
         public override async System.Threading.Tasks.Task SaveAsync(NodeSaveSettings settings, CancellationToken cancel)
         {
             AssertValidMembers();
@@ -380,13 +364,6 @@ namespace SenseNet.ContentRepository
             _syncObject = true;
         }
 
-        /// <inheritdoc />
-        /// <remarks>Synchronizes the deletion via the current <see cref="DirectoryProvider"/>.</remarks>
-        [Obsolete("Use async version instead", true)]
-        public override void ForceDelete()
-        {
-            ForceDeleteAsync(CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
-        }
         /// <inheritdoc />
         /// <remarks>Synchronizes the deletion via the current <see cref="DirectoryProvider"/>.</remarks>
         public override async System.Threading.Tasks.Task ForceDeleteAsync(CancellationToken cancel)

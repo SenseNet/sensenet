@@ -467,8 +467,8 @@ namespace SenseNet.Tests.Core.Tests
                 // We cannot call the GetNodeCount and GetVersionCount methods directly here because
                 // there may be some nodes that cannot be loaded therefore missing from the index, which
                 // would mean different count values.
-                var queryResults = ContentQuery.Query(ContentRepository.SafeQueries.InTree,
-                    QuerySettings.AdminSettings, "/Root");
+                var queryResults = await ContentQuery.QueryAsync(ContentRepository.SafeQueries.InTree,
+                    QuerySettings.AdminSettings, CancellationToken.None, "/Root");
                 var nodeCount = queryResults.Nodes.Count();
                 var versionCount = queryResults.Nodes.Sum(n => n.LoadVersions().Count());
 
@@ -511,7 +511,8 @@ namespace SenseNet.Tests.Core.Tests
                 node.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 // ACTION
-                var qresult = ContentQuery.Query(SafeQueries.Name, QuerySettings.AdminSettings, "Node1");
+                var qresult = ContentQuery.QueryAsync(SafeQueries.Name, QuerySettings.AdminSettings, CancellationToken.None, "Node1")
+                    .ConfigureAwait(false).GetAwaiter().GetResult();
 
                 // ASSERT
                 var nodeId = node.Id;
@@ -560,7 +561,8 @@ namespace SenseNet.Tests.Core.Tests
                 // ACTION
                 var settings = QuerySettings.AdminSettings;
                 settings.Sort = new[] { new SortInfo(IndexFieldName.Index) };
-                var qresult = ContentQuery.Query(SafeQueries.Name, settings, "Node1");
+                var qresult = ContentQuery.QueryAsync(SafeQueries.Name, settings, CancellationToken.None, "Node1")
+                    .ConfigureAwait(false).GetAwaiter().GetResult();
 
                 // ASSERT
                 var nodeIds = qresult.Identifiers.ToArray();
@@ -603,7 +605,9 @@ namespace SenseNet.Tests.Core.Tests
                 // ACTION
                 var settings = QuerySettings.AdminSettings;
                 settings.Sort = new[] {new SortInfo(IndexFieldName.DisplayName), new SortInfo(IndexFieldName.Index, true) };
-                var qresult = ContentQuery.Query(SafeQueries.OneTerm, settings, "ParentId", f1.Id.ToString());
+                var qresult = ContentQuery.QueryAsync(SafeQueries.OneTerm, settings, CancellationToken.None,
+                    "ParentId", f1.Id.ToString())
+                    .ConfigureAwait(false).GetAwaiter().GetResult();
 
                 // ASSERT
                 var nodes = qresult.Nodes.ToArray();
@@ -642,11 +646,13 @@ namespace SenseNet.Tests.Core.Tests
                 // ACTION
                 var settings = QuerySettings.AdminSettings;
                 settings.Sort = new[] { new SortInfo(IndexFieldName.Name) };
-                var qresult1 = ContentQuery.Query(SafeQueries.OneTerm, settings, "Name", "Bb*");
-                var qresult2 = ContentQuery.Query(SafeQueries.OneTerm, settings, "Name", "*33");
+                var result1 = ContentQuery.QueryAsync(SafeQueries.OneTerm, settings, CancellationToken.None,
+                    "Name", "Bb*").ConfigureAwait(false).GetAwaiter().GetResult();
+                var result2 = ContentQuery.QueryAsync(SafeQueries.OneTerm, settings, CancellationToken.None,
+                    "Name", "*33").ConfigureAwait(false).GetAwaiter().GetResult();
 
-                var nodes1 = qresult1.Nodes.ToArray();
-                var nodes2 = qresult2.Nodes.ToArray();
+                var nodes1 = result1.Nodes.ToArray();
+                var nodes2 = result2.Nodes.ToArray();
                 Assert.AreEqual("Bb11, Bb22, Bb33", string.Join(", ", nodes1.Select(n => n.Name)));
                 Assert.AreEqual("Aa33, Bb33, Cc33", string.Join(", ", nodes2.Select(n => n.Name)));
             });
@@ -679,8 +685,10 @@ namespace SenseNet.Tests.Core.Tests
                 // ACTION
                 var settings = QuerySettings.AdminSettings;
                 settings.Sort = new[] { new SortInfo(IndexFieldName.Name) };
-                var qresult1 = ContentQuery.Query(SafeQueries.OneTerm, settings, "Name", "AA*22");
-                var qresult2 = ContentQuery.Query(SafeQueries.OneTerm, settings, "Name", "*yy*");
+                var qresult1 = ContentQuery.QueryAsync(SafeQueries.OneTerm, settings, CancellationToken.None,
+                    "Name", "AA*22").ConfigureAwait(false).GetAwaiter().GetResult();
+                var qresult2 = ContentQuery.QueryAsync(SafeQueries.OneTerm, settings, CancellationToken.None,
+                    "Name", "*yy*").ConfigureAwait(false).GetAwaiter().GetResult();
 
                 var nodes1 = qresult1.Nodes.ToArray();
                 var nodes2 = qresult2.Nodes.ToArray();
@@ -820,9 +828,15 @@ namespace SenseNet.Tests.Core.Tests
                 settings.Sort = new[] { new SortInfo(IndexFieldName.Name) };
                 var result = new[]
                 {
-                    string.Join(", ", ContentQuery.Query(SafeQueries.TwoTermsShouldShould, settings, "Name", "Xx*", "Index", 111).Nodes.Select(n => n.Name).ToArray()),
-                    string.Join(", ", ContentQuery.Query(SafeQueries.TwoTermsMustMust, settings, "Name", "Xx*", "Index", 111).Nodes.Select(n => n.Name).ToArray()),
-                    string.Join(", ", ContentQuery.Query(SafeQueries.TwoTermsMustNot, settings, "Name", "Xx*", "Index", 111).Nodes.Select(n => n.Name).ToArray()),
+                    string.Join(", ", ContentQuery.QueryAsync(SafeQueries.TwoTermsShouldShould, settings, CancellationToken.None,
+                        "Name", "Xx*", "Index", 111).ConfigureAwait(false).GetAwaiter().GetResult()
+                        .Nodes.Select(n => n.Name).ToArray()),
+                    string.Join(", ", ContentQuery.QueryAsync(SafeQueries.TwoTermsMustMust, settings, CancellationToken.None,
+                        "Name", "Xx*", "Index", 111).ConfigureAwait(false).GetAwaiter().GetResult()
+                        .Nodes.Select(n => n.Name).ToArray()),
+                    string.Join(", ", ContentQuery.QueryAsync(SafeQueries.TwoTermsMustNot, settings, CancellationToken.None,
+                        "Name", "Xx*", "Index", 111).ConfigureAwait(false).GetAwaiter().GetResult()
+                        .Nodes.Select(n => n.Name).ToArray()),
                 };
 
                 Assert.AreEqual("Xx0, Xx1, Xx2, Xx3, Yy1", result[0]);
@@ -861,9 +875,15 @@ namespace SenseNet.Tests.Core.Tests
                 var result = new[]
                 {
                     //  (+Name:A* +Index:1) (+Name:B* +Index:2) --> A1, B2
-                    string.Join(", ", ContentQuery.Query(SafeQueries.MultiLevelBool1, settings, "Name", "Aa*", "Index", 11, "Name", "Bb*", "Index", 22).Nodes.Select(n => n.Name).ToArray()),
+                    string.Join(", ", ContentQuery.QueryAsync(SafeQueries.MultiLevelBool1, settings, CancellationToken.None,
+                        "Name", "Aa*", "Index", 11, "Name", "Bb*", "Index", 22)
+                        .ConfigureAwait(false).GetAwaiter().GetResult()
+                        .Nodes.Select(n => n.Name).ToArray()),
                     //  +(Name:A* Index:1) +(Name:B* Index:2) --> +(A0, A1, A2, A3, B1) +(B0, B1, B2, B3, A2) --> A2, B1
-                    string.Join(", ", ContentQuery.Query(SafeQueries.MultiLevelBool2, settings, "Name", "Aa*", "Index", 11, "Name", "Bb*", "Index", 22).Nodes.Select(n => n.Name).ToArray()),
+                    string.Join(", ", ContentQuery.QueryAsync(SafeQueries.MultiLevelBool2, settings, CancellationToken.None,
+                        "Name", "Aa*", "Index", 11, "Name", "Bb*", "Index", 22)
+                        .ConfigureAwait(false).GetAwaiter().GetResult()
+                        .Nodes.Select(n => n.Name).ToArray()),
                 };
 
                 Assert.AreEqual("Aa1, Bb2", result[0]);
@@ -1202,11 +1222,12 @@ namespace SenseNet.Tests.Core.Tests
                     _log = log;
                 }
 
-                [Obsolete("Use async version instead", false)]
+                [Obsolete("Use async version instead", true)]
                 public QueryResult<int> ExecuteQuery(SnQuery query, IPermissionFilter filter, IQueryContext context)
                 {
                     return ExecuteQueryAsync(query, filter, context, CancellationToken.None).GetAwaiter().GetResult();
                 }
+                [Obsolete("Use async version instead", true)]
                 public QueryResult<string> ExecuteQueryAndProject(SnQuery query, IPermissionFilter filter, IQueryContext context)
                 {
                     var strings = _mockResultsPerQueries[query.Querytext];
@@ -1223,7 +1244,9 @@ namespace SenseNet.Tests.Core.Tests
                 public Task<QueryResult<string>> ExecuteQueryAndProjectAsync(SnQuery query, IPermissionFilter filter, IQueryContext context,
                     CancellationToken cancel)
                 {
-                    return Task.FromResult(ExecuteQueryAndProject(query, filter, context));
+                    var strings = _mockResultsPerQueries[query.Querytext];
+                    _log.Add(query.Querytext);
+                    return Task.FromResult(new QueryResult<string>(strings, strings.Length));
                 }
             }
 

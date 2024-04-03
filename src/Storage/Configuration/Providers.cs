@@ -330,7 +330,7 @@ namespace SenseNet.Configuration
         {
             _providersByName[providerName] = provider;
         }
-        [Obsolete]
+        [Obsolete("Do not use this method anymore.", false)] // 16 references
         public void SetProvider(Type providerType, object provider)
         {
             SetProviderPrivate(providerType, provider);

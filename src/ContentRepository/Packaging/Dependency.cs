@@ -24,7 +24,7 @@ namespace SenseNet.Packaging
         /// Gets or sets the Boundary.MinVersion.
         /// This property is deprecated use the Boundary.MinVersion instead.
         /// </summary>
-        [Obsolete("Use Boundary.MinVersion instead.")]
+        [Obsolete("Use Boundary.MinVersion instead.", true)]
         [JsonIgnore]
         public Version MinVersion { get => Boundary.MinVersion; set => Boundary.MinVersion = value; }
 
@@ -32,7 +32,7 @@ namespace SenseNet.Packaging
         /// Gets or sets the Boundary.MaxVersion.
         /// This property is deprecated use the Boundary.MaxVersion instead.
         /// </summary>
-        [Obsolete("Use Boundary.MinVersion instead.")]
+        [Obsolete("Use Boundary.MinVersion instead.", true)]
         [JsonIgnore]
         public Version MaxVersion { get => Boundary.MaxVersion; set => Boundary.MaxVersion = value; }
 
@@ -40,7 +40,7 @@ namespace SenseNet.Packaging
         /// Gets or sets the Boundary.MinVersionIsExclusive.
         /// This property is deprecated use the Boundary.MinVersionIsExclusive instead.
         /// </summary>
-        [Obsolete("Use Boundary.MinVersion instead.")]
+        [Obsolete("Use Boundary.MinVersionIsExclusive instead.", true)]
         [JsonIgnore]
         public bool MinVersionIsExclusive
         {
@@ -52,7 +52,7 @@ namespace SenseNet.Packaging
         /// Gets or sets the Boundary.MaxVersionIsExclusive.
         /// This property is deprecated use the Boundary.MaxVersionIsExclusive instead.
         /// </summary>
-        [Obsolete("Use Boundary.MaxVersionIsExclusive instead.")]
+        [Obsolete("Use Boundary.MaxVersionIsExclusive instead.", true)]
         [JsonIgnore]
         public bool MaxVersionIsExclusive
         {

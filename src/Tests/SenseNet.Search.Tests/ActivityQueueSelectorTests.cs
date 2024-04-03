@@ -124,12 +124,13 @@ namespace SenseNet.Search.Tests
 
         private class QueryEngineForActivityQueueSelectorTests : IQueryEngine
         {
-            [Obsolete("Use async version instead", false)]
+            [Obsolete("Use async version instead", true)]
             public QueryResult<int> ExecuteQuery(SnQuery query, IPermissionFilter filter, IQueryContext context)
             {
                 return ExecuteQueryAsync(query, filter, context, CancellationToken.None).GetAwaiter().GetResult();
             }
 
+            [Obsolete("Use async version instead", true)]
             public QueryResult<string> ExecuteQueryAndProject(SnQuery query, IPermissionFilter filter, IQueryContext context)
             {
                 throw new NotImplementedException();
@@ -143,7 +144,7 @@ namespace SenseNet.Search.Tests
             public Task<QueryResult<string>> ExecuteQueryAndProjectAsync(SnQuery query, IPermissionFilter filter, IQueryContext context,
                 CancellationToken cancel)
             {
-                return Task.FromResult(ExecuteQueryAndProject(query, filter, context));
+                throw new NotImplementedException();
             }
         }
 

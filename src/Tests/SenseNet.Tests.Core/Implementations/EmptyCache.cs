@@ -52,7 +52,7 @@ namespace SenseNet.Tests.Core.Implementations
         {
             // do nothing
         }
-        [Obsolete("Do not use priority in the caching API. Use the expiration times instead.")]
+        [Obsolete("Do not use priority in the caching API. Use the expiration times instead.", true)]
         public void Insert(string key, object value, CacheDependency dependencies, DateTime absoluteExpiration,
             TimeSpan slidingExpiration, CacheItemPriority priority, object onRemoveCallback)
         {

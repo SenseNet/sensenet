@@ -132,7 +132,7 @@ namespace SenseNet.ContentRepository.Storage
         /// Gets true if the audit log is enabled.
         /// This property is obsolete. Use the SenseNet.Configuration.Logging.AuditEnabled property instead.
         /// </summary>
-        [Obsolete("After V6.5 PATCH 9: Use SenseNet.Configuration.Logging.AuditEnabled instead.")]
+        [Obsolete("After V6.5 PATCH 9: Use SenseNet.Configuration.Logging.AuditEnabled instead.", true)]
         public static bool AuditEnabled => Logging.AuditEnabled;
 
         private bool _copying;
@@ -229,13 +229,13 @@ namespace SenseNet.ContentRepository.Storage
         /// <summary>
         /// Gets the collection of child <see cref="Node"/>s. The current user needs to have See permission for every instance.
         /// </summary>
-        [Obsolete("Use GetChildren() method instead.")]
+        [Obsolete("Use GetChildren() method instead.", true)]
         public IEnumerable<Node> PhysicalChildArray => this.GetChildren();
 
         /// <summary>
         /// Gets the collection of child <see cref="Node"/>s. The current user need to have See permission for every instance.
         /// </summary>
-        protected virtual IEnumerable<Node> GetChildren()
+        public virtual IEnumerable<Node> GetChildren()
         {
             var nodeHeads = DataStore.LoadNodeHeadsAsync(QueryChildren().Identifiers, CancellationToken.None)
                 .GetAwaiter().GetResult();
@@ -1736,7 +1736,7 @@ namespace SenseNet.ContentRepository.Storage
         /// <summary>
         /// Refreshes the IsLastPublicVersion and IsLastVersion property values.
         /// </summary>
-        [Obsolete("This method will be deleted in the future.")]
+        [Obsolete("This method will be deleted in the future.", true)]
         public void RefreshVersionInfo()
         {
             SetVersionInfo(NodeHead.Get(this.Id));
@@ -2759,14 +2759,6 @@ namespace SenseNet.ContentRepository.Storage
         #region // ================================================================================================= Save methods
 
         /// <summary>
-        /// Stores the modifications of this <see cref="Node"/> instance to the database.
-        /// </summary>
-        [Obsolete("Use async version instead.", true)]
-        public virtual void Save()
-        {
-            SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
-        }
-        /// <summary>
         /// Asynchronously stores the modifications of this <see cref="Node"/> instance to the database.
         /// </summary>
         public virtual async Task SaveAsync(CancellationToken cancel)
@@ -2909,16 +2901,6 @@ namespace SenseNet.ContentRepository.Storage
         }
 
         /// <summary>
-        /// Stores the modifications of this <see cref="Node"/> instance to the database.
-        /// The generated <see cref="VersionNumber"/> depends on the requested 
-        /// <see cref="VersionRaising"/> mode and the given <see cref="VersionStatus"/>.
-        /// </summary>
-        [Obsolete("Use async version instead.", true)]
-        public void Save(VersionRaising versionRaising, VersionStatus versionStatus)
-        {
-            SaveAsync(versionRaising, versionStatus, CancellationToken.None).GetAwaiter().GetResult();
-        }
-        /// <summary>
         /// Asynchronously stores the modifications of this <see cref="Node"/> instance to the database.
         /// The generated <see cref="VersionNumber"/> depends on the requested 
         /// <see cref="VersionRaising"/> mode and the given <see cref="VersionStatus"/>.
@@ -2962,16 +2944,6 @@ namespace SenseNet.ContentRepository.Storage
         }
         #endregion
 
-        /// <summary>
-        /// Stores the modifications of this <see cref="Node"/> instance to the database.
-        /// The tasks of storing depend on the given <see cref="NodeSaveSettings"/>.
-        /// </summary>
-        /// <param name="settings">Describes the tasks and algorithms for persisting the node.</param>
-        [Obsolete("Use async version instead.", true)]
-        public virtual void Save(NodeSaveSettings settings)
-        {
-            SaveAsync(settings, CancellationToken.None).GetAwaiter().GetResult();
-        }
         /// <summary>
         /// Asynchronously stores the modifications of this <see cref="Node"/> instance to the database.
         /// The tasks of storing depend on the given <see cref="NodeSaveSettings"/>.
@@ -3242,14 +3214,6 @@ namespace SenseNet.ContentRepository.Storage
                 cancel);
         }
 
-        /// <summary>
-        /// Ends the multi-step saving process and makes the Content available for modification.
-        /// </summary>
-        [Obsolete("Use async version instead.", true)]
-        public virtual void FinalizeContent()
-        {
-            FinalizeContentAsync(CancellationToken.None).GetAwaiter().GetResult();
-        }
         /// <summary>
         /// Asynchronously ends the multi-step saving process and makes the Content available for modification.
         /// </summary>
@@ -4223,41 +4187,7 @@ namespace SenseNet.ContentRepository.Storage
 
         #region // ================================================================================================= Delete methods
 
-        /// <summary>
-        /// Deletes a <see cref="Node"/> and all of its contents from the database. This operation removes all child <see cref="Node"/>s too.
-        /// </summary>
-        /// <param name="sourcePath">The path of the <see cref="Node"/> that will be deleted.</param>
-        [Obsolete("DeletePhysical is obsolete. Use ForceDelete to delete Node permanently.", true)]
-        public static void DeletePhysical(string sourcePath)
-        {
-            throw new NotSupportedException();
-        }
-        /// <summary>
-        /// Deletes a <see cref="Node"/> and all of its contents from the database. This operation removes all child <see cref="Node"/>s too.
-        /// </summary>
-        /// <param name="nodeId">Identifier of the <see cref="Node"/> that will be deleted.</param>
-        [Obsolete("DeletePhysical is obsolete. Use ForceDelete to delete Node permanently.", true)]
-        public static void DeletePhysical(int nodeId)
-        {
-            throw new NotSupportedException();
-        }
-        /// <summary>
-        /// Deletes the <see cref="Node"/> instance and all of its contents. This operation removes the appropriate <see cref="Node"/>s from the database.
-        /// </summary>
-        [Obsolete("The DeletePhysical is obsolete. Use ForceDelete to delete Node permanently.", true)]
-        public virtual void DeletePhysical()
-        {
-            throw new NotSupportedException();
-        }
 
-        /// <summary>
-        /// Deletes the <see cref="Node"/> specified by the given path and its whole subtree physically.
-        /// </summary>
-        [Obsolete("Use async version instead", true)]
-        public static void ForceDelete(string sourcePath)
-        {
-            ForceDeleteAsync(sourcePath, CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
-        }
         /// <summary>
         /// Asynchronously deletes the <see cref="Node"/> specified by the given path and its whole subtree physically.
         /// </summary>
@@ -4270,14 +4200,6 @@ namespace SenseNet.ContentRepository.Storage
         }
 
         /// <summary>
-        /// Deletes the <see cref="Node"/> specified by the given id and its whole subtree physically.
-        /// </summary>
-        [Obsolete("Use async version instead", true)]
-        public static void ForceDelete(int nodeId)
-        {
-            ForceDeleteAsync(nodeId, CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
-        }
-        /// <summary>
         /// Asynchronously deletes the <see cref="Node"/> specified by the given id and its whole subtree physically.
         /// </summary>
         public static async Task ForceDeleteAsync(int nodeId, CancellationToken cancel)
@@ -4288,14 +4210,6 @@ namespace SenseNet.ContentRepository.Storage
             await sourceNode.ForceDeleteAsync(cancel);
         }
 
-        /// <summary>
-        /// Deletes the <see cref="Node"/> permanently.
-        /// </summary>
-        [Obsolete("Use async version instead", true)]
-        public virtual void ForceDelete()
-        {
-            ForceDeleteAsync(CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
-        }
         /// <summary>
         /// Asynchronously deletes the <see cref="Node"/> permanently.
         /// </summary>
@@ -4392,14 +4306,6 @@ namespace SenseNet.ContentRepository.Storage
         }
 
         /// <summary>
-        /// This method deletes the <see cref="Node"/> permanently.
-        /// </summary>
-        [Obsolete("Use parameterless ForceDelete method.", true)]
-        public virtual void ForceDelete(long timestamp)
-        {
-            ForceDelete();
-        }
-        /// <summary>
         /// Provides a customizable base method for querying all referrers.
         /// In this class returns null, and totalCount output is 0.
         /// </summary>
@@ -4438,14 +4344,6 @@ namespace SenseNet.ContentRepository.Storage
         }
 
         /// <summary>
-        /// Deletes the node.
-        /// </summary>
-        [Obsolete("Use async version instead", true)]
-        public static void Delete(string sourcePath)
-        {
-            DeleteAsync(sourcePath, CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
-        }
-        /// <summary>
         /// Asynchronously deletes the node.
         /// </summary>
         public static async Task DeleteAsync(string sourcePath, CancellationToken cancel)
@@ -4456,14 +4354,6 @@ namespace SenseNet.ContentRepository.Storage
             await sourceNode.DeleteAsync(cancel);
         }
 
-        /// <summary>
-        /// Deletes the node.
-        /// </summary>
-        [Obsolete("Use async version instead", true)]
-        public static void Delete(int nodeId)
-        {
-            DeleteAsync(nodeId, CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
-        }
         /// <summary>
         /// Asynchronously deletes the node.
         /// </summary>
@@ -4591,14 +4481,6 @@ namespace SenseNet.ContentRepository.Storage
         }
 
         /// <summary>
-        /// Deletes the current node.
-        /// </summary>
-        [Obsolete("Use async version instead", true)]
-        public virtual void Delete()
-        {
-            DeleteAsync(CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
-        }
-        /// <summary>
         /// Asynchronously deletes the current node.
         /// </summary>
         public virtual Task DeleteAsync(CancellationToken cancel)
@@ -4702,14 +4584,14 @@ namespace SenseNet.ContentRepository.Storage
         /// Occurs before this <see cref="Node"/> instance's permission setting is changed.
         /// </summary>
 #pragma warning disable 67
-        [Obsolete("Do not use this event anymore.")]
+        [Obsolete("Do not use this event anymore.", true)]
         public event CancellableNodeEventHandler PermissionChanging;
 #pragma warning restore 67
         /// <summary>
         /// Occurs after this <see cref="Node"/> instance's permission setting is changed.
         /// </summary>
 #pragma warning disable 67
-        [Obsolete("Do not use this event anymore.")]
+        [Obsolete("Do not use this event anymore.", true)]
         public event EventHandler<PermissionChangedEventArgs> PermissionChanged;
 #pragma warning restore 67
 
@@ -4945,12 +4827,12 @@ namespace SenseNet.ContentRepository.Storage
         /// <summary>
         /// Raises the <see cref="PermissionChanging"/> event.
         /// </summary>
-        [Obsolete("Do not use this method anymore.")]
+        [Obsolete("Do not use this method anymore.", true)]
         protected virtual void OnPermissionChanging(object sender, CancellablePermissionChangingEventArgs e) { }
         /// <summary>
         /// Raises the <see cref="PermissionChanged"/> event.
         /// </summary>
-        [Obsolete("Do not use this method anymore.")]
+        [Obsolete("Do not use this method anymore.", true)]
         protected virtual void OnPermissionChanged(object sender, PermissionChangedEventArgs e) { }
 
         #endregion

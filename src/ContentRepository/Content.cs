@@ -2210,7 +2210,6 @@ namespace SenseNet.ContentRepository
                 setter.Invoke(_object, new object[] { value });
             }
 
-            public override void Save() { }
             public override System.Threading.Tasks.Task SaveAsync(CancellationToken cancel)
             {
                 return System.Threading.Tasks.Task.CompletedTask;

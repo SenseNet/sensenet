@@ -65,7 +65,7 @@ namespace SenseNet.ContentRepository
         /// <summary>
         /// Gets the startup control information.
         /// </summary>
-        [Obsolete("Use individual immutable properties instead.")]
+        [Obsolete("Use individual immutable properties instead.", true)]
         public RepositoryStartSettings.ImmutableRepositoryStartSettings StartSettings => _settings;
 
         /// <summary>

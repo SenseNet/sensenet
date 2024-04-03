@@ -228,7 +228,7 @@ namespace SenseNet.ContentRepository.Tests.Schema
             fields = new FieldSetting[5];
             for (int level = 1; level < 6; level++)
             {
-                ContentType ct = ContentTypeManager.Current.GetContentTypeByName("T" + level);
+                ContentType ct = ContentTypeManager.Instance.GetContentTypeByName("T" + level);
                 types[level - 1] = ct;
                 foreach (FieldSetting ft in ct.FieldSettings)
                 {

@@ -330,17 +330,6 @@ namespace SenseNet.ContentRepository
         }
 
         /// <summary>
-        /// Persists the modifications of this Content.
-        /// Do not use this method directly from your code.
-        /// If the AspectDefinition is invalid, <see cref="InvalidContentException"/> will be thrown.
-        /// Also throws an <see cref="InvalidContentException"/> if the Path of the instance is not under the Aspects container.
-        /// </summary>
-        [Obsolete("Use async version instead.", true)]
-        public override void Save(SavingMode mode)
-        {
-            SaveAsync(mode, CancellationToken.None).GetAwaiter().GetResult();
-        }
-        /// <summary>
         /// Asynchronously persists the modifications of this Content.
         /// Do not use this method directly from your code.
         /// If the AspectDefinition is invalid, <see cref="InvalidContentException"/> will be thrown.
@@ -374,16 +363,6 @@ namespace SenseNet.ContentRepository
 
         private static SemaphoreSlim _saveSync = new SemaphoreSlim(1, 1);
 
-        /// <summary>
-        /// Persist this Content's changes by the given settings.
-        /// Do not use this method directly from your code.
-        /// </summary>
-        /// <param name="settings"><see cref="NodeSaveSettings"/> that contains the persistence algorithm.</param>
-        [Obsolete("Use async version instead.", true)]
-        public override void Save(NodeSaveSettings settings)
-        {
-            SaveAsync(settings, CancellationToken.None).GetAwaiter().GetResult();
-        }
         /// <summary>
         /// Asynchronously persist this Content's changes by the given settings.
         /// Do not use this method directly from your code.
@@ -423,16 +402,6 @@ namespace SenseNet.ContentRepository
             throw new InvalidOperationException(String.Concat("Cannot create new Aspect because another Aspect exists with same name: ", existingAspect.Path));
         }
 
-        /// <summary>
-        /// Deletes this <see cref="Aspect"/> permanently.
-        /// The logged-in user need to have ManageListsAndWorkspaces permission,
-        /// otherwise <see cref="SenseNetSecurityException"/> will be thrown.
-        /// </summary>
-        [Obsolete("Use async version instead", true)]
-        public override void ForceDelete()
-        {
-            ForceDeleteAsync(CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
-        }
         /// <summary>
         /// Asynchronously deletes this <see cref="Aspect"/> permanently.
         /// The logged-in user need to have ManageListsAndWorkspaces permission,

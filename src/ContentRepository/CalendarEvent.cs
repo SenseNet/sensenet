@@ -57,11 +57,6 @@ namespace SenseNet.ContentRepository
         public CalendarEvent(Node parent, string nodeTypeName) : base(parent, nodeTypeName) { }
         protected CalendarEvent(NodeToken nt) : base(nt) { }
 
-        [Obsolete("Use async version instead.", true)]
-        public override void Save(SavingMode mode)
-        {
-            SaveAsync(mode, CancellationToken.None).GetAwaiter().GetResult();
-        }
         public override async System.Threading.Tasks.Task SaveAsync(SavingMode mode, CancellationToken cancel)
         {
             // Creating registration form if necessary.

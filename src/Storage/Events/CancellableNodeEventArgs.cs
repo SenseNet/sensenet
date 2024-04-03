@@ -21,7 +21,7 @@ namespace SenseNet.ContentRepository.Storage.Events
 
 	    internal const string CustomDataKey = "SnCustomEventData";
 
-        [Obsolete("Use the Get/SetCustomData methods instead.")]
+        [Obsolete("Use the Get/SetCustomData methods instead.", true)]
         public object CustomData
 	    {
             get => GetCustomData(CustomDataKey);

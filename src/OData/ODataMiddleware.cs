@@ -731,27 +731,12 @@ namespace SenseNet.OData
         /// <param name="content">The <see cref="Content"/> that will be modified. Cannot be null.</param>
         /// <param name="model">The modifier JObject instance. Cannot be null.</param>
         /// <param name="skipBrokenReferences">If true, the broken reference fields will not updated to null value.</param>
-        /// <param name="brokenReferenceFieldNames">ReferenceField names that have unknown or invisible items.</param>
-        [Obsolete("Use async overload.", true)]
-        public static void UpdateFields(Content content, JObject model, bool skipBrokenReferences,
-            out List<string> brokenReferenceFieldNames)
-        {
-            brokenReferenceFieldNames = UpdateFieldsAsync(content, model, skipBrokenReferences, CancellationToken.None)
-                .GetAwaiter().GetResult();
-        }
-        /// <summary>
-        /// Helper method for updating the given <see cref="Content"/> with a model represented by JObject.
-        /// The <see cref="Content"/> will not be saved.
-        /// </summary>
-        /// <param name="content">The <see cref="Content"/> that will be modified. Cannot be null.</param>
-        /// <param name="model">The modifier JObject instance. Cannot be null.</param>
-        /// <param name="skipBrokenReferences">If true, the broken reference fields will not updated to null value.</param>
         /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation containing a list of field names
         /// that have broken references.</returns>
         /// <exception cref="ArgumentNullException"></exception>
         /// <exception cref="ODataException"></exception>
-        public async static Task<List<string>> UpdateFieldsAsync(Content content, JObject model, bool skipBrokenReferences,
+        public static async Task<List<string>> UpdateFieldsAsync(Content content, JObject model, bool skipBrokenReferences,
             CancellationToken cancel)
         {
             var brokenReferenceFieldNames = new List<string>();

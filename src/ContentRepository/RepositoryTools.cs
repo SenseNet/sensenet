@@ -237,7 +237,7 @@ namespace SenseNet.ContentRepository
                 throw new ArgumentNullException(name);
         }
 
-        [Obsolete("Use ServiceTools.GetClientIpAddress instead.")]
+        [Obsolete("Use ServiceTools.GetClientIpAddress instead.", true)]
         public static string GetClientIpAddress()
         {
             return string.Empty;
@@ -535,35 +535,6 @@ namespace SenseNet.ContentRepository
             }
             aclEd.ApplyAsync(CancellationToken.None).GetAwaiter().GetResult();
             return "Ok";
-        }
-
-        [Obsolete("Use ServiceTools.RecurseFilesInVirtualPath instead.", true)]
-        public static bool RecurseFilesInVirtualPath(string path, bool includesubdirs, Action<string> action, bool skipRepo = false)
-        {
-            if (path == null)
-                throw new ArgumentNullException(nameof(path));
-            if (action == null)
-                throw new ArgumentNullException(nameof(action));
-            if (path.StartsWith("http://") || path.StartsWith("https://"))
-                return false;
-
-            var nodeHead = NodeHead.Get(path);
-            var isFolder = nodeHead != null && nodeHead.GetNodeType().IsInstaceOfOrDerivedFrom("Folder");
-
-            // Take care of folders in the repository
-            if (isFolder && !skipRepo)
-            {
-                // Find content items
-                var contents = Content.All.DisableAutofilters()
-                    .Where(c => (includesubdirs ? c.InTree(nodeHead.Path) : c.InFolder(nodeHead.Path)) && c.TypeIs(typeof(File).Name))
-                    .OrderBy(c => c.Index);
-
-                // Add paths
-                foreach (var c in contents)
-                    action(c.Path);
-            }
-
-            return isFolder;
         }
 
         // Index backup =========================================================================
@@ -1257,7 +1228,7 @@ namespace SenseNet.ContentRepository
         /// <param name="recurse">Irrelevant because throws SnNotSupportedException.</param>
         /// <returns>Throws SnNotSupportedException.</returns>
         /// <exception cref="SnNotSupportedException"></exception>
-        [Obsolete("Use an offline solution instead.")]
+        [Obsolete("Use an offline solution instead.", true)]
         [ODataFunction]
         public static object CheckIndexIntegrity(Content content, bool recurse)
         {
