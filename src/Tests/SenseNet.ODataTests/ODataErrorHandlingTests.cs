@@ -180,6 +180,26 @@ public class ODataErrorHandlingTests : ODataTestBase
             }).ConfigureAwait(false);
         }).ConfigureAwait(false);
     }
+    [TestMethod]
+    public async Task OD_ErrorHandling_WrongQuery()
+    {
+        await ODataTestAsync(async () =>
+        {
+            ODataResponse response;
+            await ErrorHandlingTest(async (logger, tracer) =>
+            {
+                // ACTION
+                response = await ODataGetAsync($"/OData.svc/Root", "?query=Index:*").ConfigureAwait(false);
+
+                // ASSERT
+                Assert.AreEqual(400, response.StatusCode);
+                var error = GetError(response);
+                Assert.AreEqual(ODataExceptionCode.RequestError, error.Code);
+                Assert.IsFalse(logger.Entries.Any(x => x.StartsWith("Error:")));
+                Assert.IsFalse(tracer.Lines.Any(x => x.Contains("\tquery\t", StringComparison.OrdinalIgnoreCase)));
+            }).ConfigureAwait(false);
+        }).ConfigureAwait(false);
+    }
 
     [TestMethod]
     public async Task OD_ErrorHandling_MethodThrows_NotSupportedException()
@@ -315,6 +335,9 @@ public class ODataErrorHandlingTests : ODataTestBase
             var logger = (TestEventLogger)SnLog.Instance;
             using (new Swindler<bool>(true,
                        () => SnTrace.Security.Enabled,
+                       value => { SnTrace.Security.Enabled = value; }))
+            using (new Swindler<bool>(true,
+                       () => SnTrace.Query.Enabled,
                        value => { SnTrace.Security.Enabled = value; }))
             {
                 var tracer = new TestSnTracer();
