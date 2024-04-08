@@ -413,6 +413,11 @@ namespace SenseNet.OData
                     // it is unnecessary to log this exception as this is not a real error
                     return oe;
                 }
+                case ApplicationException:
+                {
+					// it is unnecessary to log this exception as this is not a real error
+					return new ODataException(ODataExceptionCode.RequestError, e);
+                }
                 case OperationCanceledException operationCanceledException:
                 {
                     return new ODataException(
