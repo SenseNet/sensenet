@@ -758,14 +758,14 @@ namespace SenseNet.ContentRepository
             return response;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="content"></param>
-        /// <param name="className"></param>
-        /// <param name="langCode"></param>
-        /// <returns></returns>
-        /// <exception cref="Exception"></exception>
+		/// <summary>
+		/// Returns a JSON object that contains a resource class with the given language.
+		/// </summary>
+		/// <param name="content"></param>
+		/// <param name="className">Name of existing resource class</param>
+		/// <param name="langCode">Two character identifier of the culture</param>
+		/// <exception cref="ApplicationException">Exception thrown when there's no resouce data 
+		/// with the given className or langCode.</exception>
 		[ODataFunction]
 		[ContentTypes(N.CT.PortalRoot)]
 		[AllowedRoles(N.R.Everyone, N.R.Visitor)]
