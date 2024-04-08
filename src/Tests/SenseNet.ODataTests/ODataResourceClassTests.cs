@@ -18,18 +18,20 @@ namespace SenseNet.ContentRepository.Tests
 				var resManAcc = new ObjectAccessor(SenseNetResourceManager.Current);
 				var hacked = GetTestResourceData();
 
+				ODataResponse response = null;
 				using (var x = new Swindler<Dictionary<CultureInfo, Dictionary<string, Dictionary<string, object>>>>(hacked,
 					() => (Dictionary<CultureInfo, Dictionary<string, Dictionary<string, object>>>)resManAcc.GetField("_items"),
 					backup => resManAcc.SetField("_items", backup)
 				))
 				{
-					var response = await ODataGetAsync("/OData.svc/('Root')/GetResourceClass", "?className=Class1&langCode=en");
-					var responseBody = Deserialize(response.Result);
-
-					Assert.IsNotNull(responseBody);
-					Assert.AreEqual("value2", responseBody["test2"]);
-					Assert.AreEqual(200, response.StatusCode);
+					response = await ODataGetAsync("/OData.svc/('Root')/GetResourceClass", "?className=Class1&langCode=en");
 				}
+
+				var responseBody = Deserialize(response.Result);
+
+				Assert.IsNotNull(responseBody);
+				Assert.AreEqual("value2", responseBody["test2"]);
+				Assert.AreEqual(200, response.StatusCode);
 			});
 		}
 
@@ -41,17 +43,19 @@ namespace SenseNet.ContentRepository.Tests
 				var resManAcc = new ObjectAccessor(SenseNetResourceManager.Current);
 				var hacked = GetTestResourceData();
 
+				ODataResponse response = null;
 				using (var x = new Swindler<Dictionary<CultureInfo, Dictionary<string, Dictionary<string, object>>>>(hacked,
 					() => (Dictionary<CultureInfo, Dictionary<string, Dictionary<string, object>>>)resManAcc.GetField("_items"),
 					backup => resManAcc.SetField("_items", backup)
 				))
 				{
-					var response = await ODataGetAsync("/OData.svc/('Root')/GetResourceClass", "?className=Class1&langCode=ro");
-					var error = GetError(response);
-
-					Assert.AreEqual(400, response.StatusCode);
-					Assert.AreEqual("ApplicationError", error.ExceptionType);
+					response = await ODataGetAsync("/OData.svc/('Root')/GetResourceClass", "?className=Class1&langCode=ro");
 				}
+
+				var error = GetError(response);
+
+				Assert.AreEqual(400, response.StatusCode);
+				Assert.AreEqual("ApplicationError", error.ExceptionType);
 			});
 		}
 
@@ -63,17 +67,19 @@ namespace SenseNet.ContentRepository.Tests
 				var resManAcc = new ObjectAccessor(SenseNetResourceManager.Current);
 				var hacked = GetTestResourceData();
 
+				ODataResponse response = null;
 				using (var x = new Swindler<Dictionary<CultureInfo, Dictionary<string, Dictionary<string, object>>>>(hacked,
 					() => (Dictionary<CultureInfo, Dictionary<string, Dictionary<string, object>>>)resManAcc.GetField("_items"),
 					backup => resManAcc.SetField("_items", backup)
 				))
 				{
-					var response = await ODataGetAsync("/OData.svc/('Root')/GetResourceClass", "?className=Class1&langCode=xyz");
-					var error = GetError(response);
-
-					Assert.AreEqual(777, response.StatusCode);
-					Assert.AreEqual("CultureNotFoundException", error.ExceptionType);
+					response = await ODataGetAsync("/OData.svc/('Root')/GetResourceClass", "?className=Class1&langCode=xyz");
 				}
+
+				var error = GetError(response);
+
+				Assert.AreEqual(777, response.StatusCode);
+				Assert.AreEqual("CultureNotFoundException", error.ExceptionType);
 			});
 		}
 
