@@ -8,10 +8,10 @@ using System.Globalization;
 namespace SenseNet.ContentRepository.Tests
 {
 	[TestClass]
-	public class RepositoryToolsTest : ODataTestBase
+	public class ODataResourceClassTests : ODataTestBase
 	{
 		[TestMethod]
-		public void GetResourceClass_ShouldGiveBackJson()
+		public void OD_ResourceClass_ShouldGiveBackJson()
 		{
 			Test(async () =>
 			{
@@ -34,7 +34,7 @@ namespace SenseNet.ContentRepository.Tests
 		}
 
 		[TestMethod]
-		public void GetResourceClass_ShouldGiveBackBadRequest()
+		public void OD_ResourceClass_ShouldGiveBackBadRequest()
 		{
 			Test(async () =>
 			{
@@ -51,6 +51,28 @@ namespace SenseNet.ContentRepository.Tests
 
 					Assert.AreEqual(400, response.StatusCode);
 					Assert.AreEqual("ApplicationError", error.ExceptionType);
+				}
+			});
+		}
+
+		[TestMethod]
+		public void OD_ResourceClass_ShouldGiveBackCultureNotFound()
+		{
+			Test(async () =>
+			{
+				var resManAcc = new ObjectAccessor(SenseNetResourceManager.Current);
+				var hacked = GetTestResourceData();
+
+				using (var x = new Swindler<Dictionary<CultureInfo, Dictionary<string, Dictionary<string, object>>>>(hacked,
+					() => (Dictionary<CultureInfo, Dictionary<string, Dictionary<string, object>>>)resManAcc.GetField("_items"),
+					backup => resManAcc.SetField("_items", backup)
+				))
+				{
+					var response = await ODataGetAsync("/OData.svc/('Root')/GetResourceClass", "?className=Class1&langCode=xyz");
+					var error = GetError(response);
+
+					Assert.AreEqual(777, response.StatusCode);
+					Assert.AreEqual("CultureNotFoundException", error.ExceptionType);
 				}
 			});
 		}

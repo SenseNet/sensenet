@@ -759,27 +759,6 @@ namespace SenseNet.ContentRepository
         }
 
 		/// <summary>
-		/// Returns a JSON object that contains a resource class with the given language.
-		/// </summary>
-		/// <param name="content"></param>
-		/// <param name="className">Name of existing resource class</param>
-		/// <param name="langCode">Two character identifier of the culture</param>
-		/// <exception cref="ApplicationException">Exception thrown when there's no resouce data 
-		/// with the given className or langCode.</exception>
-		[ODataFunction]
-		[ContentTypes(N.CT.PortalRoot)]
-		[AllowedRoles(N.R.Everyone, N.R.Visitor)]
-		public static Dictionary<string, object> GetResourceClass(Content content, string className, string langCode)
-		{
-			var localizationData = SenseNetResourceManager.Current.GetClassItems(className, new CultureInfo(langCode));
-
-            if (localizationData == null)
-                throw new ApplicationException($"Localization resource with classname \'{className}\' and language \'{langCode}\' not found");
-            else
-                return localizationData;
-		}
-
-		/// <summary>
 		/// Shows the whole inverted index in a raw format with some transformations for easier readability.
 		/// WARNING! The index may contain sensitive information.
 		/// </summary>
@@ -1002,19 +981,40 @@ namespace SenseNet.ContentRepository
                 .ToDictionary(x => x.Key, x => (object)x.Value);
         }
 
-        // ======================================================================================
+		// ======================================================================================
 
-        /// <summary>
-        /// Sets the provided <paramref name="userOrGroup"/> as the owner of the requested content.
-        /// If the <paramref name="userOrGroup"/> is null, the current user will be the owner.
-        /// The operation requires <c>TakeOwnership</c> permission.
-        /// </summary>
-        /// <snCategory>Permissions</snCategory>
-        /// <param name="content"></param>
-        /// <param name="userOrGroup">Path or id of the desired owner.</param>
-        /// <exception cref="ArgumentException">Thrown if the <paramref name="userOrGroup"/> parameter cannot be recognized
-        /// as a path or id. The method also throws this exception if the identified content is not a User or a Group.</exception>
-        [ODataAction(OperationName = "TakeOwnership")]
+		/// <summary>
+		/// Returns a JSON object that contains a resource class with the given language.
+		/// </summary>
+		/// <param name="content"></param>
+		/// <param name="className">Name of existing resource class</param>
+		/// <param name="langCode">Two character identifier of the culture</param>
+		/// <exception cref="ApplicationException">Exception thrown when there's no resouce data 
+		/// with the given className or langCode.</exception>
+		[ODataFunction]
+		[ContentTypes(N.CT.PortalRoot)]
+		[AllowedRoles(N.R.Everyone, N.R.Visitor)]
+		public static Dictionary<string, object> GetResourceClass(Content content, string className, string langCode)
+		{
+			var localizationData = SenseNetResourceManager.Current.GetClassItems(className, new CultureInfo(langCode));
+
+			if (localizationData == null)
+				throw new ApplicationException($"Localization resource with classname \'{className}\' and language \'{langCode}\' not found");
+			else
+				return localizationData;
+		}
+
+		/// <summary>
+		/// Sets the provided <paramref name="userOrGroup"/> as the owner of the requested content.
+		/// If the <paramref name="userOrGroup"/> is null, the current user will be the owner.
+		/// The operation requires <c>TakeOwnership</c> permission.
+		/// </summary>
+		/// <snCategory>Permissions</snCategory>
+		/// <param name="content"></param>
+		/// <param name="userOrGroup">Path or id of the desired owner.</param>
+		/// <exception cref="ArgumentException">Thrown if the <paramref name="userOrGroup"/> parameter cannot be recognized
+		/// as a path or id. The method also throws this exception if the identified content is not a User or a Group.</exception>
+		[ODataAction(OperationName = "TakeOwnership")]
         [AllowedRoles(N.R.Everyone)]
         [RequiredPermissions(N.P.TakeOwnership)]
         public static async System.Threading.Tasks.Task TakeOwnershipAsync(Content content, HttpContext httpContext, string userOrGroup)
