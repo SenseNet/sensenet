@@ -3070,23 +3070,10 @@ namespace SenseNet.ContentRepository.Storage
                     IEnumerable<ChangedData> changedData = null;
                     if (!isNewNode)
                         changedData = this.Data.GetChangedValues();
+                    changedData = changedData == null ? this.ChangedData : this.ChangedData.Union(changedData).ToList();
+                    this.ChangedData = Locked || settings.MultistepSaving ? changedData : null;
 
-                    if (settings.MultistepSaving)
-                    {
-                        this.ChangedData = changedData;
-                    }
-                    else
-                    {
-                        if (previousSavingState == ContentSavingState.Modifying || previousSavingState == ContentSavingState.ModifyingLocked)
-                        {
-                            changedData = changedData == null
-                                ? this.ChangedData
-                                : this.ChangedData.Union(changedData).ToList();
-                        }
-
-                        this.ChangedData = null;
-                    }
-
+                    // raise cancellable events
                     IDictionary<string, object> customData = null;
                     if (!lockBefore)
                     {
@@ -3175,7 +3162,8 @@ namespace SenseNet.ContentRepository.Storage
                     // events
                     if (!settings.MultistepSaving)
                     {
-                        if (this.Version.Status != VersionStatus.Locked)
+                        // Locked saves not trigger events except the CheckOut action.
+                        if (this.Version.Status != VersionStatus.Locked || !lockBefore)
                         {
                             if (creating)
                                 FireOnCreated(customData);
