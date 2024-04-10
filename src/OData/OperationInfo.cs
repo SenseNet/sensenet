@@ -59,7 +59,6 @@ namespace SenseNet.OData
         private void ParseAttributes(Attribute[] attributes)
         {
             CausesStateChange = attributes.Any(a => a is ODataAction);
-
             ContentTypes = ParseNames(attributes
                 .Where(a => a is ContentTypesAttribute)
                 .SelectMany(a => ((ContentTypesAttribute) a).Names));
@@ -122,6 +121,16 @@ namespace SenseNet.OData
                 return "string";
             if (type == typeof(int))
                 return "int";
+            if (type == typeof(long))
+                return "long";
+            if (type == typeof(bool))
+                return "bool";
+            if (type.Name == "Nullable`1")
+                return TypeToString(type.GenericTypeArguments[0]) + "?";
+            if (type.IsArray)
+                return TypeToString(type.GetElementType()) + "[]";
+            if (type.Name == "Object")
+                return "object";
             return type.Name;
         }
 
