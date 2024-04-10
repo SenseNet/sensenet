@@ -16,7 +16,6 @@ using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Fields;
 using SenseNet.ContentRepository.Linq;
 using SenseNet.ContentRepository.Storage;
-using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
 using SenseNet.Search;
@@ -27,8 +26,7 @@ using SenseNet.Services.Core;
 using SenseNet.Services.Core.Operations;
 using Task = System.Threading.Tasks.Task;
 using Utility = SenseNet.Tools.Utility;
-using System.Reflection;
-using Microsoft.Extensions.DependencyInjection;
+using SenseNet.Search.Querying.Parser;
 
 // ReSharper disable ArrangeThisQualifier
 
@@ -206,12 +204,18 @@ namespace SenseNet.OData.Writers
                 }
             }
 
-
-            var contents = ProcessOperationQueryResponse(chdef, req, httpContext, out var count);
-            if (req.CountOnly)
-                await WriteCountAsync(httpContext, req, count).ConfigureAwait(false);
-            else
-                await WriteMultipleContentAsync(httpContext, req, contents, count).ConfigureAwait(false);
+            try
+            {
+                var contents = ProcessOperationQueryResponse(chdef, req, httpContext, out var count);
+                if (req.CountOnly)
+                    await WriteCountAsync(httpContext, req, count).ConfigureAwait(false);
+                else
+                    await WriteMultipleContentAsync(httpContext, req, contents, count).ConfigureAwait(false);
+            }
+            catch (ParserException e)
+            {
+                throw new ODataException(ODataExceptionCode.RequestError, e);
+            }
         }
         private async Task WriteMultiRefContentsAsync(object references, HttpContext httpContext, ODataRequest req)
         {
