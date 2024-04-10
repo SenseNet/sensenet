@@ -11,6 +11,7 @@ using Newtonsoft.Json;
 using SenseNet.ContentRepository.Storage.Security;
 using Task = System.Threading.Tasks.Task;
 using Microsoft.Extensions.Logging;
+using SenseNet.OData.Operations;
 
 namespace SenseNet.ODataTests;
 
@@ -193,5 +194,26 @@ public class ODataControllerTests : ODataTestBase
                         "'testodatacontroller3': SenseNet.ODataTests.TestODataController3, " +
                         "'sensenet.odatatests.testodatacontroller3': SenseNet.ODataTests.TestODataController3, " +
                         "'builtin': SenseNet.ODataTests.TestODataController2.", entry);
+    }
+
+    [TestMethod]
+    public async Task ODC_BuiltIn_Help_GetOperations()
+    {
+        await ODataTestAsync(async () =>
+        {
+            // ACTION
+            var response = await ODataGetAsync($"/OData.svc/('Root')/Help/GetOperations", "")
+                .ConfigureAwait(false);
+
+            // ASSERT
+            AssertNoError(response);
+            Assert.AreEqual(200, response.StatusCode);
+            Assert.IsTrue(response.Result
+                .Substring(0, Math.Min(100, response.Result.Length))
+                .Replace("\r", "")
+                .Replace("\n", "")
+                .Replace(" ", "")
+                .StartsWith("[{\"Controller\":\""));
+        });
     }
 }

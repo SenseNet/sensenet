@@ -6,6 +6,7 @@ using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.OData;
 using SenseNet.OData.Metadata;
+using SenseNet.OData.Operations;
 
 // ReSharper disable once CheckNamespace
 namespace SenseNet.Extensions.DependencyInjection
@@ -37,6 +38,7 @@ namespace SenseNet.Extensions.DependencyInjection
                 .AddSingleton<IOperationMethodStorage, OperationMethodStorage>()
                 .AddSingleton<IClientMetadataProvider, ClientMetadataProvider>()
                 .AddSingleton<IODataControllerFactory, ODataControllerFactory>()
+                .AddSenseNetODataController<HelpController>("Help")
                 ;
         }
 
