@@ -305,9 +305,27 @@ namespace SenseNet.OData.Writers
                 .ConfigureAwait(false);
         }
         /// <summary>This method is not supported in this writer.</summary>
-        protected override Task WriteOperationCustomResultAsync(HttpContext httpContext, ODataRequest odataRequest, object result, int? allCount)
+        protected override async Task WriteOperationCustomResultAsync(HttpContext httpContext, ODataRequest odataRequest, object result, int? allCount)
         {
-            throw new NotSupportedException("ODataTableWriter supports only a Content or an IEnumerable<Content> as an operation result.");
+            var entities = new List<ODataEntity>();
+            if (result is IEnumerable<object> array)
+            {
+                foreach (var @object in array)
+                {
+                    var entity = new ODataEntity();
+                    entities.Add(entity);
+                    foreach (var prop in @object.GetType().GetProperties())
+                        entity.Add(prop.Name, prop.GetValue(@object));
+                }
+                await WriteMultipleContentAsync(httpContext, odataRequest, entities, entities.Count);
+            }
+            else
+            {
+                var entity = new ODataEntity();
+                foreach (var prop in result.GetType().GetProperties())
+                    entity.Add(prop.Name, prop.GetValue(result));
+                await WriteSingleContentAsync(httpContext, odataRequest, entity);
+            }
         }
         /// <inheritdoc />
         protected override Task WriteCountAsync(HttpContext httpContext, ODataRequest odataRequest, int count)
