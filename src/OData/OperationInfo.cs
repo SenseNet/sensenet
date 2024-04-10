@@ -113,10 +113,26 @@ namespace SenseNet.OData
                 for (int i = 0; i < OptionalParameterNames.Length; i++)
                     code.Add($"{TypeToString(OptionalParameterTypes[i])} {OptionalParameterNames[i]}?");
             var parameters = string.Join(", ", code);
-            return $"{Name}({parameters})";
+            return $"{Name}({parameters}) : {TypeToString(GetReturnType(Method as MethodInfo))}";
         }
+
+        private Type GetReturnType(MethodInfo method)
+        {
+            if(method == null)
+                return typeof(object);
+            var returnType = method.ReturnType;
+            if (returnType == typeof(Task))
+                return null; // void
+            if (returnType.Name == "Task`1")
+                return returnType.GetElementType();
+            return returnType;
+        }
+
         private string TypeToString(Type type)
         {
+            // ODataArray`1, IEnumerable`1, IDictionary`2
+            if (type == null)
+                return "void";
             if (type == typeof(string))
                 return "string";
             if (type == typeof(int))
@@ -129,6 +145,8 @@ namespace SenseNet.OData
                 return TypeToString(type.GenericTypeArguments[0]) + "?";
             if (type.IsArray)
                 return TypeToString(type.GetElementType()) + "[]";
+            if (type.IsGenericType)
+                return $"{type.Name.Substring(0, type.Name.IndexOf('`'))}<{string.Join(", ", type.GenericTypeArguments.Select(TypeToString))}>";
             if (type.Name == "Object")
                 return "object";
             return type.Name;
