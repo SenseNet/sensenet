@@ -126,11 +126,12 @@ namespace SenseNet.ContentRepository.Fields
             }
         }
 
-        protected override void ParseConfiguration(XPathNavigator configurationElement, IXmlNamespaceResolver xmlNamespaceResolver, ContentType contentType)
+        protected override void ParseConfiguration(XPathNavigator configurationElement, IXmlNamespaceResolver xmlNamespaceResolver,
+            ContentType contentType, List<string> parsedElementNames)
 		{
-			// <MinValue>-6</MinValue>
-			// <MaxValue>42</MaxValue>
-			foreach (XPathNavigator node in configurationElement.SelectChildren(XPathNodeType.Element))
+            // <MinValue>-6</MinValue>
+            // <MaxValue>42</MaxValue>
+            foreach (XPathNavigator node in configurationElement.SelectChildren(XPathNodeType.Element))
 			{
 				switch (node.LocalName)
 				{
@@ -138,26 +139,31 @@ namespace SenseNet.ContentRepository.Fields
 						decimal minValue;
 						if (Decimal.TryParse(node.InnerXml, NumberStyles.Number, CultureInfo.InvariantCulture, out minValue))
 							_minValue = minValue;
+                        parsedElementNames.Add(MinValueName);
 						break;
 					case MaxValueName:
 						decimal maxValue;
 						if (Decimal.TryParse(node.InnerXml, NumberStyles.Number, CultureInfo.InvariantCulture, out maxValue))
 							_maxValue = maxValue;
+                        parsedElementNames.Add(MaxValueName);
 						break;
 					case DigitsName:
 						int digits;
 						if (Int32.TryParse(node.InnerXml, NumberStyles.Number, CultureInfo.InvariantCulture, out digits))
 							_digits = digits;
+                        parsedElementNames.Add(DigitsName);
 						break;
                     case ShowAsPercentageName:
                         bool perc;
                         if (Boolean.TryParse(node.InnerXml, out perc))
                             _showAsPercentage = perc;
+                        parsedElementNames.Add(ShowAsPercentageName);
                         break;
                     case StepName:
                         decimal step;
                         if (Decimal.TryParse(node.InnerXml, out step))
                             _step = step;
+                        parsedElementNames.Add(StepName);
                         break;
                 }
 			}

@@ -48,7 +48,8 @@ namespace SenseNet.ContentRepository.Fields
             }
         }
 
-        protected override void ParseConfiguration(XPathNavigator configurationElement, IXmlNamespaceResolver xmlNamespaceResolver, ContentType contentType)
+        protected override void ParseConfiguration(XPathNavigator configurationElement, IXmlNamespaceResolver xmlNamespaceResolver,
+            ContentType contentType, List<string> parsedElementNames)
         {
             // <MinLength>0..sok</MinLength>
             // <MaxLength>0..sok<MaxLength>
@@ -60,11 +61,13 @@ namespace SenseNet.ContentRepository.Fields
                         int maxLength;
                         if (int.TryParse(element.InnerXml, out maxLength))
                             _maxLength = maxLength;
+                        parsedElementNames.Add(MaxLengthName);
                         break;
                     case MinLengthName:
                         int minLength;
                         if (int.TryParse(element.InnerXml, out minLength))
                             _minLength = minLength;
+                        parsedElementNames.Add(MinLengthName);
                         break;
                 }
             }

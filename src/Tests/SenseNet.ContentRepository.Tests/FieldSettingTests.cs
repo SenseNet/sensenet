@@ -40,7 +40,8 @@ namespace SenseNet.ContentRepository.Tests.Schema
             }
         }
 
-        protected override void ParseConfiguration(XPathNavigator configurationElement, IXmlNamespaceResolver xmlNamespaceResolver, ContentType contentType)
+        protected override void ParseConfiguration(XPathNavigator configurationElement, IXmlNamespaceResolver xmlNamespaceResolver,
+            ContentType contentType, List<string> parsedElementNames)
         {
             //<MinValue>-6</MinValue>
             //<MaxValue>42</MaxValue>
@@ -52,10 +53,11 @@ namespace SenseNet.ContentRepository.Tests.Schema
                         bool evenOnlyValue;
                         if (Boolean.TryParse(node.InnerXml, out evenOnlyValue))
                             _evenOnly = evenOnlyValue;
+                        parsedElementNames.Add(EvenOnlyName);
                         break;
                 }
             }
-            base.ParseConfiguration(configurationElement, xmlNamespaceResolver, contentType);
+            base.ParseConfiguration(configurationElement, xmlNamespaceResolver, contentType, parsedElementNames);
         }
         protected override void ParseConfiguration(Dictionary<string, object> info)
         {

@@ -120,9 +120,10 @@ namespace SenseNet.ContentRepository.Fields
 			_options = new List<ChoiceOption>();
 		}
 
-		protected override void ParseConfiguration(XPathNavigator configurationElement, IXmlNamespaceResolver xmlNamespaceResolver, ContentType contentType)
+        protected override void ParseConfiguration(XPathNavigator configurationElement, IXmlNamespaceResolver xmlNamespaceResolver,
+            ContentType contentType, List<string> parsedElementNames)
 		{
-            base.ParseConfiguration(configurationElement, xmlNamespaceResolver, contentType);
+            base.ParseConfiguration(configurationElement, xmlNamespaceResolver, contentType, parsedElementNames);
 
 			// <AllowExtraValue>true</AllowExtraValue>
 			// <AllowMultiple>true</AllowMultiple>
@@ -138,20 +139,24 @@ namespace SenseNet.ContentRepository.Fields
 						bool allowMultiple;
 						if (Boolean.TryParse(node.InnerXml, out allowMultiple))
 							_allowMultiple = allowMultiple;
+                        parsedElementNames.Add(AllowMultipleName);
 						break;
 					case AllowExtraValueName:
 						bool allowExtraValue;
 						if (Boolean.TryParse(node.InnerXml, out allowExtraValue))
 							_allowExtraValue = allowExtraValue;
+                        parsedElementNames.Add(AllowExtraValueName);
 						break;
 					case OptionsName:
 				        ParseOptionsPrivate(node);
+                        parsedElementNames.Add(OptionsName);
 						break;
                     case DisplayChoicesName:
 				        var dcValue = node.InnerXml;
                         if (string.IsNullOrEmpty(dcValue))
                             break;
                         _displayChoice = (DisplayChoice)Enum.Parse(typeof(DisplayChoice), dcValue);
+                        parsedElementNames.Add(DisplayChoicesName);
 				        break;
 				}
 			}

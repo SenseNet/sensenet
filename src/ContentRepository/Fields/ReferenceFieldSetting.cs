@@ -115,7 +115,8 @@ namespace SenseNet.ContentRepository.Fields
             }
         }
 
-        protected override void ParseConfiguration(XPathNavigator configurationElement, IXmlNamespaceResolver xmlNamespaceResolver, ContentType contentType)
+        protected override void ParseConfiguration(XPathNavigator configurationElement, IXmlNamespaceResolver xmlNamespaceResolver,
+            ContentType contentType, List<string> parsedElementNames)
         {
             // xmlns="http://schemas.sensenet.com/SenseNet/ContentRepository/SearchExpression"
             // <Configuration>
@@ -141,6 +142,7 @@ namespace SenseNet.ContentRepository.Fields
                 {
                     case AllowMultipleName:
                         _allowMultiple = element.InnerXml == "true";
+                        parsedElementNames.Add(AllowMultipleName);
                         break;
                     case AllowedTypesName:
                         _allowedTypes = new List<string>();
@@ -149,6 +151,7 @@ namespace SenseNet.ContentRepository.Fields
                             string typeName = typeElement.InnerXml;
                             _allowedTypes.Add(typeName);
                         }
+                        parsedElementNames.Add(AllowedTypesName);
                         break;
                     case SelectionRootName:
                         _selectionRoots = new List<string>();
@@ -169,13 +172,16 @@ namespace SenseNet.ContentRepository.Fields
                             }
                             _selectionRoots.Add(path);
                         }
+                        parsedElementNames.Add(SelectionRootName);
                         break;
                     case QueryName:
                         _query = ContentQuery.CreateQuery(element.InnerXml);
                         _query.IsSafe = true;
+                        parsedElementNames.Add(QueryName);
                         break;
                     case FieldNameName:
                         _fieldName = element.InnerXml;
+                        parsedElementNames.Add(FieldNameName);
                         break;
                 }
             }

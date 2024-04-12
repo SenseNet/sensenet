@@ -32,7 +32,7 @@ namespace SenseNet.ContentRepository.Fields
             }
         }
 
-        protected override void ParseConfiguration(XPathNavigator configurationElement, IXmlNamespaceResolver xmlNamespaceResolver, ContentType contentType)
+        protected override void ParseConfiguration(XPathNavigator configurationElement, IXmlNamespaceResolver xmlNamespaceResolver, ContentType contentType, List<string> parsedElementNames)
         {
             foreach (XPathNavigator element in configurationElement.SelectChildren(XPathNodeType.Element))
             {
@@ -40,6 +40,7 @@ namespace SenseNet.ContentRepository.Fields
                 {
                     case IsTextConfigString:
                         _isText = element.InnerXml == "true";
+                        parsedElementNames.Add(IsTextConfigString);
                         break;
                 }
             }
