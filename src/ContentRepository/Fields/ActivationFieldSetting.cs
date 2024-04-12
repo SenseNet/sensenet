@@ -122,9 +122,10 @@ namespace SenseNet.ContentRepository.Fields
         }
 
 
-        protected override void ParseConfiguration(System.Xml.XPath.XPathNavigator configurationElement, System.Xml.IXmlNamespaceResolver xmlNamespaceResolver, ContentType contentType)
+        protected override void ParseConfiguration(XPathNavigator configurationElement, IXmlNamespaceResolver xmlNamespaceResolver,
+            ContentType contentType, List<string> parsedElementNames)
         {
-            base.ParseConfiguration(configurationElement, xmlNamespaceResolver, contentType);
+            base.ParseConfiguration(configurationElement, xmlNamespaceResolver, contentType, parsedElementNames);
 
             // <Enabled>true|false</Enabled>
             // <AdminEmail>valid@email.hu</AdminEmail>
@@ -142,25 +143,31 @@ namespace SenseNet.ContentRepository.Fields
                         bool enabled;
                         if (Boolean.TryParse(node.InnerXml, out enabled))
                             _enabled = enabled;
+                        parsedElementNames.Add(EnabledName);
                         break;
                     case AdminEmailName:
                         _adminEmail = node.InnerXml;
+                        parsedElementNames.Add(AdminEmailName);
                         break;
                     case RequireUniqueEmailName:
                         bool requireUniqueEmail;
                         if (Boolean.TryParse(node.InnerXml, out requireUniqueEmail))
                             _requireUniqueEmail = requireUniqueEmail;
+                        parsedElementNames.Add(RequireUniqueEmailName);
                         break;
                     case MailDefinitionName:
                         _mailDefinition = node.InnerXml;
+                        parsedElementNames.Add(MailDefinitionName);
                         break;
                     case IsBodyHtmlName:
                         bool isBodyHtml;
                         if (Boolean.TryParse(node.InnerXml, out isBodyHtml))
                             _isBodyHtml = isBodyHtml;
+                        parsedElementNames.Add(IsBodyHtmlName);
                         break;
                     case MailSubjectName:
                         _mailSubject = node.InnerXml;
+                        parsedElementNames.Add(MailSubjectName);
                         break;
                     case MailPriorityName:
                         if (node.InnerXml == Enum.GetName(typeof(MailPriority), MailPriority.Low))
@@ -171,9 +178,11 @@ namespace SenseNet.ContentRepository.Fields
                             _mailPriority = MailPriority.High;
                         else
                             _mailPriority = MailPriority.Normal;
+                        parsedElementNames.Add(MailPriorityName);
                         break;
                     case MailFromName:
                         _mailFrom = node.InnerXml;
+                        parsedElementNames.Add(MailFromName);
                         break;
                 }
             }

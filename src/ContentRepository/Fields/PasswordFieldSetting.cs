@@ -114,22 +114,26 @@ namespace SenseNet.ContentRepository.Fields
         }
 
 
-        protected override void ParseConfiguration(XPathNavigator configurationElement, IXmlNamespaceResolver xmlNamespaceResolver, ContentType contentType)
+        protected override void ParseConfiguration(XPathNavigator configurationElement, IXmlNamespaceResolver xmlNamespaceResolver,
+            ContentType contentType, List<string> parsedElementNames)
         {
             if (configurationElement == null) throw new ArgumentNullException("configurationElement");
-            base.ParseConfiguration(configurationElement, xmlNamespaceResolver, contentType);
+            base.ParseConfiguration(configurationElement, xmlNamespaceResolver, contentType, parsedElementNames);
             foreach (XPathNavigator node in configurationElement.SelectChildren(XPathNodeType.Element))
             {
                 switch (node.LocalName)
                 {
                     case ReenterTitleName:
                         _reenterTitle = node.InnerXml;
+                        parsedElementNames.Add(ReenterTitleName);
                         break;
                     case ReenterDescriptionName:
                         _reenterDescription = node.InnerXml;
+                        parsedElementNames.Add(ReenterDescriptionName);
                         break;
                     case PasswordHistoryLengthName:
                         _passwordHistoryLength = Int32.Parse(node.InnerXml);
+                        parsedElementNames.Add(PasswordHistoryLengthName);
                         break;
                 }
             }

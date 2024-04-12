@@ -140,26 +140,31 @@ namespace SenseNet.ContentRepository.Fields
             }
         }
 
-        protected override void ParseConfiguration(XPathNavigator configurationElement, IXmlNamespaceResolver xmlNamespaceResolver, ContentType contentType)
+        protected override void ParseConfiguration(XPathNavigator configurationElement, IXmlNamespaceResolver xmlNamespaceResolver,
+            ContentType contentType, List<string> parsedElementNames)
         {
-            base.ParseConfiguration(configurationElement, xmlNamespaceResolver, contentType);
+            base.ParseConfiguration(configurationElement, xmlNamespaceResolver, contentType, parsedElementNames);
 
             foreach (XPathNavigator node in configurationElement.SelectChildren(XPathNodeType.Element))
             {
                 switch (node.LocalName)
                 {
                     case MinValueName:
+                        parsedElementNames.Add(MinValueName);
                         if (!string.IsNullOrEmpty(node.InnerXml))
                             _minValue = node.InnerXml;
                         break;
                     case MaxValueName:
+                        parsedElementNames.Add(MaxValueName);
                         if (!string.IsNullOrEmpty(node.InnerXml))
                             _maxValue = node.InnerXml;
                         break;
                     case DateTimeModeName:
+                        parsedElementNames.Add(DateTimeModeName);
                         ParseEnumValue(node.InnerXml, ref _dateTimeMode);
                         break;
                     case PrecisionName:
+                        parsedElementNames.Add(PrecisionName);
                         ParseEnumValue(node.InnerXml, ref _precision);
                         break;
                 }
