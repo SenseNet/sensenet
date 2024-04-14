@@ -237,9 +237,9 @@ namespace SenseNet.ODataTests
             });
         }
 
-        protected override RepositoryBuilder CreateRepositoryBuilderForTest(Action<IServiceCollection> modifyServices = null)
+        protected override RepositoryBuilder CreateRepositoryBuilderForTest(Action<IConfigurationBuilder> modifyConfig = null, Action<IServiceCollection> modifyServices = null)
         {
-            var builder = base.CreateRepositoryBuilderForTest(modifyServices);
+            var builder = base.CreateRepositoryBuilderForTest(modifyServices: modifyServices);
 
             //UNDONE:<?:do not call discovery and providers setting in the static ctor of ODataMiddleware
             var _ = new ODataMiddleware(null, null, null, 
@@ -254,7 +254,7 @@ namespace SenseNet.ODataTests
         {
             OnTestInitialize();
 
-            var builder = CreateRepositoryBuilderForTest(modifyServices);
+            var builder = CreateRepositoryBuilderForTest(null, modifyServices);
             _serviceProvider = builder.Services;
 
             initialize?.Invoke(builder);

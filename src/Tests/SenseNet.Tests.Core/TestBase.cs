@@ -129,7 +129,40 @@ namespace SenseNet.Tests.Core
         {
             OnTestInitialize();
 
-            var builder = CreateRepositoryBuilderForTest(initializeServices);
+            var builder = CreateRepositoryBuilderForTest(null, initializeServices);
+            initialize?.Invoke(builder);
+
+            Indexing.IsOuterSearchEngineEnabled = true;
+
+            Cache.Reset();
+            ResetContentTypeManager();
+
+            OnBeforeRepositoryStart(builder);
+
+            using (Repository.Start(builder))
+            {
+                PrepareRepository();
+
+                User.Current = User.Administrator;
+                if (useCurrentUser)
+                    callback();
+                else
+                    using (new SystemAccount())
+                        callback();
+            }
+
+            OnAfterRepositoryShutdown();
+        }
+
+        protected void Test3(Action<IConfigurationBuilder> initializeConfig, Action<IServiceCollection> initializeServices, Action callback)
+        {
+            ExecuteTest3(false, initializeConfig, initializeServices, null, callback);
+        }
+        private void ExecuteTest3(bool useCurrentUser, Action<IConfigurationBuilder> initializeConfig, Action<IServiceCollection> initializeServices, Action<RepositoryBuilder> initialize, Action callback)
+        {
+            OnTestInitialize();
+
+            var builder = CreateRepositoryBuilderForTest(initializeConfig, initializeServices);
             initialize?.Invoke(builder);
 
             Indexing.IsOuterSearchEngineEnabled = true;
@@ -230,7 +263,7 @@ namespace SenseNet.Tests.Core
         {
             OnTestInitialize();
 
-            var builder = CreateRepositoryBuilderForTest(initializeServices);
+            var builder = CreateRepositoryBuilderForTest(null, initializeServices);
             initialize?.Invoke(builder);
 
             Indexing.IsOuterSearchEngineEnabled = true;
@@ -280,14 +313,14 @@ namespace SenseNet.Tests.Core
             modifyServices?.Invoke(services);
             return services.BuildServiceProvider();
         }
-        protected virtual RepositoryBuilder CreateRepositoryBuilderForTest(Action<IServiceCollection> modifyServices = null)
+        protected virtual RepositoryBuilder CreateRepositoryBuilderForTest(Action<IConfigurationBuilder> modifyConfig = null, Action<IServiceCollection> modifyServices = null)
         {
             IServiceProvider services;
 
             var reusesRepository = (bool)(TestContext.Properties["ReusesRepository"] ?? false);
             if (!reusesRepository || Providers.Instance == null)
             {
-                services = CreateServiceProviderForTest(modifyServices: modifyServices);
+                services = CreateServiceProviderForTest(modifyConfig: modifyConfig, modifyServices: modifyServices);
                 Providers.Instance = new Providers(services);
             }
             else
@@ -298,7 +331,11 @@ namespace SenseNet.Tests.Core
             Cache.Reset();
             Providers.Instance.ResetBlobProviders(new ConnectionStringOptions());
 
-            var builder = new RepositoryBuilder(services)
+            var builder = new RepositoryBuilder(services)/*;
+            var configuration = services.GetService<IConfiguration>();
+            if(configuration != null)
+                builder.UseConfiguration(configuration);
+            builder = builder*/
                 .UseLogger(new DebugWriteLoggerAdapter())
                 .UseAccessProvider(new DesktopAccessProvider())
                 .UseInitialData(GetInitialData())
@@ -312,7 +349,6 @@ namespace SenseNet.Tests.Core
                 .DisableNodeObservers()
                 .EnableNodeObservers(typeof(SettingsCache))
                 .UseTraceCategories("Test", "Event", "Custom") as RepositoryBuilder;
-
             ContentTypeManager.Reset();
 
             return builder;

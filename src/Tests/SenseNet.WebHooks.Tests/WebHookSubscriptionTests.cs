@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
@@ -536,9 +537,9 @@ namespace SenseNet.WebHooks.Tests
                 });
         }
 
-        protected override RepositoryBuilder CreateRepositoryBuilderForTest(Action<IServiceCollection> modifyServices = null)
+        protected override RepositoryBuilder CreateRepositoryBuilderForTest(Action<IConfigurationBuilder> modifyConfig = null, Action<IServiceCollection> modifyServices = null)
         {
-            return base.CreateRepositoryBuilderForTest(services =>
+            return base.CreateRepositoryBuilderForTest(null, services =>
             {
                 services.AddSenseNetWebHooks();
                 modifyServices?.Invoke(services);
