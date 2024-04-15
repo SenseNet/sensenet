@@ -17,7 +17,7 @@ namespace SenseNet.Configuration
     /// Options for configuring the tracing (detailed log) service.
     /// </summary>
     [OptionsClass(sectionName: "sensenet:tracing")]
-    public class TracingOptions : SnConfig
+    public class TracingOptions
     {
         /// <summary>
         /// Gets or sets comma, semicolon or space separated list of the trace categories
