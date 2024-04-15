@@ -14,7 +14,7 @@ namespace SenseNet.Configuration
     }
 
     /// <summary>
-    /// Options for configuring the cryptography service.
+    /// Options for configuring the tracing (detailed log) service.
     /// </summary>
     [OptionsClass(sectionName: "sensenet:tracing")]
     public class TracingOptions : SnConfig
