@@ -71,6 +71,7 @@ namespace SenseNet.Extensions.DependencyInjection
             services.Configure<CryptographyOptions>(configuration.GetSection("sensenet:cryptography"));
             services.Configure<StatisticsOptions>(configuration.GetSection("sensenet:statistics"));
             services.Configure<MultiFactorOptions>(configuration.GetSection("sensenet:Authentication:MultiFactor"));
+            services.Configure<TracingOptions>(configuration.GetSection("sensenet:tracing"));
             services.Configure<RepositoryTypeOptions>(options => {});
 
             services.ConfigureConnectionStrings(configuration);

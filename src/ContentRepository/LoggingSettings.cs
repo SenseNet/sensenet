@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using STT =System.Threading.Tasks;
 using SenseNet.Communication.Messaging;
 using SenseNet.Configuration;
@@ -93,8 +94,11 @@ namespace SenseNet.ContentRepository
 
             public static void ConfigureCategories()
             {
+                var startupTraceCategories = Providers.Instance.Services.GetService<IOptions<TracingOptions>>()?
+                    .Value.GetStartupTraceCategories() ?? Array.Empty<string>();
+
                 foreach (var category in SnTrace.Categories)
-                    category.Enabled = Tracing.StartupTraceCategories.Contains(category.Name);
+                    category.Enabled = startupTraceCategories.Contains(category.Name);
 
                 WriteInformation("configuration");
 
