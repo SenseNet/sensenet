@@ -1,19 +1,22 @@
-﻿using System.Collections.Generic;
+﻿using SenseNet.Tools.Configuration;
+using System;
+using System.Collections.Generic;
 
 // ReSharper disable once CheckNamespace
 // ReSharper disable RedundantTypeArgumentsOfMethod
 namespace SenseNet.Configuration
 {
+    public enum CacheContentAfterSaveOption
+    {
+        None = 0,
+        Containers,
+        All
+    }
+
+    [Obsolete("Use CacheOptions instead from the service collection.", true)]
     public class CacheConfiguration : SnConfig
     {
         private const string SectionName = "sensenet/cache";
-
-        public enum CacheContentAfterSaveOption
-        {
-            None = 0,
-            Containers,
-            All
-        }
 
         public static CacheContentAfterSaveOption CacheContentAfterSaveMode { get; internal set; } =
             GetValue(SectionName, "CacheContentAfterSaveMode", CacheContentAfterSaveOption.All);
@@ -43,5 +46,33 @@ namespace SenseNet.Configuration
             {
                 "/Root/IMS/BuiltIn/Portal/Administrators"
             });
+    }
+
+    /// <summary>
+    /// Options for cache.
+    /// </summary>
+    [OptionsClass(sectionName: "sensenet:cache")]
+    public class CacheOptions
+    {
+        /// <summary>
+        /// Gets or sets a value that determines whether content should be cached after saving.
+        /// Available values: None, Containers, All (default)
+        /// </summary>
+        public CacheContentAfterSaveOption CacheContentAfterSaveMode { get; set; } =  CacheContentAfterSaveOption.All;
+
+        public int NodeIdDependencyEventPartitions { get; set; } = 400;
+        public int NodeTypeDependencyEventPartitions { get; set; } = 400;
+        public int PathDependencyEventPartitions { get; set; } = 400;
+        public int PortletDependencyEventPartitions { get; set; } = 400;
+
+        [Obsolete("This value is not used in this version.")]
+        public double SlidingExpirationSeconds { get; set; } = 0;
+        [Obsolete("This value is not used in this version.")]
+        public double AbsoluteExpirationSeconds { get; set; } = 120;
+
+        [Obsolete("Do not use this property anymore.", true)]
+        public string ResizedImagesCacheFolder { get; set; } = "/ResizedImages";
+        [Obsolete("Do not use this property anymore.", true)]
+        public string AdminGroupPathForLoggedInUserCache { get; set; } ="/Root/IMS/BuiltIn/Portal/Administrators";
     }
 }

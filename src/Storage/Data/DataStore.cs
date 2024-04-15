@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Storage.Caching.Dependency;
@@ -39,6 +40,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         //public DataProvider DataProvider => Providers.Instance.DataProvider;
         public DataProvider DataProvider { get; }
         private readonly ILogger _logger;
+        private readonly CacheOptions _cacheOptions;
 
         public int PathMaxLength => DataProvider.PathMaxLength;
         public DateTime DateTimeMinValue => DataProvider.DateTimeMinValue;
@@ -46,10 +48,11 @@ namespace SenseNet.ContentRepository.Storage.Data
         public decimal DecimalMinValue => DataProvider.DecimalMinValue;
         public decimal DecimalMaxValue => DataProvider.DecimalMaxValue;
 
-        public DataStore(DataProvider dataProvider, ILogger<DataStore> logger)
+        public DataStore(DataProvider dataProvider, ILogger<DataStore> logger, IOptions<CacheOptions> cacheOptions)
         {
             DataProvider = dataProvider;
             _logger = logger;
+            _cacheOptions = cacheOptions.Value;
         }
 
         public void Reset()
@@ -195,8 +198,8 @@ namespace SenseNet.ContentRepository.Storage.Data
         private bool MustCache(int nodeTypeId)
         {
             var nodeType = Providers.Instance.StorageSchema.NodeTypes.GetItemById(nodeTypeId);
-            if (CacheConfiguration.CacheContentAfterSaveMode != CacheConfiguration.CacheContentAfterSaveOption.Containers)
-                return CacheConfiguration.CacheContentAfterSaveMode == CacheConfiguration.CacheContentAfterSaveOption.All;
+            if (_cacheOptions.CacheContentAfterSaveMode != CacheContentAfterSaveOption.Containers)
+                return _cacheOptions.CacheContentAfterSaveMode == CacheContentAfterSaveOption.All;
             return nodeType.IsInstaceOfOrDerivedFrom(NodeType.GetByName("Folder"));
         }
 

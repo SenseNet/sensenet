@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using Microsoft.Extensions.Options;
 using SenseNet.Configuration;
 
 namespace SenseNet.ContentRepository.Storage.Caching.Dependency
@@ -8,29 +9,36 @@ namespace SenseNet.ContentRepository.Storage.Caching.Dependency
     /// </summary>
     public class CacheEventStore
     {
+        private readonly CacheOptions _options;
+
+        public CacheEventStore(CacheOptions options)
+        {
+            _options = options;
+            NodeIdChanged = new CacheEvent<int>(_options.NodeIdDependencyEventPartitions);
+            NodeTypeChanged = new CacheEvent<int>(_options.NodeTypeDependencyEventPartitions);
+            PathChanged = new CacheEvent<string>(_options.PathDependencyEventPartitions);
+            PortletChanged = new CacheEvent<string>(_options.PortletDependencyEventPartitions);
+        }
+
         /// <summary>
         /// Event for a node id change.
         /// </summary>
-        public readonly CacheEvent<int> NodeIdChanged =
-            new CacheEvent<int>(CacheConfiguration.NodeIdDependencyEventPartitions);
+        public readonly CacheEvent<int> NodeIdChanged;
 
         /// <summary>
         /// Event for a node type change.
         /// </summary>
-        public readonly CacheEvent<int> NodeTypeChanged =
-            new CacheEvent<int>(CacheConfiguration.NodeTypeDependencyEventPartitions);
+        public readonly CacheEvent<int> NodeTypeChanged;
 
         /// <summary>
         /// Event for a node path change.
         /// </summary>
-        public readonly CacheEvent<string> PathChanged =
-            new CacheEvent<string>(CacheConfiguration.PathDependencyEventPartitions);
+        public readonly CacheEvent<string> PathChanged;
 
         /// <summary>
         /// Event for a portlet change.
         /// </summary>
-        public readonly CacheEvent<string> PortletChanged =
-            new CacheEvent<string>(CacheConfiguration.PortletDependencyEventPartitions);
+        public readonly CacheEvent<string> PortletChanged;
 
         /// <summary>
         /// Gets the subscription counts for all well-known event types.

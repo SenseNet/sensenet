@@ -58,4 +58,33 @@ public class ConfigurationTests : TestBase
                 Assert.IsFalse(isAuditEnabled);
             });
     }
+    [TestMethod]
+    public void Options_CacheOptions()
+    {
+        Test3(
+            initializeConfig: builder =>
+            {
+                var configData = new Dictionary<string, string>
+                {
+                    {"sensenet:cache:CacheContentAfterSaveMode", "Containers"}, // None, Containers, All (default)
+                    {"sensenet:cache:NodeIdDependencyEventPartitions", "333"},
+                    {"sensenet:cache:NodeTypeDependencyEventPartitions", "555"},
+                };
+                builder.AddInMemoryCollection(configData);
+            },
+            initializeServices: services => { },
+            callback: () =>
+            {
+                var cacheOptions = Providers.Instance.Services.GetService<IOptions<CacheOptions>>()?.Value;
+                Assert.IsNotNull(cacheOptions);
+                Assert.AreEqual(CacheContentAfterSaveOption.Containers, cacheOptions.CacheContentAfterSaveMode);
+                Assert.AreEqual(333, cacheOptions.NodeIdDependencyEventPartitions);
+                Assert.AreEqual(555, cacheOptions.NodeTypeDependencyEventPartitions);
+                Assert.AreEqual(400, cacheOptions.PathDependencyEventPartitions);
+
+                var node = new Folder(Repository.Root);
+                var cacheMode = node.GetCacheContentAfterSaveMode();
+                Assert.AreEqual(CacheContentAfterSaveOption.Containers, cacheMode);
+            });
+    }
 }

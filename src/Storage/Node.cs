@@ -3373,23 +3373,31 @@ namespace SenseNet.ContentRepository.Storage
             }
         }
 
+        private CacheContentAfterSaveOption? __cacheContentAfterSaveMode;
+        internal CacheContentAfterSaveOption GetCacheContentAfterSaveMode()
+        {
+            __cacheContentAfterSaveMode ??= Providers.Instance.Services.GetService<IOptions<CacheOptions>>()?.Value
+                .CacheContentAfterSaveMode ?? CacheContentAfterSaveOption.All;
+            return __cacheContentAfterSaveMode.Value;
+        }
+
         private void CacheNodeAfterSave()
         {
             // don't insert into cache if node is a content type
             if (this.IsContentType)
                 return;
 
-            switch (CacheConfiguration.CacheContentAfterSaveMode)
+            switch (GetCacheContentAfterSaveMode())
             {
-                case CacheConfiguration.CacheContentAfterSaveOption.None:
+                case CacheContentAfterSaveOption.None:
                     // do nothing
                     break;
-                case CacheConfiguration.CacheContentAfterSaveOption.Containers:
+                case CacheContentAfterSaveOption.Containers:
                     // cache IFolders only
                     if (this is IFolder)
                         DataStore.CacheNodeData(this._data);
                     break;
-                case CacheConfiguration.CacheContentAfterSaveOption.All:
+                case CacheContentAfterSaveOption.All:
                     // cache every node
                     DataStore.CacheNodeData(this._data);
                     break;

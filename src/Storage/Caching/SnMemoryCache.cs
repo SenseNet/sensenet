@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Runtime.Caching;
+using Microsoft.Extensions.Options;
+using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage.Caching.Dependency;
 // ReSharper disable RedundantBaseQualifier
 
@@ -16,8 +18,9 @@ namespace SenseNet.ContentRepository.Storage.Caching
         /// <summary>
         /// Initializes a new instance of the <see cref="SnMemoryCache"/> class.
         /// </summary>
-        public SnMemoryCache() : this(Guid.NewGuid().ToString("N"))
+        public SnMemoryCache(IOptions<CacheOptions> options) : this(Guid.NewGuid().ToString("N"))
         {
+            Events = new CacheEventStore(options.Value);
         }
         /// <summary>
         /// Initializes a new instance of the <see cref="SnMemoryCache"/> class.
@@ -30,7 +33,7 @@ namespace SenseNet.ContentRepository.Storage.Caching
         public int Count => (int)base.GetCount();
 
         /// <inheritdoc />
-        public CacheEventStore Events { get; set; } = new CacheEventStore();
+        public CacheEventStore Events { get; set; }
 
         /// <inheritdoc />
         public object Get(string key)

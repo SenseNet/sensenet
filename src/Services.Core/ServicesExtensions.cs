@@ -73,6 +73,7 @@ namespace SenseNet.Extensions.DependencyInjection
             services.Configure<MultiFactorOptions>(configuration.GetSection("sensenet:Authentication:MultiFactor"));
             services.Configure<TracingOptions>(configuration.GetSection("sensenet:tracing"));
             services.Configure<LoggingOptions>(configuration.GetSection("sensenet:logging"));
+            services.Configure<CacheOptions>(configuration.GetSection("sensenet:cache"));
             services.Configure<RepositoryTypeOptions>(options => {});
 
             services.ConfigureConnectionStrings(configuration);
