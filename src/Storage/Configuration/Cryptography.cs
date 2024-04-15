@@ -4,7 +4,7 @@ using System;
 
 namespace SenseNet.Configuration
 {
-    [Obsolete("Use CryptographyOptions instead from the service collection.")]
+    [Obsolete("Use CryptographyOptions instead from the service collection.", true)]
     public class Cryptography : SnConfig
     {
         private const string SectionName = "sensenet/cryptography";
