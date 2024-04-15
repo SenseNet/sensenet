@@ -34,7 +34,7 @@ namespace SenseNet.ApplicationModel
                 return null;
             
             if (string.IsNullOrEmpty(actionType))
-                actionType = Actions.DefaultActionType;
+                actionType = DefaultActionType;
 
             var action = ResolveActionType(actionType);
             if (action == null)
@@ -54,6 +54,8 @@ namespace SenseNet.ApplicationModel
 
             return action.Visible ? action : null;
         }
+
+        public static readonly string DefaultActionType = "UrlAction"; //TODO: Make configuration if needed.
         
         // ======================================================================== Action type handling
 
