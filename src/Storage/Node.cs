@@ -8,6 +8,8 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Search.Indexing;
@@ -133,7 +135,7 @@ namespace SenseNet.ContentRepository.Storage
         /// This property is obsolete. Use the SenseNet.Configuration.Logging.AuditEnabled property instead.
         /// </summary>
         [Obsolete("After V6.5 PATCH 9: Use SenseNet.Configuration.Logging.AuditEnabled instead.", true)]
-        public static bool AuditEnabled => Logging.AuditEnabled;
+        public static bool AuditEnabled => true;
 
         private bool _copying;
         /// <summary>
@@ -3130,7 +3132,7 @@ namespace SenseNet.ContentRepository.Storage
                     // log
                     if (!settings.MultistepSaving && !settings.TakingLockOver)
                     {
-                        if (Logging.AuditEnabled)
+                        if (IsAuditEnabled())
                         {
                             if (isNewNode || previousSavingState == ContentSavingState.Creating)
                                 SnLog.WriteAudit(AuditEvent.ContentCreated, CollectAllProperties(this.Data));
@@ -3213,7 +3215,7 @@ namespace SenseNet.ContentRepository.Storage
             using (var op = SnTrace.ContentOperation.StartOperation("FinalizeContent.  Path: {0}/{1}", this.ParentPath, this.Name))
             {
                 // log
-                if (Logging.AuditEnabled)
+                if (IsAuditEnabled())
                 {
                     if (SavingState == ContentSavingState.Creating)
                         SnLog.WriteAudit(AuditEvent.ContentCreated, CollectAllProperties(this.Data));
@@ -3248,6 +3250,12 @@ namespace SenseNet.ContentRepository.Storage
             }
         }
 
+        private bool? __isAuditEnabled;
+        internal bool IsAuditEnabled()
+        {
+            __isAuditEnabled ??= Providers.Instance.Services.GetService<IOptions<LoggingOptions>>()?.Value.AuditEnabled ?? true;
+            return __isAuditEnabled.Value;
+        }
         private void ApplySettings(NodeSaveSettings settings)
         {
             if (settings.ExpectedVersion != null && settings.ExpectedVersion.ToString() != this.Version.ToString())

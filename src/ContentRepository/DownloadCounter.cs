@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.Diagnostics;
@@ -9,6 +11,7 @@ using SenseNet.Tools;
 
 namespace SenseNet.ContentRepository
 {
+    //TODO: Make a service and use the dependency injection instead of type discover and avoid using the LoggingOptions.DownloadCounterEnabled
     public interface IDownloadCounter
     {
         void Increment(int fileId);
@@ -52,13 +55,13 @@ namespace SenseNet.ContentRepository
 
         public static void Increment(int fileId)
         {
-            if (Logging.DownloadCounterEnabled)
+            if (Providers.Instance.Services.GetService<IOptions<LoggingOptions>>()?.Value.DownloadCounterEnabled ?? false)
                 Instance.Increment(fileId);
         }
 
         public static void Increment(string filePath)
         {
-            if (Logging.DownloadCounterEnabled)
+            if (Providers.Instance.Services.GetService<IOptions<LoggingOptions>>()?.Value.DownloadCounterEnabled ?? false)
                 Instance.Increment(filePath);
         }
     }
