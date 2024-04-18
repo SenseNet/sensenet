@@ -9,6 +9,7 @@ using SenseNet.ContentRepository;
 using System.Reflection;
 using System.Threading;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
@@ -74,7 +75,8 @@ namespace SenseNet.Packaging
             Logger.LogTitle(String.Format("Executing phase {0}/{1}", currentPhase + 1, phaseCount));
 
             var sandboxDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-            var executionContext = ExecutionContext.Create(packagePath, targetPath, Configuration.Packaging.NetworkTargets,
+            var executionContext = ExecutionContext.Create(packagePath, targetPath,
+                Providers.Instance.Services.GetService<IOptions<PackagingOptions>>()?.Value.NetworkTargets ?? Array.Empty<string>(),
                 sandboxDirectory, manifest, currentPhase, manifest.CountOfPhases, packageParameters, console, builder);
 
             executionContext.LogVariables();

@@ -87,4 +87,31 @@ public class ConfigurationTests : TestBase
                 Assert.AreEqual(CacheContentAfterSaveOption.Containers, cacheMode);
             });
     }
+    [TestMethod]
+    public void Options_PackagingOptions()
+    {
+        Test3(
+            initializeConfig: builder =>
+            {
+                var configData = new Dictionary<string, string>
+                {
+                    {"sensenet:packaging:NetworkTargets:0", "\\\\NetworkTarget-1\\Folder1"},
+                    {"sensenet:packaging:NetworkTargets:1", "\\\\NetworkTarget-2\\Folder1"},
+                    {"sensenet:packaging:TargetDirectory", "T:\\Packaging\\Target1\\"},
+                };
+                builder.AddInMemoryCollection(configData);
+            },
+            initializeServices: services => { },
+            callback: () =>
+            {
+                var options = Providers.Instance.Services.GetService<IOptions<PackagingOptions>>()?.Value;
+                Assert.IsNotNull(options);
+                Assert.IsNotNull(options.NetworkTargets);
+                Assert.AreEqual(2, options.NetworkTargets.Length);
+                Assert.AreEqual("\\\\NetworkTarget-1\\Folder1", options.NetworkTargets[0]);
+                Assert.AreEqual("\\\\NetworkTarget-2\\Folder1", options.NetworkTargets[1]);
+                Assert.AreEqual("T:\\Packaging\\Target1\\", options.TargetDirectory);
+                Assert.AreEqual(null, options.PackageDirectory);
+            });
+    }
 }
