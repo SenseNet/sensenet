@@ -1,10 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Versioning;
 using SenseNet.BackgroundOperations;
+using SenseNet.Configuration;
 using SenseNet.TaskManagement.Core;
 using SenseNet.Tools;
 
@@ -36,15 +39,13 @@ namespace SenseNet.ContentRepository
 
         /// <summary>
         /// Gets the recommended <see cref="ContentRepository.CheckInCommentsMode"/> value for this instance.
-        /// The return value depends on the versioning mode and the value of the <see cref="SenseNet.Configuration.Versioning.CheckInCommentsMode"/>.
+        /// The return value depends on the versioning mode and the value of the <see cref="VersioningOptions.CheckInCommentsMode"/>.
         /// </summary>
-        public override CheckInCommentsMode CheckInCommentsMode
-        {
-            get
-            {
-                return this.VersioningMode == VersioningType.None ? CheckInCommentsMode.None : Configuration.Versioning.CheckInCommentsMode;
-            }
-        }
+        public override CheckInCommentsMode CheckInCommentsMode =>
+            this.VersioningMode == VersioningType.None
+                ? CheckInCommentsMode.None
+                : Providers.Instance.Services
+                    .GetService<IOptions<VersioningOptions>>()?.Value.CheckInCommentsMode ?? CheckInCommentsMode.Recommended;
 
         /// <summary>
         /// Defines a constant value for the name of the Watermark property.

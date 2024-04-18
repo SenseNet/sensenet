@@ -6,6 +6,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage;
+using SenseNet.ContentRepository.Versioning;
 using SenseNet.Testing;
 using SenseNet.Tests.Core;
 
@@ -27,6 +28,7 @@ public class ConfigurationTests : TestBase
             initializeServices: services => { },
             callback: () =>
             {
+                // Test: loaded
                 var tracingOptions = Providers.Instance.Services.GetService<IOptions<TracingOptions>>()?.Value;
                 Assert.IsNotNull(tracingOptions);
                 Assert.AreEqual("Web,System", tracingOptions.StartupTraceCategories);
@@ -49,10 +51,12 @@ public class ConfigurationTests : TestBase
             initializeServices: services => { },
             callback: () =>
             {
+                // Test: loaded
                 var loggingOptions = Providers.Instance.Services.GetService<IOptions<LoggingOptions>>()?.Value;
                 Assert.IsNotNull(loggingOptions);
                 Assert.IsFalse(loggingOptions.AuditEnabled);
 
+                // Test usage
                 var node = new Folder(Repository.Root);
                 var isAuditEnabled = node.IsAuditEnabled();
                 Assert.IsFalse(isAuditEnabled);
@@ -75,6 +79,7 @@ public class ConfigurationTests : TestBase
             initializeServices: services => { },
             callback: () =>
             {
+                // Test: loaded
                 var cacheOptions = Providers.Instance.Services.GetService<IOptions<CacheOptions>>()?.Value;
                 Assert.IsNotNull(cacheOptions);
                 Assert.AreEqual(CacheContentAfterSaveOption.Containers, cacheOptions.CacheContentAfterSaveMode);
@@ -82,6 +87,7 @@ public class ConfigurationTests : TestBase
                 Assert.AreEqual(555, cacheOptions.NodeTypeDependencyEventPartitions);
                 Assert.AreEqual(400, cacheOptions.PathDependencyEventPartitions);
 
+                // Test usage
                 var node = new Folder(Repository.Root);
                 var cacheMode = node.GetCacheContentAfterSaveMode();
                 Assert.AreEqual(CacheContentAfterSaveOption.Containers, cacheMode);
@@ -104,6 +110,7 @@ public class ConfigurationTests : TestBase
             initializeServices: services => { },
             callback: () =>
             {
+                // Test: loaded
                 var options = Providers.Instance.Services.GetService<IOptions<PackagingOptions>>()?.Value;
                 Assert.IsNotNull(options);
                 Assert.IsNotNull(options.NetworkTargets);
@@ -112,6 +119,31 @@ public class ConfigurationTests : TestBase
                 Assert.AreEqual("\\\\NetworkTarget-2\\Folder1", options.NetworkTargets[1]);
                 Assert.AreEqual("T:\\Packaging\\Target1\\", options.TargetDirectory);
                 Assert.AreEqual(null, options.PackageDirectory);
+            });
+    }
+    [TestMethod]
+    public void Options_VersioningOptions()
+    {
+        Test3(
+            initializeConfig: builder =>
+            {
+                var configData = new Dictionary<string, string>
+                    {{"sensenet:versioning:CheckInCommentsMode", "Compulsory"}}; // default: Recommended
+                builder.AddInMemoryCollection(configData);
+            },
+            initializeServices: services => { },
+            callback: () =>
+            {
+                // Test: loaded
+                var options = Providers.Instance.Services.GetService<IOptions<VersioningOptions>>()?.Value;
+                Assert.IsNotNull(options);
+                Assert.AreEqual(CheckInCommentsMode.Compulsory, options.CheckInCommentsMode);
+
+                // Test usage
+                var file = new File(Repository.Root);
+                Assert.AreEqual(CheckInCommentsMode.None, file.CheckInCommentsMode);
+                file.VersioningMode = VersioningType.MajorAndMinor;
+                Assert.AreEqual(CheckInCommentsMode.Compulsory, file.CheckInCommentsMode);
             });
     }
 }

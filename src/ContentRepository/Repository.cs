@@ -297,8 +297,9 @@ namespace SenseNet.ContentRepository
         [Obsolete("After V6.5 PATCH 9: Use LoggingOptions from ServiceProviders.", true)]
         public static bool DownloadCounterEnabled => Providers.Instance.Services
             .GetService<IOptions<LoggingOptions>>()?.Value.DownloadCounterEnabled ?? false;
-        [Obsolete("After V6.5 PATCH 9: Use Versioning.CheckInComments instead.")]
-        public static CheckInCommentsMode CheckInCommentsMode => Configuration.Versioning.CheckInCommentsMode;
+        [Obsolete("After V6.5 PATCH 9: Use VersioningOptions from ServiceProviders.", true)]
+        public static CheckInCommentsMode CheckInCommentsMode => Providers.Instance.Services
+            .GetService<IOptions<VersioningOptions>>()?.Value.CheckInCommentsMode ?? CheckInCommentsMode.Recommended;
         [Obsolete("After V6.5 PATCH 9: Use Providers.RepositoryPathProviderEnabled instead.")]
         public static bool RepositoryPathProviderEnabled => Providers.RepositoryPathProviderEnabled;
         [Obsolete("After V6.5 PATCH 9: Use WebApplication.GlobaFieldControlTemplateEnabled instead.")]

@@ -75,6 +75,7 @@ namespace SenseNet.Extensions.DependencyInjection
             services.Configure<LoggingOptions>(configuration.GetSection("sensenet:logging"));
             services.Configure<CacheOptions>(configuration.GetSection("sensenet:cache"));
             services.Configure<PackagingOptions>(configuration.GetSection("sensenet:packaging"));
+            services.Configure<VersioningOptions>(configuration.GetSection("sensenet:versioning"));
             services.Configure<RepositoryTypeOptions>(options => {});
 
             services.ConfigureConnectionStrings(configuration);
