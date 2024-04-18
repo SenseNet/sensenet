@@ -146,4 +146,31 @@ public class ConfigurationTests : TestBase
                 Assert.AreEqual(CheckInCommentsMode.Compulsory, file.CheckInCommentsMode);
             });
     }
+    [TestMethod]
+    public void Options_SecurityOptions()
+    {
+        Test3(
+            initializeConfig: builder =>
+            {
+                var configData = new Dictionary<string, string>
+                {
+                    {"sensenet:security:EnablePasswordHashMigration", "true"},
+                    {"sensenet:security:PasswordHistoryFieldMaxLength", "42"}
+                };
+                builder.AddInMemoryCollection(configData);
+            },
+            initializeServices: services => { },
+            callback: () =>
+            {
+                // Test: loaded
+                var options = Providers.Instance.Services.GetService<IOptions<SecurityOptions>>()?.Value;
+                Assert.IsNotNull(options);
+                Assert.AreEqual(true, options.EnablePasswordHashMigration);
+                Assert.AreEqual(42, options.PasswordHistoryFieldMaxLength);
+
+                // Test usage
+                var user = new User(Repository.ImsFolder);
+                Assert.AreSame(options, user.SecurityOptions);
+            });
+    }
 }

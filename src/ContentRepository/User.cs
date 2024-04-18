@@ -17,6 +17,8 @@ using SenseNet.Search;
 using System.Xml.Serialization;
 using System.IO;
 using System.Threading;
+using Microsoft.Extensions.Options;
+using Microsoft.Extensions.DependencyInjection;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Search.Querying;
 using SenseNet.ContentRepository.Setting;
@@ -641,6 +643,12 @@ namespace SenseNet.ContentRepository
             return pwFieldSetting.CheckPassword(PasswordField.EncodePassword(password, this), oldPasswords);
         }
 
+        private SecurityOptions __securityOptions;
+        internal SecurityOptions SecurityOptions =>
+            __securityOptions ??= Providers.Instance.Services
+                .GetService<IOptions<SecurityOptions>>()?.Value ?? new SecurityOptions();
+
+
         /// <summary>
         /// Verifies whether the plain password matches the stored hash. Returns true if matches, otherwise false.
         /// </summary>
@@ -659,7 +667,7 @@ namespace SenseNet.ContentRepository
             }
 
             // If the migration is not enabled, shorting: return with the result.
-            if (!Configuration.Security.EnablePasswordHashMigration)
+            if (!SecurityOptions.EnablePasswordHashMigration)
                 return match;
 
             // If password was matched the migration is not needed.
@@ -996,7 +1004,7 @@ namespace SenseNet.ContentRepository
                 }
             }
 
-            var passwordHistoryFieldMaxLength = Configuration.Security.PasswordHistoryFieldMaxLength;
+            var passwordHistoryFieldMaxLength = SecurityOptions.PasswordHistoryFieldMaxLength;
             while (passwordHistoryFieldMaxLength + 1 < oldPasswords.Count)
                 oldPasswords.RemoveAt(0);
 
