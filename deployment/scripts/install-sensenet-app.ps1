@@ -26,7 +26,7 @@ Param (
 	[Parameter(Mandatory=$False)]
 	[string]$SnType="InSql",
 	[Parameter(Mandatory=$False)]
-	[string]$SensenetDockerImage="sensenetcsp/sn-api-sql",
+	[string]$SensenetDockerImage="sensenetcsp/sn-api-sql:latest",
 	[Parameter(Mandatory=$False)]
 	[string]$SensenetContainerName="$($ProjectName)-snapp",
 	[Parameter(Mandatory=$False)]
@@ -120,14 +120,14 @@ $date = Get-Date -Format "yyyy-MM-dd HH:mm K"
 
 switch ($SnType) {
 	"InMem" { 
-		$SensenetDockerImage="sensenetcsp/sn-api-inmem"
+		$SensenetDockerImage="sensenetcsp/sn-api-inmem:latest"
 	}
 	"InSql" { 
 		if ($SearchService) { 			
-			$SensenetDockerImage="sensenetcsp/sn-api-nlb"
+			$SensenetDockerImage="sensenetcsp/sn-api-nlb:latest"
 		}
 		else {
-			$SensenetDockerImage="sensenetcsp/sn-api-sql"
+			$SensenetDockerImage="sensenetcsp/sn-api-sql:latest"
 		}		
 	}
 	Default {
