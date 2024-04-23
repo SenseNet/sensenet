@@ -22,7 +22,8 @@ namespace SenseNet.ContentRepository.Search.Indexing
 
         private readonly TimeSpan _waitingPollingPeriod = TimeSpan.FromSeconds(2);
         private readonly TimeSpan _healthCheckPeriod = TimeSpan.FromMinutes(2);
-        private readonly TimeSpan _deleteFinishedPeriod = TimeSpan.FromMinutes(23);
+        private readonly TimeSpan _deleteFinishedPeriod = TimeSpan.FromMinutes(Configuration.Indexing.IndexingActivityDeletionPeriodInMinutes);
+        private readonly int _maxAgeInMinutes = Configuration.Indexing.IndexingActivityMaxAgeInMinutes;
         private const int ActiveTaskLimit = 43;
 
         private System.Timers.Timer _timer;
@@ -65,6 +66,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
                     while (_activeTasks > ActiveTaskLimit)
                         Thread.Sleep(_hearthBeatMilliseconds);
                 }
+                Providers.Instance.IndexManager.CommitAsync(CancellationToken.None).ConfigureAwait(false);
 
                 // every period starts now
                 _lastLockRefreshTime = DateTime.UtcNow;
@@ -176,7 +178,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
             {
                 using (var op = SnTrace.IndexQueue.StartOperation("CIAQ: DeleteFinishedActivities"))
                 {
-                    DataStore.DeleteFinishedIndexingActivitiesAsync(CancellationToken.None)
+                    DataStore.DeleteFinishedIndexingActivitiesAsync(_maxAgeInMinutes, CancellationToken.None)
                         .GetAwaiter().GetResult();
                     _lastDeleteFinishedTime = DateTime.UtcNow;
                     op.Successful = true;

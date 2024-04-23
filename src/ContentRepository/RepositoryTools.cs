@@ -25,6 +25,7 @@ using SenseNet.ContentRepository.Storage.Search;
 using SenseNet.Search.Indexing;
 using SenseNet.TaskManagement.Core;
 using STT = System.Threading.Tasks;
+using SenseNet.ContentRepository.i18n;
 
 namespace SenseNet.ContentRepository
 {
@@ -237,7 +238,7 @@ namespace SenseNet.ContentRepository
                 throw new ArgumentNullException(name);
         }
 
-        [Obsolete("Use ServiceTools.GetClientIpAddress instead.")]
+        [Obsolete("Use ServiceTools.GetClientIpAddress instead.", true)]
         public static string GetClientIpAddress()
         {
             return string.Empty;
@@ -537,35 +538,6 @@ namespace SenseNet.ContentRepository
             return "Ok";
         }
 
-        [Obsolete("Use ServiceTools.RecurseFilesInVirtualPath instead.", true)]
-        public static bool RecurseFilesInVirtualPath(string path, bool includesubdirs, Action<string> action, bool skipRepo = false)
-        {
-            if (path == null)
-                throw new ArgumentNullException(nameof(path));
-            if (action == null)
-                throw new ArgumentNullException(nameof(action));
-            if (path.StartsWith("http://") || path.StartsWith("https://"))
-                return false;
-
-            var nodeHead = NodeHead.Get(path);
-            var isFolder = nodeHead != null && nodeHead.GetNodeType().IsInstaceOfOrDerivedFrom("Folder");
-
-            // Take care of folders in the repository
-            if (isFolder && !skipRepo)
-            {
-                // Find content items
-                var contents = Content.All.DisableAutofilters()
-                    .Where(c => (includesubdirs ? c.InTree(nodeHead.Path) : c.InFolder(nodeHead.Path)) && c.TypeIs(typeof(File).Name))
-                    .OrderBy(c => c.Index);
-
-                // Add paths
-                foreach (var c in contents)
-                    action(c.Path);
-            }
-
-            return isFolder;
-        }
-
         // Index backup =========================================================================
 
         /// <summary>
@@ -757,40 +729,40 @@ namespace SenseNet.ContentRepository
             return response;
         }
 
-        /// <summary>
-        /// Shows the whole inverted index in a raw format with some transformations for easier readability.
-        /// WARNING! The index may contain sensitive information.
-        /// </summary>
-        /// <snCategory>Indexing</snCategory>
-        /// <remarks>
-        /// <para>
-        /// Note that some index providers do not support this feature because of the size of the index.
-        /// </para>
-        /// <para>
-        /// The response does not appear all at once because it is generated using a streaming technique.
-        /// This may affect browser add-ons (e.g. json validator or formatter, etc.).
-        /// </para>
-        /// An annotated example:
-        /// <code>
-        /// {
-        ///   "ActionTypeName": {          // level-1: field
-        ///     "clientaction":            // level-2: term
-        ///         "0 1 2 3 7 12 19 ..."  // level-3: sorted documentId list as a single string
-        ///   },
-        ///   /* ... */
-        ///   "Description": {
-        ///     /* ... */
-        ///     "browser": "147",
-        ///     "calendarevent": "132",
-        ///     "can": "143 144 147 148 151 152",
-        ///     "case": "143",
-        ///     /* ... */
-        /// </code>
-        /// </remarks>
-        /// <param name="content"></param>
-        /// <param name="httpContext"></param>
-        /// <returns>The whole raw index.</returns>
-        [ODataFunction]
+		/// <summary>
+		/// Shows the whole inverted index in a raw format with some transformations for easier readability.
+		/// WARNING! The index may contain sensitive information.
+		/// </summary>
+		/// <snCategory>Indexing</snCategory>
+		/// <remarks>
+		/// <para>
+		/// Note that some index providers do not support this feature because of the size of the index.
+		/// </para>
+		/// <para>
+		/// The response does not appear all at once because it is generated using a streaming technique.
+		/// This may affect browser add-ons (e.g. json validator or formatter, etc.).
+		/// </para>
+		/// An annotated example:
+		/// <code>
+		/// {
+		///   "ActionTypeName": {          // level-1: field
+		///     "clientaction":            // level-2: term
+		///         "0 1 2 3 7 12 19 ..."  // level-3: sorted documentId list as a single string
+		///   },
+		///   /* ... */
+		///   "Description": {
+		///     /* ... */
+		///     "browser": "147",
+		///     "calendarevent": "132",
+		///     "can": "143 144 147 148 151 152",
+		///     "case": "143",
+		///     /* ... */
+		/// </code>
+		/// </remarks>
+		/// <param name="content"></param>
+		/// <param name="httpContext"></param>
+		/// <returns>The whole raw index.</returns>
+		[ODataFunction]
         [ContentTypes(N.CT.PortalRoot)]
         [AllowedRoles(N.R.Administrators, N.R.PublicAdministrators, N.R.Developers)]
         public static async STT.Task GetWholeInvertedIndex(Content content, HttpContext httpContext)
@@ -980,19 +952,40 @@ namespace SenseNet.ContentRepository
                 .ToDictionary(x => x.Key, x => (object)x.Value);
         }
 
-        // ======================================================================================
+		// ======================================================================================
 
-        /// <summary>
-        /// Sets the provided <paramref name="userOrGroup"/> as the owner of the requested content.
-        /// If the <paramref name="userOrGroup"/> is null, the current user will be the owner.
-        /// The operation requires <c>TakeOwnership</c> permission.
-        /// </summary>
-        /// <snCategory>Permissions</snCategory>
-        /// <param name="content"></param>
-        /// <param name="userOrGroup">Path or id of the desired owner.</param>
-        /// <exception cref="ArgumentException">Thrown if the <paramref name="userOrGroup"/> parameter cannot be recognized
-        /// as a path or id. The method also throws this exception if the identified content is not a User or a Group.</exception>
-        [ODataAction(OperationName = "TakeOwnership")]
+		/// <summary>
+		/// Returns a JSON object that contains a resource class with the given language.
+		/// </summary>
+		/// <param name="content"></param>
+		/// <param name="className">Name of existing resource class</param>
+		/// <param name="langCode">Two character identifier of the culture</param>
+		/// <exception cref="ApplicationException">Exception thrown when there's no resouce data 
+		/// with the given className or langCode.</exception>
+		[ODataFunction]
+		[ContentTypes(N.CT.PortalRoot)]
+		[AllowedRoles(N.R.Everyone, N.R.Visitor)]
+		public static Dictionary<string, object> GetResourceClass(Content content, string className, string langCode)
+		{
+			var localizationData = SenseNetResourceManager.Current.GetClassItems(className, new CultureInfo(langCode));
+
+			if (localizationData == null)
+				throw new ApplicationException($"Localization resource with classname \'{className}\' and language \'{langCode}\' not found");
+			else
+				return localizationData;
+		}
+
+		/// <summary>
+		/// Sets the provided <paramref name="userOrGroup"/> as the owner of the requested content.
+		/// If the <paramref name="userOrGroup"/> is null, the current user will be the owner.
+		/// The operation requires <c>TakeOwnership</c> permission.
+		/// </summary>
+		/// <snCategory>Permissions</snCategory>
+		/// <param name="content"></param>
+		/// <param name="userOrGroup">Path or id of the desired owner.</param>
+		/// <exception cref="ArgumentException">Thrown if the <paramref name="userOrGroup"/> parameter cannot be recognized
+		/// as a path or id. The method also throws this exception if the identified content is not a User or a Group.</exception>
+		[ODataAction(OperationName = "TakeOwnership")]
         [AllowedRoles(N.R.Everyone)]
         [RequiredPermissions(N.P.TakeOwnership)]
         public static async System.Threading.Tasks.Task TakeOwnershipAsync(Content content, HttpContext httpContext, string userOrGroup)
@@ -1257,7 +1250,7 @@ namespace SenseNet.ContentRepository
         /// <param name="recurse">Irrelevant because throws SnNotSupportedException.</param>
         /// <returns>Throws SnNotSupportedException.</returns>
         /// <exception cref="SnNotSupportedException"></exception>
-        [Obsolete("Use an offline solution instead.")]
+        [Obsolete("Use an offline solution instead.", true)]
         [ODataFunction]
         public static object CheckIndexIntegrity(Content content, bool recurse)
         {

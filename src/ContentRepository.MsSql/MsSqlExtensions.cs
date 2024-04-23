@@ -15,7 +15,7 @@ namespace SenseNet.Extensions.DependencyInjection
     public static class MsSqlExtensions
     {
         /// <summary>
-        /// Adds all MS SQL implementations to the service collection.
+        /// Adds MS SQL implementations of data related services to the service collection.
         /// </summary>
         public static IServiceCollection AddSenseNetMsSqlProviders(this IServiceCollection services,
             Action<ConnectionStringOptions> configureConnectionStrings = null,
@@ -67,21 +67,6 @@ namespace SenseNet.Extensions.DependencyInjection
         public static IServiceCollection AddSenseNetMsSqlClientStoreDataProvider(this IServiceCollection services)
         {
             return services.AddSenseNetClientStoreDataProvider<MsSqlClientStoreDataProvider>();
-        }
-
-        //========================================================= Legacy extensions for IRepositoryBuilder
-
-        /// <summary>
-        /// Sets an <see cref="MsSqlExclusiveLockDataProvider"/> as the current
-        /// <see cref="IExclusiveLockDataProvider"/> instance that will be responsible
-        /// for managing exclusive locks.
-        /// </summary>
-        /// <param name="builder">The IRepositoryBuilder instance.</param>
-        /// <returns>The updated IRepositoryBuilder.</returns>
-        [Obsolete("Do not use this method anymore. Register MsSqlExclusiveLockDataProvider as a service instead.", true)]
-        public static IRepositoryBuilder UseMsSqlExclusiveLockDataProvider(this IRepositoryBuilder builder)
-        {
-            return builder;
         }
     }
 }

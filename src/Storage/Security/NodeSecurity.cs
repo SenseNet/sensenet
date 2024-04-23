@@ -267,15 +267,6 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <summary>
         /// Clear the permission inheritance on the current content.
         /// </summary>
-        /// <param name="convertToExplicit">If true (default), all effective permissions will be copied explicitly.</param>
-        [Obsolete("Use async version instead.", true)]// Security
-        public void BreakInheritance(bool convertToExplicit = true)
-        {
-            _securityHandler.BreakInheritance(this._node, convertToExplicit);
-        }
-        /// <summary>
-        /// Clear the permission inheritance on the current content.
-        /// </summary>
         /// <param name="cancel">The token to monitor for cancellation requests.</param>
         /// <param name="convertToExplicit">If true (default), all effective permissions will be copied explicitly.</param>
         /// <returns>A Task that represents the asynchronous operation.</returns>
@@ -284,16 +275,6 @@ namespace SenseNet.ContentRepository.Storage.Security
             return _securityHandler.BreakInheritanceAsync(this._node, cancel, convertToExplicit);
         }
 
-        /// <summary>
-        /// Restores the permission inheritance on the current content.
-        /// </summary>
-        /// <param name="normalize">If true (default is false), the unnecessary explicit entries 
-        /// (the ones that are the same as the inherited ones) will be removed.</param>
-        [Obsolete("Use async version instead.", true)]// Security
-        public void RemoveBreakInheritance(bool normalize = false)
-        {
-            _securityHandler.UnbreakInheritance(this._node, normalize);
-        }
         /// <summary>
         /// Restores the permission inheritance on the current content.
         /// </summary>

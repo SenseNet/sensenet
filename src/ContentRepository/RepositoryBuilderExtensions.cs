@@ -32,17 +32,6 @@ namespace SenseNet.Extensions.DependencyInjection
     public static class RepositoryBuilderExtensions
     {
         /// <summary>
-        /// Sets the data provider used for all db operations in the system.
-        /// </summary>
-        /// <param name="repositoryBuilder"></param>
-        /// <param name="dataProvider">DataProvider instance.</param>
-        [Obsolete("Do not use this method anymore. Register DataProvider as a service instead.", true)]
-        public static IRepositoryBuilder UseDataProvider(this IRepositoryBuilder repositoryBuilder, DataProvider dataProvider)
-        {
-            return repositoryBuilder;
-        }
-
-        /// <summary>
         /// Sets the <see cref="InitialData"/> that will be installed to the database in the repository start sequence.
         /// </summary>
         /// <param name="repositoryBuilder"></param>
@@ -123,61 +112,6 @@ namespace SenseNet.Extensions.DependencyInjection
         }
 
         /// <summary>
-        /// Sets the permission filter factory responsible for creating a filter for every query execution.
-        /// </summary>
-        /// <param name="repositoryBuilder"></param>
-        /// <param name="permissionFilterFactory">IPermissionFilterFactory implementation instance.</param>
-        [Obsolete("Do not use this method anymore. Register IPermissionFilterFactory as a service instead.", true)]
-        public static IRepositoryBuilder UsePermissionFilterFactory(this IRepositoryBuilder repositoryBuilder, IPermissionFilterFactory permissionFilterFactory)
-        {
-            return repositoryBuilder;
-        }
-
-        /// <summary>
-        /// Sets the security data provider used for all security db operations in the system.
-        /// </summary>
-        /// <param name="repositoryBuilder"></param>
-        /// <param name="securityDataProvider">ISecurityDataProvider instance.</param>
-        [Obsolete("Do not use this method anymore. Register ISecurityDataProvider as a service instead.", true)]
-        public static IRepositoryBuilder UseSecurityDataProvider(this IRepositoryBuilder repositoryBuilder, ISecurityDataProvider securityDataProvider)
-        {
-            return repositoryBuilder;
-        }
-
-        /// <summary>
-        /// Sets the security message provider used for security messaging operations.
-        /// </summary>
-        /// <param name="repositoryBuilder"></param>
-        /// <param name="securityMessageProvider">IMessageProvider instance that will handle security-related messages.</param>
-        [Obsolete("Do not use this method anymore. Register IMessageProvider as a service instead.", true)]
-        public static IRepositoryBuilder UseSecurityMessageProvider(this IRepositoryBuilder repositoryBuilder, IMessageProvider securityMessageProvider)
-        {
-            return repositoryBuilder;
-        }
-
-        /// <summary>
-        /// Sets the cache provider.
-        /// </summary>
-        /// <param name="repositoryBuilder"></param>
-        /// <param name="cacheProvider">ICache instance.</param>
-        [Obsolete("Do not use this method anymore. Register ISnCache as a service instead.", true)]
-        public static IRepositoryBuilder UseCacheProvider(this IRepositoryBuilder repositoryBuilder, ISnCache cacheProvider)
-        {
-            return repositoryBuilder;
-        }
-
-        /// <summary>
-        /// Sets the application cache provider.
-        /// </summary>
-        /// <param name="repositoryBuilder"></param>
-        /// <param name="applicationCacheProvider">IApplicationCache instance.</param>
-        [Obsolete("Do not use this method anymore. Register IApplicationCache as a service instead.", true)]
-        public static IRepositoryBuilder UseApplicationCacheProvider(this IRepositoryBuilder repositoryBuilder, IApplicationCache applicationCacheProvider)
-        {
-            return repositoryBuilder;
-        }
-
-        /// <summary>
         /// Sets the cluster channel provider.
         /// </summary>
         /// <param name="repositoryBuilder"></param>
@@ -191,15 +125,6 @@ namespace SenseNet.Extensions.DependencyInjection
         }
 
         /// <summary>
-        /// Sets the elevated modification visibility rule provider.
-        /// </summary>
-        [Obsolete("Do not use this method anymore. Register ElevatedModificationVisibilityRule as a service instead.", true)]
-        public static IRepositoryBuilder UseElevatedModificationVisibilityRuleProvider(this IRepositoryBuilder repositoryBuilder, ElevatedModificationVisibilityRule modificationVisibilityRuleProvider)
-        {
-            return repositoryBuilder;
-        }
-
-        /// <summary>
         /// Sets the search engine used for querying and indexing.
         /// </summary>
         /// <param name="repositoryBuilder"></param>
@@ -209,22 +134,6 @@ namespace SenseNet.Extensions.DependencyInjection
             Configuration.Providers.Instance.SearchEngine = searchEngine;
             WriteLog("SearchEngine", searchEngine);
 
-            return repositoryBuilder;
-        }
-
-        [Obsolete("Do not use this method anymore. Register ISearchManager as a service instead.", true)]
-        public static IRepositoryBuilder UseSearchManager(this IRepositoryBuilder repositoryBuilder, ISearchManager searchManager)
-        {
-            return repositoryBuilder;
-        }
-        [Obsolete("Do not use this method anymore. Register IIndexManager as a service instead.", true)]
-        public static IRepositoryBuilder UseIndexManager(this IRepositoryBuilder repositoryBuilder, IIndexManager indexManager)
-        {
-            return repositoryBuilder;
-        }
-        [Obsolete("Do not use this method anymore. Register IIndexPopulator as a service instead.", true)]
-        public static IRepositoryBuilder UseIndexPopulator(this IRepositoryBuilder repositoryBuilder, IIndexPopulator indexPopulator)
-        {
             return repositoryBuilder;
         }
 
@@ -257,14 +166,6 @@ namespace SenseNet.Extensions.DependencyInjection
 
             return repositoryBuilder;
         }
-        /// <summary>
-        /// Sets tracer instances.
-        /// </summary>
-        [Obsolete("Register ISnTracer types in the service container instead.", true)]
-        public static IRepositoryBuilder UseTracer(this IRepositoryBuilder repositoryBuilder, params ISnTracer[] tracer)
-        {
-            return repositoryBuilder;
-        }
 
         /// <summary>
         /// Adds the registered IEventLogger instance to the repository builder.
@@ -280,14 +181,6 @@ namespace SenseNet.Extensions.DependencyInjection
             if (genericLogger != null)
                 repositoryBuilder.SetProvider<ILogger<SnILogger>>(genericLogger);
 
-            return repositoryBuilder;
-        }
-        /// <summary>
-        /// Adds the registered ISnTracer instance to the repository builder.
-        /// </summary>
-        [Obsolete("Register ISnTracer types in the service container instead.", true)]
-        public static IRepositoryBuilder UseTracer(this IRepositoryBuilder repositoryBuilder, IServiceProvider provider)
-        {
             return repositoryBuilder;
         }
 

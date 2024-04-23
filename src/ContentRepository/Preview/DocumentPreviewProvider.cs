@@ -796,7 +796,7 @@ namespace SenseNet.Preview
             return null;
         }
 
-        [Obsolete("Please use and override the overload with a PreviewImageOptions parameter instead.")]
+        [Obsolete("Please use and override the overload with a PreviewImageOptions parameter instead.", true)]
         public virtual IO.Stream GetRestrictedImage(Image image, string binaryFieldName = null, RestrictionType? restrictionType = null)
         {
             return GetRestrictedImage(image, new PreviewImageOptions 

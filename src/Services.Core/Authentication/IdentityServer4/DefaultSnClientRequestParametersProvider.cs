@@ -5,6 +5,7 @@ using System.Linq;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Security.Clients;
 using SenseNet.Diagnostics;
 
@@ -21,18 +22,21 @@ namespace SenseNet.Services.Core.Authentication.IdentityServer4
         public DefaultSnClientRequestParametersProvider(ClientStore clientStore,
             IOptions<ClientRequestOptions> clientOptions, 
             IOptions<AuthenticationOptions> authOptions,
+            IOptions<ClientStoreOptions> clientStoreOptions,
             ILogger<DefaultSnClientRequestParametersProvider> logger)
         {
             var crOptions = clientOptions?.Value ?? new ClientRequestOptions();
             var authority = authOptions?.Value?.Authority ?? string.Empty;
+            var repository = (clientStoreOptions?.Value.RepositoryUrl ?? string.Empty).RemoveUrlSchema();
 
             // load admin ui clients from db using ClientStore
             List<SnIdentityServerClient> clients;
             try
             {
-                // only admin ui clients are loaded, other types are not needed by this feature
+                // Only admin ui clients are loaded and only the ones for the current repository url,
+                // other types are not needed by this feature.
                 clients = clientStore.GetClientsByAuthorityAsync(authority).GetAwaiter().GetResult()
-                    .Where(c => c.Type.HasFlag(ClientType.AdminUi))
+                    .Where(c => c.Type.HasFlag(ClientType.AdminUi) && c.Repository == repository)
                     .Select(c => new SnIdentityServerClient
                     {
                         ClientType = ClientAdminUi,

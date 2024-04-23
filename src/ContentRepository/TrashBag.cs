@@ -159,14 +159,6 @@ namespace SenseNet.ContentRepository
         /// <inheritdoc />
         /// <remarks>Cannot be deleted permanently before the minimum retention time - otherwise 
         /// an <see cref="ApplicationException"/> will be thrown.</remarks>
-        [Obsolete("Use async version instead", true)]
-        public override void ForceDelete()
-        {
-            ForceDeleteAsync(CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
-        }
-        /// <inheritdoc />
-        /// <remarks>Cannot be deleted permanently before the minimum retention time - otherwise 
-        /// an <see cref="ApplicationException"/> will be thrown.</remarks>
         public override async System.Threading.Tasks.Task ForceDeleteAsync(CancellationToken cancel)
         {
             if (!IsPurgeable)
@@ -174,12 +166,6 @@ namespace SenseNet.ContentRepository
             await base.ForceDeleteAsync(cancel);
         }
 
-        /// <inheritdoc />
-        [Obsolete("Use async version instead", true)]
-        public override void Delete()
-        {
-            DeleteAsync(CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
-        }
         /// <inheritdoc />
         public override System.Threading.Tasks.Task DeleteAsync(CancellationToken cancel)
         {

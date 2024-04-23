@@ -14,7 +14,7 @@ using SenseNet.Configuration;
 
 namespace SenseNet.ContentRepository
 {
-    [Obsolete("Use ContentNamingProvider class instead.")]
+    [Obsolete("Use ContentNamingProvider class instead.", true)]
     public static class ContentNamingHelper
     {
         /* ========================================================================== Consts and properties */
@@ -59,7 +59,7 @@ namespace SenseNet.ContentRepository
 
 
         #region Obsolete methods
-        [Obsolete("Use other non-obsolete methods of the ContentNamingProvider class.")]
+        [Obsolete("Use other non-obsolete methods of the ContentNamingProvider class.", true)]
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
         public static bool IsUriClean(string s)
         {
@@ -75,7 +75,7 @@ namespace SenseNet.ContentRepository
             return true;
         }
 
-        [Obsolete("Use other non-obsolete methods of the ContentNamingProvider class.")]
+        [Obsolete("Use other non-obsolete methods of the ContentNamingProvider class.", true)]
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
         public static string UriCleanup(string s)
         {
@@ -89,7 +89,7 @@ namespace SenseNet.ContentRepository
             return clean;
         }
 
-        [Obsolete("Use other non-obsolete methods of the ContentNamingProvider class.")]
+        [Obsolete("Use other non-obsolete methods of the ContentNamingProvider class.", true)]
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
         private static string TailClean(string s)
         {
@@ -100,7 +100,7 @@ namespace SenseNet.ContentRepository
             return s.Substring(b, e - b + 1);
         }
 
-        [Obsolete("Use other non-obsolete methods of the ContentNamingProvider class.")]
+        [Obsolete("Use other non-obsolete methods of the ContentNamingProvider class.", true)]
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
         private static string Strip(string name)
         {
@@ -131,28 +131,28 @@ namespace SenseNet.ContentRepository
             return string.Empty;
         }
 
-        [Obsolete("Use other non-obsolete methods of the ContentNamingProvider class.")]
+        [Obsolete("Use other non-obsolete methods of the ContentNamingProvider class.", true)]
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
         private static bool NonStrippingChar(char c)
         {
             return (Char.IsLetterOrDigit(c) || StrongSymbols.Contains(c));
         }
 
-        [Obsolete("Use other non-obsolete methods of the ContentNamingProvider class.")]
+        [Obsolete("Use other non-obsolete methods of the ContentNamingProvider class.", true)]
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
         private static bool CharIsAllowed(char c)
         {
             return (Char.IsLetterOrDigit(c) || AllowedSymbolsInName.Contains(c));
         }
 
-        [Obsolete("Use other non-obsolete methods of the ContentNamingProvider class.")]
+        [Obsolete("Use other non-obsolete methods of the ContentNamingProvider class.", true)]
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
         public static char[] AllowedSymbolsInName
         {
             get { return new char[] { '(', ')', '[', ']', '.', '-', '+', '_' }; }
         }
 
-        [Obsolete("Use other non-obsolete methods of the ContentNamingProvider class.")]
+        [Obsolete("Use other non-obsolete methods of the ContentNamingProvider class.", true)]
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
         private static char[] StrongSymbols
         {

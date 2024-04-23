@@ -294,6 +294,19 @@ namespace SenseNet.ContentRepository.InMemory
             return STT.Task.CompletedTask;
         }
 
+        public override STT.Task<long> AddChangedDataAsync(int versionId, ChangedData changedProperty, CancellationToken cancel)
+        {
+            var version = DB.Versions.FirstOrDefault(x => x.VersionId == versionId);
+            if (version != null)
+            {
+                var changedData = version.ChangedData.ToList();
+                changedData.Add(changedProperty);
+                version.ChangedData = changedData;
+            }
+
+            return STT.Task.FromResult(version.Timestamp);
+        }
+
         private void UpdateSubTreePathSafe(string oldPath, string newPath)
         {
             foreach (var nodeDoc in DB.Nodes
@@ -1447,7 +1460,10 @@ namespace SenseNet.ContentRepository.InMemory
             {
                 var activity = DB.IndexingActivities.FirstOrDefault(r => r.IndexingActivityId == indexingActivityId);
                 if (activity != null)
+                {
                     activity.RunningState = runningState;
+                    activity.LockTime = DateTime.UtcNow;
+                }
             }
             return STT.Task.CompletedTask;
         }
@@ -1468,11 +1484,15 @@ namespace SenseNet.ContentRepository.InMemory
             return STT.Task.CompletedTask;
         }
 
-        public override STT.Task DeleteFinishedIndexingActivitiesAsync(CancellationToken cancellationToken)
+        public override STT.Task DeleteFinishedIndexingActivitiesAsync(int maxAgeInMinutes, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
+            var timeLimit = DateTime.UtcNow.AddMinutes(maxAgeInMinutes);
             lock (DB.IndexingActivities)
-                foreach(var existing in DB.IndexingActivities.Where(x => x.RunningState == IndexingActivityRunningState.Done).ToArray())
+                foreach(var existing in DB.IndexingActivities
+                            .Where(x => x.RunningState == IndexingActivityRunningState.Done &&
+                                        (x.LockTime == null || x.LockTime < timeLimit))
+                            .ToArray())
                     DB.IndexingActivities.Remove(existing);
             return STT.Task.CompletedTask;
         }

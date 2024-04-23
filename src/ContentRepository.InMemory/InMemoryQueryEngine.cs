@@ -64,13 +64,14 @@ namespace SenseNet.ContentRepository.InMemory
             _searchEngine = searchEngine;
         }
 
-        [Obsolete("Use async version instead", false)]
+        [Obsolete("Use async version instead", true)]
         public QueryResult<int> ExecuteQuery(SnQuery query, IPermissionFilter filter, IQueryContext context)
         {
             return ExecuteQueryAsync(query, filter, context, CancellationToken.None)
                 .ConfigureAwait(false).GetAwaiter().GetResult();
         }
 
+        [Obsolete("Use async version instead", true)]
         public QueryResult<string> ExecuteQueryAndProject(SnQuery query, IPermissionFilter filter,
             IQueryContext context)
         {

@@ -685,22 +685,10 @@ namespace SenseNet.ContentRepository
         /// <summary>
         /// Invalidates the pinned instances.
         /// </summary>
-        [Obsolete("Do not use this method anymore.")]
+        [Obsolete("Do not use this method anymore.", true)]
         public static void Reset()
         {
             _somebody = null;
-        }
-
-        /// <summary>
-        /// Technical method for loading or creating an administrator user.
-        /// Do not use this method from your code directly.
-        /// </summary>
-        /// <param name="fullUserName">A username including the domain.</param>
-        /// <returns>The loaded or newly created user.</returns>
-        [Obsolete("Do not use this method anymore.", true)]
-        public static User RegisterUser(string fullUserName)
-        {
-            throw new NotSupportedException();
         }
 
         // =================================================================================== Profile
@@ -922,14 +910,6 @@ namespace SenseNet.ContentRepository
             set => this["LastLoggedOut"] = value;
         }
 
-        /// <summary>
-        /// This method is obsolete. Use IsInGroup() instead.
-        /// </summary>
-        [Obsolete("Use IsInGroup instead.", true)]
-        public bool IsInRole(int securityGroupId)
-        {
-            return IsInGroup(securityGroupId);
-        }
         /// <inheritdoc />
         public bool IsInGroup(int securityGroupId)
         {
@@ -973,22 +953,6 @@ namespace SenseNet.ContentRepository
             set => _membershipExtension = value;
         }
         
-        /// <summary>
-        /// This method is obsolete. Use GetGroups() instead.
-        /// </summary>
-        [Obsolete("Use GetGroups() instead.", true)]
-        public List<int> GetPrincipals()
-        {
-            return GetGroups();
-        }
-        /// <summary>
-        /// This method is obsolete. Use GetGroups() instead.
-        /// </summary>
-        [Obsolete("Use GetGroups() instead.", true)]
-        public List<int> GetRoles()
-        {
-            return GetGroups();
-        }
         /// <summary>
         /// Gets the ids of all the groups that contain the current user as a member, even through other groups,
         /// plus Everyone (except in case of a visitor) and the optional dynamic groups provided by the membership extender.
@@ -1040,11 +1004,6 @@ namespace SenseNet.ContentRepository
 
         }
 
-        [Obsolete("Use async version instead.", true)]
-        public override void Save(NodeSaveSettings settings)
-        {
-            SaveAsync(settings, CancellationToken.None).GetAwaiter().GetResult();
-        }
         public override async System.Threading.Tasks.Task SaveAsync(NodeSaveSettings settings, CancellationToken cancel)
         {
             if (_inactivating)
@@ -1223,13 +1182,6 @@ namespace SenseNet.ContentRepository
             return new InvalidOperationException(message);
         }
 
-        /// <inheritdoc />
-        /// <remarks>Synchronizes the removed object via the current <see cref="DirectoryProvider"/>.</remarks>
-        [Obsolete("Use async version instead", true)]
-        public override void ForceDelete()
-        {
-            ForceDeleteAsync(CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
-        }
         /// <inheritdoc />
         /// <remarks>Synchronizes the removed object via the current <see cref="DirectoryProvider"/>.</remarks>
         public override async System.Threading.Tasks.Task ForceDeleteAsync(CancellationToken cancel)

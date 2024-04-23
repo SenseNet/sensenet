@@ -65,7 +65,7 @@ namespace SenseNet.ContentRepository
         /// <summary>
         /// Gets the startup control information.
         /// </summary>
-        [Obsolete("Use individual immutable properties instead.")]
+        [Obsolete("Use individual immutable properties instead.", true)]
         public RepositoryStartSettings.ImmutableRepositoryStartSettings StartSettings => _settings;
 
         /// <summary>
@@ -426,12 +426,15 @@ namespace SenseNet.ContentRepository
                 var t = DateTime.UtcNow - _instance._startupInfo.Starting;
                 var msg = $"Repository has stopped. Running time: {t.Days}.{t.Hours:d2}:{t.Minutes:d2}:{t.Seconds:d2}";
 
-                SnTrace.Repository.Write(msg);
+                if (_instance._logger != null)
+                    _instance._logger.LogInformation(msg);
+                else
+                    SnTrace.Repository.Write(msg);
+
                 SnTrace.Flush();
 
                 _instance.ConsoleWriteLine(false, msg);
                 _instance.ConsoleWriteLine(false);
-                SnLog.WriteInformation(msg);
 
                 _instance = null;
                 _started = false;

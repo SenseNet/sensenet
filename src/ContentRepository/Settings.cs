@@ -328,7 +328,7 @@ namespace SenseNet.ContentRepository
                 // file not found, even in the global folder
                 if (settingsFile == null)
                 {
-                    SnLog.WriteWarning("Settings file not found: " + settingsName + "." + EXTENSION);
+                    SnTrace.Event.Write("WARNING: Settings file not found: " + settingsName + "." + EXTENSION);
                     return defaultValue;
                 }
 
@@ -587,11 +587,6 @@ namespace SenseNet.ContentRepository
             }
         }
 
-        [Obsolete("Use async version instead.", true)]
-        public override void Save(NodeSaveSettings settings)
-        {
-            SaveAsync(settings, CancellationToken.None).GetAwaiter().GetResult();
-        }
         public override async System.Threading.Tasks.Task SaveAsync(NodeSaveSettings settings, CancellationToken cancel)
         {
             AssertSettings();

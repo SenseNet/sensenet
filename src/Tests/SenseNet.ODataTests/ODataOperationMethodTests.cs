@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Primitives;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
@@ -3006,11 +3007,11 @@ namespace SenseNet.ODataTests
 
         private OperationInfo AddMethod(MethodInfo method)
         {
-            return OperationCenter.AddMethod(method);
+            return OperationCenter.AddMethod(method, null);
         }
         private OperationInfo AddMethod(TestMethodInfo method, Attribute[] attributes = null)
         {
-            return OperationCenter.AddMethod(method, attributes ?? _defaultAttributes);
+            return OperationCenter.AddMethod(method, attributes ?? _defaultAttributes, null);
         }
 
         #region Nested classes
@@ -3019,7 +3020,8 @@ namespace SenseNet.ODataTests
         {
             public CleanOperationCenterBlock()
             {
-                var _ = new ODataMiddleware(null, null, null); // Ensure running the first-touch discover
+                var _ = new ODataMiddleware(null, null, null, 
+                    NullLogger<ODataMiddleware>.Instance); // Ensure running the first-touch discover
                 OperationCenter.Operations.Clear();
             }
             public void Dispose()

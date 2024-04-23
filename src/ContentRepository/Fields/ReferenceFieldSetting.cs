@@ -115,7 +115,8 @@ namespace SenseNet.ContentRepository.Fields
             }
         }
 
-        protected override void ParseConfiguration(XPathNavigator configurationElement, IXmlNamespaceResolver xmlNamespaceResolver, ContentType contentType)
+        protected override void ParseConfiguration(XPathNavigator configurationElement, IXmlNamespaceResolver xmlNamespaceResolver,
+            ContentType contentType, List<string> parsedElementNames)
         {
             // xmlns="http://schemas.sensenet.com/SenseNet/ContentRepository/SearchExpression"
             // <Configuration>
@@ -141,6 +142,7 @@ namespace SenseNet.ContentRepository.Fields
                 {
                     case AllowMultipleName:
                         _allowMultiple = element.InnerXml == "true";
+                        parsedElementNames.Add(AllowMultipleName);
                         break;
                     case AllowedTypesName:
                         _allowedTypes = new List<string>();
@@ -149,6 +151,7 @@ namespace SenseNet.ContentRepository.Fields
                             string typeName = typeElement.InnerXml;
                             _allowedTypes.Add(typeName);
                         }
+                        parsedElementNames.Add(AllowedTypesName);
                         break;
                     case SelectionRootName:
                         _selectionRoots = new List<string>();
@@ -169,13 +172,16 @@ namespace SenseNet.ContentRepository.Fields
                             }
                             _selectionRoots.Add(path);
                         }
+                        parsedElementNames.Add(SelectionRootName);
                         break;
                     case QueryName:
                         _query = ContentQuery.CreateQuery(element.InnerXml);
                         _query.IsSafe = true;
+                        parsedElementNames.Add(QueryName);
                         break;
                     case FieldNameName:
                         _fieldName = element.InnerXml;
+                        parsedElementNames.Add(FieldNameName);
                         break;
                 }
             }
@@ -239,13 +245,13 @@ namespace SenseNet.ContentRepository.Fields
             if (list == null)
                 return result;
 
-            if ((this.Compulsory ?? false) && (list.Count == 0))
+            if ((this.Compulsory ?? false) && (list.Count == 0) && !field.Content.Importing)
                 return new FieldValidationResult(CompulsoryName);
 
             if (this.Query != null)
                 if ((result = ValidateWithQuery(list, this.Query)) != FieldValidationResult.Successful)
                     return result;
-            if ((result = ValidateCount(list)) != FieldValidationResult.Successful)
+            if ((result = ValidateCount(list, field.Content.Importing)) != FieldValidationResult.Successful)
                 return result;
             if (this.AllowedTypes != null)
                 if ((result = ValidateTypes(list)) != FieldValidationResult.Successful)
@@ -300,10 +306,10 @@ namespace SenseNet.ContentRepository.Fields
             result = new FieldValidationResult("ReferenceValue");
             return list;
         }
-        private FieldValidationResult ValidateCount(List<Node> list)
+        private FieldValidationResult ValidateCount(List<Node> list, bool importing)
         {
             // Compulsory
-            bool required = this.Compulsory ?? false;
+            bool required = !importing && (this.Compulsory ?? false);
             bool allowMultiple = this.AllowMultiple ?? false;
 
             if (required && list.Count == 0)

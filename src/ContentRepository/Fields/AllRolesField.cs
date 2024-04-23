@@ -3,7 +3,7 @@ using System.Xml;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage;
-using SenseNet.ContentRepository.Storage.Security;
+using Node = SenseNet.ContentRepository.Storage.Node;
 
 namespace SenseNet.ContentRepository.Fields
 {
@@ -20,9 +20,21 @@ namespace SenseNet.ContentRepository.Fields
 
         public override object GetData()
         {
-            // this method will load only containers that the current user has permissions for
-            return Node.LoadNodes(Providers.Instance.SecurityHandler.SecurityContext
+            var thisPath = this.Content.Path;
+            var orgUnitNodeType = Providers.Instance.StorageSchema.NodeTypes[nameof(OrganizationalUnit)];
+
+            // loads only containers that the current user has permissions for
+            var allParents = Node.LoadNodes(Providers.Instance.SecurityHandler.SecurityContext
                 .GetParentGroups(this.Content.Id, false)).ToArray();
+
+            // valid item is all ancestors or any node that is not an OrganizationalUnit
+            var filtered = allParents
+                .Where(n => !n.NodeType.IsInstaceOfOrDerivedFrom(orgUnitNodeType) ||
+                            RepositoryPath.IsInTree(thisPath, n.Path))
+                .ToArray();
+
+            return filtered;
+
         }
     }
 }

@@ -214,7 +214,8 @@ namespace SenseNet.ContentRepository.Tests
                     queryEngine.ClearLog();
                     var expected = $"ExecuteQuery: Id:{User.Current.Id} .AUTOFILTERS:OFF";
 
-                    ContentQuery.Query("Id:@@CurrentUser@@", QuerySettings.AdminSettings);
+                    ContentQuery.QueryAsync("Id:@@CurrentUser@@", QuerySettings.AdminSettings, CancellationToken.None)
+                        .ConfigureAwait(false).GetAwaiter().GetResult();
 
                     var actual = queryEngine.GetLog().Trim();
                     Assert.AreEqual(expected, actual);
@@ -234,7 +235,8 @@ namespace SenseNet.ContentRepository.Tests
                     queryEngine.ClearLog();
                     var expected = $"ExecuteQueryAndProject: Id:{User.Current.Id} .AUTOFILTERS:OFF";
 
-                    ContentQuery.Query("Id:{{Id:@@CurrentUser.Id@@}}", QuerySettings.AdminSettings);
+                    ContentQuery.QueryAsync("Id:{{Id:@@CurrentUser.Id@@}}", QuerySettings.AdminSettings, CancellationToken.None)
+                        .ConfigureAwait(false).GetAwaiter().GetResult();
 
                     var actual = queryEngine.GetLog().Split('\r', '\n').First();
                     Assert.AreEqual(expected, actual);

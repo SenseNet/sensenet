@@ -44,7 +44,7 @@ namespace SenseNet.ContentRepository.Storage.Caching
         void Insert(string key, object value, CacheDependency dependencies,
             DateTime absoluteExpiration, TimeSpan slidingExpiration,
             object onRemoveCallback);
-        [Obsolete("Do not use priority in the caching API. Use the expiration times instead.")]
+        [Obsolete("Do not use priority in the caching API. Use the expiration times instead.", true)]
         void Insert(string key, object value, CacheDependency dependencies,
             DateTime absoluteExpiration, TimeSpan slidingExpiration, CacheItemPriority priority,
             object onRemoveCallback);
@@ -60,7 +60,7 @@ namespace SenseNet.ContentRepository.Storage.Caching
     }
 
     /// <summary>Specifies the relative priority of items stored in the <see cref="T:System.Web.Caching.Cache" /> object.</summary>
-    [Obsolete("Do not use priority in the caching API. Use the expiration times instead.")]
+    [Obsolete("Do not use priority in the caching API. Use the expiration times instead.", true)]
     public enum CacheItemPriority
     {
         /// <summary>Cache items with this priority level are the most likely to be deleted from the cache as the server frees system memory.</summary>

@@ -623,22 +623,12 @@ namespace SenseNet.ContentRepository
             return new TransferException(true, message, this.Content.ContentHandler.Path, this.Content.ContentHandler.NodeType.Name, this.Name, innerException);
         }
 
-        [Obsolete("Use ExportNotSupportedException instead", true)]
-        protected Exception ExportNotImplementedException()
-        {
-            return ExportNotSupportedException();
-        }
         protected Exception ExportNotSupportedException()
         {
             return new SnNotSupportedException(String.Concat(
                 "Export is not supported. Content: ", this.Content.Path,
                 ", Field: ", this.Name,
                 ", FieldType: ", this.FieldSetting.ShortName));
-        }
-        [Obsolete("Use ExportNotSupportedException(object) instead", true)]
-        protected Exception ExportNotImplementedException(object notSupportedValue)
-        {
-            return ExportNotSupportedException(notSupportedValue);
         }
         protected Exception ExportNotSupportedException(object notSupportedValue)
         {

@@ -30,8 +30,10 @@ using SenseNet.Services.Core.Diagnostics;
 using File = SenseNet.ContentRepository.File;
 using Task = System.Threading.Tasks.Task;
 using System.Net.Http;
+using Microsoft.Extensions.Logging;
 using Nito.AsyncEx;
 using Retrier = SenseNet.Tools.Retrier;
+using Microsoft.Extensions.DependencyInjection;
 
 // ReSharper disable UnusedMember.Global
 // ReSharper disable CommentTypo
@@ -89,13 +91,17 @@ namespace SenseNet.OData
 
         private readonly RequestDelegate _next;
         private readonly IConfiguration _appConfig;
+        private readonly ILogger<ODataMiddleware> _logger;
         private readonly SenseNet.Services.Core.Configuration.HttpRequestOptions _requestOptions;
 
         // Must have constructor with this signature, otherwise exception at run time
-        public ODataMiddleware(RequestDelegate next, IConfiguration config, IOptions<SenseNet.Services.Core.Configuration.HttpRequestOptions> requestOptions)
+        public ODataMiddleware(RequestDelegate next, IConfiguration config, 
+            IOptions<SenseNet.Services.Core.Configuration.HttpRequestOptions> requestOptions,
+            ILogger<ODataMiddleware> logger)
         {
             _next = next;
             _appConfig = config;
+            _logger = logger;
             _requestOptions = requestOptions?.Value ?? new SenseNet.Services.Core.Configuration.HttpRequestOptions();
         }
 
@@ -115,13 +121,21 @@ namespace SenseNet.OData
                 var odataRequest = ODataRequest.Parse(httpContext);
 
                 // Write headers and body of the HttpResponse
-                await ProcessRequestAsync(httpContext, odataRequest).ConfigureAwait(false);
-
-                statistics?.RegisterWebResponse(statData, httpContext, odataRequest.ResponseSize);
-
-                op.Successful = true;
+                try
+                {
+                    await ProcessRequestAsync(httpContext, odataRequest).ConfigureAwait(false);
+                    statistics?.RegisterWebResponse(statData, httpContext, odataRequest.ResponseSize);
+                    
+                    op.Successful = true;
+                }
+                catch (OperationCanceledException)
+                {
+                    // Log the cancellation. There is no point in returning anything to the client,
+                    // because the client is not listening anymore.
+                    _logger.LogInformation("The operation was canceled. Request: {Request}", 
+                        httpContext.Request.GetDisplayUrl());
+                }
             }
-
 
             // Call next in the chain if exists
             if (_next != null)
@@ -200,6 +214,11 @@ namespace SenseNet.OData
                                 await odataWriter.WriteChildrenCollectionAsync(odataRequest.RepositoryPath, httpContext,
                                         odataRequest)
                                     .ConfigureAwait(false);
+                            else if (odataRequest.IsControllerRequest)
+                                await odataWriter.WriteContentPropertyAsync(
+                                        odataRequest.RepositoryPath, odataRequest.PropertyName,
+                                        odataRequest.IsRawValueRequest, httpContext, odataRequest, _appConfig)
+                                    .ConfigureAwait(false);
                             else if (odataRequest.IsMemberRequest)
                                 await odataWriter.WriteContentPropertyAsync(
                                         odataRequest.RepositoryPath, odataRequest.PropertyName,
@@ -212,7 +231,12 @@ namespace SenseNet.OData
 
                         break;
                     case "PUT": // update
-                        if (odataRequest.IsMemberRequest)
+                        if (odataRequest.IsControllerRequest)
+                        {
+                            throw new ODataException("Cannot access a controller with HTTP PUT.",
+                                ODataExceptionCode.IllegalInvoke);
+                        }
+                        else if (odataRequest.IsMemberRequest)
                         {
                             throw new ODataException("Cannot access a member with HTTP PUT.",
                                 ODataExceptionCode.IllegalInvoke);
@@ -236,7 +260,13 @@ namespace SenseNet.OData
                         break;
                     case "MERGE":
                     case "PATCH": // update
-                        if (odataRequest.IsMemberRequest)
+                        if (odataRequest.IsControllerRequest)
+                        {
+                            throw new ODataException(
+                                String.Concat("Cannot access a controller with HTTP ", httpMethod, "."),
+                                ODataExceptionCode.IllegalInvoke);
+                        }
+                        else if (odataRequest.IsMemberRequest)
                         {
                             throw new ODataException(
                                 String.Concat("Cannot access a member with HTTP ", httpMethod, "."),
@@ -259,7 +289,13 @@ namespace SenseNet.OData
 
                         break;
                     case "POST": // invoke an action, create content
-                        if (odataRequest.IsMemberRequest)
+                        if (odataRequest.IsControllerRequest)
+                        {
+                            // CONTROLLER REQUEST
+                            await odataWriter.WritePostOperationResultAsync(httpContext, odataRequest, _appConfig)
+                                .ConfigureAwait(false);
+                        }
+                        else if (odataRequest.IsMemberRequest)
                         {
                             // MEMBER REQUEST
                             await odataWriter.WritePostOperationResultAsync(httpContext, odataRequest, _appConfig)
@@ -283,7 +319,13 @@ namespace SenseNet.OData
 
                         break;
                     case "DELETE":
-                        if (odataRequest.IsMemberRequest)
+                        if (odataRequest.IsControllerRequest)
+                        {
+                            throw new ODataException(
+                                String.Concat("Cannot access a controller with HTTP ", httpMethod, "."),
+                                ODataExceptionCode.IllegalInvoke);
+                        }
+                        else if (odataRequest.IsMemberRequest)
                         {
                             throw new ODataException(
                                 String.Concat("Cannot access a member with HTTP ", httpMethod, "."),
@@ -371,11 +413,22 @@ namespace SenseNet.OData
                     // it is unnecessary to log this exception as this is not a real error
                     return oe;
                 }
+                case ApplicationException:
+                {
+					// it is unnecessary to log this exception as this is not a real error
+					return new ODataException(ODataExceptionCode.RequestError, e);
+                }
+                case OperationCanceledException operationCanceledException:
+                {
+                    return new ODataException(
+                        $"The operation was canceled. Request url: {httpContext?.Request?.GetDisplayUrl()}",
+                        ODataExceptionCode.NotSpecified, operationCanceledException);
+                }
             }
 
             // General error handling
             var generalError = new ODataException(ODataExceptionCode.NotSpecified, e);
-            SnLog.WriteException(generalError);
+            _logger.LogError(generalError, generalError.Message);
             return generalError;
         }
 
@@ -550,7 +603,7 @@ namespace SenseNet.OData
         }
         public static async Task<ContentCreationResult> CreateNewContentAsync(string parentPath, string contentTypeName, string templateName,
             string contentName, string displayName, bool isMultiStepSave, JObject model,
-            bool skipBrokenReferences, CancellationToken cancel)
+            bool skipBrokenReferences, CancellationToken cancel, bool importing = false)
         {
             contentName = ContentNamingProvider.GetNameFromDisplayName(string.IsNullOrEmpty(contentName) ? displayName : contentName);
 
@@ -592,6 +645,8 @@ namespace SenseNet.OData
                 var node = ContentTemplate.CreateFromTemplate(parent, template, contentName);
                 content = Content.Create(node);
             }
+
+            content.Importing = importing;
 
             var brokenReferenceFieldNames = await UpdateFieldsAsync(content, model, skipBrokenReferences, cancel)
                 .ConfigureAwait(false);
@@ -681,27 +736,12 @@ namespace SenseNet.OData
         /// <param name="content">The <see cref="Content"/> that will be modified. Cannot be null.</param>
         /// <param name="model">The modifier JObject instance. Cannot be null.</param>
         /// <param name="skipBrokenReferences">If true, the broken reference fields will not updated to null value.</param>
-        /// <param name="brokenReferenceFieldNames">ReferenceField names that have unknown or invisible items.</param>
-        [Obsolete("Use async overload.", true)]
-        public static void UpdateFields(Content content, JObject model, bool skipBrokenReferences,
-            out List<string> brokenReferenceFieldNames)
-        {
-            brokenReferenceFieldNames = UpdateFieldsAsync(content, model, skipBrokenReferences, CancellationToken.None)
-                .GetAwaiter().GetResult();
-        }
-        /// <summary>
-        /// Helper method for updating the given <see cref="Content"/> with a model represented by JObject.
-        /// The <see cref="Content"/> will not be saved.
-        /// </summary>
-        /// <param name="content">The <see cref="Content"/> that will be modified. Cannot be null.</param>
-        /// <param name="model">The modifier JObject instance. Cannot be null.</param>
-        /// <param name="skipBrokenReferences">If true, the broken reference fields will not updated to null value.</param>
         /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation containing a list of field names
         /// that have broken references.</returns>
         /// <exception cref="ArgumentNullException"></exception>
         /// <exception cref="ODataException"></exception>
-        public async static Task<List<string>> UpdateFieldsAsync(Content content, JObject model, bool skipBrokenReferences,
+        public static async Task<List<string>> UpdateFieldsAsync(Content content, JObject model, bool skipBrokenReferences,
             CancellationToken cancel)
         {
             var brokenReferenceFieldNames = new List<string>();
@@ -801,6 +841,16 @@ namespace SenseNet.OData
                                     var url = jObject["Url"].Value<string>();
                                     if (url.Length == 0)
                                         continue;
+                                }
+                                if (field is PasswordField && content.ContentHandler is User user)
+                                {
+                                    var text = jObject["Text"]?.Value<string>();
+                                    var hash = jObject["Hash"]?.Value<string>();
+                                    if (!string.IsNullOrEmpty(hash))
+                                        user.PasswordHash = hash;
+                                    else if (!string.IsNullOrEmpty(text))
+                                        user.Password = text;
+                                    continue;
                                 }
 
                                 field.SetData(prop.Value);

@@ -29,7 +29,7 @@ namespace SenseNet.Search.Querying
         /// <summary>
         /// Executes a CQL query and returns with a QueryResult&lt;int&gt; instance containing id set and count
         /// </summary>
-        [Obsolete("Use async version instead", false)]
+        [Obsolete("Use async version instead", true)]
         public static QueryResult<int> Query(string queryText, IQueryContext context)
         {
             return QueryAsync(queryText, context, CancellationToken.None)
@@ -47,7 +47,7 @@ namespace SenseNet.Search.Querying
         /// <summary>
         /// Executes the represented query and returns with a QueryResult&lt;int&gt; instance containing id set and count
         /// </summary>
-        [Obsolete("Use async version instead", false)]
+        [Obsolete("Use async version instead", true)]
         public QueryResult<int> Execute(IQueryContext context)
         {
             return ExecuteAsync(context, CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
@@ -68,7 +68,7 @@ namespace SenseNet.Search.Querying
         /// <summary>
         /// Executes a CQL query and returns with a QueryResult&lt;string&gt; instance containing set of projected values and its count.
         /// </summary>
-        [Obsolete("Use async version instead", false)]
+        [Obsolete("Use async version instead", true)]
         public static QueryResult<string> QueryAndProject(string queryText, IQueryContext context)
         {
             return QueryAndProjectAsync(queryText, context, CancellationToken.None)
@@ -85,7 +85,7 @@ namespace SenseNet.Search.Querying
         /// <summary>
         /// Executes the represented query and returns with a QueryResult&lt;string&gt; instance containing set of projected values and its count.
         /// </summary>
-        [Obsolete("Use async version instead", false)]
+        [Obsolete("Use async version instead", true)]
         public QueryResult<string> ExecuteAndProject(IQueryContext context)
         {
             return ExecuteAndProjectAsync(context, CancellationToken.None)

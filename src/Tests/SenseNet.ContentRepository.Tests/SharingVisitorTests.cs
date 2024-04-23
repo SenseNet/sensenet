@@ -129,12 +129,13 @@ namespace SenseNet.ContentRepository.Tests
                 _stringResults = stringResults;
             }
 
-            [Obsolete("Use async version instead", false)]
+            [Obsolete("Use async version instead", true)]
             public QueryResult<int> ExecuteQuery(SnQuery query, IPermissionFilter filter, IQueryContext context)
             {
                 return ExecuteQueryAsync(query, filter, context, CancellationToken.None).GetAwaiter().GetResult();
             }
 
+            [Obsolete("Use async version instead", true)]
             public QueryResult<string> ExecuteQueryAndProject(SnQuery query, IPermissionFilter filter, IQueryContext context)
             {
                 return _stringResults[query.Querytext];
@@ -150,7 +151,7 @@ namespace SenseNet.ContentRepository.Tests
             public Task<QueryResult<string>> ExecuteQueryAndProjectAsync(SnQuery query, IPermissionFilter filter, IQueryContext context,
                 CancellationToken cancel)
             {
-                return System.Threading.Tasks.Task.FromResult(ExecuteQueryAndProject(query, filter, context));
+                return System.Threading.Tasks.Task.FromResult(_stringResults[query.Querytext]);
             }
 
         }

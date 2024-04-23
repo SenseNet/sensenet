@@ -10,7 +10,7 @@ namespace SenseNet.Packaging.Steps
         private bool _startIndexingEngineChanged;
         private bool _startIndexingEngine;
 
-        [Obsolete("Use the StartIndexingEngine property instead.")]
+        [Obsolete("Use the StartIndexingEngine property instead.", true)]
         public bool StartLuceneManager
         {
             get => StartIndexingEngine;

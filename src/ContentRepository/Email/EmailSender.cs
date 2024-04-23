@@ -7,7 +7,7 @@ using SenseNet.Configuration;
 
 namespace SenseNet.ContentRepository.Email
 {
-    [Obsolete("Use the EmailSender feature from Tools instead.")]
+    [Obsolete("Use the EmailSender feature from Tools instead.", false)] // 5 references
     public interface IEmailSender
     {
         System.Threading.Tasks.Task SendAsync(EmailData emailData);

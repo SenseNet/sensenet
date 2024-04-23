@@ -417,11 +417,6 @@ namespace SenseNet.ApplicationModel
             }
         }
 
-        [Obsolete("Use async version instead.", true)]
-        public override void Save(NodeSaveSettings settings)
-        {
-            SaveAsync(settings, CancellationToken.None).GetAwaiter().GetResult();
-        }
         public override async Task SaveAsync(NodeSaveSettings settings, CancellationToken cancel)
         {
             var appParent = Parent as Application;
@@ -459,7 +454,7 @@ namespace SenseNet.ApplicationModel
             return typeof(ActionBase);
         }
 
-        [Obsolete("Do not use")]
+        [Obsolete("Do not use", true)]
         protected string GetNameBase()
         {
             return Name.Split('.').FirstOrDefault();

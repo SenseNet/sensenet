@@ -2,25 +2,63 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using SenseNet.ApplicationModel;
-using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.OData;
 using SenseNet.OData.Metadata;
-using SenseNet.Tools;
+using SenseNet.OData.Operations;
 
 // ReSharper disable once CheckNamespace
 namespace SenseNet.Extensions.DependencyInjection
 {
+    /// <summary>
+    /// Represents an OData controller in the DI container.
+    /// </summary>
+    public class ODataControllerRegistration
+    {
+        /// <summary>
+        /// Gets the name of the controller.
+        /// </summary>
+        public string Name { get; set; }
+        /// <summary>
+        /// Gets the type of the controller.
+        /// </summary>
+        public Type Type { get; set; }
+    }
+
     public static class ODataExtensions
     {
+        /// <summary>
+        /// Adds the required services for the sensenet OData layer.
+        /// </summary>
         public static IServiceCollection AddSenseNetOData(this IServiceCollection services)
         {
             return services
                 .AddSingleton<OperationInspector>()
                 .AddSingleton<IOperationMethodStorage, OperationMethodStorage>()
                 .AddSingleton<IClientMetadataProvider, ClientMetadataProvider>()
+                .AddSingleton<IODataControllerFactory, ODataControllerFactory>()
+                .AddSenseNetODataController<HelpController>("Help")
                 ;
+        }
+
+        /// <summary>
+        /// Registers a custom OData controller in the DI container.
+        /// </summary>
+        public static IServiceCollection AddSenseNetODataController<TImpl>(this IServiceCollection services, string name = null)
+            where TImpl : ODataController
+        {
+            if (name != null && name.Length == 0)
+                name = null;
+
+            services.AddTransient<TImpl>();
+            services.AddSingleton(new ODataControllerRegistration
+            {
+                Name = name?.Trim() ?? typeof(TImpl).Name,
+                Type = typeof(TImpl)
+            });
+
+            return services;
         }
 
         /// <summary>

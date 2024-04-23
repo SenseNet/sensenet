@@ -2,7 +2,7 @@
 
 	<PropertyGroup>
 		<TargetFrameworks>netstandard2.0;net6.0</TargetFrameworks>
-		<Version>2.4.17</Version>
+		<Version>2.4.18.1</Version>
 		<AssemblyName>SenseNet.Search</AssemblyName>
 		<RootNamespace>SenseNet.Search</RootNamespace>
 		<Company>Sense/Net Inc.</Company>
@@ -32,7 +32,7 @@
 		<PackageReference Include="System.Configuration.ConfigurationManager" Version="6.0.1" />
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
 		<PackageReference Include="SenseNet.Tools" Version="3.2.13" />
-		<PackageReference Include="SenseNet.Security" Version="4.2.1" />
+		<PackageReference Include="SenseNet.Security" Version="4.2.3" />
 	</ItemGroup>
 
 </Project>

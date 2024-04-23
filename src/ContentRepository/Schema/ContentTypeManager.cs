@@ -54,7 +54,7 @@ namespace SenseNet.ContentRepository.Schema
         private const string ContentTypeManagerProviderKey = "ContentTypeManager";
         private ILogger<ContentTypeManager> _logger;
 
-        [Obsolete("Use Instace instead.")]
+        [Obsolete("Use Instance instead.", true)]
         public static ContentTypeManager Current => Instance;
 
         public static ContentTypeManager Instance

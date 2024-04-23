@@ -82,6 +82,98 @@ namespace SenseNet.ContentRepository.Tests
                 Assert.AreEqual("ShortTextFieldSetting", field["Type"].Value<string>());
             });
         }
+
+        [TestMethod]
+        [TestCategory("Metadata")]
+        public void ClientMetadataProvider_Configuration_Default()
+        {
+            var contentTypeName = System.Reflection.MethodBase.GetCurrentMethod().Name;
+            var fieldName = "Field123456";
+            var configuration = string.Empty;
+            FieldSettingConfigurationTest(contentTypeName, fieldName, configuration, field =>
+            {
+                Assert.AreEqual("ShortTextFieldSetting", field["Type"].Value<string>());
+                Assert.AreEqual(fieldName, field["Name"].Value<string>());
+                Assert.IsNull(field["Regex"]);
+                Assert.IsNull(field["MinLength"]);
+                Assert.IsNull(field["MaxLength"]);
+                Assert.IsNull(field["Customization"]);
+            });
+        }
+        [TestMethod]
+        [TestCategory("Metadata")]
+        public void ClientMetadataProvider_Configuration_Regular()
+        {
+            var contentTypeName = System.Reflection.MethodBase.GetCurrentMethod().Name;
+            var fieldName = "Field123456";
+            var configuration = "<Regex>[a-zA-Z]</Regex><MinLength>7</MinLength><MaxLength>42</MaxLength>";
+            FieldSettingConfigurationTest(contentTypeName, fieldName, configuration, field =>
+            {
+                Assert.AreEqual("ShortTextFieldSetting", field["Type"].Value<string>());
+                Assert.AreEqual(fieldName, field["Name"].Value<string>());
+                Assert.AreEqual("[a-zA-Z]", field["Regex"]);
+                Assert.AreEqual(7, field["MinLength"]);
+                Assert.AreEqual(42, field["MaxLength"]);
+                Assert.IsNull(field["Customization"]);
+            });
+        }
+        [TestMethod]
+        [TestCategory("Metadata")]
+        public void ClientMetadataProvider_Configuration_Customized()
+        {
+            var contentTypeName = System.Reflection.MethodBase.GetCurrentMethod().Name;
+            var fieldName = "Field123456";
+            var configuration = "<MaxLength>42</MaxLength><CustomString>Value1</CustomString><CustomInt>142</CustomInt>";
+            FieldSettingConfigurationTest(contentTypeName, fieldName, configuration, field =>
+            {
+                Assert.AreEqual("ShortTextFieldSetting", field["Type"].Value<string>());
+                Assert.AreEqual(fieldName, field["Name"].Value<string>());
+                Assert.IsNull(field["Regex"]);
+                Assert.IsNull(field["MinLength"]);
+                Assert.AreEqual(42, field["MaxLength"]);
+                var customization = field["Customization"];
+                Assert.IsNotNull(customization);
+                Assert.AreEqual("Value1", customization["CustomString"]);
+                Assert.AreEqual("142", customization["CustomInt"]);
+            });
+        }
+        private void FieldSettingConfigurationTest(string contentTypeName, string fieldName,
+            string shortTextConfiguration, Action<JToken> assertCallback)
+        {
+            Test2(services =>
+            {
+                services.AddSingleton<IClientMetadataProvider, ClientMetadataProvider>();
+            }, () =>
+            {
+
+                // register a new content type
+                var ctd = ($@"<?xml version='1.0' encoding='utf-8'?>
+                <ContentType name='{contentTypeName}' parentType='GenericContent'
+                         handler='{typeof(GenericContent).FullName}' xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition'>
+                    <Fields>
+                        <Field name='{fieldName}' type='ShortText'>
+                            <Configuration>{shortTextConfiguration}</Configuration>
+                        </Field>
+                    </Fields>
+                </ContentType>
+                ");
+
+                ContentTypeInstaller.InstallContentType(ctd);
+
+                var myType = ContentType.GetByName(contentTypeName);
+                var myClass = new Class(myType);
+                var myTypeObject = ClientMetadataProvider.Instance.GetClientMetaClass(myClass) as JObject;
+
+                Assert.IsNotNull(myTypeObject);
+                Assert.AreEqual(contentTypeName, myTypeObject["ContentTypeName"].Value<string>());
+
+                var field = myTypeObject["FieldSettings"].Values<JToken>()
+                    .First(f => f["Name"].Value<string>() == fieldName);
+
+                assertCallback(field);
+            });
+        }
+
         [TestMethod]
         [TestCategory("Metadata")]
         public void ClientMetadataProvider_Categories()

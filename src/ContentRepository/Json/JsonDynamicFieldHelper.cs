@@ -178,7 +178,7 @@ namespace SenseNet.ContentRepository.Json
             return token;
         }
 
-        [Obsolete("Use async version instead.", false)]
+        [Obsolete("Use async version instead.", true)]
         public static void SaveToStream(JObject jObject, Action<System.IO.Stream> beforeDispose)
         {
             if (beforeDispose == null)

@@ -27,13 +27,6 @@ namespace SenseNet.OData.Metadata
             _allowedContentTypeNames = (new MetaClassEnumerable()).Select(c => c.Name).ToArray();
         }
 
-        [Obsolete("Use 'IsPermittedType' method instead.", true)]
-        // ReSharper disable once IdentifierTypo
-        public bool IsPermitteType(ContentType contentType)
-        {
-            return IsPermittedType(contentType);
-        }
-
         public bool IsPermittedType(ContentType contentType)
         {
             return _allowedContentTypeNames.Contains(contentType.Name);

@@ -150,23 +150,11 @@ namespace SenseNet.ContentRepository.Schema
             installer.ExecuteBatch();
         }
 
-
-        [Obsolete("Use async version instead", true)]
-        public static void RemoveContentType(string contentTypeName)
-        {
-            RemoveContentTypeAsync(ContentTypeManager.Instance.GetContentTypeByName(contentTypeName), CancellationToken.None)
-                .ConfigureAwait(false).GetAwaiter().GetResult();
-        }
         public static System.Threading.Tasks.Task RemoveContentTypeAsync(string contentTypeName, CancellationToken cancel)
         {
             return RemoveContentTypeAsync(ContentTypeManager.Instance.GetContentTypeByName(contentTypeName), cancel);
         }
 
-        [Obsolete("Use async version instead", true)]
-        public static void RemoveContentType(ContentType contentType)
-        {
-            RemoveContentTypeAsync(contentType, CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
-        }
         public static System.Threading.Tasks.Task RemoveContentTypeAsync(ContentType contentType, CancellationToken cancel)
         {
             return contentType.DeleteAsync(cancel);

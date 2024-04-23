@@ -698,9 +698,9 @@ namespace SenseNet.ContentRepository.Storage.Data
         {
             return DataProvider.RefreshIndexingActivityLockTimeAsync(waitingIds, cancellationToken);
         }
-        public Task DeleteFinishedIndexingActivitiesAsync(CancellationToken cancellationToken)
+        public Task DeleteFinishedIndexingActivitiesAsync(int maxAgeInMinutes, CancellationToken cancellationToken)
         {
-            return DataProvider.DeleteFinishedIndexingActivitiesAsync(cancellationToken);
+            return DataProvider.DeleteFinishedIndexingActivitiesAsync(maxAgeInMinutes, cancellationToken);
         }
         public Task DeleteAllIndexingActivitiesAsync(CancellationToken cancellationToken)
         {
@@ -874,6 +874,18 @@ namespace SenseNet.ContentRepository.Storage.Data
         public void RemoveNodeDataFromCacheByVersionId(int versionId)
         {
             Cache.Remove(CreateNodeDataVersionIdCacheKey(versionId));
+        }
+
+        public async Task PropertyChangedAsync(NodeData nodeData, ChangedData changedProperty, CancellationToken cancel)
+        {
+            var versionTimestamp = 
+                await DataProvider.AddChangedDataAsync(nodeData.VersionId, changedProperty, cancel)
+                .ConfigureAwait(false);
+
+            if (!nodeData.IsShared)
+                nodeData.VersionTimestamp = versionTimestamp;
+
+            RemoveFromCache(nodeData);
         }
     }
 }

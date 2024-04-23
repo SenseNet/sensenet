@@ -434,14 +434,6 @@ namespace SenseNet.ContentRepository.Storage.Data
         /*==================================================================== Provider */
         
         /// <summary>
-        /// Gets an instance of the built-in provider.
-        /// </summary>
-        [Obsolete("Use the IBlobProviderStore interface instead.", true)]
-        // ReSharper disable once UnusedMember.Global
-        // ReSharper disable once UnassignedGetOnlyAutoProperty
-        public static IBlobProvider BuiltInProvider { get; }
-
-        /// <summary>
         /// Gets a provider based on the binary size and the available blob providers in the system.
         /// </summary>
         /// <param name="fullSize">Full binary length.</param>

@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
-    <UserSecretsId>fea20ce8-b30d-4d34-9b2d-f06a148c0a5f</UserSecretsId>
+	<UserSecretsId>c415f569-30f8-41d3-9278-34af32555e3e</UserSecretsId>
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
     <DockerfileContext>..\..</DockerfileContext>
 	<DockerfileRunArguments>--network sensenet --name SnWebApplication</DockerfileRunArguments>
@@ -11,12 +11,17 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="6.0.9" />
-    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.17.0" />
-    <PackageReference Include="SenseNet.AI.Text.SemanticKernel" Version="0.0.2-beta1" />
+	<PackageReference Include="Microsoft.IdentityModel.Protocols.OpenIdConnect" Version="7.0.0" />
+	<PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="7.2.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+	<PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.17.0" />
+    <PackageReference Include="SenseNet.AI.Text.SemanticKernel" Version="0.0.3" />
     <PackageReference Include="SenseNet.AI.Vision.Azure" Version="0.0.1-beta1" />
-    <PackageReference Include="SenseNet.Preview.Aspose" Version="7.3.6" />
-    <PackageReference Include="SenseNet.Search.Lucene29.Local" Version="7.4.11" />
-    <PackageReference Include="SenseNet.Security.EFCSecurityStore" Version="3.1.1" />
+    <PackageReference Include="SenseNet.Preview.Aspose" Version="7.3.7" />
+    <PackageReference Include="SenseNet.Search.Lucene29.Local" Version="7.4.12" />
+    <PackageReference Include="SenseNet.Security.EFCSecurityStore" Version="3.1.2" />
     <PackageReference Include="Serilog.AspNetCore" Version="6.0.1" />
     <PackageReference Include="Serilog.Sinks.Graylog" Version="2.3.0" />
   </ItemGroup>

@@ -11,7 +11,7 @@ using SenseNet.Configuration;
 
 namespace SenseNet.ContentRepository.Fields
 {
-    [Obsolete("Do not use this field. Directly accessing the fields containing the user and date information is preferred. (eg. CreatedBy and CreationDate)")]
+    [Obsolete("Do not use this field. Directly accessing the fields containing the user and date information is preferred. (eg. CreatedBy and CreationDate)", false)]
 	[ShortName("WhoAndWhen")]
 	[DataSlot(0, RepositoryDataType.Reference, typeof(Node), typeof(User), typeof(IEnumerable))]
 	[DataSlot(1, RepositoryDataType.DateTime, typeof(DateTime))]

@@ -111,32 +111,5 @@ namespace SenseNet.ContentRepository
         /// override both startup and runtime categories.
         /// </summary>
         public virtual string[] TraceCategories { get; protected internal set; }
-
-        /// <summary>
-        /// Contains type matching configurations.
-        /// Every item can contain one or more Type for the key Type.
-        /// </summary>
-        [Obsolete("Use RepositoryBuiler class instead.", true)]
-        public virtual Dictionary<Type, Type[]> Providers { get; set; } = new Dictionary<Type, Type[]>();
-
-        /// <summary>
-        /// Upserts (inserts or updates if exists) a provider item.
-        /// Provider item: one or more Type for the key Type.
-        /// </summary>
-        [Obsolete("Use RepositoryBuiler class instead.", true)]
-        public virtual void ConfigureProvider(Type key, params Type[] bricks)
-        {
-            throw new SnNotSupportedException("This method is not supported anymore.");
-        }
-        /// <summary>
-        /// Adds a provider item.
-        /// If the key exists, ArgumentException will be thrown.
-        /// Provider item: one or more Type for the key Type.
-        /// </summary>
-        [Obsolete("Use RepositoryBuiler class instead.", true)]
-        public virtual void AddProvider(Type key, params Type[] bricks)
-        {
-            throw new SnNotSupportedException("This method is not supported anymore.");
-        }
     }
 }

@@ -613,9 +613,10 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <summary>
         /// Deletes finished activities. Called by a cleanup background process.
         /// </summary>
+        /// <param name="maxAgeInMinutes">Age of the IndexingActivities that will be deleted periodically.</param>
         /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation.</returns>
-        public Task DeleteFinishedIndexingActivitiesAsync(CancellationToken cancellationToken);
+        public Task DeleteFinishedIndexingActivitiesAsync(int maxAgeInMinutes, CancellationToken cancellationToken);
 
         /// <summary>
         /// Deletes all activities from the database.
@@ -757,5 +758,14 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// </summary>
         /// <param name="versionId">Version id.</param>
         public void RemoveNodeDataFromCacheByVersionId(int versionId);
+
+        /// <summary>
+        /// Adds a property changing information to the ChangeData of the requested version.
+        /// </summary>
+        /// <param name="nodeData">Current node data.</param>
+        /// <param name="changedProperty">Changing information of the property.</param>
+        /// <param name="cancel">The token to monitor for cancellation requests.</param>
+        /// <returns>A Task that represents the asynchronous operation.</returns>
+        public Task PropertyChangedAsync(NodeData nodeData, ChangedData changedProperty, CancellationToken cancel);
     }
 }

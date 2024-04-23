@@ -214,7 +214,7 @@ namespace SenseNet.Configuration
             // We have to skip logging the creation of this provider, because the logger
             // itself tries to use the access provider when collecting event properties,
             // which would lead to a circular reference.
-            var provider = CreateProviderInstance<AccessProvider>(AccessProviderClassName, "AccessProvider", true);
+            var provider = CreateProviderInstance<AccessProvider>(AccessProviderClassName, "AccessProvider");
             provider.InitializeInternal();
 
             return provider;
@@ -330,7 +330,7 @@ namespace SenseNet.Configuration
         {
             _providersByName[providerName] = provider;
         }
-        [Obsolete]
+        [Obsolete("Do not use this method anymore.", false)] // 16 references
         public void SetProvider(Type providerType, object provider)
         {
             SetProviderPrivate(providerType, provider);
@@ -340,7 +340,7 @@ namespace SenseNet.Configuration
             _providersByType[providerType] = provider;
         }
 
-        private static T CreateProviderInstance<T>(string className, string providerName, bool skipLog = false)
+        private static T CreateProviderInstance<T>(string className, string providerName)
         {
             T provider;
 
@@ -357,11 +357,7 @@ namespace SenseNet.Configuration
                 throw new ConfigurationException($"Invalid {providerName} implementation: {className}");
             }
 
-            // in some cases the logger is not available yet
-            if (skipLog)
-                SnTrace.System.Write($"{providerName} created: {className}");
-            else
-                SnLog.WriteInformation($"{providerName} created: {className}");
+            SnTrace.System.Write($"{providerName} created: {className}");
 
             return provider;
         }

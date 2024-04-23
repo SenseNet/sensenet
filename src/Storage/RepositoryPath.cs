@@ -30,12 +30,12 @@ namespace SenseNet.ContentRepository.Storage
         /// <value>The path separator characters.</value>
 		public static char[] PathSeparatorChars { get; internal set; } = PathSeparator.ToCharArray();
 
-        [Obsolete("After V6.5 PATCH 9: Use ContentNaming.InvalidNameCharsPattern instead.")]
+        [Obsolete("After V6.5 PATCH 9: Use ContentNaming.InvalidNameCharsPattern instead.", true)]
         public static string InvalidNameCharsPattern => ContentNaming.InvalidNameCharsPattern;
-        [Obsolete("After V6.5 PATCH 9: Use ContentNaming.ReplacementChar instead.")]
+        [Obsolete("After V6.5 PATCH 9: Use ContentNaming.ReplacementChar instead.", true)]
         public static char ReplacementChar => ContentNaming.ReplacementChar;
 
-        [Obsolete("After V6.5 PATCH 9: Use ContentNaming.InvalidNameCharsPatternForClient instead.")]
+        [Obsolete("After V6.5 PATCH 9: Use ContentNaming.InvalidNameCharsPatternForClient instead.", true)]
         public static string InvalidNameCharsPatternForClient => ContentNaming.InvalidNameCharsPatternForClient;
 
         private static string _invalidPathCharsPattern;

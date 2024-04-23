@@ -612,6 +612,14 @@ namespace SenseNet.ContentRepository
 
         internal bool ImportingExplicitVersion { get; set; }
 
+        /// <summary>
+        /// Gets or sets a flag that is true if the content is in the Import operation.
+        /// </summary>
+        /// <remarks>
+        /// In some cases, fields may behave differently when saving the owner Content.
+        /// </remarks>
+        public bool Importing { get; set; }
+
         // ========================================================================= Construction
 
         private Content(Node contentHandler, ContentType contentType)
@@ -2202,7 +2210,6 @@ namespace SenseNet.ContentRepository
                 setter.Invoke(_object, new object[] { value });
             }
 
-            public override void Save() { }
             public override System.Threading.Tasks.Task SaveAsync(CancellationToken cancel)
             {
                 return System.Threading.Tasks.Task.CompletedTask;

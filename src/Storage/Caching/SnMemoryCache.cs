@@ -57,7 +57,6 @@ namespace SenseNet.ContentRepository.Storage.Caching
             base.Set(key, value, policy);
         }
 
-        [Obsolete("Do not use priority in the caching API. Use the expiration times instead.")]
         public void Insert(string key, object value, CacheDependency dependencies, DateTime absoluteExpiration,
             TimeSpan slidingExpiration, object onRemoveCallback)
         {
@@ -71,7 +70,7 @@ namespace SenseNet.ContentRepository.Storage.Caching
             base.Set(key, value, policy);
         }
 
-        [Obsolete("Do not use priority in the caching API. Use the expiration times instead.")]
+        [Obsolete("Do not use priority in the caching API. Use the expiration times instead.", true)]
         public void Insert(string key, object value, CacheDependency dependencies, DateTime absoluteExpiration,
             TimeSpan slidingExpiration, CacheItemPriority priority, object onRemoveCallback)
         {

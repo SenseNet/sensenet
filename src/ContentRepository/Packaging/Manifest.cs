@@ -381,10 +381,10 @@ namespace SenseNet.Packaging
                     PackagingExceptionType.DependencyNotFound);
 
             var current = existingComponent.Version;
-            var min = dependency.MinVersion;
-            var max = dependency.MaxVersion;
-            var minEx = dependency.MinVersionIsExclusive;
-            var maxEx = dependency.MaxVersionIsExclusive;
+            var min = dependency.Boundary.MinVersion;
+            var max = dependency.Boundary.MaxVersion;
+            var minEx = dependency.Boundary.MinVersionIsExclusive;
+            var maxEx = dependency.Boundary.MaxVersionIsExclusive;
 
             if (log)
             {

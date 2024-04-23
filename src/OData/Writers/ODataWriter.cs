@@ -16,7 +16,6 @@ using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Fields;
 using SenseNet.ContentRepository.Linq;
 using SenseNet.ContentRepository.Storage;
-using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
 using SenseNet.Search;
@@ -27,6 +26,8 @@ using SenseNet.Services.Core;
 using SenseNet.Services.Core.Operations;
 using Task = System.Threading.Tasks.Task;
 using Utility = SenseNet.Tools.Utility;
+using SenseNet.Search.Querying.Parser;
+
 // ReSharper disable ArrangeThisQualifier
 
 namespace SenseNet.OData.Writers
@@ -61,7 +62,7 @@ namespace SenseNet.OData.Writers
                         {
                             _odataWriterTypes = LoadODataWriterTypes();
 
-                            SnLog.WriteInformation("ODataWriter types loaded: " +
+                            SnTrace.System.Write("ODataWriter types loaded: " +
                                 string.Join(", ", _odataWriterTypes.Values.Select(t => t.FullName)));
                         }
                     }
@@ -203,12 +204,18 @@ namespace SenseNet.OData.Writers
                 }
             }
 
-
-            var contents = ProcessOperationQueryResponse(chdef, req, httpContext, out var count);
-            if (req.CountOnly)
-                await WriteCountAsync(httpContext, req, count).ConfigureAwait(false);
-            else
-                await WriteMultipleContentAsync(httpContext, req, contents, count).ConfigureAwait(false);
+            try
+            {
+                var contents = ProcessOperationQueryResponse(chdef, req, httpContext, out var count);
+                if (req.CountOnly)
+                    await WriteCountAsync(httpContext, req, count).ConfigureAwait(false);
+                else
+                    await WriteMultipleContentAsync(httpContext, req, contents, count).ConfigureAwait(false);
+            }
+            catch (ParserException e)
+            {
+                throw new ODataException(ODataExceptionCode.RequestError, e);
+            }
         }
         private async Task WriteMultiRefContentsAsync(object references, HttpContext httpContext, ODataRequest req)
         {
@@ -326,7 +333,7 @@ namespace SenseNet.OData.Writers
                 return;
             }
 
-            if (content.Fields.TryGetValue(propertyName, out var field))
+            if (propertyName != null && content.Fields.TryGetValue(propertyName, out var field))
             {
                 if (field is ReferenceField refField)
                 {
@@ -419,7 +426,9 @@ namespace SenseNet.OData.Writers
             if (content == null)
                 throw new ContentNotFoundException(string.Format(SNSR.GetString("$Action,ErrorContentNotFound"), odataReq.RepositoryPath));
 
-            var action = ODataMiddleware.ActionResolver.GetAction(content, odataReq.Scenario, odataReq.PropertyName, null, null, httpContext, appConfig);
+            var action = ODataMiddleware.ActionResolver.GetAction(content, odataReq.Scenario, odataReq.PropertyName,
+                null, null, httpContext, appConfig);
+
             if (action == null)
             {
                 // check if this is a versioning action (e.g. a checkout)
@@ -454,34 +463,40 @@ namespace SenseNet.OData.Writers
             await WriteOperationResultAsync(response, httpContext, odataReq, count)
                 .ConfigureAwait(false);
         }
+
         /// <summary>
         /// Handles POST operations. Parameters come from request stream.
         /// </summary>
-        internal async Task WritePostOperationResultAsync(HttpContext httpContext, ODataRequest odataReq, IConfiguration appConfig)
+        internal async Task WritePostOperationResultAsync(HttpContext httpContext, ODataRequest odataReq,
+            IConfiguration appConfig)
         {
             var content = ODataMiddleware.LoadContentByVersionRequest(odataReq.RepositoryPath, httpContext);
 
             if (content == null)
-                throw new ContentNotFoundException(string.Format(SNSR.GetString("$Action,ErrorContentNotFound"), odataReq.RepositoryPath));
+                throw new ContentNotFoundException(string.Format(SNSR.GetString("$Action,ErrorContentNotFound"),
+                    odataReq.RepositoryPath));
 
-            var action = ODataMiddleware.ActionResolver.GetAction(content, odataReq.Scenario, odataReq.PropertyName, null, null, httpContext, appConfig);
+            var action = ODataMiddleware.ActionResolver.GetAction(content, odataReq.Scenario, odataReq.PropertyName,
+                null, null, httpContext, appConfig);
             if (action == null)
             {
                 // check if this is a versioning action (e.g. a checkout)
                 SavingAction.AssertVersioningAction(content, odataReq.PropertyName, true);
 
-                throw new InvalidContentActionException(InvalidContentActionReason.UnknownAction, content.Path, null, odataReq.PropertyName);
+                throw new InvalidContentActionException(InvalidContentActionReason.UnknownAction, content.Path, null,
+                    odataReq.PropertyName);
             }
 
-            if (action.Forbidden || (action.GetApplication() != null && !action.GetApplication().Security.HasPermission(PermissionType.RunApplication)))
+            if (action.Forbidden || (action.GetApplication() != null &&
+                                     !action.GetApplication().Security.HasPermission(PermissionType.RunApplication)))
                 throw new InvalidContentActionException("Forbidden action: " + odataReq.PropertyName);
 
             var odataAction = action as ODataOperationMethodExecutor;
             var response = odataAction != null
-            ? (odataAction.IsAsync
-                ? await odataAction.ExecuteAsync(content)
-                : action.Execute(content))
-            : action.Execute(content, await GetOperationParametersAsync(action, httpContext, odataReq));
+                ? (odataAction.IsAsync
+                    ? await odataAction.ExecuteAsync(content)
+                    : action.Execute(content))
+                : action.Execute(content, await GetOperationParametersAsync(action, httpContext, odataReq));
 
             if (response is Content responseAsContent)
             {
@@ -498,6 +513,7 @@ namespace SenseNet.OData.Writers
             await WriteOperationResultAsync(response, httpContext, odataReq, count)
                 .ConfigureAwait(false);
         }
+
         private async Task WriteOperationResultAsync(object result, HttpContext httpContext, ODataRequest odataReq, int allCount)
         {
             if (result is Content content)
@@ -953,69 +969,6 @@ namespace SenseNet.OData.Writers
         {
             var projector = Projector.Create(this.ODataRequest, isCollectionItem, content);
             return projector.Project(content, httpContext);
-        }
-
-        //TODO: Bad name: GetJsonObject is a method for odata serializing
-        [Obsolete("", true)]
-        internal static object GetJsonObject(Field field, string selfUrl, ODataRequest oDataRequest)
-        {
-            object data;
-            if (field is ReferenceField)
-            {
-                return ODataReference.Create(String.Concat(selfUrl, "/", field.Name));
-            }
-            else if (field is BinaryField binaryField)
-            {
-                try
-                {
-                    // load binary fields only if the content is finalized
-                    var binaryData = field.Content.ContentHandler.SavingState == ContentSavingState.Finalized
-                        ? (BinaryData) binaryField.GetData()
-                        : null;
-
-                    return ODataBinary.Create(BinaryField.GetBinaryUrl(binaryField.Content.Id, binaryField.Name, binaryData?.Timestamp ?? default),
-                        null, binaryData?.ContentType, null);
-                }
-                catch (Exception ex)
-                {
-                    SnTrace.System.WriteError(
-                        $"Error accessing field {field.Name} of {field.Content.Path} with user {User.Current.Username}: " +
-                        ex.Message);
-
-                    return null;
-                }
-            }
-            else if (ODataMiddleware.DeferredFieldNames.Contains(field.Name))
-            {
-                return ODataReference.Create(String.Concat(selfUrl, "/", field.Name));
-            }
-            try
-            {
-                data = field.GetData();
-            }
-            catch (SenseNetSecurityException)
-            {
-                // The user does not have access to this field (e.g. cannot load
-                // a referenced content). In this case we serve a null value.
-                data = null;
-
-                SnTrace.Repository.Write("PERMISSION warning: user {0} does not have access to field '{1}' of {2}.", User.LoggedInUser.Username, field.Name, field.Content.Path);
-            }
-
-            if (data is NodeType nodeType)
-                return nodeType.Name;
-            if (data is RichTextFieldValue rtfValue)
-                return GetRichTextOutput(field.Name, rtfValue, oDataRequest);
-            return data;
-        }
-        [Obsolete("", true)]
-        private static string GetRichTextOutput(string fieldName, RichTextFieldValue rtfValue, ODataRequest oDataRequest)
-        {
-            if (!oDataRequest.HasExpandedRichTextField)
-                return rtfValue.Text;
-            return oDataRequest.AllRichTextFieldExpanded || oDataRequest.ExpandedRichTextFields.Contains(fieldName)
-                ? JsonConvert.SerializeObject(rtfValue)
-                : rtfValue.Text;
         }
 
         /// <summary>

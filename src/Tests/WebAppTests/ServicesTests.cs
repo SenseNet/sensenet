@@ -42,12 +42,14 @@ using SenseNet.ContentRepository.Storage.Data.MsSqlClient;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
 using SenseNet.Events;
+using SenseNet.Extensions.DependencyInjection;
 using SenseNet.IntegrationTests.Infrastructure;
 using SenseNet.IntegrationTests.MsSql.Infrastructure;
 using SenseNet.IntegrationTests.MsSql.Platforms;
 using SenseNet.IntegrationTests.Platforms;
 using SenseNet.OData;
 using SenseNet.OData.Metadata;
+using SenseNet.OData.Operations;
 using SenseNet.ODataTests;
 using SenseNet.Packaging;
 using SenseNet.Portal.Virtualization;
@@ -612,6 +614,10 @@ namespace WebAppTests
                     }},
                     {typeof(OperationInspector), typeof(OperationInspector)},
                     {typeof(IOperationMethodStorage), typeof(OperationMethodStorage)},
+                    {typeof(IODataControllerFactory), typeof(ODataControllerFactory)},
+                    {typeof(ODataControllerRegistration), typeof(ODataControllerRegistration)},
+                    {typeof(HelpController), typeof(HelpController)},
+                    // more controllers: {typeof(__Controller), typeof(__Controller)},
                     {typeof(ISnService), new[] {typeof(WopiService) }},
                     {typeof(IClientMetadataProvider), typeof(ClientMetadataProvider)},
 
@@ -620,10 +626,14 @@ namespace WebAppTests
                     {
                         typeof(SummaryGenerator),
                         typeof(ContentQueryGenerator),
+                        typeof(ContentTypeGenerator),
+                        typeof(ContentManager),
                         typeof(ImageGenerator)
                     }},
                     {typeof(ISummaryGenerator), typeof(SummaryGenerator)},
                     {typeof(IContentQueryGenerator), typeof(ContentQueryGenerator)},
+                    {typeof(IContentTypeGenerator ), typeof(ContentTypeGenerator)},
+                    {typeof(IContentManager), typeof(ContentManager)},
                     {typeof(IImageGenerator), typeof(ImageGenerator)},
                 },
                 includedProvidersByType: _defaultIncludedProvidersByType,
@@ -653,6 +663,10 @@ namespace WebAppTests
                     }},
                     {typeof(OperationInspector), typeof(OperationInspector)},
                     {typeof(IOperationMethodStorage), typeof(OperationMethodStorage)},
+                    {typeof(IODataControllerFactory), typeof(ODataControllerFactory)},
+                    {typeof(ODataControllerRegistration), typeof(ODataControllerRegistration)},
+                    {typeof(HelpController), typeof(HelpController)},
+                    // more controllers: {typeof(__Controller), typeof(__Controller)},
                     {typeof(ISnService), new[] {typeof(WopiService) }},
                     {typeof(IClientMetadataProvider), typeof(ClientMetadataProvider)},
 
@@ -661,10 +675,14 @@ namespace WebAppTests
                     {
                         typeof(SummaryGenerator),
                         typeof(ContentQueryGenerator),
+                        typeof(ContentTypeGenerator),
+                        typeof(ContentManager),
                         typeof(ImageGenerator)
                     }},
                     {typeof(ISummaryGenerator), typeof(SummaryGenerator)},
                     {typeof(IContentQueryGenerator), typeof(ContentQueryGenerator)},
+                    {typeof(IContentTypeGenerator ), typeof(ContentTypeGenerator)},
+                    {typeof(IContentManager), typeof(ContentManager)},
                     {typeof(IImageGenerator), typeof(ImageGenerator)},
                 },
                 includedProvidersByType: _defaultIncludedProvidersByType,
@@ -696,16 +714,24 @@ namespace WebAppTests
                     }},
                     {typeof(OperationInspector), typeof(OperationInspector)},
                     {typeof(IOperationMethodStorage), typeof(OperationMethodStorage)},
+                    {typeof(IODataControllerFactory), typeof(ODataControllerFactory)},
+                    {typeof(ODataControllerRegistration), typeof(ODataControllerRegistration)},
+                    {typeof(HelpController), typeof(HelpController)},
+                    // more controllers: {typeof(__Controller), typeof(__Controller)},
                     {typeof(ISnService), new[] {typeof(WopiService) }},
                     {typeof(IClientMetadataProvider), typeof(ClientMetadataProvider)},
                     {typeof(ISnFeature), new []
                     {
                         typeof(SummaryGenerator),
                         typeof(ContentQueryGenerator),
+                        typeof(ContentTypeGenerator),
+                        typeof(ContentManager),
                         typeof(ImageGenerator)
                     }},
                     {typeof(ISummaryGenerator), typeof(SummaryGenerator)},
                     {typeof(IContentQueryGenerator), typeof(ContentQueryGenerator)},
+                    {typeof(IContentTypeGenerator ), typeof(ContentTypeGenerator)},
+                    {typeof(IContentManager), typeof(ContentManager)},
                     {typeof(IImageGenerator), typeof(ImageGenerator)},
                 },
                 includedProvidersByType: _defaultIncludedProvidersByType,
@@ -738,16 +764,24 @@ namespace WebAppTests
                     }},
                     {typeof(OperationInspector), typeof(OperationInspector)},
                     {typeof(IOperationMethodStorage), typeof(OperationMethodStorage)},
+                    {typeof(IODataControllerFactory), typeof(ODataControllerFactory)},
+                    {typeof(ODataControllerRegistration), typeof(ODataControllerRegistration)},
+                    {typeof(HelpController), typeof(HelpController)},
+                    // more controllers: {typeof(__Controller), typeof(__Controller)},
                     {typeof(ISnService), new[] {typeof(WopiService) }},
                     {typeof(IClientMetadataProvider), typeof(ClientMetadataProvider)},
                     {typeof(ISnFeature), new []
                     {
                         typeof(SummaryGenerator),
                         typeof(ContentQueryGenerator),
+                        typeof(ContentTypeGenerator),
+                        typeof(ContentManager),
                         typeof(ImageGenerator)
                     }},
                     {typeof(ISummaryGenerator), typeof(SummaryGenerator)},
                     {typeof(IContentQueryGenerator), typeof(ContentQueryGenerator)},
+                    {typeof(IContentTypeGenerator ), typeof(ContentTypeGenerator)},
+                    {typeof(IContentManager), typeof(ContentManager)},
                     {typeof(IImageGenerator), typeof(ImageGenerator)},
                 },
                 includedProvidersByType: _defaultIncludedProvidersByType,
@@ -786,6 +820,10 @@ namespace WebAppTests
                     }},
                     {typeof(OperationInspector), typeof(OperationInspector)},
                     {typeof(IOperationMethodStorage), typeof(OperationMethodStorage)},
+                    {typeof(IODataControllerFactory), typeof(ODataControllerFactory)},
+                    {typeof(ODataControllerRegistration), typeof(ODataControllerRegistration)},
+                    {typeof(HelpController), typeof(HelpController)},
+                    // more controllers: {typeof(__Controller), typeof(__Controller)},
                     {typeof(ISnService), new[] {
                         typeof(ClusterChannelMonitor),
                         typeof(WopiService),
@@ -795,10 +833,14 @@ namespace WebAppTests
                     {
                         typeof(SummaryGenerator),
                         typeof(ContentQueryGenerator),
+                        typeof(ContentTypeGenerator),
+                        typeof(ContentManager),
                         typeof(ImageGenerator)
                     }},
                     {typeof(ISummaryGenerator), typeof(SummaryGenerator)},
                     {typeof(IContentQueryGenerator), typeof(ContentQueryGenerator)},
+                    {typeof(IContentTypeGenerator ), typeof(ContentTypeGenerator)},
+                    {typeof(IContentManager), typeof(ContentManager)},
                     {typeof(IImageGenerator), typeof(ImageGenerator)},
                 },
                 includedProvidersByType: _defaultIncludedProvidersByType,
@@ -836,6 +878,10 @@ namespace WebAppTests
                     }},
                     {typeof(OperationInspector), typeof(OperationInspector)},
                     {typeof(IOperationMethodStorage), typeof(OperationMethodStorage)},
+                    {typeof(IODataControllerFactory), typeof(ODataControllerFactory)},
+                    {typeof(ODataControllerRegistration), typeof(ODataControllerRegistration)},
+                    {typeof(HelpController), typeof(HelpController)},
+                    // more controllers: {typeof(__Controller), typeof(__Controller)},
                     {typeof(ISnService), new[] {
                         typeof(ClusterChannelMonitor),
                         typeof(WopiService),
@@ -845,10 +891,14 @@ namespace WebAppTests
                     {
                         typeof(SummaryGenerator),
                         typeof(ContentQueryGenerator),
+                        typeof(ContentTypeGenerator),
+                        typeof(ContentManager),
                         typeof(ImageGenerator)
                     }},
                     {typeof(ISummaryGenerator), typeof(SummaryGenerator)},
                     {typeof(IContentQueryGenerator), typeof(ContentQueryGenerator)},
+                    {typeof(IContentTypeGenerator ), typeof(ContentTypeGenerator)},
+                    {typeof(IContentManager), typeof(ContentManager)},
                     {typeof(IImageGenerator), typeof(ImageGenerator)},
                 },
                 includedProvidersByType: _defaultIncludedProvidersByType,
@@ -927,6 +977,10 @@ namespace WebAppTests
                     }},
                     {typeof(OperationInspector), typeof(OperationInspector)},
                     {typeof(IOperationMethodStorage), typeof(OperationMethodStorage)},
+                    {typeof(IODataControllerFactory), typeof(ODataControllerFactory)},
+                    {typeof(ODataControllerRegistration), typeof(ODataControllerRegistration)},
+                    {typeof(HelpController), typeof(HelpController)},
+                    // more controllers: {typeof(__Controller), typeof(__Controller)},
                     {typeof(IClientMetadataProvider), typeof(ClientMetadataProvider)},
                     {typeof(ISnService), new[] {typeof(WopiService) }},
 
