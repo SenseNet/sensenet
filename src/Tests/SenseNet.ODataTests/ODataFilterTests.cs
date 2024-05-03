@@ -274,7 +274,7 @@ namespace SenseNet.ODataTests
                 AssertNoError(response);
                 var allItemsQuery = CreateSafeContentQuery("InFolder:/Root/IMS/BuiltIn/Portal");
                 var allItemsResult = await allItemsQuery.ExecuteAsync(CancellationToken.None);
-                var expectedNames = allItemsResult.Nodes.Select(n => n.Name).ToList();
+                var expectedNames = allItemsResult.Nodes.Select(n => n.Name).OrderBy(x => x).ToList();
                 expectedNames.Remove("Administrators");
 
                 var entities = GetEntities(response).ToArray();
