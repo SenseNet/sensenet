@@ -16,6 +16,7 @@ using Newtonsoft.Json;
 using SenseNet.Security;
 using SenseNet.Search;
 using System.Diagnostics;
+using System.Drawing.Text;
 using System.Threading;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
@@ -810,6 +811,7 @@ namespace SenseNet.ContentRepository
             }
         }
 
+
         /// <summary>
         /// Shows the inverted index of the requested field in a raw format with some transformations for easier readability.
         /// WARNING! The index may contain sensitive information.
@@ -838,8 +840,12 @@ namespace SenseNet.ContentRepository
         {
             var engine = Providers.Instance.SearchEngine.IndexingEngine;
             var response = await engine.GetInvertedIndexAsync(fieldName, httpContext.RequestAborted);
+            if (response == null || response.Count == 0)
+                return EmptyInvertedIndex;
             return response.ToDictionary(x => x.Key, x => (object)string.Join(",", x.Value.Select(y => y.ToString())));
         }
+
+        private static readonly IDictionary<string, object> EmptyInvertedIndex = new Dictionary<string, object> {{"", ""}};
 
         /// <summary>
         /// Gets the index document (not-inverted index) of the current version of the requested resource.
