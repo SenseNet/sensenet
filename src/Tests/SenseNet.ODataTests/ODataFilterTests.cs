@@ -3,8 +3,12 @@ using System.Linq;
 using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.ContentRepository;
+using SenseNet.ContentRepository.InMemory;
 using SenseNet.ContentRepository.Schema;
+using SenseNet.Diagnostics;
+using SenseNet.ODataTests.Accessors;
 using SenseNet.Search;
+using SenseNet.Search.Querying;
 using Task = System.Threading.Tasks.Task;
 
 // ReSharper disable StringLiteralTypo
@@ -250,6 +254,34 @@ namespace SenseNet.ODataTests
             }).ConfigureAwait(false);
         }
 
+        [TestMethod]
+        public async Task OD_GET_Filter_Negatives()
+        {
+                //Assert.AreEqual("Admin, Administrators, AdminUIViewers, ContentExplorers, Developers, Editors, Everyone, HR, IdentifiedUsers, Operators, Owners, PageEditors, PRCViewers, PublicAdmin, RegisteredUsers, Somebody, Startup, VirtualADUser, Visitor",
+            await ODataTestAsync(async () =>
+            {
+                using var swindler = new Swindler<bool>(true, () => SnTrace.Query.Enabled,
+                    value => { SnTrace.Query.Enabled = value; });
+
+                // ACT
+                var response = await ODataGetAsync(
+                        "/OData.svc/Root/IMS/BuiltIn/Portal",
+                        "?$orderby=Name&$filter= not ((Name eq 'Administrators') and isOf('Group'))")
+                            // not(t1 or t2) --> not t1 and not t2 --> -t1 -t2
+                    .ConfigureAwait(false);
+
+                // ASSERT
+                AssertNoError(response);
+                var allItemsQuery = CreateSafeContentQuery("InFolder:/Root/IMS/BuiltIn/Portal");
+                var allItemsResult = await allItemsQuery.ExecuteAsync(CancellationToken.None);
+                var expectedNames = allItemsResult.Nodes.Select(n => n.Name).OrderBy(x => x).ToList();
+                expectedNames.Remove("Administrators");
+
+                var entities = GetEntities(response).ToArray();
+                Assert.AreEqual(string.Join(", ", expectedNames),
+                    string.Join(", ", entities.Select(x => x.Name)));
+            }).ConfigureAwait(false);
+        }
 
         [TestMethod]
         public async Task OD_GET_Filter_InFolder()
