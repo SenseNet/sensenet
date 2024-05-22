@@ -208,7 +208,21 @@ namespace SenseNet.ContentRepository.Fields
 
             if (value != null)
             {
-                var decimalValue = Convert.ToDecimal(value);
+                decimal decimalValue = 0.0m;
+                var parsed = false;
+                try
+                {
+                    decimalValue = Convert.ToDecimal(value);
+                    parsed = true;
+                }
+                catch (FormatException)
+                {
+                     /* compensated */
+                }
+
+                if (!parsed)
+                    decimalValue = Convert.ToDecimal(value, CultureInfo.InvariantCulture);
+
 
                 if (this.MinValue != null)
                 {
