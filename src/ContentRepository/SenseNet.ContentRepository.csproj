@@ -2,7 +2,7 @@
 
 	<PropertyGroup>
 		<TargetFrameworks>netstandard2.0;net6.0</TargetFrameworks>
-		<Version>7.7.40.4</Version>
+		<Version>7.7.40.5</Version>
 		<Authors>kavics,joe,tusmester</Authors>
 		<Company>Sense/Net Inc.</Company>
 		<Copyright>Copyright © Sense/Net Inc.</Copyright>
