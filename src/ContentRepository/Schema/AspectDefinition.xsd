@@ -66,6 +66,13 @@
       <xs:extension base="BaseDecl">
         <xs:sequence>
           <xs:element name="Indexing" type ="IndexingDecl" minOccurs="0" />
+          <xs:element minOccurs="0" name="Categories" type="xs:string">
+	          <xs:annotation>
+		          <xs:documentation>
+			          Contains a comma, semicolon or space separated list of categories.
+		          </xs:documentation>
+	          </xs:annotation>
+          </xs:element>
           <xs:element name="Bind" minOccurs="0">
             <xs:complexType>
               <xs:attribute name="property" type="xs:string" use="required" />
