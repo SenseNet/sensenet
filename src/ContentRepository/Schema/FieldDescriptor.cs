@@ -31,9 +31,11 @@ namespace SenseNet.ContentRepository.Schema
         public IXmlNamespaceResolver XmlNamespaceResolver { get; set; }
         public RepositoryDataType[] DataTypes { get; set; }
         public bool IsContentListField { get; set; }
+        public string[] Categories { get; set; }
 
         public FieldDescriptor() { }
 
+        private static char[] ListSeparatorChars = " \r\n\t,;".ToCharArray();
         internal static FieldDescriptor Parse(XPathNavigator fieldElement, IXmlNamespaceResolver nsres, ContentType contentType)
         {
             FieldDescriptor fdesc = new FieldDescriptor();
@@ -100,6 +102,10 @@ namespace SenseNet.ContentRepository.Schema
                                 case "IndexHandler": fdesc.IndexHandlerTypeName = indexingSubElement.Value; break;
                             }
                         }
+                        break;
+                    case "Categories":
+                        fdesc.Categories = subElement.Value.Split(ListSeparatorChars, StringSplitOptions.RemoveEmptyEntries)
+                            .Select(x=>x.Trim()).ToArray();
                         break;
                     case "Configuration":
                         fdesc.ConfigurationElement = subElement;

@@ -139,6 +139,8 @@ namespace SenseNet.ContentRepository.Schema
         /// </summary>
         public string AppInfo { get; set; }
 
+        public string[] Categories { get; set; }
+
         /// <summary>
         /// Returns the fully qualified name of the Field. This method uses the Handler property or Type property if Handler is null
         /// </summary>
