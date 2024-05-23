@@ -797,7 +797,7 @@ namespace SenseNet.Search.Indexing
         /// <inheritdoc />
         public override IndexValue Parse(string text)
         {
-            if (double.TryParse(text, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out var doubleValue))
+            if (double.TryParse(text, NumberStyles.AllowDecimalPoint | NumberStyles.AllowLeadingSign, CultureInfo.InvariantCulture, out var doubleValue))
                 return new IndexValue(doubleValue);
             return null;
         }
