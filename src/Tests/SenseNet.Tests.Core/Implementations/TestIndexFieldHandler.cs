@@ -116,7 +116,7 @@ namespace SenseNet.Tests.Core.Implementations
     {
         public IndexValue Parse(string text)
         {
-            if (float.TryParse(text, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out var converted))
+            if (float.TryParse(text, NumberStyles.AllowDecimalPoint | NumberStyles.AllowLeadingSign, CultureInfo.InvariantCulture, out var converted))
                 return new IndexValue(converted);
             return null;
         }
@@ -152,7 +152,7 @@ namespace SenseNet.Tests.Core.Implementations
     {
         public IndexValue Parse(string text)
         {
-            if (double.TryParse(text, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out var converted))
+            if (double.TryParse(text, NumberStyles.AllowDecimalPoint | NumberStyles.AllowLeadingSign, CultureInfo.InvariantCulture, out var converted))
                 return new IndexValue(converted);
             return null;
         }
