@@ -1572,6 +1572,10 @@ namespace SenseNet.ContentRepository
 
             builder.Patch("7.7.31", "7.7.32", "2024-01-17", "Upgrades sensenet content repository.")
                 .Action(Patch_7_7_32);
+
+            //UNDONE: Finalize patch version
+            builder.Patch("7.7.32", "7.7.41", "2024-05-27", "Upgrades sensenet content repository.")
+                .Action(Patch_7_7_41);
         }
 
         private void Patch_7_7_29(PatchExecutionContext context)
@@ -2091,7 +2095,43 @@ namespace SenseNet.ContentRepository
 
             #endregion
         }
-        
+
+        private void Patch_7_7_41(PatchExecutionContext context)
+        {
+            var logger = context.GetService<ILogger<ServicesComponent>>();
+
+            #region CTD changes
+
+var contentTypesWithRichTextField = ContentType.GetContentTypes()
+    .Where(ct => ct.FieldSettings.Any(f => f is RichTextFieldSetting));
+int q = 1;
+            /*
+            try
+            {
+                var cb = new ContentTypeBuilder(context.GetService<ILogger<ContentTypeBuilder>>());
+                cb.Type("ContentType")
+                    .Field("Categories", "ShortText")
+                    .DisplayName("$Ctd-ContentType,Categories-DisplayName")
+                    .Description("$Ctd-ContentType,Categories-Description")
+                    .Bind("CategoryNames")
+                    .VisibleBrowse(FieldVisibility.Hide)
+                    .VisibleEdit(FieldVisibility.Hide)
+                    .VisibleNew(FieldVisibility.Hide)
+                    .ReadOnly(true);
+                cb.Apply();
+
+                var category = "HideByDefault";
+                cb.Type("Application").AddCategory(category);
+                cb.Apply();
+            }
+            catch (Exception ex)
+            {
+                logger.LogWarning(ex, "Error during CTD changes.");
+            }
+            */
+            #endregion
+        }
+
         #region Patch template
 
         // =================================================================================================

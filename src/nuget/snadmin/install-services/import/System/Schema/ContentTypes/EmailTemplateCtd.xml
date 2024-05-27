@@ -7,7 +7,7 @@
       <DisplayName>$Ctd-EmailTemplate,Subject-DisplayName</DisplayName>
       <Description>$Ctd-EmailTemplate,Subject-Description</Description>
     </Field>
-    <Field name="Body" type="RichText">
+    <Field name="Body" type="LongText">
       <DisplayName>$Ctd-EmailTemplate,Body-DisplayName</DisplayName>
       <Description>$Ctd-EmailTemplate,Body-Description</Description>
       <Indexing>

@@ -79,7 +79,7 @@
         <VisibleNew>Show</VisibleNew>
       </Configuration>
     </Field>
-    <Field name="Description" type="RichText">
+    <Field name="Description" type="LongText">
       <Configuration>
         <VisibleBrowse>Show</VisibleBrowse>
         <VisibleEdit>Show</VisibleEdit>
