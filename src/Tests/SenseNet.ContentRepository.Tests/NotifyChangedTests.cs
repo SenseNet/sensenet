@@ -200,13 +200,13 @@ namespace SenseNet.ContentRepository.Tests
                 var content = node.Content;
                 node.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 Assert.AreEqual(originalValue, node.Description);
-                Assert.AreEqual(originalValue, ((RichTextFieldValue)content[fieldName]).Text);
+                Assert.AreEqual(originalValue, (string)content[fieldName]);
 
                 node.Description = "Changed";
-                Assert.AreEqual("Changed", ((RichTextFieldValue)content[fieldName]).Text);
+                Assert.AreEqual("Changed", (string)content[fieldName]);
 
                 node.Description = originalValue;
-                Assert.AreEqual(originalValue, ((RichTextFieldValue)content[fieldName]).Text);
+                Assert.AreEqual(originalValue, (string)content[fieldName]);
 
                 node.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
