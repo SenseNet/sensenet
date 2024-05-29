@@ -15,30 +15,13 @@ namespace SenseNet.ContentRepository.Email
             set => this[nameof(Subject)] = value;
         }
         [RepositoryProperty(nameof(Body), RepositoryDataType.Text)]
-        public RichTextFieldValue Body
+        public string Body
         {
-            get
-            {
-                var value = base.GetProperty<string>(nameof(Body));
-                if (string.IsNullOrEmpty(value))
-                    return null;
-
-                RichTextFieldValue data;
-                try
-                {
-                    data = JsonConvert.DeserializeObject<RichTextFieldValue>(value);
-                }
-                catch
-                {
-                    data = new RichTextFieldValue { Text = value };
-                }
-
-                return data;
-            }
-            set => this[nameof(Body)] = JsonConvert.SerializeObject(value);
+            get => base.GetProperty<string>(nameof(Body));
+            set => this[nameof(Body)] = value;
         }
 
-        string IEmailTemplate.Body => Body?.Text;
+        string IEmailTemplate.Body => this.Body;
 
         public EmailTemplate(Node parent) : base(parent) { }
         public EmailTemplate(Node parent, string nodeTypeName) : base(parent, nodeTypeName) { }
@@ -58,7 +41,7 @@ namespace SenseNet.ContentRepository.Email
             switch (name)
             {
                 case nameof(Subject): Subject = (string)value; break;
-                case nameof(Body): Body = (RichTextFieldValue)value; break;
+                case nameof(Body): Body = (string)value; break;
                 default:
                     base.SetProperty(name, value);
                     break;

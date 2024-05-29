@@ -87,6 +87,11 @@ namespace SenseNet.OData.IO
             return base.GetJsonObject(field, selfUrl, oDataRequest);
         }
 
+        protected override object GetRichTextOutput(string fieldName, RichTextFieldValue rtfValue, ODataRequest oDataRequest)
+        {
+            return rtfValue;
+        }
+
         private object GetAllowedChildTypes(AllowedChildTypesField field, string selfUrl, ODataRequest oDataRequest)
         {
             var value = field.GetData();

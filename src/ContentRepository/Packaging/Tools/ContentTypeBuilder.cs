@@ -603,13 +603,17 @@ namespace SenseNet.Packaging.Tools
 
                 // add new field and re-set previous field properties
                 var fieldElement = LoadFieldElement(ctdXml, fieldName, targetType, false);
-                fieldElement.InnerXml = fieldXmls[contentTypeName];
 
-                // register the new field
-                ContentTypeInstaller.InstallContentType(ctdXml.OuterXml);
+                if (fieldXmls.TryGetValue(contentTypeName, out var oldFieldXml))
+                {
+                    fieldElement.InnerXml = oldFieldXml;
 
-                _logger.LogTrace($"Field {fieldName} was added to content type " +
-                                 $"{contentTypeName} with the new type {targetType}.");
+                    // register the new field
+                    ContentTypeInstaller.InstallContentType(ctdXml.OuterXml);
+
+                    _logger.LogTrace($"Field {fieldName} was added to content type " +
+                                     $"{contentTypeName} with the new type {targetType}.");
+                }
             }
 
             if (!oldValues.Any()) 

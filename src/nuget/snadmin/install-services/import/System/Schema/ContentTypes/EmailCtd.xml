@@ -15,7 +15,7 @@
       <DisplayName>$Ctd-Email,DisplayName-DisplayName</DisplayName>
       <Description>$Ctd-Email,DisplayName-Description</Description>
     </Field>
-    <Field name="Body" type="RichText">
+    <Field name="Body" type="LongText">
       <DisplayName>$Ctd-Email,Body-DisplayName</DisplayName>
       <Description>$Ctd-Email,Body-Description</Description>
     </Field>
