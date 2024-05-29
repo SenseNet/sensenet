@@ -24,7 +24,7 @@ namespace SenseNet.WebHooks
         {
             builder
                 .Install("0.0.6", "2024-05-29", "sensenet WebHooks")
-                .DependsOn("SenseNet.Services", "7.7.41")
+                .DependsOn("SenseNet.Services", "7.7.40")
                 .Action(context =>
                 {
                     #region String resource
@@ -139,7 +139,7 @@ namespace SenseNet.WebHooks
                 });
 
             builder.Patch("0.0.5", "0.0.6", "2023-11-08", "Upgrades the WebHook component")
-                .DependsOn("SenseNet.Services", "7.7.41")
+                .DependsOn("SenseNet.Services", "7.7.40")
                 .Action(context =>
                 {
                     var logger = context.GetService<ILogger<WebHookComponent>>();
