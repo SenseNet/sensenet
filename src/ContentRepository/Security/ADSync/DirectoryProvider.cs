@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.Diagnostics;
@@ -30,28 +32,38 @@ namespace SenseNet.ContentRepository.Security.ADSync
                             try
                             {
                                 if (!string.IsNullOrEmpty(Providers.DirectoryProviderClassName))
-                                    _current = (DirectoryProvider)TypeResolver.CreateInstance(Providers.DirectoryProviderClassName);
+                                    _current = (DirectoryProvider) TypeResolver.CreateInstance(Providers
+                                        .DirectoryProviderClassName);
                             }
                             catch (TypeNotFoundException) // rethrow
                             {
-                                throw new ConfigurationErrorsException(string.Concat(SR.Exceptions.Configuration.Msg_DirectoryProviderImplementationDoesNotExist, ": ", Providers.DirectoryProviderClassName));
+                                throw new ConfigurationErrorsException(string.Concat(
+                                    SR.Exceptions.Configuration.Msg_DirectoryProviderImplementationDoesNotExist, ": ",
+                                    Providers.DirectoryProviderClassName));
                             }
                             catch (InvalidCastException) // rethrow
                             {
-                                throw new ConfigurationErrorsException(string.Concat(SR.Exceptions.Configuration.Msg_InvalidDirectoryProviderImplementation, ": ", Providers.DirectoryProviderClassName));
+                                throw new ConfigurationErrorsException(string.Concat(
+                                    SR.Exceptions.Configuration.Msg_InvalidDirectoryProviderImplementation, ": ",
+                                    Providers.DirectoryProviderClassName));
                             }
                             finally
                             {
                                 _isInitialized = true;
                             }
 
-                            if(_current == null)
-                                SnLog.WriteInformation("DirectoryProvider not present.");
-                            else
-                                SnLog.WriteInformation("DirectoryProvider created: " + _current.GetType().FullName);
+                            var logger = Providers.Instance.Services.GetService<ILogger<DirectoryProvider>>();
+                            if (logger != null)
+                            {
+                                if (_current == null)
+                                    logger.LogInformation("DirectoryProvider not present.");
+                                else
+                                    logger.LogInformation("DirectoryProvider created: " + _current.GetType().FullName);
+                            }
                         }
                     }
                 }
+
                 return _current;
             }
         }
