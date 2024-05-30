@@ -796,7 +796,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// </summary>
         internal async Task ReCreateSecurityEntityAsync(int contentId, CancellationToken cancel)
         {
-            SnLog.WriteWarning("Re-creating entity in security component: " + contentId, EventId.Security);
+            _logger.LogWarning($"Re-creating entity in security component: {contentId} (eventId: {EventId.Security}).");
 
             try
             {

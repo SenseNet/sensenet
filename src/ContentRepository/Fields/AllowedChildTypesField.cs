@@ -1,8 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using SenseNet.Configuration;
 using SenseNet.ContentRepository.Schema;
+using SenseNet.ContentRepository.Security.ADSync;
 using SenseNet.Diagnostics;
 
 namespace SenseNet.ContentRepository.Fields
@@ -56,12 +61,13 @@ namespace SenseNet.ContentRepository.Fields
 
             if (missingTypes != null && missingTypes.Any())
             {
-                SnLog.WriteWarning("Missing Content Types in an Allowed child types field.", 
-                    properties: new Dictionary<string, object>
-                    {
-                        { "Missing types: ", string.Join(", ", missingTypes.Distinct())},
-                        { "Content", this.Content.Path }
-                    });
+                var logger = Providers.Instance.Services.GetService<ILogger<AllowedChildTypesField>>();
+                if (logger != null)
+                {
+                    logger.LogWarning($"Missing Content Types in an Allowed child types field. " +
+                                      $"Content: {this.Content.Path}. " +
+                                      $"Missing types: {string.Join(", ", missingTypes.Distinct())}");
+                }
             }
 
             SetData(ctList.ToArray());
