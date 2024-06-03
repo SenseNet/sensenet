@@ -6,7 +6,7 @@ using SenseNet.ContentRepository.Storage.Events;
 
 namespace SenseNet.ContentRepository.Storage.AppModel
 {
-    internal class RepositoryEventRouter : NodeObserver
+    public class RepositoryEventRouter : NodeObserver
     {
 
         protected internal override void OnNodeCopied(object sender, NodeOperationEventArgs e)

@@ -324,43 +324,17 @@ namespace SenseNet.Extensions.DependencyInjection
         /// Disables one or more node observers in the system. If you call it without parameters, 
         /// it will disable all available node observers.
         /// </summary>
+        [Obsolete("Use IServiceCollection.RemoveNodeObserver or RemoveAllNodeObservers method instead.", true)]
         public static IRepositoryBuilder DisableNodeObservers(this IRepositoryBuilder repositoryBuilder, params Type[] nodeObserverTypes)
         {
-            if (nodeObserverTypes == null || nodeObserverTypes.Length == 0)
-            {
-                Configuration.Providers.Instance.NodeObservers = new NodeObserver[0];
-            }
-            else
-            {
-                var observers = Configuration.Providers.Instance.NodeObservers;
-
-                // remove only the provided types
-                Configuration.Providers.Instance.NodeObservers =
-                    observers.Where(o => !nodeObserverTypes.Contains(o.GetType())).ToArray();
-            }
             return repositoryBuilder;
         }
         /// <summary>
         /// Enables one or more node observers.
         /// </summary>
+        [Obsolete("Use IServiceCollection.AddNodeObserver method instead.", true)]
         public static IRepositoryBuilder EnableNodeObservers(this IRepositoryBuilder repositoryBuilder, params Type[] nodeObserverTypes)
         {
-            if (nodeObserverTypes != null && nodeObserverTypes.Any())
-            {
-                var observers = new List<NodeObserver>(Configuration.Providers.Instance.NodeObservers);
-
-                // add missing observer instances
-                foreach (var nodeObserverType in nodeObserverTypes)
-                {
-                    if (observers.All(no => no.GetType() != nodeObserverType))
-                    {
-                        observers.Add((NodeObserver)Activator.CreateInstance(nodeObserverType, true));
-                    }
-                }
-
-                Configuration.Providers.Instance.NodeObservers = observers.ToArray();
-            }
-
             return repositoryBuilder;
         }
 

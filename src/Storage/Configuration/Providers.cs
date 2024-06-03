@@ -38,8 +38,12 @@ namespace SenseNet.Configuration
 
         public static string AccessProviderClassName => "SenseNet.ContentRepository.Security.DesktopAccessProvider";
         public static string DirectoryProviderClassName => null;
-        public static string MembershipExtenderClassName => "SenseNet.ContentRepository.Storage.Security.DefaultMembershipExtender";
-        public static bool RepositoryPathProviderEnabled { get;  } = GetValue<bool>(SectionName, "RepositoryPathProviderEnabled", true);
+
+        public static string MembershipExtenderClassName =>
+            "SenseNet.ContentRepository.Storage.Security.DefaultMembershipExtender";
+
+        public static bool RepositoryPathProviderEnabled { get; } =
+            GetValue<bool>(SectionName, "RepositoryPathProviderEnabled", true);
 
         private static string GetProvider(string key, string defaultValue = null)
         {
@@ -87,6 +91,8 @@ namespace SenseNet.Configuration
             ClusterChannelProvider = services.GetService<IClusterChannel>();
             Retrier = services.GetService<IRetrier>();
             MultiFactorAuthenticationProvider = services.GetService<IMultiFactorAuthenticationProvider>();
+
+            NodeObservers = services.GetServices<NodeObserver>().ToArray();
         }
 
         /// <summary>
@@ -128,6 +134,8 @@ namespace SenseNet.Configuration
         public IRetrier Retrier { get; }
 
         public IMultiFactorAuthenticationProvider MultiFactorAuthenticationProvider { get; }
+
+        public NodeObserver[] NodeObservers { get; }
 
         /* ========================================================= Need to refactor */
 
@@ -237,48 +245,6 @@ namespace SenseNet.Configuration
         #endregion
 
         public IClusterChannel ClusterChannelProvider { get; set; }
-
-        #region NodeObservers
-        private Lazy<NodeObserver[]> _nodeObservers = new Lazy<NodeObserver[]>(() =>
-        {
-            var nodeObserverTypes = TypeResolver.GetTypesByBaseType(typeof(NodeObserver));
-            var activeObservers = nodeObserverTypes.Where(t => !t.IsAbstract).Select(t => (NodeObserver)Activator.CreateInstance(t, true))
-                .Where(n => !RepositoryEnvironment.DisabledNodeObservers.Contains(n.GetType().FullName)).ToArray();
-
-            if (SnTrace.Repository.Enabled)
-            {
-                SnTrace.Repository.Write("NodeObservers (count: {0}):", nodeObserverTypes.Length);
-                for (var i = 0; i < nodeObserverTypes.Length; i++)
-                {
-                    var observerType = nodeObserverTypes[i];
-                    var fullName = observerType.FullName;
-                    SnTrace.Repository.Write("  #{0} ({1}): {2}:{3} // {4}",
-                        i + 1,
-                        RepositoryEnvironment.DisabledNodeObservers.Contains(fullName) ? "disabled" : "active",
-                        observerType.Name,
-                        observerType.BaseType?.Name,
-                        observerType.Assembly.GetName().Name);
-                }
-            }
-
-            var activeObserverNames = activeObservers.Select(x => x.GetType().FullName).ToArray();
-            Instance?._logger.LogInformation($"NodeObservers are instantiated. Types: {string.Join(", ", activeObserverNames)}");
-
-            return activeObservers;
-        });
-        public NodeObserver[] NodeObservers
-        {
-            get { return _nodeObservers.Value; }
-            set
-            {
-                _nodeObservers = new Lazy<NodeObserver[]>(() => value);
-
-                SnLog.WriteInformation("NodeObservers have changed. ", EventId.RepositoryLifecycle,
-                    properties: new Dictionary<string, object>
-                        {{"Types", string.Join(", ", value?.Select(n => n.GetType().Name) ?? Array.Empty<string>())}});
-            }
-        }
-        #endregion
 
         private IEventDistributor _eventDistributor = new DevNullEventDistributor();
         public IEventDistributor EventDistributor

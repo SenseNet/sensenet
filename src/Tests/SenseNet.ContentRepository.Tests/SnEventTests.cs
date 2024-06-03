@@ -138,11 +138,18 @@ namespace SenseNet.ContentRepository.Tests
         #endregion
         # region private void EventProcessorTest(Action callback)
 
-        private void EventProcessorAsynchronyTest(string eventName, string cancellableEventName, Action align, Action action)
+        private void EventProcessorAsynchronyTest(string eventName, string cancellableEventName, Action align,
+            Action action)
         {
-            Test(builder =>
+            Test2(services =>
             {
-                builder.EnableNodeObservers(typeof(TestObserver1), typeof(TestObserver2), typeof(TestObserver3));
+                services
+                    .AddNodeObserver<TestObserver1>()
+                    .AddNodeObserver<TestObserver2>()
+                    .AddNodeObserver<TestObserver3>();
+            },
+            builder =>
+            {
                 builder.UseEventDistributor(new TestEventDistributor());
                 builder.UseAuditLogEventProcessor(new TestAuditLogEventProcessor());
                 builder.UseAsyncEventProcessors(new IEventProcessor[]
@@ -190,7 +197,8 @@ namespace SenseNet.ContentRepository.Tests
                 {
                     foreach (var state in new[] {"Start", "End"})
                     {
-                        foreach (var type in new[] {"SettingsCache", "TestObserver1", "TestObserver2", "TestObserver3"})
+                        foreach (var type in new[]
+                                     {"SettingsCache", "TestObserver1", "TestObserver2", "TestObserver3"})
                         {
                             var line = lines.FirstOrDefault(x =>
                                 x.Contains(state) && x.Contains(@event) && x.Contains(type));
@@ -205,11 +213,12 @@ namespace SenseNet.ContentRepository.Tests
                     foreach (var state in new[] {"Start", "End"})
                     {
                         foreach (var type in new[]
-                        {
-                            "TestPushNotificationEventProcessor",
-                            "TestWebHookEventProcessor", "TestEmailSenderEventProcessor", "TestAuditLogEventProcessor",
-                            "SettingsCache", "TestObserver1", "TestObserver2", "TestObserver3"
-                        })
+                                 {
+                                     "TestPushNotificationEventProcessor",
+                                     "TestWebHookEventProcessor", "TestEmailSenderEventProcessor",
+                                     "TestAuditLogEventProcessor",
+                                     "SettingsCache", "TestObserver1", "TestObserver2", "TestObserver3"
+                                 })
                         {
                             var line = lines.FirstOrDefault(x =>
                                 x.Contains(state) && x.Contains(@event) && x.Contains(type));

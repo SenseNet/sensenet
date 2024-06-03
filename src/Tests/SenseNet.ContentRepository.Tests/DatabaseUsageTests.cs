@@ -104,9 +104,9 @@ namespace SenseNet.ContentRepository.Tests
         [TestMethod]
         public async STT.Task DbUsage_Logger_CreatingCache()
         {
-            await Test(builder =>
+            await Test2(services =>
             {
-                builder.EnableNodeObservers(typeof(DatabaseUsageCacheTestNodeObserver));
+                services.AddNodeObserver<DatabaseUsageCacheTestNodeObserver>();
             },async () =>
             {
                 var logger = new TestDbUsageLogger();
@@ -124,9 +124,9 @@ namespace SenseNet.ContentRepository.Tests
         [TestMethod]
         public async STT.Task DbUsage_Logger_WritingCache()
         {
-            await Test(builder =>
+            await Test2(services =>
             {
-                builder.EnableNodeObservers(typeof(DatabaseUsageCacheTestNodeObserver));
+                services.AddNodeObserver<DatabaseUsageCacheTestNodeObserver>();
             }, async () =>
             {
                 var logger = new TestDbUsageLogger();
