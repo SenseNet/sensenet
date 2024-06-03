@@ -263,6 +263,7 @@ namespace SenseNet.Extensions.DependencyInjection
         /// If your tool needs to run the workflow engine and its running is postponed (StartWorkflowEngine = false), 
         /// call the RepositoryInstance.StartWorkflowEngine() method.
         /// </remarks>
+        [Obsolete("Old-school configuration method. Do not use anymore.", true)]
         public static IRepositoryBuilder StartWorkflowEngine(this IRepositoryBuilder repositoryBuilder, bool start = true)
         {
             // Old behavior: set a property on the instance that will be used

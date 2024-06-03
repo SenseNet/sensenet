@@ -62,8 +62,7 @@ namespace SenseNet.Extensions.DependencyInjection
                 .UseBlobMetaDataProvider(new InMemoryBlobStorageMetaDataProvider(dataProvider))
                 .UseBlobProviderSelector(new InMemoryBlobProviderSelector())
                 .AddBlobProvider(new InMemoryBlobProvider())
-                .UseSearchEngine(services.GetRequiredService<ISearchEngine>())
-                .StartWorkflowEngine(false);
+                .UseSearchEngine(services.GetRequiredService<ISearchEngine>());
 
             var statDp = services?.GetService<IStatisticalDataProvider>() as InMemoryStatisticalDataProvider
                        ?? new InMemoryStatisticalDataProvider();

@@ -207,7 +207,6 @@ namespace SenseNet.Tools.SnInitialDataGenerator
                 //.AddBlobProvider(new InMemoryBlobProvider())
                 .UseStatisticalDataProvider(services.GetRequiredService<IStatisticalDataProvider>())
                 .UseSearchEngine(services.GetRequiredService<ISearchEngine>())
-                .StartWorkflowEngine(false)
                 .UseTraceCategories("System", "Test", "Event", "Custom") as RepositoryBuilder;
 
             return builder;

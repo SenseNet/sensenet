@@ -310,7 +310,6 @@ namespace SenseNet.Tests.Core
                 .UseBlobProviderSelector(services.GetRequiredService<IBlobProviderSelector>())
                 .UseStatisticalDataProvider(services.GetRequiredService<IStatisticalDataProvider>())
                 .UseSearchEngine(new InMemorySearchEngine(GetInitialIndex()))
-                .StartWorkflowEngine(false)
                 .UseTraceCategories("Test", "Event", "Custom") as RepositoryBuilder;
 
             ContentTypeManager.Reset();
