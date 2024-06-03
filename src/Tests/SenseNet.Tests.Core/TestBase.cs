@@ -272,6 +272,8 @@ namespace SenseNet.Tests.Core
                             .UseAccessProvider(new UserAccessProvider());
                     })
                     .AddSenseNetInMemoryProviders()
+                    .RemoveAllNodeObservers()
+                    .AddNodeObserver<SettingsCache>()
 
                     //.AddSenseNetWebHooks()
                     .AddSenseNetWopi()
@@ -309,8 +311,6 @@ namespace SenseNet.Tests.Core
                 .UseStatisticalDataProvider(services.GetRequiredService<IStatisticalDataProvider>())
                 .UseSearchEngine(new InMemorySearchEngine(GetInitialIndex()))
                 .StartWorkflowEngine(false)
-                .DisableNodeObservers()
-                .EnableNodeObservers(typeof(SettingsCache))
                 .UseTraceCategories("Test", "Event", "Custom") as RepositoryBuilder;
 
             ContentTypeManager.Reset();

@@ -35,6 +35,9 @@ namespace SenseNet.IntegrationTests.Infrastructure
         {
             var serviceCollection = new ServiceCollection();
             BuildServices(AppConfig, serviceCollection);
+            serviceCollection
+                .RemoveAllNodeObservers()
+                .AddNodeObserver<SettingsCache>();
             var services = serviceCollection.BuildServiceProvider();
 
             Providers.Instance = new Providers(services);
@@ -57,8 +60,6 @@ namespace SenseNet.IntegrationTests.Infrastructure
                 .UseStatisticalDataProvider(services.GetRequiredService<IStatisticalDataProvider>())
                 .UseSearchEngine(GetSearchEngine())
                 .StartWorkflowEngine(false)
-                .DisableNodeObservers()
-                .EnableNodeObservers(typeof(SettingsCache))
                 .UseTraceCategories("Test", "Event", "Custom");
 
             OnAfterGettingRepositoryBuilder(builder);

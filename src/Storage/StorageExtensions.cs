@@ -1,9 +1,11 @@
 ﻿using System;
+using System.Linq;
 using Microsoft.Extensions.DependencyInjection;
 using SenseNet.Communication.Messaging;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Data.MsSqlClient;
+using SenseNet.ContentRepository.Storage.Events;
 using SenseNet.Storage.DistributedApplication.Messaging;
 
 // ReSharper disable once CheckNamespace
@@ -103,6 +105,37 @@ namespace SenseNet.Extensions.DependencyInjection
         public static IServiceCollection AddSenseNetBackgroundService<T>(this IServiceCollection services) where T : class, ISnService
         {
             return services.AddSingleton<ISnService, T>();
+        }
+
+        /// <summary>
+        /// Adds a NodeObserver implementation type to the service collection.
+        /// </summary>
+        public static IServiceCollection AddNodeObserver<T>(this IServiceCollection services) where T : NodeObserver
+        {
+            services.AddSingleton<NodeObserver, T>();
+            return services;
+        }
+        /// <summary>
+        /// Removes an existing NodeObserver implementation type from the service collection.
+        /// Used to disable items in the base set, so it is effective only after calling the AddSenseNet method.
+        /// </summary>
+        public static IServiceCollection RemoveNodeObserver<T>(this IServiceCollection services) where T : NodeObserver
+        {
+            var existing = services.Where(x => x.ImplementationType == typeof(T)).ToArray();
+            foreach (var item in existing)
+                services.Remove(item);
+            return services;
+        }
+        /// <summary>
+        /// Removes all existing NodeObserver implementation types from the service collection.
+        /// Used to disable all items of the base set, so it is effective only after calling the AddSenseNet method.
+        /// </summary>
+        public static IServiceCollection RemoveAllNodeObservers(this IServiceCollection services)
+        {
+            var existing = services.Where(x => x.ServiceType == typeof(NodeObserver)).ToArray();
+            foreach (var item in existing)
+                services.Remove(item);
+            return services;
         }
     }
 }

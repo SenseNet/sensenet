@@ -147,6 +147,7 @@ namespace SenseNet.Extensions.DependencyInjection
         {
             services
                 .AddSenseNetDefaultRepositoryServices()
+                .AddDefaultNodeObservers()
                 .AddSingleton<StorageSchema>()
                 .AddSingleton<ITreeLockController, TreeLockController>()
 
@@ -185,6 +186,18 @@ namespace SenseNet.Extensions.DependencyInjection
             if (configuration?.GetSection("sensenet:replication")?.GetValue<bool>("Enabled") ?? false)
                 services.AddSingleton<IReplicationService, SingleNodeReplicationService>();
 
+            return services;
+        }
+        public static IServiceCollection AddDefaultNodeObservers(this IServiceCollection services)
+        {
+            services
+                .AddNodeObserver<AppCacheInvalidator>()
+                .AddNodeObserver<ApplicationModel.AppStorageInvalidator>()
+                .AddNodeObserver<GroupMembershipObserver>()
+                .AddNodeObserver<RepositoryEventRouter>()
+                .AddNodeObserver<SettingsCache>()
+                .AddNodeObserver<SharingNodeObserver>()
+                ;
             return services;
         }
 

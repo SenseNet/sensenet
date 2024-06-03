@@ -12,7 +12,7 @@ namespace SenseNet.ContentRepository.Sharing
     /// Notifies the sharing system about relevant changes in the repository. For example
     /// when a subtree, a user or a group is deleted, or a user is created or changed.
     /// </summary>
-    internal class SharingNodeObserver : NodeObserver
+    public class SharingNodeObserver : NodeObserver
     {
         private const string SharingGroupIdsCustomDataKey = "SnSharingGroupIds";
 
