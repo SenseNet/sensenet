@@ -19,7 +19,8 @@ namespace SenseNet.ContentRepository
         /// </summary>
         public class ImmutableRepositoryStartSettings : RepositoryStartSettings
         {
-            public new bool IsWebContext { get; }
+            [Obsolete("Old-school configuration property. Do not use anymore.", true)]
+            public new bool IsWebContext => false;
             public new bool ExecutingPatches { get; internal set; }
 
             public IServiceProvider Services { get; }
@@ -32,7 +33,7 @@ namespace SenseNet.ContentRepository
             /// <summary>
             /// Gets or sets a value that is 'true' if your tool enables the running of workflow engine. 'True' is the default.
             /// </summary>
-            [Obsolete("Old-school configuration method. Do not use anymore.", true)]
+            [Obsolete("Old-school configuration property. Do not use anymore.", true)]
             public new bool StartWorkflowEngine { get; }
 
             /// <summary>
@@ -58,12 +59,12 @@ namespace SenseNet.ContentRepository
 
             internal ImmutableRepositoryStartSettings(RepositoryStartSettings settings)
             {
-                IsWebContext = settings.IsWebContext;
+//IsWebContext = settings.IsWebContext;
                 ExecutingPatches = settings.ExecutingPatches;
                 StartIndexingEngine = settings.StartIndexingEngine;
 //StartWorkflowEngine = settings.StartWorkflowEngine;
                 Console = settings.Console;
-                PluginsPath = settings.PluginsPath;
+//PluginsPath = settings.PluginsPath;
                 IndexPath = settings.IndexPath;
 
                 TraceCategories = settings.TraceCategories;
@@ -73,7 +74,8 @@ namespace SenseNet.ContentRepository
             }
         }
 
-        public virtual bool IsWebContext { get; set; } = false;
+        [Obsolete("Old-school configuration property. Do not use anymore.", true)]
+        public virtual bool IsWebContext => false;
         public virtual bool ExecutingPatches { get; set; } = false;
 
         /// <summary>
@@ -90,7 +92,7 @@ namespace SenseNet.ContentRepository
         /// <remarks>
         /// If your tool needs to run the workflow engine and its running is postponed (StartWorkflowEngine = false), call the RepositoryInstance.StartWorkflowEngine() method.
         /// </remarks>
-        [Obsolete("Old-school configuration method. Do not use anymore.", true)]
+        [Obsolete("Old-school configuration property. Do not use anymore.", true)]
         public virtual bool StartWorkflowEngine { get; set; } = true;
 
         /// <summary>

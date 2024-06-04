@@ -137,6 +137,8 @@ namespace SenseNet.Configuration
 
         public NodeObserver[] NodeObservers { get; }
 
+        public IClusterChannel ClusterChannelProvider { get; }
+
         /* ========================================================= Need to refactor */
 
         public IEventLogger EventLogger { get; set; }
@@ -243,8 +245,6 @@ namespace SenseNet.Configuration
             set { _membershipExtender = new Lazy<MembershipExtenderBase>(() => value); }
         }
         #endregion
-
-        public IClusterChannel ClusterChannelProvider { get; set; }
 
         private IEventDistributor _eventDistributor = new DevNullEventDistributor();
         public IEventDistributor EventDistributor

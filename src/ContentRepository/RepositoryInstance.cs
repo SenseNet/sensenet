@@ -126,9 +126,9 @@ namespace SenseNet.ContentRepository
             if (_settings.IndexPath != null)
                 Providers.Instance.SearchManager.IndexDirectoryPath = _settings.IndexPath;
 
-            LoadAssemblies(_settings.IsWebContext);
+            LoadAssemblies();
 
-            _settings.Services.GetRequiredService<SecurityHandler>().StartSecurity(_settings.IsWebContext, _settings.Services);
+            _settings.Services.GetRequiredService<SecurityHandler>().StartSecurity(_settings.Services);
 
             //UNDONE: modernize TemplateManager
             // Set legacy collection from the new services collection and reset the
@@ -177,22 +177,24 @@ namespace SenseNet.ContentRepository
         [Obsolete("Do not use anymore this method.", true)]
         public void StartWorkflowEngine() { }
 
-        private void LoadAssemblies(bool isWebContext)
+        private void LoadAssemblies()
         {
-            string[] asmNames;
             _startupInfo.AssembliesBeforeStart = GetLoadedAsmNames().ToArray();
             var localBin = AppDomain.CurrentDomain.BaseDirectory;
             var pluginsPath = _settings.PluginsPath ?? localBin;
 
-            if (!isWebContext)
-            {
-                ConsoleWriteLine(false, "Loading Assemblies from ", localBin, ":");
-                asmNames = TypeResolver.LoadAssembliesFrom(localBin);
-                foreach (string name in asmNames)
-                    ConsoleWriteLine(false, "  ", name);
-            }
+            ConsoleWriteLine(false, "Loading Assemblies from ", localBin, ":");
+            var asmNames = TypeResolver.LoadAssembliesFrom(localBin);
+            foreach (string name in asmNames)
+                ConsoleWriteLine(false, "  ", name);
 
             _startupInfo.ReferencedAssemblies = GetLoadedAsmNames().Except(_startupInfo.AssembliesBeforeStart).ToArray();
+
+            if (string.IsNullOrEmpty(pluginsPath) || pluginsPath.Equals(localBin, StringComparison.OrdinalIgnoreCase))
+            {
+                _startupInfo.Plugins = Array.Empty<string>();
+                return;
+            }
 
             ConsoleWriteLine(false, "Loading Assemblies from ", pluginsPath, ":");
             asmNames = TypeResolver.LoadAssembliesFrom(pluginsPath);
