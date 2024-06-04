@@ -64,10 +64,6 @@ namespace SenseNet.Extensions.DependencyInjection
                 .AddBlobProvider(new InMemoryBlobProvider())
                 .UseSearchEngine(services.GetRequiredService<ISearchEngine>());
 
-            var statDp = services?.GetService<IStatisticalDataProvider>() as InMemoryStatisticalDataProvider
-                       ?? new InMemoryStatisticalDataProvider();
-            repositoryBuilder.UseStatisticalDataProvider(statDp);
-
             return repositoryBuilder;
         }
 

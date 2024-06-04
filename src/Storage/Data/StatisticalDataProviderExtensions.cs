@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using SenseNet.Configuration;
-using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.Diagnostics;
 using SenseNet.Tools;
 
@@ -20,9 +16,9 @@ namespace SenseNet.Extensions.DependencyInjection
         /// <param name="builder">The IRepositoryBuilder instance.</param>
         /// <param name="provider">The extension instance to set.</param>
         /// <returns>The updated IRepositoryBuilder.</returns>
+        [Obsolete("Use this IServiceCollection extension: AddStatisticalDataProvider<T>()", true)]
         public static IRepositoryBuilder UseStatisticalDataProvider(this IRepositoryBuilder builder, IStatisticalDataProvider provider)
         {
-            Providers.Instance.SetProvider(typeof(IStatisticalDataProvider), provider);
             return builder;
         }
     }

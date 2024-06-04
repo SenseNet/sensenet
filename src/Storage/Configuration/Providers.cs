@@ -93,6 +93,7 @@ namespace SenseNet.Configuration
             MultiFactorAuthenticationProvider = services.GetService<IMultiFactorAuthenticationProvider>();
 
             NodeObservers = services.GetServices<NodeObserver>().ToArray();
+            StatisticalDataProvider = services.GetService<IStatisticalDataProvider>();
         }
 
         /// <summary>
@@ -138,6 +139,8 @@ namespace SenseNet.Configuration
         public NodeObserver[] NodeObservers { get; }
 
         public IClusterChannel ClusterChannelProvider { get; }
+
+        public IStatisticalDataProvider StatisticalDataProvider { get; }
 
         /* ========================================================= Need to refactor */
 
