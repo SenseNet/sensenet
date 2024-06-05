@@ -59,12 +59,9 @@ namespace SenseNet.ContentRepository
 
             internal ImmutableRepositoryStartSettings(RepositoryStartSettings settings)
             {
-//IsWebContext = settings.IsWebContext;
                 ExecutingPatches = settings.ExecutingPatches;
                 StartIndexingEngine = settings.StartIndexingEngine;
-//StartWorkflowEngine = settings.StartWorkflowEngine;
                 Console = settings.Console;
-//PluginsPath = settings.PluginsPath;
                 IndexPath = settings.IndexPath;
 
                 TraceCategories = settings.TraceCategories;

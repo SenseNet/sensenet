@@ -61,7 +61,6 @@ namespace SenseNet.Packaging.Steps
                 StartIndexingEngine = startIndexingEngine,
                 PluginsPath = PluginsPath ?? context.SandboxPath,
                 IndexPath = indexPath,
-//StartWorkflowEngine = StartWorkflowEngine,
                 Console = context.Console
             }) as RepositoryBuilder;
 
