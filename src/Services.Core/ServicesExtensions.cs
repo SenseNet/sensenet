@@ -217,10 +217,6 @@ namespace SenseNet.Extensions.DependencyInjection
             if (searchEngine != null)
                 Providers.Instance.SearchEngine = searchEngine;
 
-            var statisticalDataProvider = provider.GetService<IStatisticalDataProvider>();
-            if (statisticalDataProvider != null)
-                Providers.Instance.SetProvider(typeof(IStatisticalDataProvider), statisticalDataProvider);
-
             var cmi = provider.GetService<IOptions<ClusterMemberInfo>>()?.Value;
             if (cmi != null)
                 ClusterMemberInfo.Current = cmi;

@@ -576,14 +576,14 @@ namespace WebAppTests
 
         private readonly Type[] _defaultIncludedProvidersByType = new[]
         {
-            typeof(IStatisticalDataProvider),
+            //typeof(IStatisticalDataProvider),
             //typeof(ISnTracer[]),
             typeof(ILogger<SnILogger>),
             typeof(ICryptoServiceProvider),
         };
         private readonly Type[] _includedProvidersByTypeWithTests = new[]
         {
-            typeof(IStatisticalDataProvider),
+            //typeof(IStatisticalDataProvider),
             //typeof(ISnTracer[]),
             typeof(ILogger<SnILogger>),
             typeof(ICryptoServiceProvider),

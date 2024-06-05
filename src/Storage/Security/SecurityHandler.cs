@@ -1214,7 +1214,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// Initializes the security system. Called during system startup.
         /// WARNING! Do not use this method in your code!
         /// </summary>
-        public void StartSecurity(bool isWebContext, IServiceProvider services)
+        public void StartSecurity(IServiceProvider services)
         {
             var dummy = PermissionType.Open;
             var securityDataProvider = Providers.Instance.SecurityDataProvider;
@@ -1242,9 +1242,7 @@ namespace SenseNet.ContentRepository.Storage.Security
 
             securitySystem.StartAsync(CancellationToken.None).GetAwaiter().GetResult();
 
-            _securityContextFactory = isWebContext 
-                ? (ISecurityContextFactory)new DynamicSecurityContextFactory(securitySystem) 
-                : new StaticSecurityContextFactory(securitySystem);
+            _securityContextFactory = new DynamicSecurityContextFactory(securitySystem);
 
             _securitySystem = securitySystem;
 

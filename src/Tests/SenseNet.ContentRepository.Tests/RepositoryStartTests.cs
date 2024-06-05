@@ -144,7 +144,6 @@ namespace SenseNet.ContentRepository.Tests
                 .AddBlobProvider(new InMemoryBlobProvider())
                 .UseSearchEngine(searchEngine ?? services.GetRequiredService<ISearchEngine>())
                 .StartIndexingEngine(false)
-                .StartWorkflowEngine(false)
                 .UseTraceCategories("Test", "Web", "System");
         }
 

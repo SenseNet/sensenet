@@ -93,6 +93,7 @@ namespace SenseNet.Configuration
             MultiFactorAuthenticationProvider = services.GetService<IMultiFactorAuthenticationProvider>();
 
             NodeObservers = services.GetServices<NodeObserver>().ToArray();
+            StatisticalDataProvider = services.GetService<IStatisticalDataProvider>();
         }
 
         /// <summary>
@@ -136,6 +137,10 @@ namespace SenseNet.Configuration
         public IMultiFactorAuthenticationProvider MultiFactorAuthenticationProvider { get; }
 
         public NodeObserver[] NodeObservers { get; }
+
+        public IClusterChannel ClusterChannelProvider { get; }
+
+        public IStatisticalDataProvider StatisticalDataProvider { get; }
 
         /* ========================================================= Need to refactor */
 
@@ -243,8 +248,6 @@ namespace SenseNet.Configuration
             set { _membershipExtender = new Lazy<MembershipExtenderBase>(() => value); }
         }
         #endregion
-
-        public IClusterChannel ClusterChannelProvider { get; set; }
 
         private IEventDistributor _eventDistributor = new DevNullEventDistributor();
         public IEventDistributor EventDistributor

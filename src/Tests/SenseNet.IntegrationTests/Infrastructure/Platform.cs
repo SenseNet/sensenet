@@ -57,9 +57,7 @@ namespace SenseNet.IntegrationTests.Infrastructure
                 .UseBlobProviderStore(services.GetRequiredService<IBlobProviderStore>())
                 .UseBlobMetaDataProvider(services.GetRequiredService<IBlobStorageMetaDataProvider>())
                 .UseBlobProviderSelector(services.GetRequiredService<IBlobProviderSelector>())
-                .UseStatisticalDataProvider(services.GetRequiredService<IStatisticalDataProvider>())
                 .UseSearchEngine(GetSearchEngine())
-                .StartWorkflowEngine(false)
                 .UseTraceCategories("Test", "Event", "Custom");
 
             OnAfterGettingRepositoryBuilder(builder);

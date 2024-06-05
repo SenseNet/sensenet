@@ -45,7 +45,6 @@ namespace SenseNet.Services.Core
                 .UseLogger(new SnFileSystemEventLogger())
                 .UseComponent(components)
                 .UseAccessProvider(new UserAccessProvider())
-                .StartWorkflowEngine(false)
                 .UseEventDistributor(new EventDistributor())
                 .AddAsyncEventProcessors(eventProcessors)
                 .UseTraceCategories("Event", "Custom", "System", "Security", "ContentOperation", "Index",

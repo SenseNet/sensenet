@@ -15,11 +15,10 @@ namespace SenseNet.IntegrationTests.TestCases
 {
     public class StatisticsUnitTestCases : TestCaseBase
     {
-        private IStatisticalDataProvider _dp;
         private ITestingDataProvider _tdp;
 
         // ReSharper disable once InconsistentNaming
-        private IStatisticalDataProvider DP => _dp ??= Providers.Instance.GetProvider<IStatisticalDataProvider>();
+        private IStatisticalDataProvider DP => Providers.Instance.StatisticalDataProvider;
 
         // ReSharper disable once InconsistentNaming
         private ITestingDataProvider TDP => _tdp ??= Providers.Instance.GetProvider<ITestingDataProvider>();
