@@ -2,7 +2,7 @@
 
 	<PropertyGroup>
 		<TargetFrameworks>netstandard2.0;net6.0</TargetFrameworks>
-		<Version>0.0.39.6</Version>
+		<Version>0.0.39.7</Version>
 		<Authors>kavics,joe,tusmester</Authors>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 		<Company>Sense/Net Inc.</Company>

@@ -3,7 +3,7 @@
 	<PropertyGroup>
 		<TargetFrameworks>net6.0</TargetFrameworks>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-		<Version>0.0.34.4</Version>
+		<Version>0.0.34.5</Version>
 		<Company>Sense/Net Inc.</Company>
 		<Copyright>Copyright © Sense/Net Inc.</Copyright>
 		<PackageLicenseUrl>https://github.com/SenseNet/sensenet/blob/master/LICENSE</PackageLicenseUrl>
