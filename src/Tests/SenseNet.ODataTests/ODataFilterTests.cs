@@ -2,7 +2,9 @@
 using System.Linq;
 using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NuGet.Frameworks;
 using SenseNet.ContentRepository;
+using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.InMemory;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.Diagnostics;
@@ -10,6 +12,8 @@ using SenseNet.ODataTests.Accessors;
 using SenseNet.Search;
 using SenseNet.Search.Querying;
 using Task = System.Threading.Tasks.Task;
+using Newtonsoft.Json.Linq;
+using System.Globalization;
 
 // ReSharper disable StringLiteralTypo
 
@@ -354,6 +358,67 @@ namespace SenseNet.ODataTests
                 var entities = GetEntities(response).ToArray();
                 Assert.AreEqual(1, entities.Count());
                 Assert.AreEqual(Group.Administrators.Path, entities.First().Path);
+            }).ConfigureAwait(false);
+        }
+
+        [TestMethod]
+        public async Task OD_GET_Filter_GtGeLtLeNumber()
+        {
+            await ODataTestAsync(async () =>
+            {
+                InstallCarContentType();
+                var root_content = await Node.LoadNodeAsync("/Root/Content", CancellationToken.None);
+                var cars = new SystemFolder(root_content) {Name = "Cars"};
+                await cars.SaveAsync(CancellationToken.None);
+                var car1 = Content.CreateNew("Car", cars, "Car1");
+                car1["Price"] = 999_999.0m;
+                await car1.SaveAsync(CancellationToken.None);
+                var car2 = Content.CreateNew("Car", cars, "Car2");
+                car2["Price"] = 1_000_000.0m;
+                await car2.SaveAsync(CancellationToken.None);
+                var car3 = Content.CreateNew("Car", cars, "Car3");
+                car3["Price"] = 1_000_001.0m;
+                await car3.SaveAsync(CancellationToken.None);
+
+                // ACT: Price lt 1000000.0m
+                var response = await ODataGetAsync(
+                        "/OData.svc/Root/Content/Cars",
+                        "?metadata=no&$select=Name,Price&$filter=Price lt 1000000.0m")
+                    .ConfigureAwait(false);
+                // ASSERT: Price lt 1000000.0m
+                var entities = GetEntities(response);
+                var actual = string.Join(", ", entities.Select(x => x.Name).OrderBy(x => x));
+                Assert.AreEqual("Car1", actual);
+
+                // ACT: Price le 1000000.0m
+                response = await ODataGetAsync(
+                        "/OData.svc/Root/Content/Cars",
+                        "?metadata=no&$select=Name,Price&$filter=Price le 1000000.0m")
+                    .ConfigureAwait(false);
+                // ASSERT: Price le 1000000.0m
+                entities = GetEntities(response);
+                actual = string.Join(", ", entities.Select(x => x.Name).OrderBy(x => x));
+                Assert.AreEqual("Car1, Car2", actual);
+
+                // ACT: Price gt 1000000.0m
+                response = await ODataGetAsync(
+                        "/OData.svc/Root/Content/Cars",
+                        "?metadata=no&$select=Name,Price&$filter=Price gt 1000000.0m")
+                    .ConfigureAwait(false);
+                // ASSERT: Price gt 1000000.0m
+                entities = GetEntities(response);
+                actual = string.Join(", ", entities.Select(x => x.Name).OrderBy(x => x));
+                Assert.AreEqual("Car3", actual);
+
+                // ACT: Price ge 1000000.0m
+                response = await ODataGetAsync(
+                        "/OData.svc/Root/Content/Cars",
+                        "?metadata=no&$select=Name,Price&$filter=Price ge 1000000.0m")
+                    .ConfigureAwait(false);
+                // ASSERT: Price ge 1000000.0m
+                entities = GetEntities(response);
+                actual = string.Join(", ", entities.Select(x => x.Name).OrderBy(x => x));
+                Assert.AreEqual("Car2, Car3", actual);
             }).ConfigureAwait(false);
         }
     }

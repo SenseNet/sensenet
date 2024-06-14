@@ -366,13 +366,11 @@ namespace SenseNet.ContentRepository.InMemory
         }
         public static string SingleToString(float value)
         {
-            //TODO: Single fields are not comparable as a string
-            return value.ToString(CultureInfo.InvariantCulture);
+            return (value + 10000.0f).ToString("00000.#####", CultureInfo.InvariantCulture) + "|" + value;
         }
         public static string DoubleToString(double value)
         {
-            //TODO: Double fields are not comparable as a string
-            return value.ToString(CultureInfo.InvariantCulture);
+            return (value + 1_000_000_000_000d).ToString("0000000000000.#############", CultureInfo.InvariantCulture) + "|" + value;
         }
 
         /* ========================================================================== Save index */
