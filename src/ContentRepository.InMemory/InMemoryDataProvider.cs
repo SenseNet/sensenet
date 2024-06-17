@@ -299,7 +299,16 @@ namespace SenseNet.ContentRepository.InMemory
             var version = DB.Versions.FirstOrDefault(x => x.VersionId == versionId);
             if (version != null)
             {
-                var changedData = version.ChangedData.ToList();
+                List<ChangedData> changedData;
+                if (version.ChangedData == null)
+                {
+                    changedData = new List<ChangedData>();
+                    version.ChangedData = changedData;
+                }
+                else
+                {
+                    changedData = version.ChangedData.ToList();
+                }
                 changedData.Add(changedProperty);
                 version.ChangedData = changedData;
             }
