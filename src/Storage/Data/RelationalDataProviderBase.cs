@@ -2454,7 +2454,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                 "GetTreeSize(path: {0}, includeChildren: {1})", path, includeChildren);
 
             using var ctx = CreateDataContext(cancellationToken);
-            var result = (long)await ctx.ExecuteScalarAsync(GetTreeSizeScript, cmd =>
+            var result = await ctx.ExecuteScalarAsync(GetTreeSizeScript, cmd =>
             {
                 cmd.Parameters.AddRange(new[]
                 {
@@ -2462,9 +2462,13 @@ namespace SenseNet.ContentRepository.Storage.Data
                     ctx.CreateParameter("@NodePath", DbType.String, PathMaxLength, path),
                 });
             }).ConfigureAwait(false);
-            op.Successful = true;
 
-            return result;
+
+            op.Successful = true;
+            if (result == DBNull.Value)
+                return 0L;
+
+            return (long)result;
         }
         protected abstract string GetTreeSizeScript { get; }
 
