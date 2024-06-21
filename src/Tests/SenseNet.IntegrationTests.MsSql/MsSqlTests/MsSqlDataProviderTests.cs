@@ -75,6 +75,8 @@ namespace SenseNet.IntegrationTests.MsSql.MsSqlTests
         public Task IntT_MsSql_DP_TreeSize_Subtree() { return TestCase.DP_TreeSize_Subtree(); }
         [TestMethod]
         public Task IntT_MsSql_DP_TreeSize_Item() { return TestCase.DP_TreeSize_Item(); }
+        [TestMethod]
+        public Task IntT_MsSql_DP_TreeSize_Empty() { return TestCase.DP_TreeSize_Empty(); }
 
         /* ================================================================================================== NodeQuery */
 

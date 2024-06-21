@@ -988,6 +988,19 @@ namespace SenseNet.IntegrationTests.TestCases
                 Assert.AreEqual(expectedSize, size);
             });
         }
+        public async Task DP_TreeSize_Empty()
+        {
+            await IntegrationTestAsync(async () =>
+            {
+                var folder = CreateFolder(Repository.Root);
+
+                // ACTION
+                var size = await DP.GetTreeSizeAsync(folder.Path, true, CancellationToken.None);
+
+                // ASSERT
+                Assert.AreEqual(0L, size);
+            });
+        }
 
         /* ================================================================================================== NodeQuery */
 
