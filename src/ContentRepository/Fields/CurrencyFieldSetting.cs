@@ -30,6 +30,10 @@ namespace SenseNet.ContentRepository.Fields
             }
         }
 
+        public string CurrencySymbol => GetCurrencySymbol(Format);
+        public string CurrencyName => GetCurrencyName(Format);
+        public string CurrencyNativeName => GetCurrencyNativeName(Format);
+
         private static Dictionary<string, RegionInfo> _regionInfos;
         private static object _regionLock = new object();
 
@@ -203,11 +207,28 @@ namespace SenseNet.ContentRepository.Fields
             if (string.IsNullOrEmpty(cultureName))
                 return string.Empty;
             
-            return RegionInfos.ContainsKey(cultureName)
-                ? RegionInfos[cultureName].CurrencySymbol
+            return RegionInfos.TryGetValue(cultureName, out var regionInfo)
+                ? regionInfo.CurrencySymbol
                 : string.Empty;
         }
+        private static string GetCurrencyName(string cultureName)
+        {
+            if (string.IsNullOrEmpty(cultureName))
+                return string.Empty;
 
+            return RegionInfos.TryGetValue(cultureName, out var regionInfo)
+                ? regionInfo.ISOCurrencySymbol
+                : string.Empty;
+        }
+        private static string GetCurrencyNativeName(string cultureName)
+        {
+            if (string.IsNullOrEmpty(cultureName))
+                return string.Empty;
+
+            return RegionInfos.TryGetValue(cultureName, out var regionInfo)
+                ? regionInfo.CurrencyNativeName
+                : string.Empty;
+        }
         private static string GetCurrencyText(string cultureName)
         {
             if (string.IsNullOrEmpty(cultureName))

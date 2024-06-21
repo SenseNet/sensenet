@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json.Linq;
 using SenseNet.ContentRepository;
@@ -185,5 +186,87 @@ namespace SenseNet.ODataTests
                 Assert.AreEqual(200, response.StatusCode);
             });
         }
+
+        [TestMethod]
+        [TestCategory("Metadata")]
+        public async Task OD_ClientMetadataProvider_GetSchema_Currency()
+        {
+            await ODataTestAsync(async () =>
+            {
+                ContentTypeInstaller.InstallContentType(@"<ContentType name=""CurrencyTest"" parentType=""GenericContent"" handler=""SenseNet.ContentRepository.GenericContent"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
+  <Fields>
+    <Field name=""PriceInBudapest"" type=""Currency"">
+      <Configuration>
+        <Format>hu-HU</Format>
+      </Configuration>
+    </Field>
+    <Field name=""PriceInLondon"" type=""Currency"">
+      <Configuration>
+        <Format>en-GB</Format>
+      </Configuration>
+    </Field>
+    <Field name=""PriceInParis"" type=""Currency"">
+      <Configuration>
+        <Format>fr-FR</Format>
+      </Configuration>
+    </Field>
+    <Field name=""PriceInMogadishu"" type=""Currency"">
+      <Configuration>
+        <Format>so-SO</Format>
+      </Configuration>
+    </Field>
+    <Field name=""Price"" type=""Currency"">
+    </Field>
+  </Fields>
+</ContentType>
+");
+
+                try
+                {
+                    // ACT
+                    var typeObjects = ClientMetadataProvider.GetSchema(null, "CurrencyTest") as object[];
+
+                    // ASSERT
+                    Assert.IsNotNull(typeObjects);
+                    Assert.IsTrue(typeObjects.Length == 1);
+
+                    var tpyeJObject = typeObjects[0] as JObject;
+                    var jsonText = tpyeJObject.ToString();
+
+                    Assert.IsNotNull(tpyeJObject);
+                    Assert.AreEqual("CurrencyTest", tpyeJObject["ContentTypeName"].Value<string>());
+
+                    // <Field name=""PriceInBudapest""
+                    Assert.IsTrue(jsonText.Contains("\"CurrencySymbol\": \"Ft\","));
+                    Assert.IsTrue(jsonText.Contains("\"CurrencyName\": \"HUF\","));
+                    Assert.IsTrue(jsonText.Contains("\"CurrencyNativeName\": \"magyar forint\","));
+
+                    // <Field name=""PriceInLondon""
+                    Assert.IsTrue(jsonText.Contains("\"CurrencySymbol\": \"£\","));
+                    Assert.IsTrue(jsonText.Contains("\"CurrencyName\": \"GBP\","));
+                    Assert.IsTrue(jsonText.Contains("\"CurrencyNativeName\": \"British Pound\","));
+
+                    // <Field name=""PriceInParis""
+                    Assert.IsTrue(jsonText.Contains("\"CurrencySymbol\": \"€\","));
+                    Assert.IsTrue(jsonText.Contains("\"CurrencyName\": \"EUR\","));
+                    Assert.IsTrue(jsonText.Contains("\"CurrencyNativeName\": \"euro\","));
+
+                    // <Field name=""PriceInMogadishu"" type=""Currency"">
+                    Assert.IsTrue(jsonText.Contains("\"CurrencySymbol\": \"S\","));
+                    Assert.IsTrue(jsonText.Contains("\"CurrencyName\": \"SOS\","));
+                    Assert.IsTrue(jsonText.Contains("\"CurrencyNativeName\": \"Shilingka Soomaaliya\","));
+
+                    // <Field name=""Price"" type=""Currency"">
+                    Assert.IsTrue(jsonText.Contains("\"CurrencySymbol\": \"\","));
+                    Assert.IsTrue(jsonText.Contains("\"CurrencyName\": \"\","));
+                    Assert.IsTrue(jsonText.Contains("\"CurrencyNativeName\": \"\","));
+                }
+                finally
+                {
+                    await ContentTypeInstaller.RemoveContentTypeAsync("CurrencyTest", CancellationToken.None);
+                }
+            }).ConfigureAwait(false);
+        }
+
     }
 }
