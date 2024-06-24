@@ -24,6 +24,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Sharing;
+using System.Net.Http;
 
 // ReSharper disable ArrangeThisQualifier
 // ReSharper disable VirtualMemberCallInConstructor
@@ -2009,6 +2010,41 @@ namespace SenseNet.ContentRepository
 
                 op.Successful = true;
             }
+        }
+
+        /// <summary>
+        /// Asynchronously restores the requested of this content. The restored version-number will be
+        /// the next draft version according to the current versioning mode.
+        /// </summary>
+        /// <remarks>
+        /// The requested version's state is irrelevant, only the major and minor numbers are considered.
+        /// </remarks>
+        /// <param name="version">The requested version-number e.g. V2.3</param>
+        /// <param name="cancel">The token to monitor for cancellation requests.</param>
+        /// <returns>A Task that represents the asynchronous operation containing
+        /// a byte array containing the requested number of bytes (or less if there is not enough in the binary data).</returns>
+        /// <exception cref="InvalidContentActionException">Throws when the current user does not have RecallOldVersion permission for this content.</exception>
+        /// <exception cref="InvalidContentActionException">Throws if the <paramref name="version"/> does not exist.</exception>
+        public async System.Threading.Tasks.Task<GenericContent> RestoreVersionAsync(VersionNumber version, CancellationToken cancel)
+        {
+            if (!this.Security.HasPermission(PermissionType.RecallOldVersion))
+                throw new SenseNetSecurityException($"Not enough permission to restore an older version. Path: '{this.Path}', Id: {Id}, User: {User.Current.Username}.");
+
+            // Load the requested version
+            var oldVersion = this.Versions.AsEnumerable()
+                .SingleOrDefault(n => n.Version.Major == version.Major && n.Version.Minor == version.Minor) as GenericContent;
+
+            // Throw an exception if it does not exist
+            if (oldVersion == null)
+                throw new InvalidContentActionException($"Cannot restore the version '{version}' because it does not exist on content '{this.Path}' (Id: {Id}).");
+
+            // copy current versioning and approving local-data
+            oldVersion.VersioningMode = base.GetProperty<VersioningType>("VersioningMode");
+            oldVersion.ApprovingMode = base.GetProperty<ApprovingType>("ApprovingMode");
+            await oldVersion.SaveAsync(SavingMode.RaiseVersion, cancel);
+
+            // reload
+            return (GenericContent)await Node.LoadNodeAsync(oldVersion.Id, cancel);
         }
 
         internal async System.Threading.Tasks.Task SaveExplicitVersionAsync(CancellationToken cancel)
