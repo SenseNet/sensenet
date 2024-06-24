@@ -14,6 +14,7 @@ using SenseNet.ContentRepository.OData;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Security;
+using SenseNet.ContentRepository.Versioning;
 using SenseNet.Diagnostics;
 using SenseNet.Security;
 using STT = System.Threading.Tasks;
@@ -249,7 +250,15 @@ namespace SenseNet.Services.Core.Operations
                 throw new Exception($"The requested version '{version}' does not exist on content '{content.Path}'.");
 
             // Restore old version
-            await oldVersion.SaveAsync(httpContext.RequestAborted).ConfigureAwait(false);
+            //var now = DateTime.UtcNow;
+            //oldVersion.VersionModificationDate = now;
+            //oldVersion.ModificationDate = now;
+            //await oldVersion.SaveAsync(httpContext.RequestAborted).ConfigureAwait(false);
+            var currentVersion = (GenericContent) content.ContentHandler;
+            oldVersion.VersioningMode = currentVersion.GetProperty<VersioningType>("VersioningMode");
+            oldVersion.ApprovingMode = currentVersion.GetProperty<ApprovingType>("ApprovingMode");
+            await oldVersion.SaveAsync(SavingMode.RaiseVersionAndLock, httpContext.RequestAborted);
+            await oldVersion.CheckInAsync(httpContext.RequestAborted);
 
             // Return actual state of content
             return await Content.LoadAsync(content.Id, httpContext.RequestAborted).ConfigureAwait(false);
