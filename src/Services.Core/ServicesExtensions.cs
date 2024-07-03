@@ -176,6 +176,7 @@ namespace SenseNet.Extensions.DependencyInjection
                 .AddSingleton<IContentProtector, ContentProtector>()
                 .AddSingleton<DocumentBinaryProvider, DefaultDocumentBinaryProvider>()
                 .AddSingleton<ISharingNotificationFormatter, DefaultSharingNotificationFormatter>()
+                .AddSingleton<IHealthHandler, HealthHandler>()
 
                 .AddSenseNetDefaultClientManager()
                 .AddSenseNetApiKeys()
@@ -323,6 +324,25 @@ namespace SenseNet.Extensions.DependencyInjection
             where T: class, IDashboardDataProvider
         {
             return services.AddSingleton<IDashboardDataProvider, T>();
+        }
+
+        /// <summary>
+        /// Registers the sensenet health middleware in the pipeline if the request contains the 'health' prefix.
+        /// </summary>
+        /// <param name="builder">IApplicationBuilder instance.</param>
+        /// <param name="buildAppBranchBefore">Optional builder method. Use this when you want to add
+        /// additional middleware in the pipeline before the sensenet health middleware.</param>
+        /// <param name="buildAppBranchAfter">Optional builder method. Use this when you want to add
+        /// additional middleware in the pipeline after the sensenet health middleware.</param>
+        /// <returns></returns>
+        public static IApplicationBuilder UseSenseNetHealth(this IApplicationBuilder builder,
+            Action<IApplicationBuilder> buildAppBranchBefore = null,
+            Action<IApplicationBuilder> buildAppBranchAfter = null)
+        {
+            builder.MapMiddlewareWhen<HealthMiddleware>("/health", buildAppBranchBefore,
+                buildAppBranchAfter, true);
+
+            return builder;
         }
     }
 }

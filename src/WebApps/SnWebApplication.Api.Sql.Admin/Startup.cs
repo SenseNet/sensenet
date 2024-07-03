@@ -116,6 +116,8 @@ namespace SnWebApplication.Api.Sql.Admin
             // [sensenet] Add the sensenet binary handler
             app.UseSenseNetFiles();
 
+            // [sensenet]: Health middleware
+            app.UseSenseNetHealth();
             // [sensenet]: OData middleware
             app.UseSenseNetOdata();
             // [sensenet]: WOPI middleware
