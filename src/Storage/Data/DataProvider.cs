@@ -932,6 +932,11 @@ namespace SenseNet.ContentRepository.Storage.Data
             Action<LogEntriesTableModel> logEntriesTableCallback,
             CancellationToken cancel);
 
+        /* =============================================================================================== Health */
+
+        public abstract object GetConfigurationForHealthDashboard();
+        public abstract Task<object> GetHealthAsync(CancellationToken cancel);
+
         /* =============================================================================================== Tools */
 
         internal Exception GetRealException(Exception innerException, string message = null)

@@ -2053,6 +2053,7 @@ namespace SenseNet.ContentRepository.InMemory
 
             return STT.Task.CompletedTask;
         }
+
         private static readonly JsonSerializerSettings JsonSerializerSettings = new JsonSerializerSettings
         {
             NullValueHandling = NullValueHandling.Ignore,
@@ -2070,6 +2071,19 @@ namespace SenseNet.ContentRepository.InMemory
                 var serializedDoc = writer.GetStringBuilder().ToString();
                 return 2 * serializedDoc.Length;
             }
+        }
+
+        /* =============================================================================================== Health */
+
+        public override object GetConfigurationForHealthDashboard()
+        {
+            // This provider has no configuration.
+            return null;
+        }
+
+        public override Task<object> GetHealthAsync(CancellationToken cancel)
+        {
+            throw new NotImplementedException();
         }
 
         /* =============================================================================================== Tools */

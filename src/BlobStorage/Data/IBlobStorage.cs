@@ -130,5 +130,8 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation.</returns>
         Task CleanupAllFilesAsync(CancellationToken cancellationToken);
+
+        object GetConfigurationForHealthDashboard();
+        Task<object> GetHealthAsync(CancellationToken cancel);
     }
 }

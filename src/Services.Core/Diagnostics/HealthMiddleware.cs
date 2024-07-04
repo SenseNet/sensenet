@@ -15,6 +15,12 @@ public class HealthMiddleware
         _next = next;
     }
 
+    private static JsonSerializerSettings SerializerSettings = new JsonSerializerSettings
+    {
+        Formatting = Formatting.Indented,
+        NullValueHandling = NullValueHandling.Ignore,
+    };
+
     public async Task InvokeAsync(HttpContext httpContext, WebTransferRegistrator statistics)
     {
         var statData = statistics?.RegisterWebRequest(httpContext);
@@ -27,7 +33,7 @@ public class HealthMiddleware
 
         // Write HealthResponse
         var webResponse = httpContext.Response;
-        var output = JsonConvert.SerializeObject(healthResponse, Formatting.Indented);
+        var output = JsonConvert.SerializeObject(healthResponse, SerializerSettings);
         var buffer = Encoding.UTF8.GetBytes(output);
         await webResponse.Body.WriteAsync(buffer, 0, buffer.Length)
             .ConfigureAwait(false);

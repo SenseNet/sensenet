@@ -431,7 +431,19 @@ namespace SenseNet.ContentRepository.Storage.Data
             return DataProvider.CleanupAllFilesAsync(cancellationToken);
         }
 
-        /*==================================================================== Provider */
+        /* ==================================================================== Health */
+
+        public object GetConfigurationForHealthDashboard()
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<object> GetHealthAsync(CancellationToken cancel)
+        {
+            throw new NotImplementedException();
+        }
+
+        /* ==================================================================== Provider */
         
         /// <summary>
         /// Gets a provider based on the binary size and the available blob providers in the system.

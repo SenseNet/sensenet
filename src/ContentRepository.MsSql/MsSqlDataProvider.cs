@@ -16,6 +16,7 @@ using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.Storage.Data.MsSqlClient;
 using SenseNet.Diagnostics;
 using SenseNet.Tools;
+using System.Threading.Tasks;
 
 // ReSharper disable once CheckNamespace
 namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
@@ -374,6 +375,29 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
                 .ConfigureAwait(false);
 
             op.Successful = true;
+        }
+
+        /* =============================================================================================== Usage */
+        /* =============================================================================================== Health */
+
+        public override object GetConfigurationForHealthDashboard()
+        {
+            var connectionStrings = this.ConnectionStrings.Value;
+            var dataOptions = this.DataOptions;
+            return new
+            {
+                connectionStrings.Repository,
+                connectionStrings.Security,
+                connectionStrings.SignalR,
+                dataOptions.DbCommandTimeout,
+                dataOptions.TransactionTimeout,
+                dataOptions.LongTransactionTimeout
+            };
+        }
+
+        public override Task<object> GetHealthAsync(CancellationToken cancel)
+        {
+            throw new NotImplementedException();
         }
 
         /* =============================================================================================== Tools */
