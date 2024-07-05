@@ -96,7 +96,9 @@ namespace SenseNet.ContentRepository
                         _instance._logger = instance._settings.Services.GetService<ILogger<RepositoryInstance>>();
                         try
                         {
+                            Providers.Instance.RepositoryStatus?.SetStatus("Starting subsystems");
                             instance.DoStart();
+                            Providers.Instance.RepositoryStatus?.SetStatus("Subsystems started");
                         }
                         catch (Exception)
                         {
@@ -119,6 +121,7 @@ namespace SenseNet.ContentRepository
             if (_settings.TraceCategories != null)
                 LoggingSettings.SnTraceConfigurator.UpdateCategories(_settings.TraceCategories);
 
+            Providers.Instance.RepositoryStatus?.SetStatus("  Initializing Logger");
             InitializeLogger();
 
             RegisterAppdomainEventHandlers();
@@ -128,6 +131,7 @@ namespace SenseNet.ContentRepository
 
             LoadAssemblies();
 
+            Providers.Instance.RepositoryStatus?.SetStatus("  Starting Security");
             _settings.Services.GetRequiredService<SecurityHandler>().StartSecurity(_settings.Services);
 
             //UNDONE: modernize TemplateManager
@@ -165,6 +169,7 @@ namespace SenseNet.ContentRepository
                 ConsoleWrite(true, "IndexingEngine has already started.");
                 return;
             }
+            Providers.Instance.RepositoryStatus?.SetStatus("  Starting IndexingEngine");
             ConsoleWriteLine(true, "Starting IndexingEngine.");
             Providers.Instance.IndexManager.StartAsync(_settings.Console, CancellationToken.None).GetAwaiter().GetResult();
             Providers.Instance.SearchManager.SearchEngine.SetIndexingInfo(ContentTypeManager.Instance.IndexingInfo);
@@ -228,6 +233,7 @@ namespace SenseNet.ContentRepository
                 ConsoleWriteLine(false, "ok.");
                 SnTrace.System.Write("Cache initialized.");
 
+                Providers.Instance.RepositoryStatus?.SetStatus("  Initializing message channel");
                 ConsoleWrite(false, "Starting message channel ... ");
                 channel = Providers.Instance.ClusterChannelProvider;
                 channel.StartAsync(CancellationToken.None).GetAwaiter().GetResult();
@@ -240,6 +246,7 @@ namespace SenseNet.ContentRepository
                 ConsoleWriteLine(false, "ok.");
                 SnTrace.System.Write("Greeting message sent (PingMessage).");
 
+                Providers.Instance.RepositoryStatus?.SetStatus("  Initializing content type system");
                 ConsoleWrite(false, "Starting NodeType system ... ");
                 dummy = Providers.Instance.StorageSchema.NodeTypes[0];
                 ConsoleWriteLine(false, "ok.");
@@ -274,6 +281,7 @@ namespace SenseNet.ContentRepository
 
                 foreach (var service in _serviceInstances)
                 {
+                    Providers.Instance.RepositoryStatus?.SetStatus("  Starting service: " + service.GetType().FullName);
                     service.Start();
                     ConsoleWriteLine(true, "Service started: " + service.GetType().Name);
                 }
@@ -284,6 +292,7 @@ namespace SenseNet.ContentRepository
             }
             catch
             {
+                Providers.Instance.RepositoryStatus?.SetStatus("  Shutting down because of an error");
                 // If an error occurred, shut down the cluster channel.
                 channel?.ShutDownAsync(CancellationToken.None).GetAwaiter().GetResult();
 
