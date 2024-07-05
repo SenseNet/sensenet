@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
+using System.Threading;
 using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.Search;
@@ -71,5 +73,9 @@ namespace SenseNet.ContentRepository.Search
         /// Gets indexing metadata descriptor instance by fieldName
         /// </summary>
         public IPerFieldIndexingInfo GetPerFieldIndexingInfo(string fieldName);
+
+        public object GetConfigurationForHealthDashboard();
+        public Task<object> GetHealthAsync(CancellationToken cancel);
+
     }
 }

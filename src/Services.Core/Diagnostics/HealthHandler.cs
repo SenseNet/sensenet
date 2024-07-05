@@ -129,9 +129,24 @@ internal class HealthHandler : IHealthHandler
     private async Task<object> GetSearchHealthAsync(IServiceProvider services, CancellationToken cancel)
     {
         var searchManager = services.GetService<ISearchManager>();
-        if (searchManager == null)
-            return "not registered.";
-        return "coming soon...";
+
+        object health = null;
+
+        if (searchManager != null)
+        {
+            try
+            {
+                health = await searchManager.GetHealthAsync(cancel) ?? "not available";
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "HealthService: Error when getting search health.");
+                health = $"Error when getting search health: {e.Message}";
+            }
+        }
+
+        return health;
+
     }
 
     private object GetDatabaseDetails(IServiceProvider services)

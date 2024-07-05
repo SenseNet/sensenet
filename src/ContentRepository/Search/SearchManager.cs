@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Search.Indexing;
@@ -98,6 +100,61 @@ namespace SenseNet.ContentRepository.Search
         public virtual IPerFieldIndexingInfo GetPerFieldIndexingInfo(string fieldName)
         {
             return ContentTypeManager.GetPerFieldIndexingInfo(fieldName);
+        }
+
+        public object GetConfigurationForHealthDashboard()
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<object> GetHealthAsync(CancellationToken cancel)
+        {
+            IDictionary<string, string> data = null;
+            string error = null;
+            TimeSpan? elapsed = null;
+
+            try
+            {
+                var timer = Stopwatch.StartNew();
+                data = this.SearchEngine.IndexingEngine.GetIndexDocumentByVersionId(1);
+                timer.Stop();
+                elapsed = timer.Elapsed;
+            }
+            catch (Exception e)
+            {
+                error = e.Message;
+            }
+
+            object result;
+            if (error != null)
+            {
+                result = new
+                {
+                    Color = "Red", // Error
+                    Reason = $"ERROR: {error}",
+                    Method = "SearchManager (InProc) ties to get index document by VersionId 1."
+                };
+            }
+            else if (data == null)
+            {
+                result = new
+                {
+                    Color = "Yellow", // Problem
+                    Reason = "No result",
+                    Method = "SearchManager (InProc) ties to get index document by VersionId 1."
+                };
+            }
+            else
+            {
+                result = new
+                {
+                    Color = "Green", // Working well
+                    ResponseTime = elapsed,
+                    Method = "Measure the time of getting the index document by VersionId 1 in secs from SearchManager (InProc)."
+                };
+            }
+
+            return System.Threading.Tasks.Task.FromResult(result);
         }
     }
 }
