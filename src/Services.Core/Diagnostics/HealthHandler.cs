@@ -13,12 +13,19 @@ using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.Diagnostics;
 using Microsoft.Extensions.Hosting;
+using SenseNet.Storage.Diagnostics;
 
 namespace SenseNet.Services.Core.Diagnostics;
 
+internal class HealthResponse
+{
+    internal static readonly object NotRegistered = new { HealthServiceStatus = "Service not registered." };
+    internal static readonly object NotAvailable = new { HealthServiceStatus = "Service not available." };
+}
+
 public interface IHealthHandler
 {
-    Task<HealthResponse> GetHealthResponseAsync(HttpContext httpContext);
+    Task<object> GetHealthResponseAsync(HttpContext httpContext);
 }
 internal class HealthHandler : IHealthHandler
 {
@@ -29,23 +36,43 @@ internal class HealthHandler : IHealthHandler
         _logger = logger;
     }
 
-    public async Task<HealthResponse> GetHealthResponseAsync(HttpContext httpContext)
+    public async Task<object> GetHealthResponseAsync(HttpContext httpContext)
     {
         try
         {
             var cancel = httpContext.RequestAborted;
             var services = httpContext.RequestServices;
+            var repositoryStatus = services.GetService<ISenseNetStatus>();
 
-            var repositoryHostedService = (RepositoryHostedService)services.GetService<IEnumerable<IHostedService>>()?
-                .FirstOrDefault(x => x.GetType() == typeof(RepositoryHostedService));
-
-            return new HealthResponse
+            var gettingHealthTasks = new[]
             {
-                HealthServiceStatus = "Ready",
-                Repository = repositoryHostedService?.RepositoryStatus ?? "not available",
-                Database = await HandleDatabaseAsync(services, cancel),
-                BlobStorage = await HandleBlobsAsync(services, cancel),
-                Index = await HandleSearchAsync(services.GetService<ISearchManager>(), cancel),
+                GetDatabaseHealthAsync(services, cancel),
+                GetBlobsHealthAsync(services, cancel),
+                GetSearchHealthAsync(services, cancel),
+            };
+            Task.WaitAll(gettingHealthTasks, cancel);
+
+            return new
+            {
+                Repository_Status = repositoryStatus == null ? (object)"status not available" : new
+                {
+                    Running = repositoryStatus.IsRunning,
+                    Status = repositoryStatus.Current,
+                },
+                Health = new
+                {
+                    Database = gettingHealthTasks[0].Result,
+                    BlobStorage = gettingHealthTasks[1].Result,
+                    Index = gettingHealthTasks[2].Result,
+                },
+                Details = new
+                {
+                    HealthServiceStatus = "Ready",
+                    Database = GetDatabaseDetails(services),
+                    BlobStorage = GetBlobsDetails(services),
+                    Index = GetSearchDetails(services),
+                    Repository_StatusHistory = repositoryStatus?.GetLog(),
+                }
             };
         }
         catch (Exception e)
@@ -57,12 +84,61 @@ internal class HealthHandler : IHealthHandler
     }
 
     private string GetProviderName<T>(IServiceProvider services) => services.GetService<T>()?.GetType().FullName ?? "not registered";
-    private async Task<object> HandleDatabaseAsync(IServiceProvider services, CancellationToken cancel)
+    private async Task<object> GetDatabaseHealthAsync(IServiceProvider services, CancellationToken cancel)
+    {
+        var dataProvider = services.GetService<DataProvider>();
+
+        object health = null;
+
+        if (dataProvider != null)
+        {
+            try
+            {
+                health = await dataProvider.GetHealthAsync(cancel) ?? "not available";
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "HealthService: Error when getting database health.");
+                health = $"Error when getting database health: {e.Message}";
+            }
+        }
+
+        return health;
+    }
+    private async Task<object> GetBlobsHealthAsync(IServiceProvider services, CancellationToken cancel)
+    {
+        var blobStorage = services.GetService<IBlobStorage>();
+
+        object health = null;
+
+        if (blobStorage != null)
+        {
+            try
+            {
+                health = await blobStorage.GetHealthAsync(cancel) ?? "not available";
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "HealthService: Error when getting database health.");
+                health = $"Error when getting database health: {e.Message}";
+            }
+        }
+
+        return health;
+    }
+    private async Task<object> GetSearchHealthAsync(IServiceProvider services, CancellationToken cancel)
+    {
+        var searchManager = services.GetService<ISearchManager>();
+        if (searchManager == null)
+            return "not registered.";
+        return "coming soon...";
+    }
+
+    private object GetDatabaseDetails(IServiceProvider services)
     {
         var dataProvider = services.GetService<DataProvider>();
 
         object config = null;
-        object health = null;
 
         if (dataProvider != null)
         {
@@ -74,16 +150,6 @@ internal class HealthHandler : IHealthHandler
             {
                 _logger.LogError(e, "HealthService: Error when getting database configuration.");
                 config = $"Error when getting database configuration: {e.Message}";
-            }
-
-            try
-            {
-                health = await dataProvider.GetHealthAsync(cancel) ?? "not available";
-            }
-            catch (Exception e)
-            {
-                _logger.LogError(e, "HealthService: Error when getting database health.");
-                health = $"Error when getting database health: {e.Message}";
             }
         }
 
@@ -112,15 +178,13 @@ internal class HealthHandler : IHealthHandler
                 Statistics = GetProviderName<IStatisticalDataProvider>(services),
             },
             Configuration = config,
-            Health = health
         };
     }
-    private async Task<object> HandleBlobsAsync(IServiceProvider services, CancellationToken cancel)
+    private object GetBlobsDetails(IServiceProvider services)
     {
         var blobStorage = services.GetService<IBlobStorage>();
 
         object config = null;
-        object health = null;
 
         if (blobStorage != null)
         {
@@ -134,18 +198,8 @@ internal class HealthHandler : IHealthHandler
                 _logger.LogError(e, "HealthService: Error when getting database configuration.");
                 config = $"Error when getting database configuration: {e.Message}";
             }
-
-            try
-            {
-                health = await blobStorage.GetHealthAsync(cancel) ?? "not available";
-            }
-            catch (Exception e)
-            {
-                _logger.LogError(e, "HealthService: Error when getting database health.");
-                health = $"Error when getting database health: {e.Message}";
-            }
         }
-        
+
         var blobProviderStore = services.GetService<IBlobProviderStore>();
         string[] blobProviders;
         try
@@ -169,11 +223,11 @@ internal class HealthHandler : IHealthHandler
                 BlobProviders = blobProviders
             },
             Configuration = config,
-            Health = health
         };
     }
-    private async Task<object> HandleSearchAsync(ISearchManager searchManager, CancellationToken cancel)
+    private object GetSearchDetails(IServiceProvider services)
     {
+        var searchManager = services.GetService<ISearchManager>();
         if (searchManager == null)
             return "not registered.";
 
@@ -185,20 +239,6 @@ internal class HealthHandler : IHealthHandler
                 Querying = searchManager.SearchEngine.QueryEngine.GetType().FullName
             },
             Configuration = "coming soon...",
-            Health = "coming soon..."
         };
     }
-}
-
-public class HealthResponse
-{
-    internal static readonly HealthResponse NotRegistered = new() { HealthServiceStatus = "Service not registered." };
-    internal static readonly HealthResponse NotAvailable = new() { HealthServiceStatus = "Service not available." };
-
-    public string HealthServiceStatus { get; set; }
-    public object Repository { get; set; }
-    public object Database { get; set; }
-    public object BlobStorage { get; set; }
-    public object Index { get; set; }
-    public object Authentication { get; set; }
 }
