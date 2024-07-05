@@ -35,6 +35,7 @@ using SenseNet.Services.Core.Diagnostics;
 using SenseNet.Services.Core.Operations;
 using SenseNet.Storage;
 using SenseNet.Storage.BackgroundOperations;
+using SenseNet.Storage.Diagnostics;
 using SenseNet.Storage.DistributedApplication.Messaging;
 using SenseNet.Storage.Security;
 using SenseNet.TaskManagement.Core;
@@ -177,6 +178,7 @@ namespace SenseNet.Extensions.DependencyInjection
                 .AddSingleton<DocumentBinaryProvider, DefaultDocumentBinaryProvider>()
                 .AddSingleton<ISharingNotificationFormatter, DefaultSharingNotificationFormatter>()
                 .AddSingleton<IHealthHandler, HealthHandler>()
+                .AddSingleton<ISenseNetStatus, SenseNetStatus>()
 
                 .AddSenseNetDefaultClientManager()
                 .AddSenseNetApiKeys()

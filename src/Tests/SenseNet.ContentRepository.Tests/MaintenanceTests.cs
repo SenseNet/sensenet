@@ -3,6 +3,7 @@ using System.Threading;
 using Tasks = System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.BackgroundOperations;
+using SenseNet.Storage.Diagnostics;
 using SenseNet.Tests.Core;
 
 namespace SenseNet.ContentRepository.Tests
@@ -47,7 +48,8 @@ namespace SenseNet.ContentRepository.Tests
             };
 
             // define tasks and start the service
-            var maintenanceService = new SnMaintenance(new[] {testTask}, null)
+            var snStatus = new SenseNetStatus {IsRunning = true};
+            var maintenanceService = new SnMaintenance(new[] {testTask}, snStatus, null)
             {
                 // very short cycle
                 TimerInterval = 3
@@ -71,7 +73,8 @@ namespace SenseNet.ContentRepository.Tests
             };
 
             // define tasks and start the service
-            var maintenanceService = new SnMaintenance(new[] { testTask }, null)
+            var snStatus = new SenseNetStatus { IsRunning = true };
+            var maintenanceService = new SnMaintenance(new[] { testTask }, snStatus, null)
             {
                 // very short cycle
                 TimerInterval = 3
