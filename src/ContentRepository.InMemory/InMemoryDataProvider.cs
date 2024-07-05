@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -2077,13 +2078,20 @@ namespace SenseNet.ContentRepository.InMemory
 
         public override object GetConfigurationForHealthDashboard()
         {
-            // This provider has no configuration.
-            return null;
+            return "This provider has no configuration.";
         }
 
         public override Task<object> GetHealthAsync(CancellationToken cancel)
         {
-            throw new NotImplementedException();
+            var timer = Stopwatch.StartNew();
+            var _ = DB.Nodes.Where(n => n.NodeId == 1);
+            timer.Stop();
+            return STT.Task.FromResult((object)new
+            {
+                Color = "Green", // Working well
+                ResponseTime = timer.Elapsed,
+                Method = "Time of getting first Node in secs."
+            });
         }
 
         /* =============================================================================================== Tools */

@@ -17,6 +17,8 @@ using SenseNet.Storage.Data.MsSqlClient;
 using SenseNet.Diagnostics;
 using SenseNet.Tools;
 using System.Threading.Tasks;
+using System.Diagnostics;
+using System.Timers;
 
 // ReSharper disable once CheckNamespace
 namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
@@ -395,9 +397,56 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             };
         }
 
-        public override Task<object> GetHealthAsync(CancellationToken cancel)
+        public override async Task<object> GetHealthAsync(CancellationToken cancel)
         {
-            throw new NotImplementedException();
+            object data = null;
+            string error = null;
+            TimeSpan? elapsed = null;
+
+            try
+            {
+                var timer = Stopwatch.StartNew();
+                var sql = "SELECT Path FROM Nodes WHERE NodeId = 1";
+                using var ctx = CreateDataContext(cancel);
+                data = await ctx.ExecuteScalarAsync(sql).ConfigureAwait(false);
+                timer.Stop();
+                elapsed = timer.Elapsed;
+            }
+            catch(Exception e)
+            {
+                error = e.Message;
+            }
+
+            object result;
+            if (error != null)
+            {
+                result = new
+                {
+                    Color = "Red", // Error
+                    Reason = $"ERROR: {error}",
+                    Method = "Trying to load first Node's Path."
+                };
+            }
+            else if (data == null || data == DBNull.Value)
+            {
+                result = new
+                {
+                    Color = "Yellow", // Problem
+                    Reason = "Invalid data",
+                    Method = "Trying to interpret the loaded first Node's Path."
+                };
+            }
+            else
+            {
+                result = new
+                {
+                    Color = "Green", // Working well
+                    ResponseTime = elapsed,
+                    Method = "Measure time of loading first Node's Path in secs."
+                };
+            }
+
+            return result;
         }
 
         /* =============================================================================================== Tools */
