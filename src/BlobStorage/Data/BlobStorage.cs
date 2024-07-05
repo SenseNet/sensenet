@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -438,10 +439,56 @@ namespace SenseNet.ContentRepository.Storage.Data
             throw new NotImplementedException();
         }
 
-        public Task<object> GetHealthAsync(CancellationToken cancel)
+        public async Task<object> GetHealthAsync(CancellationToken cancel)
         {
-            throw new NotImplementedException();
+            object data = null;
+            string error = null;
+            TimeSpan? elapsed = null;
+
+            try
+            {
+                var timer = Stopwatch.StartNew();
+                data  = await this.GetBlobStorageContextAsync(1, cancel);
+                timer.Stop();
+                elapsed = timer.Elapsed;
+            }
+            catch(Exception e)
+            {
+                error = e.Message;
+            }
+
+            object result;
+            if (error != null)
+            {
+                result = new
+                {
+                    Color = "Red", // Error
+                    Reason = $"ERROR: {error}",
+                    Method = "Trying to load BlobStorageContext of the first blob (FileId: 1)."
+                };
+            }
+            else if (data == null)
+            {
+                result = new
+                {
+                    Color = "Yellow", // Problem
+                    Reason = "No result",
+                    Method = "Trying to load BlobStorageContext of the first blob (FileId: 1)."
+                };
+            }
+            else
+            {
+                result = new
+                {
+                    Color = "Green", // Working well
+                    ResponseTime = elapsed,
+                    Method = "Measure time of loading first BlobStorageContext of the first blob (FileId: 1) in secs."
+                };
+            }
+
+            return result;
         }
+
 
         /* ==================================================================== Provider */
         
