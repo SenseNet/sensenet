@@ -24,6 +24,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using SenseNet.ContentRepository.Search;
 using SenseNet.Storage;
+using SenseNet.Storage.Diagnostics;
 using SenseNet.Storage.Security;
 using SenseNet.TaskManagement.Core;
 using EventId = SenseNet.Diagnostics.EventId;
@@ -59,6 +60,8 @@ namespace SenseNet.Configuration
         {
             Services = services ?? throw new ArgumentNullException(nameof(services));
             _logger = services.GetService<ILogger<Providers>>();
+
+            RepositoryStatus = services.GetService<ISenseNetStatus>();
 
             DataProvider = services.GetService<DataProvider>();
             DataStore = services.GetService<IDataStore>();
@@ -105,6 +108,7 @@ namespace SenseNet.Configuration
 
         /* ===================================================================================== Named providers */
 
+        public ISenseNetStatus RepositoryStatus { get; }
         public IEventPropertyCollector PropertyCollector { get; }
         public IAuditEventWriter AuditEventWriter { get; }
         public IMessageProvider SecurityMessageProvider { get; }
