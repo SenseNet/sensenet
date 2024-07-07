@@ -26,6 +26,16 @@ namespace SenseNet.Search
             // do nothing
         }
 
+        public object GetConfigurationForHealthDashboard()
+        {
+            return "This provider has no configuration.";
+        }
+
+        public Task<object> GetHealthAsync(CancellationToken cancel)
+        {
+            return Task.FromResult(new object());
+        }
+
         private class InternalIndexingEngine : IIndexingEngine
         {
             public bool Running => false;

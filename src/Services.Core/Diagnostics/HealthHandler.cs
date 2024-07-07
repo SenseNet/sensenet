@@ -13,6 +13,7 @@ using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.Diagnostics;
 using Microsoft.Extensions.Hosting;
+using SenseNet.Search;
 using SenseNet.Storage.Diagnostics;
 
 namespace SenseNet.Services.Core.Diagnostics;
@@ -63,14 +64,14 @@ internal class HealthHandler : IHealthHandler
                 {
                     Database = gettingHealthTasks[0].Result,
                     BlobStorage = gettingHealthTasks[1].Result,
-                    Index = gettingHealthTasks[2].Result,
+                    Search = gettingHealthTasks[2].Result,
                 },
                 Details = new
                 {
                     HealthServiceStatus = "Ready",
                     Database = GetDatabaseDetails(services),
                     BlobStorage = GetBlobsDetails(services),
-                    Index = GetSearchDetails(services),
+                    Search = GetSearchDetails(services),
                     Repository_StatusHistory = repositoryStatus?.GetLog(),
                 }
             };
@@ -128,15 +129,15 @@ internal class HealthHandler : IHealthHandler
     }
     private async Task<object> GetSearchHealthAsync(IServiceProvider services, CancellationToken cancel)
     {
-        var searchManager = services.GetService<ISearchManager>();
+        var searchEngine = services.GetService<ISearchEngine>();
 
         object health = null;
 
-        if (searchManager != null)
+        if (searchEngine != null)
         {
             try
             {
-                health = await searchManager.GetHealthAsync(cancel) ?? "not available";
+                health = await searchEngine.GetHealthAsync(cancel) ?? "not available";
             }
             catch (Exception e)
             {
@@ -242,18 +243,18 @@ internal class HealthHandler : IHealthHandler
     }
     private object GetSearchDetails(IServiceProvider services)
     {
-        var searchManager = services.GetService<ISearchManager>();
-        if (searchManager == null)
+        var searchEngine = services.GetService<ISearchEngine>();
+        if (searchEngine == null)
             return "not registered.";
 
         return new
         {
             Providers = new
             {
-                Indexing = searchManager.SearchEngine.QueryEngine.GetType().FullName,
-                Querying = searchManager.SearchEngine.QueryEngine.GetType().FullName
+                Indexing = searchEngine.QueryEngine.GetType().FullName,
+                Querying = searchEngine.QueryEngine.GetType().FullName
             },
-            Configuration = "coming soon...",
+            Configuration = searchEngine.GetConfigurationForHealthDashboard(),
         };
     }
 }

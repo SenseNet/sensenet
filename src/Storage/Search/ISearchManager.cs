@@ -73,9 +73,5 @@ namespace SenseNet.ContentRepository.Search
         /// Gets indexing metadata descriptor instance by fieldName
         /// </summary>
         public IPerFieldIndexingInfo GetPerFieldIndexingInfo(string fieldName);
-
-        public object GetConfigurationForHealthDashboard();
-        public Task<object> GetHealthAsync(CancellationToken cancel);
-
     }
 }

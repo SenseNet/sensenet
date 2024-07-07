@@ -169,6 +169,16 @@ namespace SenseNet.Search.Tests
             {
             }
 
+            public object GetConfigurationForHealthDashboard()
+            {
+                throw new NotImplementedException();
+            }
+
+            public Task<object> GetHealthAsync(CancellationToken cancel)
+            {
+                throw new NotImplementedException();
+            }
+
             public string GetIndexingLog()
             {
                 return ((IndexingEngineForActivityQueueSelectorTests)IndexingEngine).GetLog();
