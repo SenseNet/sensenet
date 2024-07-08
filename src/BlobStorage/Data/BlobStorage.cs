@@ -448,7 +448,8 @@ namespace SenseNet.ContentRepository.Storage.Data
             try
             {
                 var timer = Stopwatch.StartNew();
-                data  = await this.GetBlobStorageContextAsync(1, cancel);
+                var fileId = await this.DataProvider.GetFirstFileIdAsync(cancel);
+                data  = await this.GetBlobStorageContextAsync(fileId, cancel);
                 timer.Stop();
                 elapsed = timer.Elapsed;
             }
@@ -464,7 +465,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                 {
                     Color = "Red", // Error
                     Reason = $"ERROR: {error}",
-                    Method = "Trying to load BlobStorageContext of the first blob (FileId: 1)."
+                    Method = "Trying to load BlobStorageContext of the first blob."
                 };
             }
             else if (data == null)
@@ -473,7 +474,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                 {
                     Color = "Yellow", // Problem
                     Reason = "No result",
-                    Method = "Trying to load BlobStorageContext of the first blob (FileId: 1)."
+                    Method = "Trying to load BlobStorageContext of the first blob."
                 };
             }
             else
@@ -482,7 +483,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                 {
                     Color = "Green", // Working well
                     ResponseTime = elapsed,
-                    Method = "Measure time of loading first BlobStorageContext of the first blob (FileId: 1) in secs."
+                    Method = "Measure time of loading first BlobStorageContext of the first blob in secs."
                 };
             }
 
