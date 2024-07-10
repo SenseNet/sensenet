@@ -3,6 +3,7 @@ using System.Threading;
 using Tasks = System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.BackgroundOperations;
+using SenseNet.Diagnostics;
 using SenseNet.Storage.Diagnostics;
 using SenseNet.Tests.Core;
 

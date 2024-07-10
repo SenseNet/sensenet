@@ -935,7 +935,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /* =============================================================================================== Health */
 
         public abstract object GetConfigurationForHealthDashboard();
-        public abstract Task<object> GetHealthAsync(CancellationToken cancel);
+        public abstract Task<HealthResult> GetHealthAsync(CancellationToken cancel);
 
         /* =============================================================================================== Tools */
 

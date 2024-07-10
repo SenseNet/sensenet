@@ -2081,14 +2081,14 @@ namespace SenseNet.ContentRepository.InMemory
             return "This provider has no configuration.";
         }
 
-        public override Task<object> GetHealthAsync(CancellationToken cancel)
+        public override Task<HealthResult> GetHealthAsync(CancellationToken cancel)
         {
             var timer = Stopwatch.StartNew();
             var _ = DB.Nodes.Where(n => n.NodeId == 1);
             timer.Stop();
-            return STT.Task.FromResult((object)new
+            return STT.Task.FromResult(new HealthResult
             {
-                Color = "Green", // Working well
+                Color = HealthColor.Green,
                 ResponseTime = timer.Elapsed,
                 Method = "Time of getting first Node in secs."
             });

@@ -397,7 +397,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             };
         }
 
-        public override async Task<object> GetHealthAsync(CancellationToken cancel)
+        public override async Task<HealthResult> GetHealthAsync(CancellationToken cancel)
         {
             object data = null;
             string error = null;
@@ -417,30 +417,30 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
                 error = e.Message;
             }
 
-            object result;
+            HealthResult result;
             if (error != null)
             {
-                result = new
+                result = new HealthResult
                 {
-                    Color = "Red", // Error
+                    Color = HealthColor.Red,
                     Reason = $"ERROR: {error}",
                     Method = "Trying to load first Node's Path."
                 };
             }
             else if (data == null || data == DBNull.Value)
             {
-                result = new
+                result = new HealthResult
                 {
-                    Color = "Yellow", // Problem
+                    Color = HealthColor.Yellow,
                     Reason = "Invalid data",
                     Method = "Trying to interpret the loaded first Node's Path."
                 };
             }
             else
             {
-                result = new
+                result = new HealthResult
                 {
-                    Color = "Green", // Working well
+                    Color = HealthColor.Green,
                     ResponseTime = elapsed,
                     Method = "Measure time of loading first Node's Path in secs."
                 };

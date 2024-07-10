@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage.Data.MsSqlClient;
+using SenseNet.Diagnostics;
 
 // ReSharper disable once CheckNamespace
 namespace SenseNet.ContentRepository.Storage.Data
@@ -439,7 +440,7 @@ namespace SenseNet.ContentRepository.Storage.Data
             throw new NotImplementedException();
         }
 
-        public async Task<object> GetHealthAsync(CancellationToken cancel)
+        public async Task<HealthResult> GetHealthAsync(CancellationToken cancel)
         {
             object data = null;
             string error = null;
@@ -458,30 +459,30 @@ namespace SenseNet.ContentRepository.Storage.Data
                 error = e.Message;
             }
 
-            object result;
+            HealthResult result;
             if (error != null)
             {
-                result = new
+                result = new HealthResult
                 {
-                    Color = "Red", // Error
+                    Color = HealthColor.Red,
                     Reason = $"ERROR: {error}",
                     Method = "Trying to load BlobStorageContext of the first blob."
                 };
             }
             else if (data == null)
             {
-                result = new
+                result = new HealthResult
                 {
-                    Color = "Yellow", // Problem
+                    Color = HealthColor.Yellow,
                     Reason = "No result",
                     Method = "Trying to load BlobStorageContext of the first blob."
                 };
             }
             else
             {
-                result = new
+                result = new HealthResult
                 {
-                    Color = "Green", // Working well
+                    Color = HealthColor.Green,
                     ResponseTime = elapsed,
                     Method = "Measure time of loading first BlobStorageContext of the first blob in secs."
                 };

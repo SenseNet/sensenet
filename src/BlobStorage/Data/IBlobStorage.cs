@@ -2,6 +2,7 @@
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using SenseNet.Diagnostics;
 
 namespace SenseNet.ContentRepository.Storage.Data
 {
@@ -132,6 +133,6 @@ namespace SenseNet.ContentRepository.Storage.Data
         Task CleanupAllFilesAsync(CancellationToken cancellationToken);
 
         object GetConfigurationForHealthDashboard();
-        Task<object> GetHealthAsync(CancellationToken cancel);
+        Task<HealthResult> GetHealthAsync(CancellationToken cancel);
     }
 }

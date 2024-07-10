@@ -59,6 +59,9 @@ internal class HealthHandler : IHealthHandler
             };
             Task.WaitAll(gettingHealthTasks, cancel);
 
+            var gettingHealthResults = gettingHealthTasks.Select(x => x.Result).ToArray();
+            var overallColor = gettingHealthResults.Max(x => x.Color).ToString();
+
             return new
             {
                 Repository_Status = repositoryStatus == null
@@ -70,6 +73,7 @@ internal class HealthHandler : IHealthHandler
                     },
                 Health = new
                 {
+                    Color = overallColor,
                     Database = gettingHealthTasks[0].Result,
                     BlobStorage = gettingHealthTasks[1].Result,
                     Search = gettingHealthTasks[2].Result,
@@ -98,55 +102,63 @@ internal class HealthHandler : IHealthHandler
     private string GetProviderName<T>(IServiceProvider services) =>
         services.GetService<T>()?.GetType().FullName ?? "not registered";
 
-    private async Task<object> GetDatabaseHealthAsync(IServiceProvider services, CancellationToken cancel)
+    private async Task<HealthResult> GetDatabaseHealthAsync(IServiceProvider services, CancellationToken cancel)
     {
         var dataProvider = services.GetService<DataProvider>();
 
-        object health = null;
+        HealthResult health = null;
 
         if (dataProvider != null)
         {
             try
             {
-                health = await dataProvider.GetHealthAsync(cancel) ?? "not available";
+                health = await dataProvider.GetHealthAsync(cancel);
             }
             catch (Exception e)
             {
                 _logger.LogError(e, "HealthService: Error when getting database health.");
-                health = $"Error when getting database health: {e.Message}";
+                health = new HealthResult
+                {
+                    Color = HealthColor.Red,
+                    Reason = $"Error when getting database health: {e.Message}",
+                };
             }
         }
 
         return health;
     }
 
-    private async Task<object> GetBlobsHealthAsync(IServiceProvider services, CancellationToken cancel)
+    private async Task<HealthResult> GetBlobsHealthAsync(IServiceProvider services, CancellationToken cancel)
     {
         var blobStorage = services.GetService<IBlobStorage>();
 
-        object health = null;
+        HealthResult health = null;
 
         if (blobStorage != null)
         {
             try
             {
-                health = await blobStorage.GetHealthAsync(cancel) ?? "not available";
+                health = await blobStorage.GetHealthAsync(cancel);
             }
             catch (Exception e)
             {
                 _logger.LogError(e, "HealthService: Error when getting blobs health.");
-                health = $"Error when getting blobs health: {e.Message}";
+                health = new HealthResult
+                {
+                    Color = HealthColor.Red,
+                    Reason = $"Error when getting blobs health: {e.Message}"
+                };
             }
         }
 
         return health;
     }
 
-    private async Task<object> GetSearchHealthAsync(IServiceProvider services, CancellationToken cancel)
+    private async Task<HealthResult> GetSearchHealthAsync(IServiceProvider services, CancellationToken cancel)
     {
         var searchEngine = Providers.Instance.SearchEngine;
 
-        object health = null;
+        HealthResult health = null;
 
         if (searchEngine != null)
         {
@@ -155,7 +167,7 @@ internal class HealthHandler : IHealthHandler
                 var healthResult = await GetSearchHealthAsync(searchEngine, cancel);
                 var configComparisonMessage = CompareSearchConfigurations(services);
 
-                var color = (string.IsNullOrEmpty(configComparisonMessage)) ? healthResult.Color : "Red";
+                var color = (string.IsNullOrEmpty(configComparisonMessage)) ? healthResult.Color : HealthColor.Red;
                 var method = healthResult.Method;
                 if (configComparisonMessage != null)
                     method += " Comparison client and server configuration.";
@@ -169,7 +181,7 @@ internal class HealthHandler : IHealthHandler
                         reason += " " + configMessage;
                 }
 
-                health = new
+                health = new HealthResult
                 {
                     Color = color,
                     ResponseTime = healthResult.ResponseTime,
@@ -180,30 +192,31 @@ internal class HealthHandler : IHealthHandler
             catch (Exception e)
             {
                 _logger.LogError(e, "HealthService: Error when getting search health.");
-                health = $"Error when getting search health: {e.Message}";
+                health = new HealthResult
+                {
+                    Color = HealthColor.Red,
+                    Reason = $"Error when getting search health: {e.Message}",
+                };
             }
         }
 
         return health;
 
     }
-    private Task<(string Color, TimeSpan? ResponseTime, string Reason, string Method)> GetSearchHealthAsync(
+    private Task<HealthResult> GetSearchHealthAsync(
         ISearchEngine searchEngine, CancellationToken cancel)
     {
         IDictionary<string, string> data = null;
         string error = null;
 
-        TimeSpan? elapsed = null;
-        string color = null;
-        string reason = null;
-        string method = null;
+        var result = new HealthResult();
 
         try
         {
             var timer = Stopwatch.StartNew();
             data = searchEngine.IndexingEngine.GetIndexDocumentByVersionId(1);
             timer.Stop();
-            elapsed = timer.Elapsed;
+            result.ResponseTime = timer.Elapsed;
         }
         catch (Exception e)
         {
@@ -212,24 +225,24 @@ internal class HealthHandler : IHealthHandler
 
         if (error != null)
         {
-            color = "Red"; // Error
-            reason = $"ERROR: {error}";
-            method = "SearchManager (InProc) tries to get index document by VersionId 1.";
+            result.Color = HealthColor.Red;
+            result.Reason = $"ERROR: {error}";
+            result.Method = "SearchManager (InProc) tries to get index document by VersionId 1.";
         }
         else if (data == null)
         {
-            color = "Yellow"; // Problem
-            reason = "No data result.";
-            method = "SearchManager (InProc) tries to get index document by VersionId 1.";
+            result.Color = HealthColor.Yellow;
+            result.Reason = "No data result.";
+            result.Method = "SearchManager (InProc) tries to get index document by VersionId 1.";
         }
         else
         {
-            color = "Green"; // Working well
-            method =
+            result.Color = HealthColor.Green;
+            result.Method =
                 "Measure the time of getting the index document by VersionId 1 in secs from SearchManager (InProc).";
         }
 
-        return System.Threading.Tasks.Task.FromResult((color, elapsed, reason, method));
+        return System.Threading.Tasks.Task.FromResult(result);
     }
     private string CompareSearchConfigurations(IServiceProvider services)
     {
@@ -275,27 +288,31 @@ internal class HealthHandler : IHealthHandler
         return null;
     }
 
-    private async Task<object> GetIdentityHealthAsync(IServiceProvider services, CancellationToken cancel)
+    private async Task<HealthResult> GetIdentityHealthAsync(IServiceProvider services, CancellationToken cancel)
     {
         var authOptions = services.GetService<IOptions<AuthenticationOptions>>()?.Value;
-        object health = null;
+        HealthResult health = null;
 
         if (authOptions != null)
         {
             try
             {
-                health = await GetIdentityHealthAsync(authOptions, cancel) ?? "not available";
+                health = await GetIdentityHealthAsync(authOptions, cancel);
             }
             catch (Exception e)
             {
                 _logger.LogError(e, "HealthService: Error when getting identity server health.");
-                health = $"Error when getting identity server health: {e.Message}";
+                health = new HealthResult
+                {
+                    Color = HealthColor.Red,
+                    Reason = $"Error when getting identity server health: {e.Message}",
+                };
             }
         }
 
         return health;
     }
-    private async Task<object> GetIdentityHealthAsync(AuthenticationOptions options, CancellationToken cancel)
+    private async Task<HealthResult> GetIdentityHealthAsync(AuthenticationOptions options, CancellationToken cancel)
     {
         var timeout = TimeSpan.FromSeconds(4);
         var combinedCancel = CancellationTokenSource.CreateLinkedTokenSource(
@@ -326,9 +343,9 @@ internal class HealthHandler : IHealthHandler
 
         if (response == null || error != null)
         {
-            return new
+            return new HealthResult
             {
-                Color = "Red",
+                Color = HealthColor.Red,
                 Reason = $"{(response == null ? "No response. " : string.Empty)}Error: '{error}'",
                 Method = "Trying to get /.well-known/openid-configuration."
             };
@@ -343,25 +360,25 @@ internal class HealthHandler : IHealthHandler
 #endif
             if (text.Contains("scopes_supported") && text.Contains("sensenet"))
             {
-                return new
+                return new HealthResult
                 {
-                    Color = "Green",
+                    Color = HealthColor.Green,
                     ResponseTime = elapsed,
                     Method = "Getting and checking /.well-known/openid-configuration."
                 };
             }
-            return new
+            return new HealthResult
             {
-                Color = "Yellow",
+                Color = HealthColor.Yellow,
                 ResponseTime = elapsed,
                 Reason = "Not recognized response.",
                 Method = "Getting and checking /.well-known/openid-configuration."
             };
         }
 
-        return new
+        return new HealthResult
         {
-            Color = "Yellow",
+            Color = HealthColor.Yellow,
             ResponseTime = elapsed,
             Reason = $"Response status is {(int)response.StatusCode} {response.StatusCode}, expected: {(int)HttpStatusCode.OK} {HttpStatusCode.OK}",
             Method = "Getting and checking /.well-known/openid-configuration."
