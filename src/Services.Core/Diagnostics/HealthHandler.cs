@@ -1,44 +1,49 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Threading;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Security.Clients;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
-using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.Diagnostics;
-using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
+using SenseNet.Configuration;
 using SenseNet.Search;
 using SenseNet.Storage.Diagnostics;
+using System.Diagnostics;
+using System.Net.Http;
+using SenseNet.Services.Core.Authentication;
+using AngleSharp.Io;
+using System.Drawing;
+using System.Net;
+using Org.BouncyCastle.Tls;
 
 namespace SenseNet.Services.Core.Diagnostics;
-
-internal class HealthResponse
-{
-    internal static readonly object NotRegistered = new { HealthServiceStatus = "Service not registered." };
-    internal static readonly object NotAvailable = new { HealthServiceStatus = "Service not available." };
-}
 
 public interface IHealthHandler
 {
     Task<object> GetHealthResponseAsync(HttpContext httpContext);
 }
+
 internal class HealthHandler : IHealthHandler
 {
     private readonly ILogger<HealthHandler> _logger;
+    private readonly IHttpClientFactory _httpClientFactory;
 
-    public HealthHandler(ILogger<HealthHandler> logger)
+    public HealthHandler(ILogger<HealthHandler> logger, IHttpClientFactory httpClientFactory)
     {
         _logger = logger;
+        _httpClientFactory = httpClientFactory;
     }
 
     public async Task<object> GetHealthResponseAsync(HttpContext httpContext)
     {
+        Exception error;
         try
         {
             var cancel = httpContext.RequestAborted;
@@ -50,21 +55,25 @@ internal class HealthHandler : IHealthHandler
                 GetDatabaseHealthAsync(services, cancel),
                 GetBlobsHealthAsync(services, cancel),
                 GetSearchHealthAsync(services, cancel),
+                GetIdentityHealthAsync(services, cancel)
             };
             Task.WaitAll(gettingHealthTasks, cancel);
 
             return new
             {
-                Repository_Status = repositoryStatus == null ? (object)"status not available" : new
-                {
-                    Running = repositoryStatus.IsRunning,
-                    Status = repositoryStatus.Current,
-                },
+                Repository_Status = repositoryStatus == null
+                    ? (object) "status not available"
+                    : new
+                    {
+                        Running = repositoryStatus.IsRunning,
+                        Status = repositoryStatus.Current,
+                    },
                 Health = new
                 {
                     Database = gettingHealthTasks[0].Result,
                     BlobStorage = gettingHealthTasks[1].Result,
                     Search = gettingHealthTasks[2].Result,
+                    Identity = gettingHealthTasks[3].Result,
                 },
                 Details = new
                 {
@@ -72,6 +81,7 @@ internal class HealthHandler : IHealthHandler
                     Database = GetDatabaseDetails(services),
                     BlobStorage = GetBlobsDetails(services),
                     Search = GetSearchDetails(services),
+                    Identity = GetIdentityDetails(services),
                     Repository_StatusHistory = repositoryStatus?.GetLog(),
                 }
             };
@@ -79,12 +89,15 @@ internal class HealthHandler : IHealthHandler
         catch (Exception e)
         {
             _logger.LogError(e, "HealthService error.");
+            error = e;
         }
 
-        return HealthResponse.NotAvailable;
+        return error;
     }
 
-    private string GetProviderName<T>(IServiceProvider services) => services.GetService<T>()?.GetType().FullName ?? "not registered";
+    private string GetProviderName<T>(IServiceProvider services) =>
+        services.GetService<T>()?.GetType().FullName ?? "not registered";
+
     private async Task<object> GetDatabaseHealthAsync(IServiceProvider services, CancellationToken cancel)
     {
         var dataProvider = services.GetService<DataProvider>();
@@ -106,6 +119,7 @@ internal class HealthHandler : IHealthHandler
 
         return health;
     }
+
     private async Task<object> GetBlobsHealthAsync(IServiceProvider services, CancellationToken cancel)
     {
         var blobStorage = services.GetService<IBlobStorage>();
@@ -120,16 +134,17 @@ internal class HealthHandler : IHealthHandler
             }
             catch (Exception e)
             {
-                _logger.LogError(e, "HealthService: Error when getting database health.");
-                health = $"Error when getting database health: {e.Message}";
+                _logger.LogError(e, "HealthService: Error when getting blobs health.");
+                health = $"Error when getting blobs health: {e.Message}";
             }
         }
 
         return health;
     }
+
     private async Task<object> GetSearchHealthAsync(IServiceProvider services, CancellationToken cancel)
     {
-        var searchEngine = services.GetService<ISearchEngine>();
+        var searchEngine = Providers.Instance.SearchEngine;
 
         object health = null;
 
@@ -137,7 +152,30 @@ internal class HealthHandler : IHealthHandler
         {
             try
             {
-                health = await searchEngine.GetHealthAsync(cancel) ?? "not available";
+                var healthResult = await GetSearchHealthAsync(searchEngine, cancel);
+                var configComparisonMessage = CompareSearchConfigurations(services);
+
+                var color = (string.IsNullOrEmpty(configComparisonMessage)) ? healthResult.Color : "Red";
+                var method = healthResult.Method;
+                if (configComparisonMessage != null)
+                    method += " Comparison client and server configuration.";
+                var reason = healthResult.Reason;
+                if (configComparisonMessage != null && configComparisonMessage.Length > 0)
+                {
+                    var configMessage = "Configuration problems: " + configComparisonMessage;
+                    if (string.IsNullOrEmpty(reason))
+                        reason = configMessage;
+                    else
+                        reason += " " + configMessage;
+                }
+
+                health = new
+                {
+                    Color = color,
+                    ResponseTime = healthResult.ResponseTime,
+                    Reason = reason,
+                    Method = method
+                };
             }
             catch (Exception e)
             {
@@ -149,6 +187,187 @@ internal class HealthHandler : IHealthHandler
         return health;
 
     }
+    private Task<(string Color, TimeSpan? ResponseTime, string Reason, string Method)> GetSearchHealthAsync(
+        ISearchEngine searchEngine, CancellationToken cancel)
+    {
+        IDictionary<string, string> data = null;
+        string error = null;
+
+        TimeSpan? elapsed = null;
+        string color = null;
+        string reason = null;
+        string method = null;
+
+        try
+        {
+            var timer = Stopwatch.StartNew();
+            data = searchEngine.IndexingEngine.GetIndexDocumentByVersionId(1);
+            timer.Stop();
+            elapsed = timer.Elapsed;
+        }
+        catch (Exception e)
+        {
+            error = e.Message;
+        }
+
+        if (error != null)
+        {
+            color = "Red"; // Error
+            reason = $"ERROR: {error}";
+            method = "SearchManager (InProc) tries to get index document by VersionId 1.";
+        }
+        else if (data == null)
+        {
+            color = "Yellow"; // Problem
+            reason = "No data result.";
+            method = "SearchManager (InProc) tries to get index document by VersionId 1.";
+        }
+        else
+        {
+            color = "Green"; // Working well
+            method =
+                "Measure the time of getting the index document by VersionId 1 in secs from SearchManager (InProc).";
+        }
+
+        return System.Threading.Tasks.Task.FromResult((color, elapsed, reason, method));
+    }
+    private string CompareSearchConfigurations(IServiceProvider services)
+    {
+        var searchEngine = Providers.Instance.SearchEngine;
+        if (searchEngine == null)
+            return null;
+        if (!searchEngine.IndexingEngine.IndexIsCentralized)
+            return null;
+
+        var config = (IDictionary<string, string>) searchEngine.GetConfigurationForHealthDashboard();
+        config.TryGetValue("SearchService_Security_ConnectionString", out var serverSecurityConnectionString);
+        config.TryGetValue("SearchService_RabbitMq_ServiceUrl", out var serverSecurityRabbitMqServiceUrl);
+        config.TryGetValue("SearchService_RabbitMq_MessageExchange", out var serverSecurityRabbitMqMessageExchange);
+
+        var securitySystem = Providers.Instance.SecurityHandler.SecurityContext.SecuritySystem;
+        var clientSecurityConnectionString = securitySystem.DataProvider.ConnectionString;
+        var clientSecurityRabbitMqServiceUrl =
+            GetStringFieldOrPropertyValue(securitySystem.MessageProvider, "ServiceUrl");
+        var clientSecurityRabbitMqMessageExchange =
+            GetStringFieldOrPropertyValue(securitySystem.MessageProvider, "MessageExchange");
+
+        var messages = new List<string>();
+        if (serverSecurityConnectionString != clientSecurityConnectionString)
+            messages.Add("different security connectionString");
+        if (serverSecurityRabbitMqServiceUrl != clientSecurityRabbitMqServiceUrl)
+            messages.Add("different ServiceUrl of the security RabbitMq");
+        if (serverSecurityRabbitMqMessageExchange != clientSecurityRabbitMqMessageExchange)
+            messages.Add("different MessageExchange of the security RabbitMq");
+        return string.Join(", ", messages);
+    }
+    private string GetStringFieldOrPropertyValue(object target, string fieldOrPropertyName)
+    {
+        var fields = target.GetType().GetFields(BindingFlags.NonPublic | BindingFlags.Instance);
+        var field = fields.FirstOrDefault(x => x.Name == fieldOrPropertyName);
+        if (field != null)
+            return field.GetValue(target)?.ToString();
+
+        var properties = target.GetType().GetProperties(BindingFlags.NonPublic | BindingFlags.Instance);
+        var property = properties.FirstOrDefault(x => x.Name == fieldOrPropertyName);
+        if (property != null)
+            return property.GetValue(target)?.ToString();
+
+        return null;
+    }
+
+    private async Task<object> GetIdentityHealthAsync(IServiceProvider services, CancellationToken cancel)
+    {
+        var authOptions = services.GetService<IOptions<AuthenticationOptions>>()?.Value;
+        object health = null;
+
+        if (authOptions != null)
+        {
+            try
+            {
+                health = await GetIdentityHealthAsync(authOptions, cancel) ?? "not available";
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "HealthService: Error when getting identity server health.");
+                health = $"Error when getting identity server health: {e.Message}";
+            }
+        }
+
+        return health;
+    }
+    private async Task<object> GetIdentityHealthAsync(AuthenticationOptions options, CancellationToken cancel)
+    {
+        var timeout = TimeSpan.FromSeconds(4);
+        var combinedCancel = CancellationTokenSource.CreateLinkedTokenSource(
+            new CancellationTokenSource(timeout).Token, cancel).Token;
+
+        HttpResponseMessage response = null;
+        string error = null;
+        TimeSpan? elapsed = null;
+        var timer = Stopwatch.StartNew();
+
+        try
+        {
+            var url = options.Authority.TrimEnd('/') + "/.well-known/openid-configuration";
+            var client = _httpClientFactory.CreateClient();
+            response = await client.GetAsync(url, combinedCancel).ConfigureAwait(false);
+            elapsed = timer.Elapsed;
+        }
+        catch (TaskCanceledException ee)
+        {
+            elapsed = timer.Elapsed;
+            error = elapsed > timeout ? $"Response timeout reached ({timeout})." : ee.Message;
+        }
+        catch (Exception e)
+        {
+            error = e.Message;
+        }
+        timer.Stop();
+
+        if (response == null || error != null)
+        {
+            return new
+            {
+                Color = "Red",
+                Reason = $"{(response == null ? "No response. " : string.Empty)}Error: '{error}'",
+                Method = "Trying to get /.well-known/openid-configuration."
+            };
+        }
+
+        if (response.StatusCode == HttpStatusCode.OK)
+        {
+#if NET6_0_OR_GREATER
+            var text = await response.Content.ReadAsStringAsync(cancel);
+#else
+            var text = await response.Content.ReadAsStringAsync();
+#endif
+            if (text.Contains("scopes_supported") && text.Contains("sensenet"))
+            {
+                return new
+                {
+                    Color = "Green",
+                    ResponseTime = elapsed,
+                    Method = "Getting and checking /.well-known/openid-configuration."
+                };
+            }
+            return new
+            {
+                Color = "Yellow",
+                ResponseTime = elapsed,
+                Reason = "Not recognized response.",
+                Method = "Getting and checking /.well-known/openid-configuration."
+            };
+        }
+
+        return new
+        {
+            Color = "Yellow",
+            ResponseTime = elapsed,
+            Reason = $"Response status is {(int)response.StatusCode} {response.StatusCode}, expected: {(int)HttpStatusCode.OK} {HttpStatusCode.OK}",
+            Method = "Getting and checking /.well-known/openid-configuration."
+        };
+    }
+
 
     private object GetDatabaseDetails(IServiceProvider services)
     {
@@ -196,6 +415,7 @@ internal class HealthHandler : IHealthHandler
             Configuration = config,
         };
     }
+
     private object GetBlobsDetails(IServiceProvider services)
     {
         var blobStorage = services.GetService<IBlobStorage>();
@@ -241,11 +461,23 @@ internal class HealthHandler : IHealthHandler
             Configuration = config,
         };
     }
+
     private object GetSearchDetails(IServiceProvider services)
     {
-        var searchEngine = services.GetService<ISearchEngine>();
+        var searchEngine = Providers.Instance.SearchEngine;
         if (searchEngine == null)
             return "not registered.";
+
+        object config = null;
+        try
+        {
+            config = searchEngine.GetConfigurationForHealthDashboard();
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "HealthService: Error when getting 'search' configuration.");
+            config = $"Error when getting 'search' configuration: {e.Message}";
+        }
 
         return new
         {
@@ -254,7 +486,32 @@ internal class HealthHandler : IHealthHandler
                 Indexing = searchEngine.QueryEngine.GetType().FullName,
                 Querying = searchEngine.QueryEngine.GetType().FullName
             },
-            Configuration = searchEngine.GetConfigurationForHealthDashboard(),
+            Configuration = config,
+        };
+    }
+
+    private object GetIdentityDetails(IServiceProvider services)
+    {
+        object config;
+        var authOptions = services.GetService<IOptions<AuthenticationOptions>>()?.Value;
+        if (authOptions == null)
+        {
+            config = "not configured";
+        }
+        else
+        {
+            config = new
+            {
+                authOptions.Authority,
+                authOptions.ClientApplicationUrl,
+                authOptions.AddJwtCookie,
+                authOptions.MetadataHost,
+            };
+        }
+
+        return new
+        {
+            Configuration = config,
         };
     }
 }

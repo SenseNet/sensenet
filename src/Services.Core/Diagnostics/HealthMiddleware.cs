@@ -27,8 +27,8 @@ public class HealthMiddleware
 
         // Get HealthResponse
         var healthHandler = httpContext.RequestServices.GetService<IHealthHandler>();
-        var healthResponse = healthHandler == null 
-            ? HealthResponse.NotRegistered
+        var healthResponse = healthHandler == null
+            ? "Service not registered: " + nameof(IHealthHandler)
             : await healthHandler.GetHealthResponseAsync(httpContext);
 
         // Write HealthResponse
