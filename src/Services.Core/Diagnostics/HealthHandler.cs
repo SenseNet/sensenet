@@ -60,7 +60,7 @@ internal class HealthHandler : IHealthHandler
             Task.WaitAll(gettingHealthTasks, cancel);
 
             var gettingHealthResults = gettingHealthTasks.Select(x => x.Result).ToArray();
-            var overallColor = gettingHealthResults.Max(x => x.Color).ToString();
+            var overallColor = gettingHealthResults.Max(x => x?.Color ?? HealthColor.Green).ToString();
 
             return new
             {
