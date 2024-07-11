@@ -66,6 +66,7 @@ namespace SenseNet.Packaging
             {
                 var timer = Stopwatch.StartNew();
 
+                Providers.Instance.RepositoryStatus?.SetStatus("Installing Database");
                 Providers.Instance.DataStore
                     .InstallDatabaseAsync(RepositoryBuilder.InitialData, CancellationToken.None).GetAwaiter().GetResult();
 
@@ -83,6 +84,7 @@ namespace SenseNet.Packaging
                     }
                 }
 
+                Providers.Instance.RepositoryStatus?.SetStatus("Installing SenseNet package");
                 // prepare package: extract it to the file system
                 var packageFolder = UnpackEmbeddedPackage(assembly, packageName);
 
@@ -98,7 +100,10 @@ namespace SenseNet.Packaging
                 // all the necessary content items.
                 Logger.LogMessage("Database already exists.");
             }
-            
+
+            if (origIndexingValue)
+                Providers.Instance.RepositoryStatus?.SetStatus("Installing Start IndexingEngine");
+
             // Reset the original indexing setting so that subsequent packages use the 
             // same value as intended by the caller. 
             RepositoryBuilder.StartIndexingEngine(origIndexingValue);

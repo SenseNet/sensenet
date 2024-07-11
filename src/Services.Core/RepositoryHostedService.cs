@@ -1,13 +1,16 @@
 ﻿using System;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Security;
 using SenseNet.Diagnostics;
 using SenseNet.Events;
 using SenseNet.Extensions.DependencyInjection;
+using SenseNet.Storage.Diagnostics;
 using Exception = System.Exception;
 using Task = System.Threading.Tasks.Task;
 
@@ -19,10 +22,14 @@ namespace SenseNet.Services.Core
     /// </summary>
     public class RepositoryHostedService : IHostedService, IDisposable
     {
+        private readonly ILogger<RepositoryHostedService> _logger;
+
         private IServiceProvider Services { get; }
         private RepositoryInstance Repository { get; set; }
         private Action<RepositoryBuilder, IServiceProvider> BuildRepository { get; }
         private Func<RepositoryInstance, IServiceProvider, Task> OnRepositoryStartedAsync { get; }
+
+        public ISenseNetStatus RepositoryStatus { get; }
 
         public RepositoryHostedService(IServiceProvider provider, 
             Action<RepositoryBuilder, IServiceProvider> buildRepository,
@@ -31,6 +38,8 @@ namespace SenseNet.Services.Core
             Services = provider;
             BuildRepository = buildRepository;
             OnRepositoryStartedAsync = onRepositoryStartedAsync;
+            RepositoryStatus = provider.GetService<ISenseNetStatus>();
+            _logger = provider.GetService<ILogger<RepositoryHostedService>>();
         }
 
         public RepositoryBuilder BuildProviders()
@@ -56,29 +65,52 @@ namespace SenseNet.Services.Core
             return repositoryBuilder;
         }
 
-        public async Task StartAsync(CancellationToken cancellationToken)
+        public Task StartAsync(CancellationToken cancellationToken)
         {
+            RepositoryStatus.SetStatus(SenseNetStatus.Starting);
+
             var repositoryBuilder = BuildProviders();
 
             try
             {
-                Repository = ContentRepository.Repository.Start(repositoryBuilder);
+                _startupTask = Task.Run(
+                    async () =>
+                    {
+                        Repository = ContentRepository.Repository.Start(repositoryBuilder);
 
-                if (OnRepositoryStartedAsync != null)
-                    await OnRepositoryStartedAsync.Invoke(Repository, Services);
+                        if (OnRepositoryStartedAsync != null)
+                            await OnRepositoryStartedAsync.Invoke(Repository, Services);
+
+                        RepositoryStatus.IsRunning = true;
+                        RepositoryStatus.SetStatus(SenseNetStatus.Started);
+                        _logger.LogDebug("STARTUP: Repository started");
+                    }, cancellationToken);
             }
             catch (Exception ex)
             {
                 SnLog.WriteException(ex, $"Error during repository start: {ex.Message}");
                 throw;
             }
+
+            return Task.CompletedTask;
         }
+
+        private Task _startupTask;
 
         public Task StopAsync(CancellationToken cancellationToken)
         {
-            // shut down the repository
-            Repository?.Dispose();
+            if (Repository != null)
+            {
+                RepositoryStatus.IsRunning = false;
+                RepositoryStatus.SetStatus(SenseNetStatus.Stopping);
 
+                // shut down the repository
+                Repository?.Dispose();
+
+                Repository = null;
+            }
+
+            RepositoryStatus.SetStatus(SenseNetStatus.Stopped);
             return Task.CompletedTask;
         }
 

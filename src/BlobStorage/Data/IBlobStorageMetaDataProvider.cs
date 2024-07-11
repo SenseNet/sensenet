@@ -162,5 +162,12 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation.</returns>
         Task CleanupAllFilesAsync(CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Returns the first FileId. This method supports the health check mechanism.
+        /// </summary>
+        /// <param name="cancel">The token to monitor for cancellation requests.</param>
+        /// <returns>A Task that represents the asynchronous operation and wraps the return value.</returns>
+        Task<int> GetFirstFileIdAsync(CancellationToken cancel);
     }
 }

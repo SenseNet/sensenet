@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -2053,6 +2054,7 @@ namespace SenseNet.ContentRepository.InMemory
 
             return STT.Task.CompletedTask;
         }
+
         private static readonly JsonSerializerSettings JsonSerializerSettings = new JsonSerializerSettings
         {
             NullValueHandling = NullValueHandling.Ignore,
@@ -2070,6 +2072,26 @@ namespace SenseNet.ContentRepository.InMemory
                 var serializedDoc = writer.GetStringBuilder().ToString();
                 return 2 * serializedDoc.Length;
             }
+        }
+
+        /* =============================================================================================== Health */
+
+        public override object GetConfigurationForHealthDashboard()
+        {
+            return "This provider has no configuration.";
+        }
+
+        public override Task<HealthResult> GetHealthAsync(CancellationToken cancel)
+        {
+            var timer = Stopwatch.StartNew();
+            var _ = DB.Nodes.Where(n => n.NodeId == 1);
+            timer.Stop();
+            return STT.Task.FromResult(new HealthResult
+            {
+                Color = HealthColor.Green,
+                ResponseTime = timer.Elapsed,
+                Method = "Time of getting first Node in secs."
+            });
         }
 
         /* =============================================================================================== Tools */

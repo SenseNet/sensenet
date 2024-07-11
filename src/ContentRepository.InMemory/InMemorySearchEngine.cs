@@ -1,4 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Threading;
+using System.Threading.Tasks;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.Search;
 using SenseNet.Search.Indexing;
@@ -40,6 +44,61 @@ namespace SenseNet.ContentRepository.InMemory
             _analyzers = analyzerTypes;
             Index.Analyzers = _analyzers;
             ((InMemoryIndexingEngine)IndexingEngine).NumberFields = numberFields;
+        }
+
+        public object GetConfigurationForHealthDashboard()
+        {
+            return "This provider has no configuration.";
+        }
+
+        public Task<object> GetHealthAsync(CancellationToken cancel)
+        {
+            IDictionary<string, string> data = null;
+            string error = null;
+            TimeSpan? elapsed = null;
+
+            try
+            {
+                var timer = Stopwatch.StartNew();
+                data = this.IndexingEngine.GetIndexDocumentByVersionId(1);
+                timer.Stop();
+                elapsed = timer.Elapsed;
+            }
+            catch (Exception e)
+            {
+                error = e.Message;
+            }
+
+            object result;
+            if (error != null)
+            {
+                result = new
+                {
+                    Color = "Red", // Error
+                    Reason = $"ERROR: {error}",
+                    Method = "SearchEngine (InProc) ties to get index document by VersionId 1."
+                };
+            }
+            else if (data == null)
+            {
+                result = new
+                {
+                    Color = "Yellow", // Problem
+                    Reason = "No result",
+                    Method = "SearchEngine (InProc) ties to get index document by VersionId 1."
+                };
+            }
+            else
+            {
+                result = new
+                {
+                    Color = "Green", // Working well
+                    ResponseTime = elapsed,
+                    Method = "Measure the time of getting the index document by VersionId 1 in secs from SearchEngine (InProc)."
+                };
+            }
+
+            return System.Threading.Tasks.Task.FromResult(result);
         }
 
         public InMemoryIndex Index { get; set; }

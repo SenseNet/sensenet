@@ -1,4 +1,6 @@
 ﻿using System.Collections.Generic;
+using System.Threading.Tasks;
+using System.Threading;
 using SenseNet.Search.Indexing;
 using SenseNet.Search.Querying;
 
@@ -32,5 +34,8 @@ namespace SenseNet.Search
         /// </summary>
         /// <param name="indexingInfo">Key value pairs of the indexing descriptors of all fields.</param>
         void SetIndexingInfo(IDictionary<string, IPerFieldIndexingInfo> indexingInfo);
+
+        object GetConfigurationForHealthDashboard();
+        Task<object> GetHealthAsync(CancellationToken cancel);
     }
 }

@@ -431,6 +431,8 @@ namespace WebAppTests
                 {typeof(ISecurityMessageFormatter), typeof(SnSecurityMessageFormatter)},
                 {typeof(DistributedMessageType), typeof(DistributedMessageType)},
                 {typeof(IMultiFactorAuthenticationProvider), typeof(DefaultMultiFactorProvider)},
+                {typeof(IHealthHandler), typeof(HealthHandler)},
+                {typeof(ISenseNetStatus), typeof(SenseNetStatus)},
             };
         }
         private IDictionary<Type, Type> GetInMemoryPlatform()
