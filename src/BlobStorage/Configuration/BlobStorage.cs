@@ -1,13 +1,15 @@
-﻿// ReSharper disable once CheckNamespace
-
-using SenseNet.Tools.Configuration;
+﻿using SenseNet.Tools.Configuration;
 using System;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 
+// ReSharper disable once CheckNamespace
 namespace SenseNet.Configuration
 {
     /// <summary>
     /// Determines the blob deletion algorithm.
     /// </summary>
+    [JsonConverter(typeof(StringEnumConverter))]
     public enum BlobDeletionPolicy
     {
         /// <summary>

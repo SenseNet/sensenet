@@ -437,7 +437,16 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         public object GetConfigurationForHealthDashboard()
         {
-            throw new NotImplementedException();
+            var options = this.BlobStorageConfig;
+            return new
+            {
+                options.BinaryCacheSize,
+                options.BinaryBufferSize,
+                options.BinaryChunkSize,
+                options.MinimumSizeForBlobProviderInBytes,
+                options.MinimumSizeForBlobProviderKb,
+                options.BlobDeletionPolicy
+            };
         }
 
         public async Task<HealthResult> GetHealthAsync(CancellationToken cancel)
