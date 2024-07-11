@@ -107,6 +107,13 @@ namespace SenseNet.OData
 
         public async Task InvokeAsync(HttpContext httpContext, WebTransferRegistrator statistics)
         {
+            while (!Providers.Instance.RepositoryStatus.IsRunning)
+            {
+                var id = httpContext.Request.Query["_id"];
+                SnTrace.Web.Write("__wait " + id);
+                await Task.Delay(10).ConfigureAwait(false);
+            }
+
             var req = httpContext.Request;
             using (var op = SnTrace.Web.StartOperation($"{req.Method} {req.GetDisplayUrl()}"))
             {
