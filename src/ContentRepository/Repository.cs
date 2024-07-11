@@ -60,9 +60,10 @@ namespace SenseNet.ContentRepository
         }
         public static RepositoryInstance Start(RepositoryBuilder builder)
         {
+            var repositoryStatus = Providers.Instance.RepositoryStatus;
             var connectionStrings = builder.Services?.GetRequiredService<IOptions<ConnectionStringOptions>>();
 
-            Providers.Instance.RepositoryStatus?.SetStatus("Starting BlobProviders");
+            repositoryStatus?.SetStatus("Starting BlobProviders");
             Providers.Instance.InitializeBlobProviders(connectionStrings?.Value ?? new ConnectionStringOptions());
 
             EnsureDatabase(builder);
@@ -70,7 +71,7 @@ namespace SenseNet.ContentRepository
             var initialData = builder.InitialData;
             if (initialData != null)
             {
-                Providers.Instance.RepositoryStatus?.SetStatus("Installing initial data");
+                repositoryStatus?.SetStatus("Installing initial data");
                 Providers.Instance.DataStore.InstallInitialDataAsync(initialData, CancellationToken.None)
                     .GetAwaiter().GetResult();
             }
@@ -83,10 +84,10 @@ namespace SenseNet.ContentRepository
             {
                 var logger = Providers.Instance.GetProvider<ILogger<SnILogger>>();
                 var patchManager = new PatchManager(builder, logRecord => { logRecord.WriteTo(logger); });
-                Providers.Instance.RepositoryStatus?.SetStatus("Executing patches before start");
+                repositoryStatus?.SetStatus("Executing patches before start");
                 patchManager.ExecutePatchesOnBeforeStart();
 
-                Providers.Instance.RepositoryStatus?.SetStatus("Calling Repository.Start");
+                repositoryStatus?.SetStatus("Calling Repository.Start");
                 repositoryInstance = Start((RepositoryStartSettings)builder);
 
                 var permissions = initialData?.Permissions;
@@ -113,7 +114,7 @@ namespace SenseNet.ContentRepository
                     }
                 }
 
-                Providers.Instance.RepositoryStatus?.SetStatus("Executing patches after start");
+                repositoryStatus?.SetStatus("Executing patches after start");
                 patchManager.ExecutePatchesOnAfterStart();
                 RepositoryVersionInfo.Reset();
 
@@ -121,7 +122,7 @@ namespace SenseNet.ContentRepository
             }).GetAwaiter().GetResult();
 
             // generate default clients and secrets
-            Providers.Instance.RepositoryStatus?.SetStatus("Checking default items in ClientStore");
+            repositoryStatus?.SetStatus("Checking default items in ClientStore");
             var clientStore = builder.Services?.GetService<ClientStore>();
             var clientOptions = builder.Services?.GetService<IOptions<ClientStoreOptions>>()?.Value;
             var logger = builder.Services?.GetService<ILogger<RepositoryInstance>>();
@@ -130,6 +131,9 @@ namespace SenseNet.ContentRepository
 
             clientStore?.EnsureClientsAsync(clientOptions?.Authority, clientOptions?.RepositoryUrl?.RemoveUrlSchema())
                 .GetAwaiter().GetResult();
+
+            if(repositoryStatus != null)
+                repositoryStatus.IsRunning = true;
 
             return repositoryInstance;
         }
