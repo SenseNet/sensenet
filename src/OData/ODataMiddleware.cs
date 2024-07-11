@@ -105,13 +105,20 @@ namespace SenseNet.OData
             _requestOptions = requestOptions?.Value ?? new SenseNet.Services.Core.Configuration.HttpRequestOptions();
         }
 
+        private bool _delayLogged;
         public async Task InvokeAsync(HttpContext httpContext, WebTransferRegistrator statistics)
         {
             while (!Providers.Instance.RepositoryStatus.IsRunning)
             {
-                var id = httpContext.Request.Query["_id"];
-                SnTrace.Web.Write("__wait " + id);
-                await Task.Delay(10).ConfigureAwait(false);
+                if (!_delayLogged)
+                {
+                    _delayLogged = true;
+                    var msg = "One or more requests delayed because the repository is starting. The RepositoryStatus is " +
+                              Providers.Instance.RepositoryStatus.Current;
+                    SnTrace.Web.Write(msg);
+                    _logger.LogDebug(msg);
+                }
+                await Task.Delay(50).ConfigureAwait(false);
             }
 
             var req = httpContext.Request;
