@@ -15,6 +15,7 @@ using SenseNet.ContentRepository;
 using SenseNet.Diagnostics;
 using SenseNet.Extensions.DependencyInjection;
 using SenseNet.Search.Lucene29;
+using SenseNet.Storage.Security;
 
 namespace SnWebApplication.Api.Sql.Admin
 {
@@ -103,7 +104,8 @@ namespace SnWebApplication.Api.Sql.Admin
             // is an administrator!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
             app.Use(async (context, next) =>
             {
-                User.Current = User.Administrator;
+                if (User.Current != HealthCheckerUser.Instance)
+                    User.Current = User.Administrator;
                 if (next != null)
                     await next();
             });

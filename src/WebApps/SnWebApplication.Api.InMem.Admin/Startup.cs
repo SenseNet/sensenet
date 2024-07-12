@@ -8,6 +8,7 @@ using Microsoft.Extensions.Hosting;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Security;
 using SenseNet.Extensions.DependencyInjection;
+using SenseNet.Storage.Security;
 
 namespace SnWebApplication.Api.InMem.Admin
 {
@@ -71,7 +72,8 @@ namespace SnWebApplication.Api.InMem.Admin
             // is an administrator!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
             app.Use(async (context, next) =>
             {
-                User.Current = User.Administrator;
+                if(User.Current != HealthCheckerUser.Instance)
+                    User.Current = User.Administrator;
                 if (next != null)
                     await next();
             });

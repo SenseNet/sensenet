@@ -14,6 +14,7 @@ using SenseNet.Extensions.DependencyInjection;
 using SenseNet.Search.Lucene29.Centralized;
 using SenseNet.Search.Lucene29.Centralized.GrpcClient;
 using SenseNet.Security.Messaging.RabbitMQ;
+using SenseNet.Storage.Security;
 
 namespace SnWebApplication.Api.Sql.SearchService.Admin
 {
@@ -108,7 +109,8 @@ namespace SnWebApplication.Api.Sql.SearchService.Admin
             // is an administrator!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
             app.Use(async (context, next) =>
             {
-                User.Current = User.Administrator;
+                if (User.Current != HealthCheckerUser.Instance)
+                    User.Current = User.Administrator;
                 if (next != null)
                     await next();
             });
