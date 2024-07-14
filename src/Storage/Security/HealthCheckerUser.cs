@@ -39,7 +39,7 @@ namespace SenseNet.Storage.Security
         public string FullName
         {
             get { return "Health Checker"; }
-            set { throw new InvalidOperationException("You cannot set a property of the SYSTEM user."); }
+            set { throw new InvalidOperationException("You cannot set a property of the HealthChecker user."); }
         }
 
         public string Password
@@ -64,14 +64,14 @@ namespace SenseNet.Storage.Security
         public bool IsOperator => true;
 
         public bool IsInGroup(IGroup group) =>
-            throw new InvalidOperationException("The SYSTEM user is not a member of any group.");
+            throw new InvalidOperationException("The HealthChecker user is not a member of any group.");
 
         public bool IsInOrganizationalUnit(IOrganizationalUnit orgUnit) =>
-            throw new InvalidOperationException("The SYSTEM user is not a member of any organizational unit.");
+            throw new InvalidOperationException("The HealthChecker user is not a member of any organizational unit.");
 
         public bool IsInContainer(ISecurityContainer container) =>
             throw new InvalidOperationException(
-                "The SYSTEM user is not a member of any container (group or organizational unit).");
+                "The HealthChecker user is not a member of any container (group or organizational unit).");
 
         public DateTime LastLoggedOut { get; set; }
 

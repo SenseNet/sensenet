@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Newtonsoft.Json.Linq;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage;
@@ -20,28 +21,31 @@ namespace SenseNet.ContentRepository.Security.ApiKeys
     {
         private const string FeatureName = "apikey";
         private readonly ILogger _logger;
+        private readonly ApiKeysOptions _apiKeys;
         private readonly MemoryCache _apiKeyCache = new(new MemoryCacheOptions { SizeLimit = 1024 });
 
-        public ApiKeyManager(ILogger<ApiKeyManager> logger)
+        public ApiKeyManager(ILogger<ApiKeyManager> logger, IOptions<ApiKeysOptions> apiKeys)
         {
             _logger = logger;
+            _apiKeys = apiKeys.Value ?? new ApiKeysOptions();
 
-            var apikey = "asdfqwer";
             var now = DateTime.UtcNow;
-            _apiKeyCache.Set(apikey, new AccessToken
+            var apiKey = _apiKeys.HealthCheckerUser;
+            if (!string.IsNullOrEmpty(apiKey))
             {
-                Id = -1,
-                UserId = -3,
-                //Value = apikey,
-                //ContentId = 0,
-                ExpirationDate = now.AddYears(1),
-                //CreationDate = now,
-                Feature = "/health"
-            }, new MemoryCacheEntryOptions
-            {
-                AbsoluteExpiration = new DateTimeOffset(now.AddYears(1)),
-                Size = 1
-            });
+                _apiKeyCache.Set(apiKey, new AccessToken
+                {
+                    Id = -1,
+                    UserId = -3,
+                    ExpirationDate = now.AddYears(1),
+                    CreationDate = now,
+                    Feature = "/health"
+                }, new MemoryCacheEntryOptions
+                {
+                    AbsoluteExpiration = new DateTimeOffset(now.AddYears(1)),
+                    Size = 1
+                });
+            }
         }
 
         public async Task<IUser> GetUserByApiKeyAsync(string apiKey, CancellationToken cancel)
