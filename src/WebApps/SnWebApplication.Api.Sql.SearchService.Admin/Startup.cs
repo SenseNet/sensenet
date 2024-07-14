@@ -9,6 +9,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
+using SenseNet.ContentRepository.Security.ApiKeys;
 using SenseNet.Diagnostics;
 using SenseNet.Extensions.DependencyInjection;
 using SenseNet.Search.Lucene29.Centralized;
@@ -36,6 +37,9 @@ namespace SnWebApplication.Api.Sql.SearchService.Admin
 
             // [sensenet]: Authentication: switched off below
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme);
+
+            // [sensenet]: Set options for ApiKeys
+            services.Configure<ApiKeysOptions>(Configuration.GetSection("sensenet:ApiKeys"));
 
             // [sensenet]: Set options for EFCSecurityDataProvider
             services.AddOptions<SenseNet.Security.EFCSecurityStore.Configuration.DataOptions>()

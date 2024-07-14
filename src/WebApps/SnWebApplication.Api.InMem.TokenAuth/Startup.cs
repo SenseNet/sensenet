@@ -8,6 +8,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Logging;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Security;
+using SenseNet.ContentRepository.Security.ApiKeys;
 using SenseNet.Extensions.DependencyInjection;
 using SenseNet.Services.Core.Authentication;
 
@@ -47,6 +48,9 @@ namespace SnWebApplication.Api.InMem.TokenAuth
                         options.MetadataAddress =
                             $"{authOptions.MetadataHost.AddUrlSchema().TrimEnd('/')}/.well-known/openid-configuration";
                 });
+
+            // [sensenet]: Set options for ApiKeys
+            services.Configure<ApiKeysOptions>(Configuration.GetSection("sensenet:ApiKeys"));
 
             // [sensenet]: add sensenet services
             services.AddSenseNet(Configuration, (repositoryBuilder, provider) =>
