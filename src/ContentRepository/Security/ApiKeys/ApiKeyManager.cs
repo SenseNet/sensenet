@@ -4,9 +4,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using Newtonsoft.Json.Linq;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Security;
+using SenseNet.Storage.Security;
 
 namespace SenseNet.ContentRepository.Security.ApiKeys
 {
@@ -18,11 +21,31 @@ namespace SenseNet.ContentRepository.Security.ApiKeys
     {
         private const string FeatureName = "apikey";
         private readonly ILogger _logger;
+        private readonly ApiKeysOptions _apiKeys;
         private readonly MemoryCache _apiKeyCache = new(new MemoryCacheOptions { SizeLimit = 1024 });
 
-        public ApiKeyManager(ILogger<ApiKeyManager> logger)
+        public ApiKeyManager(ILogger<ApiKeyManager> logger, IOptions<ApiKeysOptions> apiKeys)
         {
             _logger = logger;
+            _apiKeys = apiKeys.Value ?? new ApiKeysOptions();
+
+            var now = DateTime.UtcNow;
+            var apiKey = _apiKeys.HealthCheckerUser;
+            if (!string.IsNullOrEmpty(apiKey))
+            {
+                _apiKeyCache.Set(apiKey, new AccessToken
+                {
+                    Id = -1,
+                    UserId = -3,
+                    ExpirationDate = now.AddYears(1),
+                    CreationDate = now,
+                    Feature = "/health"
+                }, new MemoryCacheEntryOptions
+                {
+                    AbsoluteExpiration = new DateTimeOffset(now.AddYears(1)),
+                    Size = 1
+                });
+            }
         }
 
         public async Task<IUser> GetUserByApiKeyAsync(string apiKey, CancellationToken cancel)
@@ -47,8 +70,12 @@ namespace SenseNet.ContentRepository.Security.ApiKeys
                     });
             }
 
+
             if (token == null || token.UserId == 0 || token.ExpirationDate <= DateTime.UtcNow)
                 return null;
+            if(token.Id == -1 && token.UserId == -3 && token.Feature == "/health")
+                return HealthCheckerUser.Instance;
+
             AssertPermissions(token.UserId);
 
             return await Node.LoadAsync<User>(token.UserId, cancel);
