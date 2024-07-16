@@ -10,7 +10,7 @@
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="6.0.9" />
     <PackageReference Include="SenseNet.AI.Text.SemanticKernel" Version="0.0.3" />
     <PackageReference Include="SenseNet.AI.Vision.Azure" Version="0.0.1-beta1" />
-    <PackageReference Include="SenseNet.Search.Lucene29.Local" Version="7.4.12.3" />
+    <PackageReference Include="SenseNet.Search.Lucene29.Local" Version="7.4.13" />
     <PackageReference Include="SenseNet.Security.EFCSecurityStore" Version="3.1.2" />
     <PackageReference Include="Serilog.AspNetCore" Version="6.0.1" />
     <PackageReference Include="Serilog.Sinks.Graylog" Version="2.3.0" />
