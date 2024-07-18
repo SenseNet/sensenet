@@ -23,6 +23,7 @@ using System.Drawing;
 using System.Net;
 using Org.BouncyCastle.Tls;
 using SenseNet.ContentRepository;
+using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Storage.Security;
 using Task = System.Threading.Tasks.Task;
 
@@ -46,8 +47,11 @@ internal class HealthHandler : IHealthHandler
 
     public async Task<object> GetHealthResponseAsync(HttpContext httpContext)
     {
-        if (User.Current != HealthCheckerUser.Instance)
-            return new{Message= "HealthService is unavailable.", Reason="Access denied."};
+        var user = User.Current;
+        if (user != HealthCheckerUser.Instance)
+            using (new SystemAccount())
+                if (!(Providers.Instance.RepositoryStatus.IsRunning && user.IsInGroup(Group.Administrators)))
+                    return new{Message= "HealthService is unavailable.", Reason="Access denied."};
 
         Exception error;
         try
