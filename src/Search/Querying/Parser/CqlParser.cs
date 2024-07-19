@@ -903,6 +903,8 @@ namespace SenseNet.Search.Querying.Parser
 
             if (parsedValue.Type == IndexValueType.String)
             {
+                if (parsedValue.StringValue == SnQuery.NotResolvedTemplateText)
+                    return CreateEmptySetPredicate();
                 if (parsedValue.StringValue == SnQuery.EmptyText)
                     return new SimplePredicate(currentField.Name, parsedValue);
                 if (parsedValue.StringValue == SnQuery.EmptyInnerQueryText)
@@ -916,6 +918,9 @@ namespace SenseNet.Search.Querying.Parser
         {
             if (value == null)
                 return null;
+
+            if (value.StringValue == SnQuery.NotResolvedTemplateText)
+                return new IndexValue(SnQuery.NotResolvedTemplateText);
 
             if (fieldName == IndexFieldName.AllText)
                 return new IndexValue(value.StringValue.ToLowerInvariant());
@@ -935,6 +940,11 @@ namespace SenseNet.Search.Querying.Parser
         {
             var min = ParseValue(fieldName, minValue, _context);
             var max = ParseValue(fieldName, maxValue, _context);
+
+            if (min?.StringValue == SnQuery.NotResolvedTemplateText || max?.StringValue == SnQuery.NotResolvedTemplateText)
+            {
+                return CreateEmptySetPredicate();
+            }
 
             if (min?.StringValue == SnQuery.EmptyText && max == null)
             {
@@ -957,6 +967,8 @@ namespace SenseNet.Search.Querying.Parser
 
             return new RangePredicate(fieldName, min, max, !includeLower, !includeUpper);
         }
+
+        private SimplePredicate CreateEmptySetPredicate() => new SimplePredicate("Id", new IndexValue(0));
 
         private bool IsEof()
         {

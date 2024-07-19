@@ -9,6 +9,7 @@ using SenseNet.Search;
 using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.InMemory;
 using SenseNet.Extensions.DependencyInjection;
+using SenseNet.Search.Querying;
 using SenseNet.Tests.Core;
 
 namespace SenseNet.ContentRepository.Tests
@@ -64,6 +65,61 @@ namespace SenseNet.ContentRepository.Tests
                     Assert.AreEqual(expected, TemplateManager.Replace(typeof(ContentQueryTemplateReplacer), text));
                 });
         }
+        [TestMethod]
+        public void ContentQueryTemplateReplacer_PropertyChain_MissingStep()
+        {
+            Test(
+                true,
+                builder => { builder.UseTraceCategories("Query"); },
+                () =>
+                {
+                    PropertyChain_MissingStep_Test(
+                        "+CreationDate:@@CurrentUser.Manager.CreationDate@@",
+                        $"+CreationDate:{SnQuery.NotResolvedTemplateText}",
+                        "+Id:0");
+
+                    PropertyChain_MissingStep_Test(
+                        "+CreationDate:>@@CurrentUser.Manager.CreationDate@@",
+                        $"+CreationDate:>{SnQuery.NotResolvedTemplateText}",
+                        "+Id:0");
+                    PropertyChain_MissingStep_Test(
+                        "+CreationDate:<@@CurrentUser.Manager.CreationDate@@",
+                        $"+CreationDate:<{SnQuery.NotResolvedTemplateText}",
+                        "+Id:0");
+                    PropertyChain_MissingStep_Test(
+                        "+CreationDate:>=@@CurrentUser.Manager.CreationDate@@",
+                        $"+CreationDate:>={SnQuery.NotResolvedTemplateText}",
+                        "+Id:0");
+                    PropertyChain_MissingStep_Test(
+                        "+CreationDate:<=@@CurrentUser.Manager.CreationDate@@",
+                        $"+CreationDate:<={SnQuery.NotResolvedTemplateText}",
+                        "+Id:0");
+
+                    PropertyChain_MissingStep_Test(
+                        "TypeIs:Task CreationDate:<@@CurrentUser.Manager.CreationDate@@ .TOP:3",
+                        $"TypeIs:Task CreationDate:<{SnQuery.NotResolvedTemplateText} .TOP:3",
+                        "TypeIs:task Id:0 .TOP:3");
+                    PropertyChain_MissingStep_Test(
+                        "TypeIs:Task CreationDate:<@@CurrentUser.Manager.CreationDate@@ .TOP:3",
+                        $"TypeIs:Task CreationDate:<{SnQuery.NotResolvedTemplateText} .TOP:3",
+                        "TypeIs:task Id:0 .TOP:3");
+                    PropertyChain_MissingStep_Test(
+                        "+TypeIs:Task +(CreationDate:<@@CurrentUser.Manager.CreationDate@@ Manager:@@CurrentUser@@) .TOP:3",
+                        $"+TypeIs:Task +(CreationDate:<{SnQuery.NotResolvedTemplateText} Manager:1) .TOP:3",
+                        "+TypeIs:task +(Id:0 Manager:1) .TOP:3");
+                });
+        }
+
+        private void PropertyChain_MissingStep_Test(string queryText, string expectedResolution, string expectedCql)
+        {
+            var actualResolution = TemplateManager.Replace(typeof(ContentQueryTemplateReplacer), queryText);
+            Assert.AreEqual(expectedResolution, actualResolution);
+
+            var qctx = new SnQueryContext(QuerySettings.Default, User.Current.Id);
+            var query = SnQuery.Parse(expectedResolution, qctx);
+            Assert.AreEqual(expectedCql, query.ToString());
+        }
+
         [TestMethod]
         public void ContentQueryTemplateReplacer_DateWithModifier()
         {
