@@ -18,6 +18,10 @@ namespace SenseNet.Search.Querying
         /// </summary>
         public static readonly string EmptyInnerQueryText = "$##$emptyinnerquery$##$";
         /// <summary>
+        /// Constant value to represent a not-resolved template text for internal usage.
+        /// </summary>
+        public static readonly string NotResolvedTemplateText = "$##$not_resolved_template$##$";
+        /// <summary>
         /// Constant value of the default scoring. The value is 0.5.
         /// </summary>
         public static readonly double DefaultSimilarity = 0.5d;
