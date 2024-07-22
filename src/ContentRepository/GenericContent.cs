@@ -1522,8 +1522,15 @@ namespace SenseNet.ContentRepository
         /// <param name="target">The target <see cref="Node"/> that will be the parent of this Content.</param>
         public override void MoveTo(Node target)
         {
+            var transitiveNodeTypeIds = ContentType.GetContentTypes()
+                .Where(ct => ct.IsTransitiveForAllowedTypes)
+                .Select(ct => Providers.Instance.StorageSchema.NodeTypes[ct.Name])
+                .Where(nt => nt != null)
+                .Select(nt => nt.Id)
+                .ToArray();
+
             if (target is GenericContent targetGc)
-                foreach (var nt in this.GetChildTypesToAllow())
+                foreach (var nt in this.GetChildTypesToAllow(transitiveNodeTypeIds))
                     if (!targetGc.IsAllowedChildType(nt.Name))
                         throw new InvalidOperationException(
                             $"Cannot move {this.Path} ({this.NodeType.Name}) to {target.Path} ({target.NodeType.Name}) " +

@@ -1052,16 +1052,16 @@ namespace SenseNet.ContentRepository.InMemory
 
         /* =============================================================================================== Tree */
 
-        public override Task<IEnumerable<NodeType>> LoadChildTypesToAllowAsync(int nodeId, CancellationToken cancellationToken)
+        public override Task<IEnumerable<NodeType>> LoadChildTypesToAllowAsync(int nodeId, int[] transitiveNodeTypeIds, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
             lock (DB)
             {
-                var permeableList = new[] { "Folder", "Page" }
-                    .Select(x => StorageSchema.NodeTypes[x])
-                    .Where(x => x != null)
-                    .Select(x => x.Id)
-                    .ToList();
+                //var permeableList = new[] { "Folder", "Page" }
+                //    .Select(x => StorageSchema.NodeTypes[x])
+                //    .Where(x => x != null)
+                //    .Select(x => x.Id)
+                //    .ToList();
 
                 var typeIdList = new List<int>();
 
@@ -1069,7 +1069,7 @@ namespace SenseNet.ContentRepository.InMemory
                 if (nodeDoc != null)
                 {
                     typeIdList.Add(nodeDoc.NodeTypeId);
-                    CollectChildTypesToAllow(nodeDoc, permeableList, typeIdList, cancellationToken);
+                    CollectChildTypesToAllow(nodeDoc, transitiveNodeTypeIds, typeIdList, cancellationToken);
                 }
                 var result = typeIdList.Distinct().Select(x => StorageSchema.NodeTypes.GetItemById(x)).ToArray();
                 return STT.Task.FromResult((IEnumerable<NodeType>)result);
@@ -1089,7 +1089,7 @@ namespace SenseNet.ContentRepository.InMemory
                 return STT.Task.FromResult(result);
             }
         }
-        private void CollectChildTypesToAllow(NodeDoc root, List<int> permeableList, List<int> typeIdList, CancellationToken cancellationToken)
+        private void CollectChildTypesToAllow(NodeDoc root, int[] permeableList, List<int> typeIdList, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
             lock (DB)

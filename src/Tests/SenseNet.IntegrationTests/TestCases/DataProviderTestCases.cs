@@ -685,6 +685,13 @@ namespace SenseNet.IntegrationTests.TestCases
         {
             await IntegrationTestAsync(async () =>
             {
+                ContentTypeInstaller.InstallContentType(
+                    @"<ContentType name=""MyTransitiveType1"" parentType=""GenericContent"" handler=""SenseNet.ContentRepository.GenericContent"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
+                          <AllowedChildTypes transitive=""true"" />
+                          <Fields/>
+                        </ContentType>"
+                );
+
                 // Create a small subtree
                 var root = CreateTestRoot();
                 var site1 = new Workspace(root) { Name = "Site1" }; site1.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
@@ -702,7 +709,13 @@ namespace SenseNet.IntegrationTests.TestCases
                 var site2 = new Workspace(root) { Name = "Site2" }; site2.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 // ACTION
-                var types = await DataStore.LoadChildTypesToAllowAsync(folder1.Id, CancellationToken.None);
+                var transitiveNodeTypeIds = ContentType.GetContentTypes()
+                    .Where(ct => ct.IsTransitiveForAllowedTypes)
+                    .Select(ct => Providers.Instance.StorageSchema.NodeTypes[ct.Name])
+                    .Where(nt => nt != null)
+                    .Select(nt => nt.Id)
+                    .ToArray();
+                var types = await DataStore.LoadChildTypesToAllowAsync(folder1.Id, transitiveNodeTypeIds, CancellationToken.None);
 
                 // ASSERT
                 var names = string.Join(", ", types.Select(x => x.Name).OrderBy(x => x));
