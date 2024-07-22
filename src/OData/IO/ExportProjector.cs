@@ -70,8 +70,7 @@ namespace SenseNet.OData.IO
                 case ODataMiddleware.ChildrenPropertyName:
                     return false;
                 case "AllowedChildTypes":
-                    var ctName = content.ContentType.Name;
-                    if (ctName == "Folder" || ctName == "Page")
+                    if(content.ContentType.IsTransitiveForAllowedTypes)
                         return false;
                     break;
             }

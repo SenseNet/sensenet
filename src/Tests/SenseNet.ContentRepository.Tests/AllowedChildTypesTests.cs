@@ -291,66 +291,8 @@ namespace SenseNet.ContentRepository.Tests
             });
         }
 
-        [TestMethod]
-        public void AllowedChildTypes_Bug1607_Transitive_Page()
-        {
-            const string ctd = @"<ContentType name=""{0}"" parentType=""GenericContent"" handler=""SenseNet.ContentRepository.GenericContent"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
-  <AllowedChildTypes>{1}</AllowedChildTypes>
-  <Fields><Field name=""TestCount"" type=""Integer""></Field></Fields>
-</ContentType>";
+        /* ---------------------------------------------------------------------------------- transitive */
 
-            Test(() =>
-            {
-                // Create 3 CTDs:		MyTypeA, Page, MyTypeC
-                // AllowChildType:		MyTypeA allows Page
-                // AllowChildType:		Page allows MyTypeC
-                ContentTypeInstaller.InstallContentType(
-                    string.Format(ctd, "MyTypeA", "Page"),
-                    string.Format(ctd, "Page", "MyTypeC"),
-                    string.Format(ctd, "MyTypeC", ""));
-
-                var genericContentType = ContentType.GetByName("GenericContent");
-                var myTypeAContentType = ContentType.GetByName("MyTypeA");
-                var pageContentType = ContentType.GetByName("Page");
-                var myTypeCContentType = ContentType.GetByName("MyTypeC");
-                Assert.AreEqual(genericContentType.Name, myTypeAContentType.ParentTypeName);
-                Assert.AreEqual(genericContentType.Name, pageContentType.ParentTypeName);
-                Assert.AreEqual(genericContentType.Name, myTypeCContentType.ParentTypeName);
-
-                // AllowChildType:		/Root/Content allows MyTypeA
-                var rootContent = Content.Load("/Root/Content");
-                var gc = (GenericContent) rootContent.ContentHandler;
-                gc.SetAllowedChildTypes(new[] {ContentType.GetByName("MyTypeA")});
-                gc.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
-
-                // New content:		/Root/Content/MyTypeA-1
-                var myTypeA1 = Content.CreateNew("MyTypeA", rootContent.ContentHandler, "MyTypeA-1");
-                myTypeA1.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
-
-                // New content:		/Root/Content/MyTypeA-1/Page-1
-                var page1 = Content.CreateNew("Page", myTypeA1.ContentHandler, "Page-1");
-                page1.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
-
-                // ACTION: Try new content:	/Root/Content/MyTypeA-1/Page-1/MyTypeC-1
-                var myTypeC1 = Content.CreateNew("MyTypeC", page1.ContentHandler, "MyTypeC-1");
-                Exception expectedException = null;
-                try
-                {
-                    myTypeC1.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
-                }
-                catch (InvalidOperationException e)
-                {
-                    expectedException = e;
-                }
-
-                // ASSERT
-                Assert.IsNotNull(expectedException);
-                Assert.IsTrue(expectedException.Message.Contains("Cannot save the content"));
-                Assert.IsTrue(expectedException.Message.Contains("because its ancestor does not allow the type 'MyTypeC'"));
-                Assert.IsTrue(expectedException.Message.Contains("Ancestor: /Root/Content/MyTypeA-1 (MyTypeA)."));
-                Assert.IsTrue(expectedException.Message.Contains("Allowed types: Page, SystemFolder"));
-            });
-        }
         [TestMethod]
         public void AllowedChildTypes_Bug1607_Transitive_Folder()
         {
@@ -408,6 +350,124 @@ namespace SenseNet.ContentRepository.Tests
                 Assert.IsTrue(expectedException.Message.Contains("because its ancestor does not allow the type 'MyTypeC'"));
                 Assert.IsTrue(expectedException.Message.Contains("Ancestor: /Root/Content/MyTypeA-1 (MyTypeA)."));
                 Assert.IsTrue(expectedException.Message.Contains("Allowed types: Folder, SystemFolder"));
+            });
+        }
+
+        [TestMethod]
+        public void AllowedChildTypes_Transitive_IsTransitive()
+        {
+            Test(() =>
+            {
+                // ACT-1
+                ContentTypeInstaller.InstallContentType(
+                    @"<ContentType name=""MyNotTransitiveType1"" parentType=""GenericContent"" handler=""SenseNet.ContentRepository.GenericContent"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
+                          <Fields/>
+                        </ContentType>",
+                    @"<ContentType name=""MyNotTransitiveType2"" parentType=""GenericContent"" handler=""SenseNet.ContentRepository.GenericContent"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
+                          <AllowedChildTypes transitive=""false"" />
+                          <Fields/>
+                        </ContentType>",
+                    @"<ContentType name=""MyTransitiveType1"" parentType=""GenericContent"" handler=""SenseNet.ContentRepository.GenericContent"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
+                          <AllowedChildTypes transitive=""true"" />
+                          <Fields/>
+                        </ContentType>"
+                );
+
+                // ASSERT-1
+                Assert.IsTrue(ContentType.GetByName("Folder").IsTransitiveForAllowedTypes);
+                Assert.IsTrue(ContentType.GetByName("MyTransitiveType1").IsTransitiveForAllowedTypes);
+                Assert.IsFalse(ContentType.GetByName("MyNotTransitiveType1").IsTransitiveForAllowedTypes);
+                Assert.IsFalse(ContentType.GetByName("MyNotTransitiveType2").IsTransitiveForAllowedTypes);
+
+                // ACT-2 error
+                string errorMessage = null;
+                try
+                {
+                    ContentTypeInstaller.InstallContentType(
+                        @"<ContentType name=""MyTransitiveType2"" parentType=""GenericContent"" handler=""SenseNet.ContentRepository.GenericContent"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
+                              <AllowedChildTypes transitive=""true"">Folder File</AllowedChildTypes>
+                              <Fields/>
+                            </ContentType>");
+                    Assert.Fail("The excpected ContentRegistrationException was not thrown.");
+                }
+                catch (ContentRegistrationException e)
+                {
+                    errorMessage = e.Message;
+                }
+
+                // ASSERT-2
+                Assert.AreEqual("The AllowedChildType element should be empty if the transitive attribute is true.", errorMessage);
+            });
+        }
+        [TestMethod]
+        public async System.Threading.Tasks.Task AllowedChildTypes_Transitive_ShowParentStuff()
+        {
+            await Test(async () =>
+            {
+                ContentTypeInstaller.InstallContentType(
+                    @"<ContentType name=""MyTransitiveType1"" parentType=""GenericContent"" handler=""SenseNet.ContentRepository.GenericContent"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
+                          <AllowedChildTypes transitive=""true"" />
+                          <Fields/>
+                        </ContentType>"
+                );
+                var parent = await Node.LoadAsync<Workspace>("/Root/Content", CancellationToken.None);
+                parent.AllowChildType("MyTransitiveType1", save: true);
+                var expected = parent.AllowedChildTypes.Select(x => x.Name).OrderBy(x => x);
+                var content = Content.CreateNew("MyTransitiveType1", parent, "content1");
+                await content.SaveAsync(CancellationToken.None);
+
+                // ACT-1
+                var loaded = (GenericContent)(await Content.LoadAsync(content.Path, CancellationToken.None)).ContentHandler;
+                var actual = loaded.AllowedChildTypes.Select(x => x.Name).OrderBy(x => x);
+
+                // ASSERT-1
+                Assert.AreEqual(string.Join(", ", expected), string.Join(", ", actual));
+            });
+        }
+        [TestMethod]
+        public void AllowedChildTypes_Transitive_Add_Error()
+        {
+            Test(() =>
+            {
+                // ACT-1
+                ContentTypeInstaller.InstallContentType(
+                    @"<ContentType name=""MyNotTransitiveType1"" parentType=""GenericContent"" handler=""SenseNet.ContentRepository.GenericContent"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
+                          <Fields/>
+                        </ContentType>",
+                    @"<ContentType name=""MyNotTransitiveType2"" parentType=""GenericContent"" handler=""SenseNet.ContentRepository.GenericContent"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
+                          <AllowedChildTypes transitive=""false"" />
+                          <Fields/>
+                        </ContentType>",
+                    @"<ContentType name=""MyTransitiveType1"" parentType=""GenericContent"" handler=""SenseNet.ContentRepository.GenericContent"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
+                          <AllowedChildTypes transitive=""true"" />
+                          <Fields/>
+                        </ContentType>"
+                );
+
+                // ASSERT-1
+                Assert.IsTrue(ContentType.GetByName("Folder").IsTransitiveForAllowedTypes);
+                Assert.IsTrue(ContentType.GetByName("MyTransitiveType1").IsTransitiveForAllowedTypes);
+                Assert.IsFalse(ContentType.GetByName("MyNotTransitiveType1").IsTransitiveForAllowedTypes);
+                Assert.IsFalse(ContentType.GetByName("MyNotTransitiveType2").IsTransitiveForAllowedTypes);
+
+                // ACT-2 error
+                string errorMessage = null;
+                try
+                {
+                    ContentTypeInstaller.InstallContentType(
+                        @"<ContentType name=""MyTransitiveType2"" parentType=""GenericContent"" handler=""SenseNet.ContentRepository.GenericContent"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
+                              <AllowedChildTypes transitive=""true"">Folder File</AllowedChildTypes>
+                              <Fields/>
+                            </ContentType>");
+                    Assert.Fail("The excpected ContentRegistrationException was not thrown.");
+                }
+                catch (ContentRegistrationException e)
+                {
+                    errorMessage = e.Message;
+                }
+
+                // ASSERT-2
+                Assert.AreEqual("The AllowedChildType element should be empty if the transitive attribute is true.", errorMessage);
             });
         }
 

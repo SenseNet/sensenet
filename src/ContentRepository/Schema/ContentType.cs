@@ -47,7 +47,7 @@ namespace  SenseNet.ContentRepository.Schema
 
         private static readonly string[] YES_VALUES = new[] { "yes", "true", "1" };
         private static readonly string[] NO_VALUES = new[] { "no", "false", "0" };
-
+        private static readonly string[] DefaultTransitiveContentTypeNames = { "Folder" };
         private string _icon;
         private string _extension;
         private string _appInfo;
@@ -265,6 +265,15 @@ namespace  SenseNet.ContentRepository.Schema
         /// This list is applied to Contents instantiated from this ContentType.
         /// This value comes from the ContentTypeDefinition.
         public IEnumerable<ContentType> AllowedChildTypes { get; private set; }
+        /// <summary>
+        /// Gets a value that specifies whether this content type allows or forbids explicit list of AllowedChildTypes.
+        /// </summary>
+        /// <remarks>
+        /// If the value is false (default), the content type can allow child types.
+        /// If the value is true, the content type inherits the allowed child types from its parent.
+        /// In this case, an attempt to modify the allowed child type list causes an error. 
+        /// </remarks>
+        public bool IsTransitiveForAllowedTypes { get; private set; }
 
         /// <summary>
         /// Gets the content of the AppInfo element under the ContentType element of the ContentTypeDefinition XML.
@@ -358,6 +367,8 @@ namespace  SenseNet.ContentRepository.Schema
                 RemoveUnusedField(name);
 
             ParseContentTypeElement(root, nsres);
+            if (DefaultTransitiveContentTypeNames.Contains(Name))
+                IsTransitiveForAllowedTypes = true;
 
             SetFieldSlots();
         }
@@ -503,7 +514,17 @@ namespace  SenseNet.ContentRepository.Schema
         public static readonly char[] XmlListSeparators = " ,;\t\r\n".ToCharArray();
         private void ParseAllowedChildTypes(XPathNavigator allowedChildTypesElement, IXmlNamespaceResolver nsres)
         {
-            AllowedChildTypeNames = allowedChildTypesElement.InnerXml.Split(XmlListSeparators, StringSplitOptions.RemoveEmptyEntries).Select(x => x.Trim()).ToArray();
+            var allowedChildTypeNames = allowedChildTypesElement.InnerXml.Split(XmlListSeparators, StringSplitOptions.RemoveEmptyEntries).Select(x => x.Trim()).ToArray();
+
+            var transitiveAttr = allowedChildTypesElement.GetAttribute("transitive", "");
+            if (transitiveAttr == "true")
+            {
+                IsTransitiveForAllowedTypes = true;
+                if (allowedChildTypeNames.Length > 0)
+                    throw new ContentRegistrationException("The AllowedChildType element should be empty if the transitive attribute is true.", this.Name);
+            }
+
+            AllowedChildTypeNames = allowedChildTypeNames;
         }
         internal void FinalizeAllowedChildTypes(Dictionary<string, ContentType> contentTypes, List<string> allFieldNames)
         {

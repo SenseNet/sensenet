@@ -347,9 +347,10 @@ namespace SenseNet.ContentRepository
                 if (gc == null)
                     continue;
 
-                var t = node.NodeType.Name;
-                if (t == "SystemFolder" || t == "Folder" || t == "Page")
+                if (gc.ContentType.IsTransitiveForAllowedTypes)
                     continue;
+
+                var t = node.NodeType.Name;
 
                 if (gc.GetAllowedChildTypeNames().Count() > 0)
                     continue;

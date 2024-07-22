@@ -524,6 +524,9 @@ namespace SenseNet.ContentRepository
         {
             get
             {
+                if (this.ContentType.IsTransitiveForAllowedTypes)
+                    return ((GenericContent) Parent).AllowedChildTypes;
+
                 var value = this.GetProperty<string>(ALLOWEDCHILDTYPES);
                 if (string.IsNullOrEmpty(value))
                     return ContentType.EmptyAllowedChildTypes;
@@ -954,7 +957,7 @@ namespace SenseNet.ContentRepository
         private IEnumerable<string> GetAllowedChildTypeNames(bool withSystemFolder)
         {
             // in case of folders and pages inherit settings from parent
-            if (this.NodeType.Name == "Folder" || this.NodeType.Name == "Page")
+            if (this.ContentType.IsTransitiveForAllowedTypes)
             {
                 var parent = SystemAccount.Execute(() => Parent as GenericContent);
                 if (parent == null)
@@ -1013,7 +1016,7 @@ namespace SenseNet.ContentRepository
         public IEnumerable<ContentType> GetAllowedChildTypes()
         {
             // in case of folders and pages inherit settings from parent
-            if (this.NodeType.Name == "Folder" || this.NodeType.Name == "Page")
+            if (this.ContentType.IsTransitiveForAllowedTypes)
             {
                 GenericContent parent;
                 using (new SystemAccount())
@@ -1139,7 +1142,7 @@ namespace SenseNet.ContentRepository
             using (new SystemAccount())
             {
                 // using as object when it is unknown (Page)
-                while (current != null && (current.NodeType.Name == "Folder" || current.NodeType.Name == "Page"))
+                while (current != null && current.ContentType.IsTransitiveForAllowedTypes)
                     current = current.Parent as GenericContent;
             }
 
@@ -1158,7 +1161,7 @@ namespace SenseNet.ContentRepository
             var ancestor = parent;
             using (new SystemAccount())
             {
-                while (ancestor.NodeType.Name == "Folder" || ancestor.NodeType.Name == "Page")
+                while (ancestor.ContentType.IsTransitiveForAllowedTypes)
                 {
                     var p = ancestor.Parent as GenericContent;
                     if (p == null)
@@ -1179,7 +1182,7 @@ namespace SenseNet.ContentRepository
             using (new SystemAccount())
             {
                 var ancestor = target;
-                while (ancestor.NodeType.Name == "Folder" || ancestor.NodeType.Name == "Page")
+                while (ancestor.ContentType.IsTransitiveForAllowedTypes)
                 {
                     var p = ancestor.Parent as GenericContent;
                     if (p == null)
@@ -1299,38 +1302,34 @@ namespace SenseNet.ContentRepository
             // This method provides the algorithm for handling special types (Folder, Page) 
             // that are treated differenlty in case of the allowed child types feature.
 
-            switch (this.NodeType.Name)
+            if (this.ContentType.IsTransitiveForAllowedTypes)
             {
-                case "Folder":
-                case "Page":
-                    if (setOnAncestorIfInherits)
-                    {
-                        GenericContent parent;
-                        using (new SystemAccount())
-                            parent = this.Parent as GenericContent;
+                if (setOnAncestorIfInherits)
+                {
+                    GenericContent parent;
+                    using (new SystemAccount())
+                        parent = this.Parent as GenericContent;
 
-                        if (parent != null)
-                        {
-                            // execute the action on the parent instead
-                            parentAction(parent);
-                        }
-                        else
-                        {
-                            if (throwOnError)
-                                throw GetCannotAllowContentTypeException();
-                        }
+                    if (parent != null)
+                    {
+                        // execute the action on the parent instead
+                        parentAction(parent);
                     }
                     else
                     {
                         if (throwOnError)
                             throw GetCannotAllowContentTypeException();
                     }
-                    return;
-                default:
-                    // execute the action on the content itself
-                    setAction();
-                    return;
+                }
+                else
+                {
+                    if (throwOnError)
+                        throw GetCannotAllowContentTypeException();
+                }
+                return;
             }
+            // execute the action on the content itself
+            setAction();
         }
         private void SetAllowedChildTypesInternal(IEnumerable<ContentType> contentTypes, bool save = false)
         {
