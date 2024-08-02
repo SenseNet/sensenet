@@ -96,7 +96,7 @@ namespace SenseNet.Search.Querying
             return JsonConvert.SerializeObject(this, SerializerSettings);
         }
 
-        internal static SnTerm Deserialize(string serializedSnTerm)
+        public static SnTerm Deserialize(string serializedSnTerm)
         {
             try
             {
