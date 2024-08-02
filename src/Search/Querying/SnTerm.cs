@@ -1,5 +1,12 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
+using System.Linq;
+using System.Runtime.Serialization;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using SenseNet.Search.Indexing;
 
 namespace SenseNet.Search.Querying
 {
@@ -74,5 +81,108 @@ namespace SenseNet.Search.Querying
         {
             return $"{Name}:{base.ToString()}";
         }
+
+
+        internal static readonly JsonSerializerSettings SerializerSettings = new JsonSerializerSettings
+        {
+            Converters = new List<JsonConverter> { new SnTermJsonConverter() },
+            NullValueHandling = NullValueHandling.Ignore,
+            DateTimeZoneHandling = DateTimeZoneHandling.Utc,
+            Formatting = Formatting.Indented
+        };
+
+        public string Serialize()
+        {
+            return JsonConvert.SerializeObject(this, SerializerSettings);
+        }
+
+        internal static SnTerm Deserialize(string serializedSnTerm)
+        {
+            try
+            {
+                var deserialized = JsonSerializer.Create(IndexField.FormattedSerializerSettings).Deserialize(
+                    new JsonTextReader(new StringReader(serializedSnTerm)));
+                var field = (JObject)deserialized;
+                return Deserialize(field);
+            }
+            catch (Exception e)
+            {
+                throw new SerializationException("Cannot deserialize the SnTerm: " + e.Message, e);
+            }
+        }
+
+        public static SnTerm Deserialize(JObject snTermJObject)
+        {
+            try
+            {
+                string name = null;
+                var type = IndexValueType.String;
+                object value = null;
+
+                foreach (var item in snTermJObject)
+                {
+                    switch (item.Key)
+                    {
+                        case "Name":
+                            name = ((JValue)item.Value).ToString();
+                            break;
+                        case "Type":
+                            type = (IndexValueType)Enum.Parse(typeof(IndexValueType), ((JValue)item.Value).ToString(),
+                                true);
+                            break;
+                        case "Value":
+                            if (item.Value is JValue jvalue)
+                                value = jvalue;
+                            else if (item.Value is JArray jarray)
+                                value = jarray.Select(x => x.ToString()).ToArray();
+                            break;
+                        default:
+                            throw new NotSupportedException();
+                    }
+                }
+
+                SnTerm term;
+                switch (type)
+                {
+                    case IndexValueType.String:
+                        term = new SnTerm(name, value?.ToString());
+                        break;
+                    case IndexValueType.StringArray:
+                        term = new SnTerm(name, (string[])value);
+                        break;
+                    case IndexValueType.Bool:
+                        term = new SnTerm(name, Convert.ToBoolean(value));
+                        break;
+                    case IndexValueType.Int:
+                        term = new SnTerm(name, Convert.ToInt32(value));
+                        break;
+                    case IndexValueType.IntArray:
+                        var stringArray = (string[])value ?? Array.Empty<string>();
+                        var intValues = stringArray.Select(x => Convert.ToInt32(x)).ToArray();
+                        term = new SnTerm(name, intValues);
+                        break;
+                    case IndexValueType.Long:
+                        term = new SnTerm(name, Convert.ToInt64(value));
+                        break;
+                    case IndexValueType.Float:
+                        term = new SnTerm(name, Convert.ToSingle(value));
+                        break;
+                    case IndexValueType.Double:
+                        term = new SnTerm(name, Convert.ToDouble(value));
+                        break;
+                    case IndexValueType.DateTime:
+                        term = new SnTerm(name, DateTime.Parse(value.ToString()));
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
+                return term;
+            }
+            catch (Exception e)
+            {
+                throw new SerializationException("Cannot deserialize the SnTerm: " + e.Message, e);
+            }
+        }
+
     }
 }
