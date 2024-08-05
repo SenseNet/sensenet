@@ -161,7 +161,7 @@ namespace SenseNet.Search
         /// </summary>
         public string ValueAsString { get; }
 
-        private string[] _typesStrings = {"S", "S[]", "B", "I", "I[]", "L", "F", "D", "T"};
+        private static string[] _typesStrings = {"S", "S[]", "B", "I", "I[]", "L", "F", "D", "T"};
         public override string ToString()
         {
             var type = _typesStrings[(int)Type];
