@@ -172,7 +172,6 @@ namespace SenseNet.Search.Tests
         }
         [TestMethod, TestCategory("IR")]
         public void SnQuery_PrepareFilters_DefaultDefault()
-
         {
             var queryText = "Name:MyDocument.doc";
 
@@ -198,6 +197,34 @@ namespace SenseNet.Search.Tests
             // check global format of the query
             var expectedQueryText = $"+Name:mydocument.doc +IsSystemContent:no +(EnableLifespan:no (+ValidFrom:<'{queryTimeString}' +(ValidTill:>'{queryTimeString}' ValidTill:'0001-01-01 00:00:00.0000')))";
             Assert.AreEqual(expectedQueryText, queryTextAfter);
+        }
+
+        [TestMethod, TestCategory("IR")]
+        public void SnQuery_ParseAndToString()
+        {
+            // ACT-1: Keywords
+            var queryText = "F1:V0 OR (F1:V1 AND F2:V2) .ALLVERSIONS .COUNTONLY .TOP:3 .SKIP:4 .SORT:F1 .REVERSESORT:F2 .AUTOFILTERS:OFF .LIFESPAN:ON .QUICK";
+            var snQuery = SnQuery.Parse(queryText, new TestQueryContext(QuerySettings.Default, 1, _indexingInfo));
+            var x = snQuery.ToString();
+            // ASSERT-1
+            var expected = "F1:v0 (+F1:v1 +F2:v2) .ALLVERSIONS .COUNTONLY .TOP:3 .SKIP:4 .SORT:F1 .REVERSESORT:F2 .AUTOFILTERS:OFF .LIFESPAN:ON .QUICK";
+            Assert.AreEqual(expected, x);
+
+            // ACT-2: Ranges
+            queryText = "Id:>100 Id:<10 Id:[ TO 10] Id:[10 TO ] Id:[10 TO 20] Id:{20 TO 30] Id:[30 TO 40} Id:{40 TO 50}";
+            snQuery = SnQuery.Parse(queryText, new TestQueryContext(QuerySettings.Default, 1, _indexingInfo));
+            x = snQuery.ToString();
+            // ASSERT-2
+            expected = "Id:>100 Id:<10 Id:<=10 Id:>=10 Id:[10 TO 20] Id:{20 TO 30] Id:[30 TO 40} Id:{40 TO 50}";
+            Assert.AreEqual(expected, x);
+
+            // ACT-3: Projection
+            queryText = "F1:V0 AND NOT F2:V2 .SELECT:Name";
+            snQuery = SnQuery.Parse(queryText, new TestQueryContext(QuerySettings.Default, 1, _indexingInfo));
+            x = snQuery.ToString();
+            // ASSERT-3
+            expected = "+F1:v0 -F2:v2 .SELECT:Name";
+            Assert.AreEqual(expected, x);
         }
 
         [TestMethod, TestCategory("IR"), TestCategory("Services")]
