@@ -458,16 +458,14 @@ namespace SenseNet.Search.Indexing
         {
             if (_serializedIndexDocument == null)
             {
-                using (var op = SnTrace.Index.StartOperation($"Serialize IndexDocument. VersionId: {VersionId}"))
+                using (var writer = new StringWriter())
                 {
-                    using (var writer = new StringWriter())
-                    {
-                        var settings = oneLine ? IndexField.OneLineSerializerSettings : IndexField.FormattedSerializerSettings;
-                        JsonSerializer.Create(settings).Serialize(writer, this);
-                        _serializedIndexDocument = writer.GetStringBuilder().ToString();
-                    }
-                    op.Successful = true;
+                    var settings = oneLine ? IndexField.OneLineSerializerSettings : IndexField.FormattedSerializerSettings;
+                    JsonSerializer.Create(settings).Serialize(writer, this);
+                    _serializedIndexDocument = writer.GetStringBuilder().ToString();
                 }
+                SnTrace.Index.Write($"Serialize IndexDocument. VersionId: {VersionId}, " +
+                                    $"size: {_serializedIndexDocument.Length}");
             }
             return _serializedIndexDocument;
         }
