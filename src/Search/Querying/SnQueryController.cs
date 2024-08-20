@@ -354,6 +354,9 @@ namespace SenseNet.Search.Querying
             if (QueryExecutionMode == QueryExecutionMode.Quick)
                 sb.Append(" ").Append(Cql.Keyword.Quick);
 
+            if(!string.IsNullOrEmpty(Projection))
+                sb.Append(" ").Append(Cql.Keyword.Select).Append(":").Append(Projection);
+
             return sb.ToString();
         }
     }
