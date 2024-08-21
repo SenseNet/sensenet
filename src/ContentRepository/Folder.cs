@@ -48,20 +48,6 @@ namespace SenseNet.ContentRepository
         /// </summary>
         protected Folder(NodeToken nt) : base(nt) { }
 
-	    /// <inheritdoc select="summary" />
-        /// <remarks>This value cannot be modified in case of simple Folders,
-        /// they inherit this list from their parent.</remarks>
-        public override IEnumerable<ContentType> AllowedChildTypes
-        {
-            get { return base.AllowedChildTypes; }
-            set
-            {
-                if (this.NodeType.Name == "Folder")
-                    return;
-                base.AllowedChildTypes = value;
-            }
-        }
-
 	    /// <inheritdoc />
         public virtual IEnumerable<Node> Children
         {

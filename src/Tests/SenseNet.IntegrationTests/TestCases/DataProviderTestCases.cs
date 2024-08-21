@@ -695,7 +695,7 @@ namespace SenseNet.IntegrationTests.TestCases
                 // Create a small subtree
                 var root = CreateTestRoot();
                 var site1 = new Workspace(root) { Name = "Site1" }; site1.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
-                site1.AllowChildTypes(new[] { "Task" }); site1.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
+                site1.AllowChildTypes(new[] { "Task", "MyTransitiveType1" }, save: true);
                 site1 = Node.Load<Workspace>(site1.Id);
                 var folder1 = new Folder(site1) { Name = "Folder1" }; folder1.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var folder2 = new Folder(folder1) { Name = "Folder2" }; folder2.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
@@ -705,21 +705,25 @@ namespace SenseNet.IntegrationTests.TestCases
                 var file1 = new File(doclib1) { Name = "File1" }; file1.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var systemFolder1 = new SystemFolder(doclib1) { Name = "SystemFolder1" }; systemFolder1.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var file2 = new File(systemFolder1) { Name = "File2" }; file2.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
+                var custom1 = new GenericContent(folder1, "MyTransitiveType1"); custom1.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
+                var memoList2 = new ContentList(custom1, "MemoList") { Name = "MemoList2" }; memoList2.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
+                var memo1 = new GenericContent(memoList2, "Memo") { Name = "Mem1" }; memo1.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var memoList1 = new ContentList(folder1, "MemoList") { Name = "MemoList1" }; memoList1.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var site2 = new Workspace(root) { Name = "Site2" }; site2.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
-                // ACTION
                 var transitiveNodeTypeIds = ContentType.GetContentTypes()
                     .Where(ct => ct.IsTransitiveForAllowedTypes)
                     .Select(ct => Providers.Instance.StorageSchema.NodeTypes[ct.Name])
                     .Where(nt => nt != null)
                     .Select(nt => nt.Id)
                     .ToArray();
+
+                // ACTION
                 var types = await DataStore.LoadChildTypesToAllowAsync(folder1.Id, transitiveNodeTypeIds, CancellationToken.None);
 
                 // ASSERT
                 var names = string.Join(", ", types.Select(x => x.Name).OrderBy(x => x));
-                Assert.AreEqual("DocumentLibrary, Folder, MemoList, Task", names);
+                Assert.AreEqual("DocumentLibrary, Folder, MemoList, MyTransitiveType1, Task", names);
             });
         }
         public async Task DP_ContentListTypesInTree()
