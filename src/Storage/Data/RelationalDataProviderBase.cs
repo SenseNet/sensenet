@@ -1524,6 +1524,8 @@ namespace SenseNet.ContentRepository.Storage.Data
             var result = await ctx.ExecuteReaderAsync(LoadChildTypesToAllowScript, cmd =>
             {
                 cmd.Parameters.Add(ctx.CreateParameter("@NodeId", DbType.Int32, nodeId));
+                var ids = string.Join(",", transitiveNodeTypeIds.Select(x => x.ToString()));
+                cmd.Parameters.Add(ctx.CreateParameter("@TransparentTypeIds", DbType.String, ids.Length, ids));
             }, async (reader, cancel) =>
             {
                 cancel.ThrowIfCancellationRequested();

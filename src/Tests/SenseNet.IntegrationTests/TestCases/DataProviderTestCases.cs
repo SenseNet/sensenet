@@ -686,46 +686,82 @@ namespace SenseNet.IntegrationTests.TestCases
             await IntegrationTestAsync(async () =>
             {
                 ContentTypeInstaller.InstallContentType(
-                    @"<ContentType name=""MyTransitiveType1"" parentType=""GenericContent"" handler=""SenseNet.ContentRepository.GenericContent"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
-                          <AllowedChildTypes transitive=""true"" />
-                          <Fields/>
+                    @"<ContentType name=""TR1"" parentType=""GenericContent"" handler=""SenseNet.ContentRepository.GenericContent"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
+                        <AllowedChildTypes transitive=""true"" />
+                        </ContentType>",
+                    @"<ContentType name=""TR2"" parentType=""GenericContent"" handler=""SenseNet.ContentRepository.GenericContent"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
+                        <AllowedChildTypes transitive=""true"" />
+                        </ContentType>",
+                    @"<ContentType name=""T0"" parentType=""GenericContent"" handler=""SenseNet.ContentRepository.GenericContent"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
+                        <AllowedChildTypes>T1,T2</AllowedChildTypes>
+                        </ContentType>",
+                    @"<ContentType name=""T1"" parentType=""GenericContent"" handler=""SenseNet.ContentRepository.GenericContent"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
+                        </ContentType>",
+                    @"<ContentType name=""T2"" parentType=""GenericContent"" handler=""SenseNet.ContentRepository.GenericContent"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
+                        </ContentType>",
+                    @"<ContentType name=""T3"" parentType=""GenericContent"" handler=""SenseNet.ContentRepository.GenericContent"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
+                        <AllowedChildTypes>Folder,T1</AllowedChildTypes>
+                        </ContentType>",
+                    @"<ContentType name=""T4"" parentType=""GenericContent"" handler=""SenseNet.ContentRepository.GenericContent"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
+                        <AllowedChildTypes>T2</AllowedChildTypes>
+                        </ContentType>",
+                    @"<ContentType name=""T5"" parentType=""GenericContent"" handler=""SenseNet.ContentRepository.GenericContent"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
+                        </ContentType>",
+                    @"<ContentType name=""T6"" parentType=""GenericContent"" handler=""SenseNet.ContentRepository.GenericContent"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
+                        <AllowedChildTypes>T7</AllowedChildTypes>
+                        </ContentType>",
+                    @"<ContentType name=""T7"" parentType=""GenericContent"" handler=""SenseNet.ContentRepository.GenericContent"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
                         </ContentType>"
                 );
 
                 // Create a small subtree
-                // ----------------------
-                // root:SystemFolder
-                //     site1:Workspace // AllowChildTypes("Task ) 
-                //         folder1:Folder
-                //             folder2:Folder
-                //             folder3:Folder
-                //                 task1:Task
-                //                 doclib1:ContentList("DocumentLibrary")
-                //                     file1:File
-                //                     systemFolder1:SystemFolder
-                //                         file2:File
-                //             custom1:GenericContent("MyTransitiveType1")
-                //                 memoList2:ContentList("MemoList")
-                //                     memo1:GenericContent("Memo")
-                //             memoList1:ContentList(folder1, "MemoList")
-                //     site2:Workspace
+                // ------------------------------
+                //  w                        | o
+                //      t0                   | -
+                //          t1               | -
+                //          t2               | -
+                //      f0                   | o
+                //          f1               | o
+                //              t3           | -
+                //                  f3       | -
+                //                      t11  | -
+                //      tr1                  | o
+                //          f2               | o
+                //              t4           | -
+                //                  t22      | -
+                //      tr2                  | o
+                //          t5               | -
+                //      t6                   | -
+                //          t7               | -
                 var root = CreateTestRoot();
-                var site1 = new Workspace(root) { Name = "Site1" }; site1.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
-                site1.AllowChildTypes(new[] { "Task", "MyTransitiveType1" }, save: true);
-                site1 = Node.Load<Workspace>(site1.Id);
-                var folder1 = new Folder(site1) { Name = "Folder1" }; folder1.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
-                var folder2 = new Folder(folder1) { Name = "Folder2" }; folder2.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
-                var folder3 = new Folder(folder1) { Name = "Folder3" }; folder3.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
-                var task1 = new ContentRepository.Task(folder3) { Name = "Task1" }; task1.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
-                var doclib1 = new ContentList(folder3, "DocumentLibrary") { Name = "Doclib1" }; doclib1.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
-                var file1 = new File(doclib1) { Name = "File1" }; file1.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
-                var systemFolder1 = new SystemFolder(doclib1) { Name = "SystemFolder1" }; systemFolder1.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
-                var file2 = new File(systemFolder1) { Name = "File2" }; file2.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
-                var custom1 = new GenericContent(folder1, "MyTransitiveType1"); custom1.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
-                var memoList2 = new ContentList(custom1, "MemoList") { Name = "MemoList2" }; memoList2.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
-                var memo1 = new GenericContent(memoList2, "Memo") { Name = "Mem1" }; memo1.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
-                var memoList1 = new ContentList(folder1, "MemoList") { Name = "MemoList1" }; memoList1.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
-                var site2 = new Workspace(root) { Name = "Site2" }; site2.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
+                var w = new Workspace(root) { Name = "W" }; await w.SaveAsync(CancellationToken.None);
+                w.AllowChildTypes(new[] { "TR1", "TR2", "T0", "T3", "T4", "T5", "T6", "T7" }, save: true);
+                w = Node.Load<Workspace>(w.Id);
+
+                async Task<GenericContent> CreateContentAsync(GenericContent parent, string type, string name)
+                {
+                    var content = new GenericContent(parent, type) { Name = name };
+                    await content.SaveAsync(CancellationToken.None);
+                    return content;
+                }
+
+                var t0 = /*-*/ await CreateContentAsync(w, "T0", "T0");
+                var t1 = /*-----*/ await CreateContentAsync(t0, "T1", "T1");
+                var t2 = /*-----*/ await CreateContentAsync(t0, "T2", "T2");
+                var f0 = /*-*/ await CreateContentAsync(w, "Folder", "F0");
+                var f1 = /*-----*/ await CreateContentAsync(f0, "Folder", "F1");
+                var t3 = /*---------*/ await CreateContentAsync(f1, "T3", "T3");
+                var f3 = /*-------------*/ await CreateContentAsync(t3, "Folder", "F3");
+                var t11 = /*----------------*/ await CreateContentAsync(f3, "T1", "T11");
+                var tr1 = /**/ await CreateContentAsync(w, "TR1", "TR1");
+                var f2 = /*-----*/ await CreateContentAsync(tr1, "Folder", "F2");
+                var t4 = /*---------*/ await CreateContentAsync(f2, "T4", "T4");
+                var t22 = /*------------*/ await CreateContentAsync(t4, "T2", "T22");
+                var tr2 = /**/ await CreateContentAsync(w, "TR2", "TR2");
+                var t5 = /*-----*/ await CreateContentAsync(tr2, "T5", "T5");
+                var t6 = /*-*/ await CreateContentAsync(w, "T6", "T6");
+                var t7 = /*-----*/ await CreateContentAsync(t6, "T7", "T7");
+
 
                 var transitiveNodeTypeIds = ContentType.GetContentTypes()
                     .Where(ct => ct.IsTransitiveForAllowedTypes)
@@ -735,11 +771,11 @@ namespace SenseNet.IntegrationTests.TestCases
                     .ToArray();
 
                 // ACTION
-                var types = await DataStore.LoadChildTypesToAllowAsync(folder1.Id, transitiveNodeTypeIds, CancellationToken.None);
+                var types = await DataStore.LoadChildTypesToAllowAsync(w.Id, transitiveNodeTypeIds, CancellationToken.None);
 
                 // ASSERT
                 var names = string.Join(", ", types.Select(x => x.Name).OrderBy(x => x));
-                Assert.AreEqual("DocumentLibrary, Folder, MemoList, MyTransitiveType1, Task", names);
+                Assert.AreEqual("Folder, T0, T3, T4, T5, T6, TR1, TR2, Workspace", names);
             });
         }
         public async Task DP_ContentListTypesInTree()

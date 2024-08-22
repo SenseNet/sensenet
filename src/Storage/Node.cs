@@ -3589,7 +3589,6 @@ namespace SenseNet.ContentRepository.Storage
         }
         #endregion
 
-        //TODO: Node.GetChildTypesToAllow(int nodeId): check SQL procedure algorithm. See issue #259
         /// <summary>
         /// Gets all the types that can be found in a subtree under a node defined by an Id.
         /// </summary>
@@ -3598,7 +3597,6 @@ namespace SenseNet.ContentRepository.Storage
             return Providers.Instance.DataStore
                 .LoadChildTypesToAllowAsync(nodeId, transitiveNodeTypeIds, CancellationToken.None).GetAwaiter().GetResult();
         }
-        //TODO: Node.GetChildTypesToAllow(): check SQL procedure algorithm. See issue #259
         /// <summary>
         /// Gets all the types that can be found in a subtree under the current node.
         /// </summary>
