@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.Configuration;
@@ -479,36 +480,38 @@ namespace SenseNet.ContentRepository.Tests
                 Assert.AreEqual("Cannot allow any content type on a MyTransitiveType1. Path: /Root/Content/F1/F11/F111", errorMessage2);
 
 
-                // ACT-3 operation not allowed
-                try
+                // ALIGN-3 Ensure that f11 does not allow the customType as child type
+                if (f11.IsAllowedChildType(customType))
                 {
-                    var list = f1.AllowedChildTypes.ToList();
-                    list.Add(customType);
-                    f1.AllowedChildTypes = list;
-                    await f1.SaveAsync(cancel);
-                    Assert.Fail("The expected InvalidOperationException was not thrown.");
+                    var list = f11.AllowedChildTypes.ToList();
+                    list.Remove(customType);
+                    f11.SetAllowedChildTypes(list, save: true);
+                    f11 = await Node.LoadAsync<GenericContent>(f11.Id, cancel);
                 }
-                catch (InvalidOperationException e)
-                {
-                    errorMessage1 = e.Message;
-                }
-                try
-                {
-                    var list = f111.AllowedChildTypes.ToList();
-                    list.Add(customType);
-                    f111.AllowedChildTypes = list;
-                    await f111.SaveAsync(cancel);
-                    Assert.Fail("The expected InvalidOperationException was not thrown.");
-                }
-                catch (InvalidOperationException e)
-                {
-                    errorMessage2 = e.Message;
-                }
+                Assert.IsFalse(f11.IsAllowedChildType(customType));
+
+                // ACT-3 operation skipped when the content is transitive
+                var f1Names = await SetAndGetAllowedChildTypeNamesAsync(f1, customType, cancel);
+                var f11Names = await SetAndGetAllowedChildTypeNamesAsync(f11, customType, cancel);
+                var f111Names = await SetAndGetAllowedChildTypeNamesAsync(f111, customType, cancel);
 
                 // ASSERT-3
-                Assert.AreEqual("Cannot allow any content type on a Folder. Path: /Root/Content/F1", errorMessage1);
-                Assert.AreEqual("Cannot allow any content type on a MyTransitiveType1. Path: /Root/Content/F1/F11/F111", errorMessage2);
+                Assert.AreEqual(f1Names.before, f1Names.after);
+                Assert.AreNotEqual(f11Names.before, f11Names.after);
+                Assert.AreEqual(f111Names.before, f111Names.after);
             });
+        }
+        private async Task<(string before, string after)> SetAndGetAllowedChildTypeNamesAsync(GenericContent content,
+            ContentType additionalType, CancellationToken cancel)
+        {
+            var namesBefore = content.GetProperty<string>("AllowedChildTypes");
+            var list = content.AllowedChildTypes.ToList();
+            list.Add(additionalType);
+            content.AllowedChildTypes = list;
+            await content.SaveAsync(cancel);
+            content = await Node.LoadAsync<GenericContent>(content.Id, cancel);
+            var namesAfter = content.GetProperty<string>("AllowedChildTypes");
+            return (namesBefore, namesAfter);
         }
 
         /* ---------------------------------------------------------------------------------- */

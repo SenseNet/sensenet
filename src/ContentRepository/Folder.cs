@@ -104,8 +104,6 @@ namespace SenseNet.ContentRepository
         {
             switch (name)
             {
-                case GenericContent.ALLOWEDCHILDTYPES:
-                    return this.AllowedChildTypes;
                 case nameof(PreviewEnabled):
                     return this.PreviewEnabled;
                 default:
@@ -117,9 +115,6 @@ namespace SenseNet.ContentRepository
         {
             switch (name)
             {
-                case GenericContent.ALLOWEDCHILDTYPES:
-                    this.AllowedChildTypes = (IEnumerable<ContentType>)value;
-                    break;
                 case nameof(PreviewEnabled):
                     this.PreviewEnabled = (PreviewEnabled) value;
                     break;

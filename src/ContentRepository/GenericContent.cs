@@ -538,6 +538,8 @@ namespace SenseNet.ContentRepository
             }
             set
             {
+                if (ContentType.IsTransitiveForAllowedTypes)
+                    return;
                 var names = value == null ? null : string.Join(" ", value.Select(x => x.Name).Distinct());
                 this[ALLOWEDCHILDTYPES] = names;
             }
