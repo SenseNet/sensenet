@@ -693,6 +693,22 @@ namespace SenseNet.IntegrationTests.TestCases
                 );
 
                 // Create a small subtree
+                // ----------------------
+                // root:SystemFolder
+                //     site1:Workspace // AllowChildTypes("Task ) 
+                //         folder1:Folder
+                //             folder2:Folder
+                //             folder3:Folder
+                //                 task1:Task
+                //                 doclib1:ContentList("DocumentLibrary")
+                //                     file1:File
+                //                     systemFolder1:SystemFolder
+                //                         file2:File
+                //             custom1:GenericContent("MyTransitiveType1")
+                //                 memoList2:ContentList("MemoList")
+                //                     memo1:GenericContent("Memo")
+                //             memoList1:ContentList(folder1, "MemoList")
+                //     site2:Workspace
                 var root = CreateTestRoot();
                 var site1 = new Workspace(root) { Name = "Site1" }; site1.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 site1.AllowChildTypes(new[] { "Task", "MyTransitiveType1" }, save: true);
