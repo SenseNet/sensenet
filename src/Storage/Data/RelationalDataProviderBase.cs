@@ -31,8 +31,6 @@ namespace SenseNet.ContentRepository.Storage.Data
     {
         protected int IndexBlockSize = 100;
 
-        public virtual IDataPlatform<DbConnection, DbCommand, DbParameter> GetPlatform() { return null; } //TODO:~ UNDELETABLE
-
         //TODO: [DIBLOB] get this instance through the constructor later
         private IBlobStorage BlobStorage => Providers.Instance.BlobStorage;
         private StorageSchema StorageSchema => Providers.Instance.StorageSchema;
