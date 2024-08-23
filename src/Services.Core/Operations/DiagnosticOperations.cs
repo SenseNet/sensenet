@@ -77,7 +77,7 @@ namespace SenseNet.Services.Core.Operations
         /// <param name="content"></param>
         /// <param name="httpContext"></param>
         /// <returns>A <see cref="RepositoryVersionView"/> instance containing releases, packages, components, assemblies.</returns>
-        [ODataFunction]
+        [ODataFunction(Category = "Other")]
         [ContentTypes(N.CT.PortalRoot)]
         [AllowedRoles(N.R.Administrators, N.R.PublicAdministrators, N.R.Developers)]
         public static async Task<RepositoryVersionView> GetVersionInfo(Content content, HttpContext httpContext)
@@ -124,7 +124,7 @@ namespace SenseNet.Services.Core.Operations
         /// <param name="force">True if the data should be refreshed from the database. Default: false</param>
         /// <returns>A <see cref="DatabaseUsage"/> object containing content, preview, binary
         /// and version count information.</returns>
-        [ODataFunction]
+        [ODataFunction(Category = "Tools")]
         [ContentTypes(N.CT.PortalRoot)]
         [AllowedRoles(N.R.Administrators, N.R.PublicAdministrators, N.R.Developers)]
         public static async Task<DatabaseUsage> GetDatabaseUsage(Content content, HttpContext httpContext, bool force = false)

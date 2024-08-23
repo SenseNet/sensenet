@@ -20,7 +20,7 @@ namespace SenseNet.WebHooks
         /// <param name="eventType">Event type to simulate. Can be one of the available events: All, Create, Delete, Modify, Approve,
         /// Reject, Draft, Pending, CheckOut, MoveToTrash, RestoreFromTrash</param>
         /// <returns>The webhook subscription that was fired.</returns>
-        [ODataAction]
+        [ODataAction(Category = "WebHooks")]
         [ContentTypes("WebHookSubscription")]
         [AllowedRoles(N.R.Administrators, N.R.PublicAdministrators)]
         public static async Task<Content> FireWebHook(Content webHookContent, HttpContext context, string path, WebHookEventType eventType)
@@ -41,7 +41,7 @@ namespace SenseNet.WebHooks
         /// <param name="eventType">Event type to simulate. Can be one of the available events: All, Create, Delete, Modify, Approve,
         /// Reject, Draft, Pending, CheckOut, MoveToTrash, RestoreFromTrash</param>
         /// <returns>The webhook subscription that was fired.</returns>
-        [ODataAction]
+        [ODataAction(Category = "WebHooks")]
         [ContentTypes("WebHookSubscription")]
         [AllowedRoles(N.R.Administrators, N.R.PublicAdministrators)]
         public static async Task<Content> FireWebHook(Content webHookContent, HttpContext context, int nodeId, WebHookEventType eventType)

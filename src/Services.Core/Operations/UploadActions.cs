@@ -9,7 +9,7 @@ namespace SenseNet.Services.Core.Operations
     public static class UploadActions
     {
         /// <summary>Uploads a whole file or only a chunk.</summary>
-        /// <snCategory>Binary</snCategory>
+        ///  <snCategory>Binary</snCategory>
         /// <param name="content"></param>
         /// <param name="context"></param>
         /// <param name="FileLength">Full length of the file.</param>
@@ -34,7 +34,7 @@ namespace SenseNet.Services.Core.Operations
         /// }
         /// </code>
         /// </example>
-        [ODataAction]
+        [ODataAction(Category = "Binary")]
         [ContentTypes(N.CT.GenericContent, N.CT.ContentType)]
         [AllowedRoles(N.R.All)]
         [RequiredPermissions(N.P.AddNew)]
@@ -78,7 +78,7 @@ namespace SenseNet.Services.Core.Operations
         /// <param name="content"></param>
         /// <param name="httpContext"></param>
         /// <returns>An empty result.</returns>
-        [ODataAction]
+        [ODataAction(Category = "Binary")]
         [ContentTypes(N.CT.GenericContent, N.CT.ContentType)]
         [AllowedRoles(N.R.All)]
         [RequiredPermissions(N.P.Save)]
@@ -103,7 +103,7 @@ namespace SenseNet.Services.Core.Operations
         /// <param name="fullSize">Size of the whole binary.</param>
         /// <param name="fieldName">Optional custom binary field name, if it is other than 'Binary'.</param>
         /// <returns>Chunk write token, content id and version id in a JSON object.</returns>
-        [ODataAction]
+        [ODataAction(Category = "Binary")]
         [ContentTypes(N.CT.GenericContent, N.CT.ContentType)]
         [AllowedRoles(N.R.All)]
         [RequiredPermissions(N.P.AddNew)]
@@ -124,7 +124,7 @@ namespace SenseNet.Services.Core.Operations
         /// <param name="fullSize">Size of the whole binary.</param>
         /// <param name="fieldName">Optional custom binary field name, if it is other than 'Binary'.</param>
         /// <returns>Chunk write token, content id and version id in a JSON object.</returns>
-        [ODataAction]
+        [ODataAction(Category = "Binary")]
         [ContentTypes(N.CT.GenericContent, N.CT.ContentType)]
         [AllowedRoles(N.R.All)]
         [RequiredPermissions(N.P.Save)]
@@ -146,7 +146,7 @@ namespace SenseNet.Services.Core.Operations
         /// <param name="fullSize">Size of the whole binary.</param>
         /// <param name="fieldName">Optional custom binary field name, if it is other than 'Binary'.</param>
         /// <param name="fileName">Binary file name to save into the binary metadata.</param>
-        [ODataAction]
+        [ODataAction(Category = "Binary")]
         [ContentTypes(N.CT.GenericContent, N.CT.ContentType)]
         [AllowedRoles(N.R.All)]
         [RequiredPermissions(N.P.Save)]
@@ -164,7 +164,7 @@ namespace SenseNet.Services.Core.Operations
         /// <param name="content">A content with a binary field.</param>
         /// <param name="context">The current HttpContext if available.</param>
         /// <param name="fieldName">Optional custom binary field name, if it is other than 'Binary'.</param>
-        [ODataFunction]
+        [ODataFunction(Category = "Binary")]
         [ContentTypes(N.CT.GenericContent, N.CT.ContentType)]
         [AllowedRoles(N.R.All)]
         public static string GetBinaryToken(Content content, HttpContext context, string fieldName = null)

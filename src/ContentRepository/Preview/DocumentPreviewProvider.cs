@@ -1591,7 +1591,7 @@ namespace SenseNet.Preview
         /// <snCategory>Preview</snCategory>
         /// <param name="content"></param>
         /// <returns>The list of preview images. Thumbnail images are not included.</returns>
-        [ODataFunction("GetPreviewImages", Description = "$Action,GetPreviewImages")]
+        [ODataFunction("GetPreviewImages", Category = "Preview", Description = "$Action,GetPreviewImages")]
         [ContentTypes(N.CT.File)]
         [AllowedRoles(N.R.Everyone)]
         [RequiredPermissions(N.P.Preview)]
@@ -1620,7 +1620,7 @@ namespace SenseNet.Preview
         /// }
         /// </code>
         /// </example>
-        [ODataFunction]
+        [ODataFunction(Category = "Preview")]
         [ContentTypes(N.CT.File)]
         [AllowedRoles(N.R.Everyone)]
         public static PreviewAvailableResponse PreviewAvailable(Content content, int page)
@@ -1677,7 +1677,7 @@ namespace SenseNet.Preview
         /// ]
         /// </code>
         /// </example>
-        [ODataFunction("GetExistingPreviewImages", Description = "$Action,GetExistingPreviewImages")]
+        [ODataFunction("GetExistingPreviewImages", Category = "Preview", Description = "$Action,GetExistingPreviewImages")]
         [ContentTypes(N.CT.File)]
         [AllowedRoles(N.R.Everyone)]
         public static IEnumerable<GetExistingPreviewImagesResponse> GetExistingPreviewImagesForOData(Content content)
@@ -1713,7 +1713,7 @@ namespace SenseNet.Preview
         /// </remarks>
         /// <param name="content"></param>
         /// <returns>Page count of a document or a status code.</returns>
-        [ODataAction(Description = "Get page count")]
+        [ODataAction(Category = "Preview", Description = "Get page count")]
         [ContentTypes(N.CT.File)]
         [AllowedRoles(N.R.Everyone)]
         public static int GetPageCount(Content content)
@@ -1759,7 +1759,7 @@ namespace SenseNet.Preview
         /// }
         /// </code>
         /// </example>
-        [ODataAction(Description = "Get previews folder")]
+        [ODataAction(Category = "Preview", Description = "Get previews folder")]
         [ContentTypes(N.CT.File)]
         [AllowedRoles(N.R.Everyone)]
         public static GetPreviewsFolderResponse GetPreviewsFolder(Content content, bool empty)
@@ -1794,7 +1794,7 @@ namespace SenseNet.Preview
         /// <snCategory>Preview</snCategory>
         /// <param name="content"></param>
         /// <param name="status">Preview status value as a string.</param>
-        [ODataAction(Description = "Set preview status")]
+        [ODataAction(Category = "Preview", Description = "Set preview status")]
         [ContentTypes(N.CT.File)]
         [AllowedRoles(N.R.Everyone)]
         public static void SetPreviewStatus(Content content, PreviewStatus status)
@@ -1810,7 +1810,7 @@ namespace SenseNet.Preview
         /// <snCategory>Preview</snCategory>
         /// <param name="content"></param>
         /// <param name="pageCount">Page count value</param>
-        [ODataAction(Description = "Set page count")]
+        [ODataAction(Category = "Preview", Description = "Set page count")]
         [ContentTypes(N.CT.File)]
         [AllowedRoles(N.R.Everyone)]
         public static void SetPageCount(Content content, int pageCount)
@@ -1825,7 +1825,7 @@ namespace SenseNet.Preview
         /// of a preview image automatically. The values come from the original document.</summary>
         /// <snCategory>Preview</snCategory>
         /// <param name="content"></param>
-        [ODataAction]
+        [ODataAction(Category = "Preview")]
         [ContentTypes(N.CT.PreviewImage)]
         [AllowedRoles(N.R.Everyone)]
         public static void SetInitialPreviewProperties(Content content)
@@ -1860,7 +1860,7 @@ namespace SenseNet.Preview
         /// <param name="content"></param>
         /// <returns>A response object containing the current page count (likely to be
         /// -1 meaning In progress and 0 as the current preview count).</returns>
-        [ODataAction(Description = "Regenerate preview images")]
+        [ODataAction(Category = "Preview", Description = "Regenerate preview images")]
         [ContentTypes(N.CT.File)]
         [AllowedRoles(N.R.Everyone)]
         public static RegeneratePreviewsResponse RegeneratePreviews(Content content)
@@ -1905,7 +1905,7 @@ namespace SenseNet.Preview
         /// }
         /// </code>
         /// </example>
-        [ODataAction(Description = "Check preview images")]
+        [ODataAction(Category = "Preview", Description = "Check preview images")]
         [ContentTypes(N.CT.File)]
         [AllowedRoles(N.R.Everyone)]
         public static CheckPreviewsResponse CheckPreviews(Content content, bool generateMissing)
@@ -1973,7 +1973,7 @@ namespace SenseNet.Preview
         /// <param name="content"></param>
         /// <param name="context"></param>
         /// <param name="result">Result of the preview generation task.</param>
-        [ODataAction]
+        [ODataAction(Category = "Preview")]
         [AllowedRoles(N.R.Everyone)]
         public static async Task DocumentPreviewFinalizer(Content content, HttpContext context, SnTaskResult result)
         {

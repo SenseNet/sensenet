@@ -27,7 +27,7 @@ namespace SenseNet.Services.Core.Authentication.IdentityServer4
         /// }
         /// </code>
         /// </example>
-        [ODataFunction]
+        [ODataFunction(Category = "Authentication")]
         [ContentTypes(N.CT.PortalRoot)]
         [AllowedRoles(N.R.All)]
         public static object GetClientRequestParameters(Content content, HttpContext context, string clientType)

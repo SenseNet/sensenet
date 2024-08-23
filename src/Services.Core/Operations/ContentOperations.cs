@@ -32,7 +32,7 @@ namespace SenseNet.Services.Core.Operations
         /// <param name="content"></param>
         /// <param name="httpContext"></param>
         /// <returns>The modified content.</returns>
-        [ODataAction(OperationName = "Approve", Icon = "approve", Description = "$Action,Approve", DisplayName = "$Action,Approve-DisplayName")]
+        [ODataAction(OperationName = "Approve", Category = "Collaboration", Icon = "approve", Description = "$Action,Approve", DisplayName = "$Action,Approve-DisplayName")]
         [AllowedRoles(N.R.Everyone)]
         [RequiredPermissions(N.P.Save, N.P.Approve)]
         [Scenario(N.S.ListItem, N.S.ExploreActions, N.S.SimpleApprovableListItem, N.S.ContextMenu)]
@@ -58,7 +58,7 @@ namespace SenseNet.Services.Core.Operations
         /// <exception cref="Exception">An exception will be thrown if the <paramref name="checkInComments"/> is
         /// missing and the value of the requested content's <c>CheckInCommentsMode</c> is <c>Compulsory</c>.</exception>
         /// <returns>The modified content.</returns>
-        [ODataAction(OperationName = "CheckIn", Icon = "checkin", Description = "$Action,CheckIn", DisplayName = "$Action,CheckIn-DisplayName")]
+        [ODataAction(OperationName = "CheckIn", Category = "Collaboration", Icon = "checkin", Description = "$Action,CheckIn", DisplayName = "$Action,CheckIn-DisplayName")]
         [AllowedRoles(N.R.Everyone)]
         [RequiredPermissions(N.P.Save)]
         [RequiredPolicies(N.Pol.VersioningAndApproval)]
@@ -90,7 +90,7 @@ namespace SenseNet.Services.Core.Operations
         /// <param name="content"></param>
         /// <param name="httpContext"></param>
         /// <returns>The modified content.</returns>
-        [ODataAction(OperationName = "CheckOut", Icon = "checkout", Description = "$Action,CheckOut", DisplayName = "$Action,CheckOut-DisplayName")]
+        [ODataAction(OperationName = "CheckOut", Category = "Collaboration", Icon = "checkout", Description = "$Action,CheckOut", DisplayName = "$Action,CheckOut-DisplayName")]
         [AllowedRoles(N.R.Everyone)]
         [RequiredPermissions(N.P.Save)]
         [Scenario(N.S.ListItem, N.S.ExploreActions, N.S.ContextMenu)]
@@ -113,7 +113,7 @@ namespace SenseNet.Services.Core.Operations
         /// <param name="content"></param>
         /// <param name="httpContext"></param>
         /// <returns>The modified content.</returns>
-        [ODataAction(OperationName = "Publish", Icon = "publish", Description = "$Action,Publish", DisplayName = "$Action,Publish-DisplayName")]
+        [ODataAction(OperationName = "Publish", Category = "Collaboration", Icon = "publish", Description = "$Action,Publish", DisplayName = "$Action,Publish-DisplayName")]
         [AllowedRoles(N.R.Everyone)]
         [RequiredPermissions(N.P.Save, N.P.Publish)]
         [Scenario(N.S.ListItem, N.S.ExploreActions, N.S.SimpleApprovableListItem, N.S.ContextMenu)]
@@ -137,7 +137,7 @@ namespace SenseNet.Services.Core.Operations
         /// <param name="httpContext"></param>
         /// <param name="rejectReason" example="Rewrite please.">The reviewer's comments.</param>
         /// <returns>The modified content.</returns>
-        [ODataAction(OperationName = "Reject", Description = "$Action,Reject", DisplayName = "$Action,Reject-DisplayName")]
+        [ODataAction(OperationName = "Reject", Category = "Collaboration", Description = "$Action,Reject", DisplayName = "$Action,Reject-DisplayName")]
         [AllowedRoles(N.R.Everyone)]
         [RequiredPermissions(N.P.Save)]
         [RequiredPolicies(N.Pol.VersioningAndApproval)]
@@ -164,7 +164,7 @@ namespace SenseNet.Services.Core.Operations
         /// <param name="content"></param>
         /// <param name="httpContext"></param>
         /// <returns>The modified content.</returns>
-        [ODataAction(OperationName = "UndoCheckOut", Icon = "undocheckout", Description = "$Action,UndoCheckOut", DisplayName = "$Action,UndoCheckOut-DisplayName")]
+        [ODataAction(OperationName = "UndoCheckOut", Category = "Collaboration", Icon = "undocheckout", Description = "$Action,UndoCheckOut", DisplayName = "$Action,UndoCheckOut-DisplayName")]
         [AllowedRoles(N.R.Everyone)]
         [RequiredPermissions(N.P.Save)]
         [Scenario(N.S.ListItem, N.S.ExploreActions, N.S.ContextMenu)]
@@ -187,7 +187,7 @@ namespace SenseNet.Services.Core.Operations
         /// <param name="content"></param>
         /// <param name="httpContext"></param>
         /// <returns>The modified content.</returns>
-        [ODataAction(OperationName = "ForceUndoCheckOut", Icon = "undocheckout", Description = "$Action,ForceUndoCheckOut", DisplayName = "$Action,ForceUndoCheckout-DisplayName")]
+        [ODataAction(OperationName = "ForceUndoCheckOut", Category = "Collaboration", Icon = "undocheckout", Description = "$Action,ForceUndoCheckOut", DisplayName = "$Action,ForceUndoCheckout-DisplayName")]
         [AllowedRoles(N.R.Everyone)]
         [RequiredPermissions(N.P.Save, N.P.ForceCheckin)]
         [Scenario(N.S.ListItem, N.S.ExploreActions, N.S.ContextMenu)]
@@ -218,7 +218,7 @@ namespace SenseNet.Services.Core.Operations
         /// <param name="version">The old version number.</param>
         /// <returns>The modified content.</returns>
         /// <exception cref="Exception">Throws if the requested content version is not found.</exception>
-        [ODataAction(OperationName = "RestoreVersion", Icon = "restoreversion", Description = "$Action,RestoreVersion", DisplayName = "$Action,RestoreVersion-DisplayName")]
+        [ODataAction(OperationName = "RestoreVersion", Category = "Collaboration", Icon = "restoreversion", Description = "$Action,RestoreVersion", DisplayName = "$Action,RestoreVersion-DisplayName")]
         [AllowedRoles(N.R.Everyone)]
         [RequiredPermissions(N.P.Save, N.P.RecallOldVersion)]
         public static async STT.Task<Content> RestoreVersion(Content content, HttpContext httpContext, string version)
@@ -308,7 +308,7 @@ namespace SenseNet.Services.Core.Operations
         /// <param name="paths" example='["/Root/Content/IT/MyDocs/MyDoc1", "78945", "78946"]'>
         /// Array of the id or full path of source items.</param>
         /// <returns></returns>
-        [ODataAction(Icon = "copy", Description = "$Action,CopyBatch", DisplayName = "$Action,CopyBatch-DisplayName")]
+        [ODataAction(Category = "Content Management", Icon = "copy", Description = "$Action,CopyBatch", DisplayName = "$Action,CopyBatch-DisplayName")]
         [ContentTypes(N.CT.Folder)]
         [AllowedRoles(N.R.Everyone)]
         [Scenario(N.S.GridToolbar, N.S.BatchActions)]
@@ -440,7 +440,7 @@ namespace SenseNet.Services.Core.Operations
         /// <param name="paths" example='["/Root/Content/IT/MyDocs/MyDoc1", "78945", "78946"]'>
         /// Array of the id or full path of the source items.</param>
         /// <returns></returns>
-        [ODataAction(Icon = "move", Description = "$Action,MoveBatch", DisplayName = "$Action,MoveBatch-DisplayName")]
+        [ODataAction(Category = "Content Management", Icon = "move", Description = "$Action,MoveBatch", DisplayName = "$Action,MoveBatch-DisplayName")]
         [ContentTypes(N.CT.Folder)]
         [AllowedRoles(N.R.Everyone)]
         [Scenario(N.S.GridToolbar, N.S.BatchActions)]
@@ -536,7 +536,7 @@ namespace SenseNet.Services.Core.Operations
         /// <param name="httpContext"></param>
         /// <param name="permanent" example="true">True if the content must be deleted permanently.</param>
         /// <returns>This method returns nothing.</returns>
-        [ODataAction(Icon = "delete", Description = "$Action,Delete", DisplayName = "$Action,Delete-DisplayName")]
+        [ODataAction(Category = "Content Management", Icon = "delete", Description = "$Action,Delete", DisplayName = "$Action,Delete-DisplayName")]
         [ContentTypes(N.CT.GenericContent, N.CT.ContentType)]
         [AllowedRoles(N.R.Everyone)]
         [Scenario(N.S.ListItem, N.S.ContextMenu)]
@@ -585,7 +585,7 @@ namespace SenseNet.Services.Core.Operations
         /// <param name="paths" example='["/Root/Content/IT/MyDocs/MyDoc1", "78945", "78946"]'>
         /// Array of the id or full path of the deletable items.</param>
         /// <returns></returns>
-        [ODataAction(Icon = "delete", Description = "$Action,DeleteBatch", DisplayName = "$Action,DeleteBatch-DisplayName")]
+        [ODataAction(Category = "Content Management", Icon = "delete", Description = "$Action,DeleteBatch", DisplayName = "$Action,DeleteBatch-DisplayName")]
         [ContentTypes(N.CT.Folder)]
         [AllowedRoles(N.R.Everyone)]
         [Scenario(N.S.GridToolbar, N.S.BatchActions)]
@@ -752,7 +752,7 @@ namespace SenseNet.Services.Core.Operations
         /// <returns></returns>
         /// <exception cref="Exception">Throws if the user doesn't have <c>SeePermissions</c> right
         /// and <paramref name="identity"/> is not the current user.</exception>
-        [ODataFunction(Description = "$Action,GetPermissions", DisplayName = "$Action,GetPermissions-DisplayName")]
+        [ODataFunction(Category = "Permissions", Description = "$Action,GetPermissions", DisplayName = "$Action,GetPermissions-DisplayName")]
         [ContentTypes(N.CT.GenericContent, N.CT.ContentType)]
         [AllowedRoles(N.R.Everyone)]
         public static object GetPermissions(Content content, string identity = null)
@@ -856,7 +856,7 @@ namespace SenseNet.Services.Core.Operations
         /// <param name="user" example="/Root/IMS/BuiltIn/Portal/Visitor">Path of an existing user. If not specified,
         /// the current user's permission value will be returned.</param>
         /// <returns></returns>
-        [ODataFunction(Description = "$Action,HasPermission", DisplayName = "$Action,HasPermission-DisplayName")]
+        [ODataFunction(Category = "Permissions", Description = "$Action,HasPermission", DisplayName = "$Action,HasPermission-DisplayName")]
         [ContentTypes(N.CT.GenericContent, N.CT.ContentType)]
         [AllowedRoles(N.R.Everyone)]
         [RequiredPermissions(N.P.SeePermissions)]
@@ -902,7 +902,7 @@ namespace SenseNet.Services.Core.Operations
         /// <returns>The requested resource.</returns>
         /// <exception cref="ArgumentException">Throws <see cref="ArgumentException"/> if the <paramref name="inheritance"/> is
         /// invalid.</exception>
-        [ODataAction(Icon = "security", Description = "$Action,SetPermissions", DisplayName = "$Action,SetPermissions-DisplayName")]
+        [ODataAction(Category = "Permissions", Icon = "security", Description = "$Action,SetPermissions", DisplayName = "$Action,SetPermissions-DisplayName")]
         [ContentTypes(N.CT.GenericContent, N.CT.ContentType)]
         [AllowedRoles(N.R.Everyone)]
         [RequiredPermissions(N.P.Open, N.P.SeePermissions, N.P.SetPermissions)]
@@ -971,7 +971,7 @@ namespace SenseNet.Services.Core.Operations
         /// <returns>The requested resource.</returns>
         /// <exception cref="ArgumentException">In case of invalid permission state.</exception>
         /// <exception cref="ContentNotFoundException">If the identity is not found in any request item.</exception>
-        [ODataAction(Icon = "security", Description = "$Action,SetPermissions", DisplayName = "$Action,SetPermissions-DisplayName")]
+        [ODataAction(Category = "Permissions", Icon = "security", Description = "$Action,SetPermissions", DisplayName = "$Action,SetPermissions-DisplayName")]
         [ContentTypes(N.CT.GenericContent, N.CT.ContentType)]
         [AllowedRoles(N.R.Everyone)]
         [RequiredPermissions(N.P.Open, N.P.SeePermissions, N.P.SetPermissions)]
@@ -1161,7 +1161,7 @@ namespace SenseNet.Services.Core.Operations
         /// <param name="newname" example="true">If true, allows renaming the restored content automatically
         /// if the name already exists in the destination folder.</param>
         /// <returns></returns>
-        [ODataAction(Icon = "restore", Description = "$Action,Restore", DisplayName = "$Action,Restore-DisplayName")]
+        [ODataAction(Category = "Content Management", Icon = "restore", Description = "$Action,Restore", DisplayName = "$Action,Restore-DisplayName")]
         [ContentTypes(N.CT.TrashBag)]
         [AllowedRoles(N.R.Everyone)]
         [RequiredPermissions(N.P.Save)]

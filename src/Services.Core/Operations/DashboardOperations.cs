@@ -29,7 +29,7 @@ namespace SenseNet.Services.Core.Operations
         /// <param name="content"></param>
         /// <param name="httpContext"></param>
         /// <returns>Dashboard data or an empty object.</returns>
-        [ODataFunction]
+        [ODataFunction(Category = "Other")]
         [ContentTypes(N.CT.PortalRoot)]
         [AllowedRoles(N.R.Everyone)]
         public static Task<object> GetDashboardData(Content content, HttpContext httpContext)

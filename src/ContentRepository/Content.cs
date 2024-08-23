@@ -147,7 +147,7 @@ namespace SenseNet.ContentRepository
             /// <param name="content">The content provided by the infrastructure.</param>
             /// <param name="recursive">Whether child content should be reindexed or not. Default: false.</param>
             /// <param name="rebuildLevel">The algorithm selector. Value can be <value>IndexOnly</value> or <value>DatabaseAndIndex</value>. Default: <value>IndexOnly</value></param>
-            [ODataAction]
+            [ODataAction(Category = "Indexing")]
             [ContentTypes(N.CT.GenericContent, N.CT.ContentType)]
             [AllowedRoles(N.R.Administrators, N.R.PublicAdministrators, N.R.Developers)]
             [RequiredPermissions(N.P.Save)]
@@ -161,7 +161,7 @@ namespace SenseNet.ContentRepository
             /// </summary>
             /// <snCategory>Indexing</snCategory>
             /// <param name="content">The content provided by the infrastructure.</param>
-            [ODataAction]
+            [ODataAction(Category = "Indexing")]
             [ContentTypes(N.CT.GenericContent, N.CT.ContentType)]
             [AllowedRoles(N.R.Administrators, N.R.PublicAdministrators, N.R.Developers)]
             public static System.Threading.Tasks.Task RebuildIndexSubtree(Content content, HttpContext httpContext)
@@ -173,7 +173,7 @@ namespace SenseNet.ContentRepository
             /// </summary>
             /// <snCategory>Indexing</snCategory>
             /// <param name="content">The content provided by the infrastructure.</param>
-            [ODataAction]
+            [ODataAction(Category = "Indexing")]
             [ContentTypes(N.CT.GenericContent, N.CT.ContentType)]
             [AllowedRoles(N.R.Administrators, N.R.PublicAdministrators, N.R.Developers)]
             public static System.Threading.Tasks.Task RefreshIndexSubtree(Content content, HttpContext httpContext)
@@ -189,7 +189,7 @@ namespace SenseNet.ContentRepository
             /// </summary>
             /// <snCategory>Indexing</snCategory>
             /// <param name="content">The content provided by the infrastructure.</param>
-            [ODataAction]
+            [ODataAction(Category = "Indexing")]
             [ContentTypes(N.CT.PortalRoot)]
             [AllowedRoles(N.R.Administrators, N.R.PublicAdministrators, N.R.Developers)]
             public static async System.Threading.Tasks.Task RefreshIndexAndCleanActivities(Content content, HttpContext context)

@@ -32,7 +32,7 @@ namespace SenseNet.Services.Wopi
         /// }
         /// </code>
         /// </example>
-        [ODataFunction]
+        [ODataFunction(Category = "Office Online Editing")]
         [RequiredPermissions(N.P.Open)]
         public static object GetWopiData(Content content, HttpContext context, string action)
         {
@@ -72,7 +72,7 @@ namespace SenseNet.Services.Wopi
         /// <snCategory>Office Online Editing</snCategory>
         /// <param name="content"></param>
         /// <returns></returns>
-        [ODataFunction(Icon = "office", DisplayName = "$Action,WopiOpenView-DisplayName")]
+        [ODataFunction(Category = "Office Online Editing", Icon = "office", DisplayName = "$Action,WopiOpenView-DisplayName")]
         [RequiredPermissions(N.P.Open)]
         [RequiredPolicies("WopiOpenView")]
         [Scenario(N.S.ContextMenu)]
@@ -86,7 +86,7 @@ namespace SenseNet.Services.Wopi
         /// <snCategory>Office Online Editing</snCategory>
         /// <param name="content"></param>
         /// <returns></returns>
-        [ODataFunction(Icon = "office", DisplayName = "$Action,WopiOpenEdit-DisplayName")]
+        [ODataFunction(Category = "Office Online Editing", Icon = "office", DisplayName = "$Action,WopiOpenEdit-DisplayName")]
         [RequiredPermissions(N.P.Save)]
         [RequiredPolicies("WopiOpenEdit")]
         [Scenario(N.S.ContextMenu)]

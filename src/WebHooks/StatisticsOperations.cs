@@ -229,7 +229,7 @@ namespace SenseNet.WebHooks
         /// will be returned. Default: current time.</param>
         /// <param name="count">Maximum number of records to load. Default: 10.</param>
         /// <returns>A list of webhook usage records.</returns>
-        [ODataFunction(operationName: "GetWebHookUsageList")]
+        [ODataFunction(operationName: "GetWebHookUsageList", Category = "WebHooks")]
         [ContentTypes(N.CT.PortalRoot)]
         [AllowedRoles(N.R.Administrators, N.R.PublicAdministrators, N.R.Developers)]
         public static async Task<IEnumerable<WebHookUsageListItemViewModel>> GetAllWebHookUsageList(Content content, HttpContext httpContext,
@@ -260,7 +260,7 @@ namespace SenseNet.WebHooks
         /// will be returned. Default: current time.</param>
         /// <param name="count">Maximum number of records to load. Default: 10.</param>
         /// <returns>A list of webhook usage records.</returns>
-        [ODataFunction]
+        [ODataFunction(Category = "WebHooks")]
         [ContentTypes("WebHookSubscription")]
         [AllowedRoles(N.R.Administrators, N.R.PublicAdministrators, N.R.Developers)]
         public static async Task<IEnumerable<WebHookUsageListItemViewModel>> GetWebHookUsageList(Content content, HttpContext httpContext,
@@ -287,7 +287,7 @@ namespace SenseNet.WebHooks
         /// <param name="httpContext"></param>
         /// <param name="timeWindow">Size of the time window: Hour, Day, Month or Year. Default: Month.</param>
         /// <returns>A webhook statistical data containing start and end dates and count of records.</returns>
-        [ODataFunction]
+        [ODataFunction(Category = "WebHooks")]
         [ContentTypes(N.CT.PortalRoot)]
         [AllowedRoles(N.R.Administrators, N.R.PublicAdministrators, N.R.Developers)]
         public static Task<object> GetWebHookUsagePeriods(Content content, HttpContext httpContext,
@@ -361,7 +361,7 @@ namespace SenseNet.WebHooks
         /// <param name="timeWindow">Size of the time window: Hour, Day, Month or Year. Default: Month.</param>
         /// <param name="time">Start time. Default: now.</param>
         /// <returns>WebHook data containing time window information and a list of aggregated data points.</returns>
-        [ODataFunction]
+        [ODataFunction(Category = "WebHooks")]
         [ContentTypes(N.CT.PortalRoot)]
         [AllowedRoles(N.R.Administrators, N.R.PublicAdministrators, N.R.Developers)]
         public static async Task<object> GetWebHookUsagePeriod(Content content, HttpContext httpContext,

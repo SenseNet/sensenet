@@ -35,7 +35,7 @@ namespace SenseNet.Services.Core
         /// <snCategory>Content and Schema</snCategory>
         /// <param name="content">Compulsory generic OData action parameter, currently not used.</param>
         /// <returns>Two arrays: one with regular fields and one for aspect fields.</returns>
-        [ODataFunction]
+        [ODataFunction(Category = "Content and Schema")]
         [AllowedRoles(N.R.Everyone)]
         public static async Task<string> GetMetadata(Content content, HttpContext httpContext)
         {
@@ -119,7 +119,7 @@ namespace SenseNet.Services.Core
         /// <param name="content"></param>
         /// <param name="onlyPublic">True if only public queries should be returned.</param>
         /// <returns>A list of Query content items.</returns>
-        [ODataFunction]
+        [ODataFunction(Category = "Queries")]
         [AllowedRoles(N.R.Everyone)]
         public static IEnumerable<Content> GetQueries(Content content, bool onlyPublic = false)
         {
@@ -161,7 +161,7 @@ namespace SenseNet.Services.Core
         /// <param name="queryType">Type of the query (Public or Private).</param>
         /// <param name="uiFilters">Technical data containing filter information.</param>
         /// <returns>The Query content.</returns>
-        [ODataAction]
+        [ODataAction(Category = "Queries")]
         [AllowedRoles(N.R.Everyone)]
         public static object SaveQuery(Content content, string query, string displayName, 
             string queryType, string uiFilters = null)

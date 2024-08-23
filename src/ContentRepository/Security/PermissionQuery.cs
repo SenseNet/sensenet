@@ -117,7 +117,7 @@ namespace SenseNet.ContentRepository.Security
         /// <param name="permissionLevel">Filtering by permission level. It can be Allowed, Denied, AllowedOrDenied.</param>
         /// <param name="identityKind">Filtering by identity kind. Valid values are: All, Users, Groups, OrganizationalUnits, UsersAndGroups, UsersAndOrganizationalUnits, GroupsAndOrganizationalUnits</param>
         /// <returns><see cref="Content"/> list containing related users and groups based on the <paramref name="identityKind"/> filter.</returns>
-        [ODataFunction]
+        [ODataFunction(Category = "Permissions")]
         [ContentTypes(N.CT.GenericContent, N.CT.ContentType)]
         [AllowedRoles(N.R.Everyone)]
         public static IEnumerable<Content> GetRelatedIdentities(Content content, HttpContext httpContext, string permissionLevel, string identityKind)
@@ -141,7 +141,7 @@ return new SCSS.PermissionQuery(securityHandler).GetRelatedIdentities(content.Id
         /// <param name="includedTypes">Optional filter containing content type names.</param>
         /// <returns>An associative array containing the count of permission settings grouped by permissions. For example:
         /// { "See": 14, "Open": 5, "Save": 10, ...}</returns>
-        [ODataFunction]
+        [ODataFunction(Category = "Permissions")]
         [ContentTypes(N.CT.GenericContent, N.CT.ContentType)]
         [AllowedRoles(N.R.Everyone)]
         public static IDictionary<PermissionType, int> GetRelatedPermissions(Content content, HttpContext httpContext, string permissionLevel, bool explicitOnly, string memberPath, IEnumerable<string> includedTypes)
@@ -165,7 +165,7 @@ return new SCSS.PermissionQuery(securityHandler).GetRelatedIdentities(content.Id
         /// <param name="memberPath">Path of a group or user.</param>
         /// <param name="permissions">Permission filter. Only those content will appear in the output that have permission settings that are listed in this list.</param>
         /// <returns><see cref="Content"/> list.</returns>
-        [ODataFunction]
+        [ODataFunction(Category = "Permissions")]
         [ContentTypes(N.CT.GenericContent, N.CT.ContentType)]
         [AllowedRoles(N.R.Everyone)]
         public static IEnumerable<Content> GetRelatedItems(Content content, HttpContext httpContext, string permissionLevel, bool explicitOnly, string memberPath, string[] permissions)
@@ -190,7 +190,7 @@ return new SCSS.PermissionQuery(securityHandler).GetRelatedIdentities(content.Id
         /// <param name="identityKind">Filtering by identity kind. Valid values are: All, Users, Groups, OrganizationalUnits, UsersAndGroups, UsersAndOrganizationalUnits, GroupsAndOrganizationalUnits</param>
         /// <param name="permissions">Filtering by permission type.</param>
         /// <returns>Filtered <see cref="Content"/> list that have the provided permissions.</returns>
-        [ODataFunction("GetRelatedIdentitiesByPermissions")]
+        [ODataFunction("GetRelatedIdentitiesByPermissions", Category = "Permissions")]
         [ContentTypes(N.CT.GenericContent, N.CT.ContentType)]
         [AllowedRoles(N.R.Everyone)]
         public static IEnumerable<Content> GetRelatedIdentities(Content content, HttpContext httpContext, string permissionLevel, string identityKind, string[] permissions)
@@ -216,7 +216,7 @@ return new SCSS.PermissionQuery(securityHandler).GetRelatedIdentities(content.Id
         /// <param name="memberPath">Path of a group or user.</param>
         /// <param name="permissions">Only those content will appear in the output that have permission settings that are listed in this list.</param>
         /// <returns>Filtered <see cref="Content"/> list that have the provided permissions.</returns>
-        [ODataFunction]
+        [ODataFunction(Category = "Permissions")]
         [ContentTypes(N.CT.GenericContent, N.CT.ContentType)]
         [AllowedRoles(N.R.Everyone)]
         public static IEnumerable<Content> GetRelatedItemsOneLevel(Content content, HttpContext httpContext, string permissionLevel, string memberPath, string[] permissions)
@@ -242,7 +242,7 @@ return new SCSS.PermissionQuery(securityHandler).GetRelatedIdentities(content.Id
         /// <param name="permissions">Only those users appear in the output that have permission settings
         /// in connection with the given permissions.</param>
         /// <returns>Filtered <see cref="Content"/> list of the users that have the provided permissions.</returns>
-        [ODataFunction]
+        [ODataFunction(Category = "Permissions")]
         [ContentTypes(N.CT.GenericContent, N.CT.ContentType)]
         [AllowedRoles(N.R.Everyone)]
         public static IEnumerable<Content> GetAllowedUsers(Content content, HttpContext httpContext, string[] permissions)
@@ -263,7 +263,7 @@ return new SCSS.PermissionQuery(securityHandler).GetRelatedIdentities(content.Id
         /// <param name="content"></param>
         /// <param name="directOnly">Whether only direct membership is requested.</param>
         /// <returns><see cref="Content"/> list of the groups.</returns>
-        [ODataFunction]
+        [ODataFunction(Category = "Users and Groups")]
         [ContentTypes(N.CT.Group, N.CT.User)]
         [AllowedRoles(N.R.Everyone)]
         public static IEnumerable<Content> GetParentGroups(Content content, HttpContext httpContext, bool directOnly)
@@ -280,7 +280,7 @@ return new SCSS.PermissionQuery(securityHandler).GetRelatedIdentities(content.Id
         /// <param name="content"></param>
         /// <param name="identity">Path of the related user.</param>
         /// <returns>A PermissionInfo object.</returns>
-        [ODataFunction]
+        [ODataFunction(Category = "Permissions")]
         [ContentTypes(N.CT.GenericContent, N.CT.ContentType)]
         [AllowedRoles(N.R.Everyone)]
         public static GetSinglePermissionInfoResponse GetPermissionInfo(Content content, HttpContext httpContext, string identity)
@@ -296,7 +296,7 @@ return new SCSS.PermissionQuery(securityHandler).GetRelatedIdentities(content.Id
         /// <param name="content"></param>
         /// <param name="identity">Path of the related user.</param>
         /// <returns>A PermissionInfo object.</returns>
-        [ODataFunction]
+        [ODataFunction(Category = "Permissions")]
         [ContentTypes(N.CT.GenericContent, N.CT.ContentType)]
         [AllowedRoles(N.R.Everyone)]
         public static GetChildrenPermissionInfoResponse GetChildrenPermissionInfo(Content content, HttpContext httpContext, string identity)

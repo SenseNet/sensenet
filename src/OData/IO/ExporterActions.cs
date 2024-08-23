@@ -15,7 +15,7 @@ namespace SenseNet.OData.IO
         /// <param name="content">The root of the requested subtree.</param>
         /// <param name="oDataRequest">The current <see cref="ODataRequest"/> instance.</param>
         /// <returns>Count of contents.</returns>
-        [ODataFunction]
+        [ODataFunction(Category = "Tools")]
         [AllowedRoles(N.R.Everyone)]
         public static async Task<int> GetContentCountInTree(Content content, ODataRequest oDataRequest, HttpContext httpContext)
         {

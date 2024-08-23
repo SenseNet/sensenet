@@ -332,7 +332,7 @@ namespace SenseNet.ContentRepository
         /// </remarks>
         /// <param name="root"></param>
         /// <returns>A dictionary where the ContentType name is the key and a path list is the value.</returns>
-        [ODataFunction]
+        [ODataFunction(Category = "Content Types")]
         [AllowedRoles(N.R.Administrators, N.R.PublicAdministrators, N.R.Developers)]
         public static Dictionary<string, List<string>> CheckAllowedChildTypesOfFolders(Content root)
         {
@@ -365,10 +365,10 @@ namespace SenseNet.ContentRepository
         /// <summary>
         /// Returns all content types.
         /// </summary>
-        /// <snCategory>Content Types</snCategory>
+        /// <snCategory></snCategory>
         /// <param name="content"></param>
         /// <returns>Content list of all content types.</returns>
-        [ODataFunction("GetAllContentTypes")]
+        [ODataFunction("GetAllContentTypes", Category = "Content Types")]
         [ContentTypes(N.CT.PortalRoot)]
         [AllowedRoles(N.R.Everyone)]
         public static IEnumerable<Content> GetListOfAllContentTypes(Content content)
@@ -406,7 +406,7 @@ namespace SenseNet.ContentRepository
         /// </remarks>
         /// <param name="content"></param>
         /// <returns>A string array as a path list.</returns>
-        [ODataFunction(operationName: "ProtectedPaths")]
+        [ODataFunction(operationName: "ProtectedPaths", Category = "Security")]
         [ContentTypes(N.CT.PortalRoot)]
         [AllowedRoles(N.R.Everyone)]
         public static string[] GetProtectedPaths(Content content)
@@ -428,7 +428,7 @@ namespace SenseNet.ContentRepository
         /// <snCategory>Content Types</snCategory>
         /// <param name="content"></param>
         /// <returns>Content list of content types.</returns>
-        [ODataFunction]
+        [ODataFunction(Category = "Content Types")]
         [AllowedRoles(N.R.Everyone)]
         // ReSharper disable once InconsistentNaming
         public static IEnumerable<Content> GetAllowedChildTypesFromCTD(Content content)
@@ -455,7 +455,7 @@ namespace SenseNet.ContentRepository
         /// </remarks>
         /// <param name="root"></param>
         /// <returns>Path list.</returns>
-        [ODataFunction]
+        [ODataFunction(Category = "Security")]
         [AllowedRoles(N.R.Administrators, N.R.PublicAdministrators, N.R.Developers)]
         public static IEnumerable<string> MissingExplicitEntriesOfVisitorComparedToEveryone(Content root)
         {
@@ -484,7 +484,7 @@ namespace SenseNet.ContentRepository
         /// <snCategory>Tools</snCategory>
         /// <param name="content"></param>
         /// <returns>Content list of the ancestors of the requested content.</returns>
-        [ODataFunction]
+        [ODataFunction(Category = "Tools")]
         [ContentTypes(N.CT.GenericContent, N.CT.ContentType)]
         [AllowedRoles(N.R.Everyone, N.R.Visitor)]
         public static IEnumerable<Content> Ancestors(Content content)
@@ -514,7 +514,7 @@ namespace SenseNet.ContentRepository
         /// <param name="root"></param>
         /// <param name="exceptList">White list of untouched Contents.</param>
         /// <returns><c>Ok</c> if the operation is successfully executed.</returns>
-        [ODataAction]
+        [ODataAction(Category = "Security")]
         [AllowedRoles(N.R.Administrators, N.R.Developers)]
         public static string CopyExplicitEntriesOfEveryoneToVisitor(Content root, string[] exceptList)
         {
@@ -589,7 +589,7 @@ namespace SenseNet.ContentRepository
         /// <param name="target">Target of the copy operation.</param>
         /// <returns>A Task that represents the asynchronous operation and wraps the <see cref="BackupResponse"/>.
         /// </returns>
-        [ODataAction]
+        [ODataAction(Category = "Indexing")]
         [ContentTypes(N.CT.PortalRoot)]
         [AllowedRoles(N.R.Administrators, N.R.Developers)]
         public static async STT.Task<BackupResponse> BackupIndex(Content content, string target)
@@ -636,7 +636,7 @@ namespace SenseNet.ContentRepository
         /// </remarks>
         /// <param name="content"></param>
         /// <returns>A Task that represents the asynchronous operation and wraps the <see cref="BackupResponse"/>.</returns>
-        [ODataFunction]
+        [ODataFunction(Category = "Indexing")]
         [ContentTypes(N.CT.PortalRoot)]
         [AllowedRoles(N.R.Administrators, N.R.Developers)]
         public static async STT.Task<BackupResponse> QueryIndexBackup(Content content)
@@ -674,7 +674,7 @@ namespace SenseNet.ContentRepository
         /// </remarks>
         /// <param name="content"></param>
         /// <returns>A Task that represents the asynchronous operation and wraps the <see cref="BackupResponse"/>.</returns>
-        [ODataAction]
+        [ODataAction(Category = "Indexing")]
         [ContentTypes(N.CT.PortalRoot)]
         [AllowedRoles(N.R.Administrators, N.R.Developers)]
         public static async STT.Task<BackupResponse> CancelIndexBackup(Content content)
@@ -720,7 +720,7 @@ namespace SenseNet.ContentRepository
         /// </remarks>
         /// <param name="content"></param>
         /// <returns></returns>
-        [ODataFunction]
+        [ODataFunction(Category = "Indexing")]
         [ContentTypes(N.CT.PortalRoot)]
         [AllowedRoles(N.R.Administrators, N.R.PublicAdministrators, N.R.Developers)]
         public static IndexProperties GetIndexProperties(Content content)
@@ -763,7 +763,7 @@ namespace SenseNet.ContentRepository
 		/// <param name="content"></param>
 		/// <param name="httpContext"></param>
 		/// <returns>The whole raw index.</returns>
-		[ODataFunction]
+		[ODataFunction(Category = "Indexing")]
         [ContentTypes(N.CT.PortalRoot)]
         [AllowedRoles(N.R.Administrators, N.R.PublicAdministrators, N.R.Developers)]
         public static async STT.Task GetWholeInvertedIndex(Content content, HttpContext httpContext)
@@ -833,7 +833,7 @@ namespace SenseNet.ContentRepository
         /// <param name="httpContext"></param>
         /// <param name="fieldName">The field name that identifies the requested sub-index.</param>
         /// <returns>Key-value pairs of the term and a sorted documentId list.</returns>
-        [ODataFunction]
+        [ODataFunction(Category = "Indexing")]
         [ContentTypes(N.CT.PortalRoot)]
         [AllowedRoles(N.R.Administrators, N.R.PublicAdministrators, N.R.Developers)]
         public static async STT.Task<IDictionary<string, object>> GetInvertedIndex(Content content, HttpContext httpContext, string fieldName)
@@ -881,7 +881,7 @@ namespace SenseNet.ContentRepository
         /// </remarks>
         /// <param name="content"></param>
         /// <param name="versionId">Optional versionId if it is different from the versionId of the requested resource.</param>
-        [ODataFunction]
+        [ODataFunction(Category = "Indexing")]
         [ContentTypes(N.CT.GenericContent, N.CT.ContentType)]
         [AllowedRoles(N.R.Administrators, N.R.PublicAdministrators, N.R.Developers)]
         public static IDictionary<string, object> GetIndexDocument(Content content, int versionId = 0)
@@ -934,7 +934,7 @@ namespace SenseNet.ContentRepository
         /// </remarks>
         /// <param name="content"></param>
         /// <param name="documentId">The documentId from the inverted index.</param>
-        [ODataFunction]
+        [ODataFunction(Category = "Indexing")]
         [ContentTypes(N.CT.PortalRoot)]
         [AllowedRoles(N.R.Administrators, N.R.PublicAdministrators, N.R.Developers)]
         public static IDictionary<string, object> GetIndexDocumentByDocumentId(Content content, int documentId)
@@ -991,7 +991,7 @@ namespace SenseNet.ContentRepository
 		/// <param name="userOrGroup">Path or id of the desired owner.</param>
 		/// <exception cref="ArgumentException">Thrown if the <paramref name="userOrGroup"/> parameter cannot be recognized
 		/// as a path or id. The method also throws this exception if the identified content is not a User or a Group.</exception>
-		[ODataAction(OperationName = "TakeOwnership")]
+		[ODataAction(OperationName = "TakeOwnership", Category = "Permissions")]
         [AllowedRoles(N.R.Everyone)]
         [RequiredPermissions(N.P.TakeOwnership)]
         public static async System.Threading.Tasks.Task TakeOwnershipAsync(Content content, HttpContext httpContext, string userOrGroup)
@@ -1040,7 +1040,7 @@ namespace SenseNet.ContentRepository
         /// <exception cref="ArgumentException">Thrown if the content is not checked out (unlocked).
         /// Also thrown if the <paramref name="user"/> cannot be recognized as a path or id of an existing
         /// <c>User</c>.</exception>
-        [ODataAction]
+        [ODataAction(Category = "Permissions")]
         [AllowedRoles(N.R.Everyone)]
         [RequiredPermissions(N.P.ForceCheckin)]
         public static string TakeLockOver(Content content, string user)
@@ -1145,7 +1145,7 @@ namespace SenseNet.ContentRepository
         /// </remarks>
         /// <param name="content"></param>
         /// <returns>A <see cref="SenseNet.Security.Messaging.SecurityActivityHistory"/> instance.</returns>
-        [ODataFunction]
+        [ODataFunction(Category = "Security")]
         [ContentTypes(N.CT.PortalRoot)]
         [AllowedRoles(N.R.Administrators, N.R.PublicAdministrators, N.R.Developers)]
         public static SenseNet.Security.Messaging.SecurityActivityHistory GetRecentSecurityActivities(Content content)
@@ -1201,7 +1201,7 @@ namespace SenseNet.ContentRepository
         /// </remarks>
         /// <param name="content"></param>
         /// <returns>An <see cref="IndexingActivityHistory"/> instance.</returns>
-        [ODataFunction]
+        [ODataFunction(Category = "Indexing")]
         [ContentTypes(N.CT.PortalRoot)]
         [AllowedRoles(N.R.Administrators, N.R.PublicAdministrators, N.R.Developers)]
         public static IndexingActivityHistory GetRecentIndexingActivities(Content content)
@@ -1241,7 +1241,7 @@ namespace SenseNet.ContentRepository
         /// </remarks>
         /// <param name="content"></param>
         /// <returns>An <see cref="IndexingActivityHistory"/> instance.</returns>
-        [ODataAction]
+        [ODataAction(Category = "Indexing")]
         [ContentTypes(N.CT.PortalRoot)]
         [AllowedRoles(N.R.Administrators, N.R.Developers)]
         public static IndexingActivityHistory ResetRecentIndexingActivities(Content content)
@@ -1257,7 +1257,7 @@ namespace SenseNet.ContentRepository
         /// <returns>Throws SnNotSupportedException.</returns>
         /// <exception cref="SnNotSupportedException"></exception>
         [Obsolete("Use an offline solution instead.", true)]
-        [ODataFunction]
+        [ODataFunction(Category = "Deprecated")]
         public static object CheckIndexIntegrity(Content content, bool recurse)
         {
             throw new SnNotSupportedException("Checking index integrity online is not supported anymore.");
@@ -1332,7 +1332,7 @@ namespace SenseNet.ContentRepository
         /// </remarks>
         /// <param name="content"></param>
         /// <returns>The SecurityConsistencyResult instance.</returns>
-        [ODataFunction]
+        [ODataFunction(Category = "Security")]
         [ContentTypes(N.CT.GenericContent, N.CT.ContentType)]
         [AllowedRoles(N.R.Administrators, N.R.Developers)]
         public static SecurityConsistencyResult CheckSecurityConsistency(Content content)
@@ -1532,7 +1532,7 @@ namespace SenseNet.ContentRepository
         /// <param name="content"></param>
         /// <param name="context"></param>
         /// <param name="result">Result of the AD sync task.</param>
-        [ODataAction]
+        [ODataAction(Category = "AdSync")]
         public static async STT.Task Ad2PortalSyncFinalizer(Content content, HttpContext context, SnTaskResult result)
         {
             await(context.RequestServices.GetRequiredService<ITaskManager>())

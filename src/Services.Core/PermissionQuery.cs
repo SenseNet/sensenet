@@ -82,7 +82,7 @@ namespace SenseNet.Services.Core
         /// ]
         /// </code>
         /// </example>
-        [ODataFunction]
+        [ODataFunction(Category = "Permissions")]
         public static object GetPermissionOverview(Content content, string identity)
         {
             if (string.IsNullOrEmpty(identity))

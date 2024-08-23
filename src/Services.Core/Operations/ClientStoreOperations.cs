@@ -19,7 +19,7 @@ namespace SenseNet.Services.Core.Operations
         /// <param name="content">The root content.</param>
         /// <param name="context">The current HttpContext.</param>
         /// <returns>A result object containing an array of clients.</returns>
-        [ODataFunction]
+        [ODataFunction(Category = "Authentication")]
         [ContentTypes(N.CT.PortalRoot)]
         [AllowedRoles(N.R.Administrators, N.R.PublicAdministrators)]
         public static async Task<object> GetClients(Content content, HttpContext context)
@@ -45,7 +45,7 @@ namespace SenseNet.Services.Core.Operations
         /// <param name="userName">Optional domain and username to register the client to.</param>
         /// <returns>The newly created client.</returns>
         /// <exception cref="InvalidOperationException"></exception>
-        [ODataAction]
+        [ODataAction(Category = "Authentication")]
         [ContentTypes(N.CT.PortalRoot)]
         [AllowedRoles(N.R.Administrators, N.R.PublicAdministrators)]
         public static async Task<ContentRepository.Security.Clients.Client> CreateClient(Content content, HttpContext context,
@@ -72,7 +72,7 @@ namespace SenseNet.Services.Core.Operations
         /// <exception cref="ArgumentNullException"></exception>
         /// <exception cref="InvalidOperationException"></exception>
         /// <exception cref="SenseNetSecurityException"></exception>
-        [ODataAction]
+        [ODataAction(Category = "Authentication")]
         [ContentTypes(N.CT.PortalRoot)]
         [AllowedRoles(N.R.Administrators, N.R.PublicAdministrators)]
         public static Task DeleteClient(Content content, HttpContext context, string clientId)
@@ -96,7 +96,7 @@ namespace SenseNet.Services.Core.Operations
         /// <returns>The newly created client.</returns>
         /// <exception cref="InvalidOperationException"></exception>
         /// <exception cref="SenseNetSecurityException"></exception>
-        [ODataAction]
+        [ODataAction(Category = "Authentication")]
         [ContentTypes(N.CT.PortalRoot)]
         [AllowedRoles(N.R.Administrators, N.R.PublicAdministrators)]
         public static Task<ClientSecret> CreateSecret(Content content, HttpContext context,
@@ -123,7 +123,7 @@ namespace SenseNet.Services.Core.Operations
         /// <exception cref="ArgumentNullException"></exception>
         /// <exception cref="InvalidOperationException"></exception>
         /// <exception cref="SenseNetSecurityException"></exception>
-        [ODataAction]
+        [ODataAction(Category = "Authentication")]
         [ContentTypes(N.CT.PortalRoot)]
         [AllowedRoles(N.R.Administrators, N.R.PublicAdministrators)]
         public static Task DeleteSecret(Content content, HttpContext context, string clientId, string secretId)
@@ -148,7 +148,7 @@ namespace SenseNet.Services.Core.Operations
         /// <param name="secretId">Secret identifier.</param>
         /// <param name="validTill">Expiration date. Default: maximum date value.</param>
         /// <returns>The newly generated secret.</returns>
-        [ODataAction]
+        [ODataAction(Category = "Authentication")]
         [ContentTypes(N.CT.PortalRoot)]
         [AllowedRoles(N.R.Administrators, N.R.PublicAdministrators)]
         public static async Task<ClientSecret> RegenerateSecretForRepository(Content content, HttpContext context,

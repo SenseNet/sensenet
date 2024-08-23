@@ -229,7 +229,7 @@ namespace SenseNet.Services.Core.Diagnostics
         /// will be returned. Default: current time.</param>
         /// <param name="count">Maximum number of records to load. Default: 10.</param>
         /// <returns>A list of api usage records.</returns>
-        [ODataFunction(operationName: "GetApiUsageList")]
+        [ODataFunction(operationName: "GetApiUsageList", Category = "Tools")]
         [ContentTypes(N.CT.PortalRoot)]
         [AllowedRoles(N.R.Administrators, N.R.PublicAdministrators, N.R.Developers)]
         public static async Task<IEnumerable<ApiUsageListItemViewModel>> GetApiUsageList(Content content, HttpContext httpContext,
@@ -255,7 +255,7 @@ namespace SenseNet.Services.Core.Diagnostics
         /// <param name="httpContext"></param>
         /// <param name="timeWindow">Size of the time window: Hour, Day, Month or Year. Default: Month.</param>
         /// <returns>An API usage statistical data containing start and end dates and count of records.</returns>
-        [ODataFunction]
+        [ODataFunction(Category = "Tools")]
         [ContentTypes(N.CT.PortalRoot)]
         [AllowedRoles(N.R.Administrators, N.R.PublicAdministrators, N.R.Developers)]
         public static Task<object> GetApiUsagePeriods(Content content, HttpContext httpContext,
@@ -329,7 +329,7 @@ namespace SenseNet.Services.Core.Diagnostics
         /// <param name="timeWindow">Size of the time window: Hour, Day, Month or Year. Default: Month.</param>
         /// <param name="time">Start time. Default: now.</param>
         /// <returns>API usage data containing time window information and a list of aggregated data points.</returns>
-        [ODataFunction]
+        [ODataFunction(Category = "Tools")]
         [ContentTypes(N.CT.PortalRoot)]
         [AllowedRoles(N.R.Administrators, N.R.PublicAdministrators, N.R.Developers)]
         public static async Task<object> GetApiUsagePeriod(Content content, HttpContext httpContext,
@@ -356,7 +356,7 @@ namespace SenseNet.Services.Core.Diagnostics
         /// <param name="timeWindow">Size of the time window: Hour, Day, Month or Year. Default: Month.</param>
         /// <param name="time">Start time. Default: now.</param>
         /// <returns>Database usage data containing time window information and a list of aggregated data points.</returns>
-        [ODataFunction]
+        [ODataFunction(Category = "Tools")]
         [ContentTypes(N.CT.PortalRoot)]
         [AllowedRoles(N.R.Administrators, N.R.PublicAdministrators, N.R.Developers)]
         public static async Task<object> GeDatabaseUsagePeriod(Content content, HttpContext httpContext,

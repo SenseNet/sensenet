@@ -21,7 +21,7 @@ namespace SenseNet.OpenApi
         /// <param name="content"></param>
         /// <param name="httpContext"></param>
         /// <returns>OpenApi definition.</returns>
-        [ODataFunction]
+        [ODataFunction(Category = "Content and Schema")]
         [ContentTypes(N.CT.PortalRoot)]
         [AllowedRoles(N.R.All)]
         public static string GetOpenApiDocument(Content content, HttpContext httpContext)

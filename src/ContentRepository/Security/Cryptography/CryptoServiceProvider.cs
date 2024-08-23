@@ -27,7 +27,7 @@ namespace SenseNet.ContentRepository.Security.Cryptography
         /// <param name="context"></param>
         /// <param name="text">The text to encrypt.</param>
         /// <returns>The encrypted text.</returns>
-        [ODataAction]
+        [ODataAction(Category = "Security")]
         [ContentTypes(N.CT.PortalRoot)]
         [AllowedRoles(N.R.Administrators, N.R.Developers)]
         public static string Encrypt(Content content, HttpContext context, string text)
@@ -52,7 +52,7 @@ namespace SenseNet.ContentRepository.Security.Cryptography
         /// <param name="context"></param>
         /// <param name="text">The text to decrypt.</param>
         /// <returns>A clear text original value.</returns>
-        [ODataAction]
+        [ODataAction(Category = "Security")]
         [ContentTypes(N.CT.PortalRoot)]
         [AllowedRoles(N.R.Administrators, N.R.Developers)]
         public static string Decrypt(Content content, HttpContext context, string text)

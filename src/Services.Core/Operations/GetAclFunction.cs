@@ -63,7 +63,7 @@ namespace SenseNet.Services.Core.Operations
         /// </example>
         /// <param name="content"></param>
         /// <returns>The access control list for the requested content.</returns>
-        [ODataFunction(Description = "$Action,GetAcl", DisplayName = "$Action,GetAcl-DisplayName")]
+        [ODataFunction(Category = "Permissions", Description = "$Action,GetAcl", DisplayName = "$Action,GetAcl-DisplayName")]
         [ContentTypes(N.CT.GenericContent, N.CT.ContentType)]
         [AllowedRoles(N.R.Everyone)]
         public static object GetAcl(Content content)

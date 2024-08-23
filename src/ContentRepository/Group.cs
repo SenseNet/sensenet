@@ -437,7 +437,7 @@ namespace SenseNet.ContentRepository
         /// <param name="content">A <see cref="Content"/> that should be a <see cref="Group"/>.</param>
         /// <param name="contentIds">An array of contentIds that represents the new members.</param>
         /// <returns></returns>
-        [ODataAction]
+        [ODataAction(Category = "Users and Groups")]
         [ContentTypes(N.CT.Group)]
         [AllowedRoles(N.R.Everyone)]
         public static async Task<object> AddMembers(Content content, HttpContext httpContext, int[] contentIds)
@@ -465,7 +465,7 @@ namespace SenseNet.ContentRepository
         /// <param name="content">A <see cref="Content"/> that should be a <see cref="Group"/>.</param>
         /// <param name="contentIds">An array of contentIds that represents the members to remove.</param>
         /// <returns></returns>
-        [ODataAction]
+        [ODataAction(Category = "Users and Groups")]
         [ContentTypes(N.CT.Group)]
         [AllowedRoles(N.R.Everyone)]
         public static object RemoveMembers(Content content, int[] contentIds)

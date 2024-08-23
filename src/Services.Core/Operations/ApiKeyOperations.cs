@@ -6,6 +6,7 @@ using SenseNet.ApplicationModel;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Security.ApiKeys;
 using SenseNet.ContentRepository.Storage.Security;
+using SenseNet.Diagnostics.Analysis;
 
 namespace SenseNet.Services.Core.Operations
 {
@@ -18,7 +19,7 @@ namespace SenseNet.Services.Core.Operations
         /// <param name="content"></param>
         /// <param name="context"></param>
         /// <returns>An object containing an array of API keys related to the target user.</returns>
-        [ODataFunction]
+        [ODataFunction(Category = "Authentication")]
         [ContentTypes(N.CT.User)]
         [AllowedRoles(N.R.All)]
         public static async Task<object> GetApiKeys(Content content, HttpContext context)
@@ -41,7 +42,7 @@ namespace SenseNet.Services.Core.Operations
         /// <param name="content"></param>
         /// <param name="context"></param>
         /// <returns>The newly created API key.</returns>
-        [ODataAction]
+        [ODataAction(Category = "Authentication")]
         [ContentTypes(N.CT.User)]
         [AllowedRoles(N.R.All)]
         public static async Task<ApiKey> CreateApiKey(Content content, HttpContext context)
@@ -63,7 +64,7 @@ namespace SenseNet.Services.Core.Operations
         /// <param name="apiKey">API key identifier.</param>
         /// <returns>An empty result.</returns>
         /// <exception cref="ArgumentNullException"></exception>
-        [ODataAction]
+        [ODataAction(Category = "Authentication")]
         [ContentTypes(N.CT.User, N.CT.PortalRoot)]
         [AllowedRoles(N.R.All)]
         public static async System.Threading.Tasks.Task DeleteApiKey(Content content, HttpContext context, string apiKey)
@@ -84,7 +85,7 @@ namespace SenseNet.Services.Core.Operations
         /// <param name="content"></param>
         /// <param name="context"></param>
         /// <returns>An empty result.</returns>
-        [ODataAction]
+        [ODataAction(Category = "Authentication")]
         [ContentTypes(N.CT.PortalRoot)]
         [AllowedRoles(N.R.Administrators, N.R.PublicAdministrators)]
         public static System.Threading.Tasks.Task DeleteApiKeys(Content content, HttpContext context)
@@ -101,7 +102,7 @@ namespace SenseNet.Services.Core.Operations
         /// <param name="content"></param>
         /// <param name="context"></param>
         /// <returns>An empty result.</returns>
-        [ODataAction(OperationName = "DeleteApiKeys")]
+        [ODataAction(OperationName = "DeleteApiKeys", Category = "Authentication")]
         [ContentTypes(N.CT.User)]
         [AllowedRoles(N.R.Administrators, N.R.PublicAdministrators)]
         public static System.Threading.Tasks.Task DeleteApiKeysByUser(Content content, HttpContext context)
