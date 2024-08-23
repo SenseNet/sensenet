@@ -33,8 +33,6 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
         private readonly ILogger _logger;
         private readonly IRetrier _retrier;
 
-        public override IDataPlatform<DbConnection, DbCommand, DbParameter> GetPlatform() { return null; } //TODO:~ UNDELETABLE
-
         public MsSqlDataProvider(IOptions<DataOptions> dataOptions, IOptions<ConnectionStringOptions> connectionOptions,
             IOptions<MsSqlDatabaseInstallationOptions> dbInstallerOptions, MsSqlDatabaseInstaller databaseInstaller,
             IDataInstaller dataInstaller, ILogger<MsSqlDataProvider> logger, IRetrier retrier)

@@ -119,13 +119,11 @@ namespace SenseNet.ContentRepository.Search.Indexing
             if (IndexingEngine == null)
                 return;
 
-            //TODO: [async] rewrite this using async APIs.
             if (IndexingEngine.IndexIsCentralized)
                 CentralizedIndexingActivityQueue.ShutDown();
             else
                 DistributedIndexingActivityQueue.ShutDown();
 
-            //TODO: [async] rewrite this using async APIs.
             IndexingEngine.ShutDownAsync(CancellationToken.None).GetAwaiter().GetResult();
 
             _logger.LogInformation("Indexing engine has stopped. Max task id and exceptions: {IndexCompletionState}",
