@@ -228,12 +228,13 @@ namespace SenseNet.Services.Core.Operations
         }
 
         /// <summary>
-            /// Gets the user's multifactor authentication info.
-            /// </summary>
-            /// <param name="content"></param>
-            /// <param name="context"></param>
-            /// <returns>A custom object containing multifactor authentication data related to the user.</returns>
-            [ODataFunction]
+        /// Gets the user's multifactor authentication info.
+        /// </summary>
+        /// <snCategory>Authentication</snCategory>
+        /// <param name="content"></param>
+        /// <param name="context"></param>
+        /// <returns>A custom object containing multifactor authentication data related to the user.</returns>
+        [ODataFunction]
         [ContentTypes(N.CT.User)]
         [AllowedRoles(N.R.Administrators)]
         public static object GetMultiFactorAuthenticationInfo(Content content, HttpContext context)
@@ -254,10 +255,11 @@ namespace SenseNet.Services.Core.Operations
         /// Resets two-factor authentication on a user. Administrators may use this method as a way
         /// to repair a user account.
         /// </summary>
+        /// <snCategory>Authentication</snCategory>
         /// <param name="content"></param>
         /// <param name="context"></param>
         /// <returns>A custom object containing multifactor authentication data related to the user.</returns>
-        [ODataAction]
+        [ODataAction(Category = "Authentication")]
         [ContentTypes(N.CT.User)]
         [AllowedRoles(N.R.Administrators)]
         public static async Task ResetTwoFactorKey(Content content, HttpContext context)
@@ -308,10 +310,11 @@ namespace SenseNet.Services.Core.Operations
         /// <summary>
         /// Gets the currently authenticated user.
         /// </summary>
+        /// <snCategory></snCategory>
         /// <param name="content"></param>
         /// <param name="context"></param>
         /// <returns>The currently logged in user or Visitor.</returns>
-        [ODataFunction]
+        [ODataFunction(Category = "Users and Groups")]
         [ContentTypes(N.CT.PortalRoot)]
         [AllowedRoles(N.R.All)]
         public static Task<Content> GetCurrentUser(Content content, HttpContext context)
