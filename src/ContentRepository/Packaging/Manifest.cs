@@ -252,11 +252,7 @@ namespace SenseNet.Packaging
 
             if (SystemInstall && editConnectionString)
             {
-                //UNDONE:CNSTR: Get ConnectionStringOptions from ServiceProvider or another general location.
-                var connectionStrings = new ConnectionStringOptions();
-                throw new SnNotSupportedException();
-                EditConnectionString(connectionStrings, this.Parameters, packageParameters);
-                RepositoryVersionInfo.Reset();
+                throw new SnNotSupportedException("Editing ConnectionString is not supported.");
             }
 
             var versionInfo = RepositoryVersionInfo.Instance;
