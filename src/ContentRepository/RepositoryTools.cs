@@ -968,7 +968,7 @@ namespace SenseNet.ContentRepository
 		/// <param name="langCode">Two character identifier of the culture</param>
 		/// <exception cref="ApplicationException">Exception thrown when there's no resouce data 
 		/// with the given className or langCode.</exception>
-		[ODataFunction]
+		[ODataFunction(Category = "Tools")]
 		[ContentTypes(N.CT.PortalRoot)]
 		[AllowedRoles(N.R.Everyone, N.R.Visitor)]
 		public static Dictionary<string, object> GetResourceClass(Content content, string className, string langCode)

@@ -67,7 +67,7 @@ public static class FeatureOperations
     /// Gets the list of registered features.
     /// </summary>
     /// <returns></returns>
-    [ODataFunction]
+    [ODataFunction(Category = "Tools")]
     [ContentTypes(N.CT.PortalRoot)]
     [AllowedRoles(N.R.Everyone)]  
     public static async Task<object> GetFeatures(Content content, HttpContext context)

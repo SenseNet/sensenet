@@ -234,7 +234,7 @@ namespace SenseNet.Services.Core.Operations
         /// <param name="content"></param>
         /// <param name="context"></param>
         /// <returns>A custom object containing multifactor authentication data related to the user.</returns>
-        [ODataFunction]
+        [ODataFunction(Category = "Authentication")]
         [ContentTypes(N.CT.User)]
         [AllowedRoles(N.R.Administrators)]
         public static object GetMultiFactorAuthenticationInfo(Content content, HttpContext context)

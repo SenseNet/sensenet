@@ -10,7 +10,7 @@ namespace SenseNet.OData.Operations
         /// Returns a list of all available OData operation
         /// </summary>
         /// <snCategory></snCategory>
-        [ODataFunction(Category = "")]
+        [ODataFunction(Category = "Tools")]
         [ContentTypes(N.CT.PortalRoot)]
         [AllowedRoles(N.R.Administrators, N.R.PublicAdministrators, N.R.Developers)]
         public IEnumerable<object> GetOperations()

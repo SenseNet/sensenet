@@ -47,7 +47,7 @@ public partial class Settings
         Editor,
     }
 
-    [ODataFunction]
+    [ODataFunction(Category = "Content Management")]
     [ContentTypes(N.CT.GenericContent)]
     [AllowedRoles(N.R.Everyone, N.R.Visitor)]
     public static async Task<object> GetSettings(Content content, HttpContext httpContext, string name, string property = null)
@@ -62,7 +62,7 @@ public partial class Settings
         return effectiveSettings[property];
     }
 
-    [ODataAction]
+    [ODataAction(Category = "Content Management")]
     [ContentTypes(N.CT.GenericContent)]
     [AllowedRoles(N.R.Administrators, N.R.PublicAdministrators, N.R.Developers, N.R.Editors, N.R.IdentifiedUsers)]
     public static async STT.Task WriteSettings(Content content, HttpContext httpContext, string name, object settingsData)
