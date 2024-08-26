@@ -17,11 +17,10 @@ namespace SenseNet.OpenApi
         /// Generates OpenApi v3 definition of the current sensenet API.
         /// WARNING: this version contains only the basic (CRUD) operations.
         /// </summary>
-        /// <snCategory>Content and Schema</snCategory>
         /// <param name="content"></param>
         /// <param name="httpContext"></param>
         /// <returns>OpenApi definition.</returns>
-        [ODataFunction]
+        [ODataFunction(Category = "Content and Schema")]
         [ContentTypes(N.CT.PortalRoot)]
         [AllowedRoles(N.R.All)]
         public static string GetOpenApiDocument(Content content, HttpContext httpContext)

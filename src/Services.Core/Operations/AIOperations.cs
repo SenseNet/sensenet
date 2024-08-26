@@ -15,14 +15,13 @@ public static class AIOperations
     /// <summary>
     /// Generates the summary of a long text using AI.
     /// </summary>
-    /// <snCategory>AI</snCategory>
     /// <param name="content"></param>
     /// <param name="maxWordCount">Maximum number of words in the summary.</param>
     /// <param name="maxSentenceCount">Maximum number of sentences in the summary.</param>
     /// <param name="context"></param>
     /// <param name="text">A long text to create summary from.</param>
     /// <returns>An object containing the summary.</returns>
-    [ODataAction]
+    [ODataAction(Category = "AI")]
     [ContentTypes(N.CT.PortalRoot)]
     [AllowedRoles(N.R.AITextUsers)]
     public static async Task<object> GenerateSummary(Content content, HttpContext context,
@@ -43,13 +42,12 @@ public static class AIOperations
     /// <summary>
     /// Generates a content query from natural language text using AI.
     /// </summary>
-    /// <snCategory>AI</snCategory>
     /// <param name="content"></param>
     /// <param name="context"></param>
     /// <param name="text">A natural language text to generate a from.</param>
     /// <param name="threadId">Optional thread id to chain requests.</param>
     /// <returns>An object containing the generated query and a thread ID.</returns>
-    [ODataAction]
+    [ODataAction(Category = "AI")]
     [ContentTypes(N.CT.PortalRoot)]
     [AllowedRoles(N.R.AITextUsers)]
     public static async Task<object> GenerateContentQuery(Content content, HttpContext context, string text, string threadId = null)
@@ -70,14 +68,13 @@ public static class AIOperations
     /// <summary>
     /// Generates an image from the provided text.
     /// </summary>
-    /// <snCategory>AI</snCategory>
     /// <param name="content"></param>
     /// <param name="context"></param>
     /// <param name="text">The text to generate the image from.</param>
     /// <param name="width">The width of the image.</param>
     /// <param name="height">The height of the image.</param>
     /// <returns>The image data of the generated image.</returns>
-    [ODataAction]
+    [ODataAction(Category = "AI")]
     [ContentTypes(N.CT.PortalRoot)]
     [AllowedRoles(N.R.AIVisionUsers)]
     public static async Task<object> GenerateImage(Content content, HttpContext context, string text, int width, int height)

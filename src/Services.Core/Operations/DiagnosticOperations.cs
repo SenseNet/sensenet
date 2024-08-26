@@ -14,7 +14,6 @@ namespace SenseNet.Services.Core.Operations
         /// <summary>
         /// Provides version information about all releases / components / packages / assemblies of the running sensenet system.
         /// </summary>
-        /// <snCategory>Other</snCategory>
         /// <remarks>
         /// For example:
         /// <code>
@@ -77,7 +76,7 @@ namespace SenseNet.Services.Core.Operations
         /// <param name="content"></param>
         /// <param name="httpContext"></param>
         /// <returns>A <see cref="RepositoryVersionView"/> instance containing releases, packages, components, assemblies.</returns>
-        [ODataFunction]
+        [ODataFunction(Category = "Other")]
         [ContentTypes(N.CT.PortalRoot)]
         [AllowedRoles(N.R.Administrators, N.R.PublicAdministrators, N.R.Developers)]
         public static async Task<RepositoryVersionView> GetVersionInfo(Content content, HttpContext httpContext)
@@ -118,13 +117,12 @@ namespace SenseNet.Services.Core.Operations
         /// <summary>
         /// Gets database usage information about the repository.
         /// </summary>
-        /// <snCategory>Tools</snCategory>
         /// <param name="content"></param>
         /// <param name="httpContext"></param>
         /// <param name="force">True if the data should be refreshed from the database. Default: false</param>
         /// <returns>A <see cref="DatabaseUsage"/> object containing content, preview, binary
         /// and version count information.</returns>
-        [ODataFunction]
+        [ODataFunction(Category = "Tools")]
         [ContentTypes(N.CT.PortalRoot)]
         [AllowedRoles(N.R.Administrators, N.R.PublicAdministrators, N.R.Developers)]
         public static async Task<DatabaseUsage> GetDatabaseUsage(Content content, HttpContext httpContext, bool force = false)

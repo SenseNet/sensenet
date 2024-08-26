@@ -1317,11 +1317,10 @@ namespace SenseNet.ContentRepository
         /// <nodoc>The Content will be saved after the operation.
         /// This is an <see cref="ODataAction"/>.</nodoc>
         /// </summary>
-        /// <snCategory>Content Types</snCategory>
         /// <param name="content"></param>
         /// <param name="contentTypes" example='["Task", "Event"]'>The extension.</param>
         /// <returns>Empty string.</returns>
-        [ODataAction]
+        [ODataAction(Category = "Content Types")]
         [AllowedRoles(N.R.Everyone)]
         public static string AddAllowedChildTypes(Content content, string[] contentTypes)
         {
@@ -1338,12 +1337,11 @@ namespace SenseNet.ContentRepository
         /// <nodoc>The Content will be saved after the operation.
         /// This is an <see cref="ODataAction"/>.</nodoc>
         /// </summary>
-        /// <snCategory>Content Types</snCategory>
         /// <param name="content"></param>
         /// <param name="httpContext"></param>
         /// <param name="contentTypes">The items that will be removed.</param>
         /// <returns>Empty string.</returns>
-        [ODataAction(OperationName = "RemoveAllowedChildTypes")]
+        [ODataAction(OperationName = "RemoveAllowedChildTypes", Category = "Content Types")]
         [AllowedRoles(N.R.Everyone)]
         public static async Task<string> RemoveAllowedChildTypesAsync(Content content, HttpContext httpContext,
             string[] contentTypes)

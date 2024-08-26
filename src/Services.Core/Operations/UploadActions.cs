@@ -9,7 +9,6 @@ namespace SenseNet.Services.Core.Operations
     public static class UploadActions
     {
         /// <summary>Uploads a whole file or only a chunk.</summary>
-        /// <snCategory>Binary</snCategory>
         /// <param name="content"></param>
         /// <param name="context"></param>
         /// <param name="FileLength">Full length of the file.</param>
@@ -34,7 +33,7 @@ namespace SenseNet.Services.Core.Operations
         /// }
         /// </code>
         /// </example>
-        [ODataAction]
+        [ODataAction(Category = "Binary")]
         [ContentTypes(N.CT.GenericContent, N.CT.ContentType)]
         [AllowedRoles(N.R.All)]
         [RequiredPermissions(N.P.AddNew)]
@@ -74,11 +73,10 @@ namespace SenseNet.Services.Core.Operations
 
         /// <summary>Finalizes a multi step upload operation and
         /// makes the content available for modifications.</summary>
-        /// <snCategory>Binary</snCategory>
         /// <param name="content"></param>
         /// <param name="httpContext"></param>
         /// <returns>An empty result.</returns>
-        [ODataAction]
+        [ODataAction(Category = "Binary")]
         [ContentTypes(N.CT.GenericContent, N.CT.ContentType)]
         [AllowedRoles(N.R.All)]
         [RequiredPermissions(N.P.Save)]
@@ -95,7 +93,6 @@ namespace SenseNet.Services.Core.Operations
         /// This method is used by clients who intend to use the blob storage client 
         /// to write files directly to the blob storage.
         /// </summary>
-        /// <snCategory>Binary</snCategory>
         /// <param name="content">Parent content to upload the new file to.</param>
         /// <param name="context">The current HttpContext if available.</param>
         /// <param name="name">Name of the new (or existing) content.</param>
@@ -103,7 +100,7 @@ namespace SenseNet.Services.Core.Operations
         /// <param name="fullSize">Size of the whole binary.</param>
         /// <param name="fieldName">Optional custom binary field name, if it is other than 'Binary'.</param>
         /// <returns>Chunk write token, content id and version id in a JSON object.</returns>
-        [ODataAction]
+        [ODataAction(Category = "Binary")]
         [ContentTypes(N.CT.GenericContent, N.CT.ContentType)]
         [AllowedRoles(N.R.All)]
         [RequiredPermissions(N.P.AddNew)]
@@ -118,13 +115,12 @@ namespace SenseNet.Services.Core.Operations
         /// and calling StartChunk. This method is used by clients who intend to use the blob
         /// storage client to write files directly to the blob storage.
         /// </summary>
-        /// <snCategory>Binary</snCategory>
         /// <param name="content">Existing content with a binary field to upload to. In most cases this is a file content.</param>
         /// <param name="context">The current HttpContext if available.</param>
         /// <param name="fullSize">Size of the whole binary.</param>
         /// <param name="fieldName">Optional custom binary field name, if it is other than 'Binary'.</param>
         /// <returns>Chunk write token, content id and version id in a JSON object.</returns>
-        [ODataAction]
+        [ODataAction(Category = "Binary")]
         [ContentTypes(N.CT.GenericContent, N.CT.ContentType)]
         [AllowedRoles(N.R.All)]
         [RequiredPermissions(N.P.Save)]
@@ -139,14 +135,13 @@ namespace SenseNet.Services.Core.Operations
         /// This method is used by clients who intend to use the blob storage client 
         /// to write files directly to the blob storage.
         /// </summary>
-        /// <snCategory>Binary</snCategory>
         /// <param name="content">A content in a multistep saving state.</param>
         /// <param name="context">The current HttpContext if available.</param>
         /// <param name="token">Binary token provided by the start operation before.</param>
         /// <param name="fullSize">Size of the whole binary.</param>
         /// <param name="fieldName">Optional custom binary field name, if it is other than 'Binary'.</param>
         /// <param name="fileName">Binary file name to save into the binary metadata.</param>
-        [ODataAction]
+        [ODataAction(Category = "Binary")]
         [ContentTypes(N.CT.GenericContent, N.CT.ContentType)]
         [AllowedRoles(N.R.All)]
         [RequiredPermissions(N.P.Save)]
@@ -160,11 +155,10 @@ namespace SenseNet.Services.Core.Operations
         /// Gets a token from the Content Repository that represents the binary data stored in the specified
         /// field (by default Binary) of the provided content version.
         /// </summary>
-        /// <snCategory>Binary</snCategory>
         /// <param name="content">A content with a binary field.</param>
         /// <param name="context">The current HttpContext if available.</param>
         /// <param name="fieldName">Optional custom binary field name, if it is other than 'Binary'.</param>
-        [ODataFunction]
+        [ODataFunction(Category = "Binary")]
         [ContentTypes(N.CT.GenericContent, N.CT.ContentType)]
         [AllowedRoles(N.R.All)]
         public static string GetBinaryToken(Content content, HttpContext context, string fieldName = null)
