@@ -149,7 +149,6 @@ namespace SenseNet.OData.Metadata
         //======================================================================================= OData API
 
         /// <summary>Gets type and field information for a single content type or all of them.</summary>
-        /// <snCategory>Content and Schema</snCategory>
         /// <param name="content"></param>
         /// <param name="contentTypeName">Optional content type name.</param>
         /// <returns>A list of type objects containing content type head information

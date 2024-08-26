@@ -32,7 +32,6 @@ namespace SenseNet.Services.Core
         /// <summary>
         /// Generic OData action method for collecting all fields of all types in the system.
         /// </summary>
-        /// <snCategory>Content and Schema</snCategory>
         /// <param name="content">Compulsory generic OData action parameter, currently not used.</param>
         /// <returns>Two arrays: one with regular fields and one for aspect fields.</returns>
         [ODataFunction(Category = "Content and Schema")]
@@ -115,7 +114,6 @@ namespace SenseNet.Services.Core
         /// <summary>Gets saved queries accessible by the current user.
         /// Queries can be in the following places: either in a public folder under the
         /// current workspace or private queries under the profile of the current user.</summary>
-        /// <snCategory>Queries</snCategory>
         /// <param name="content"></param>
         /// <param name="onlyPublic">True if only public queries should be returned.</param>
         /// <returns>A list of Query content items.</returns>
@@ -154,7 +152,6 @@ namespace SenseNet.Services.Core
         }
 
         /// <summary>Add or edit a saved content query.</summary>
-        /// <snCategory>Queries</snCategory>
         /// <param name="content"></param>
         /// <param name="query">Query text.</param>
         /// <param name="displayName">Display name for the saved query.</param>

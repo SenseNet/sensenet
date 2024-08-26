@@ -17,7 +17,6 @@ namespace SenseNet.Services.Core.Operations
         /// <summary>
         /// Gets the type of the repository. This is 'standalone' by default.
         /// </summary>
-        /// <snCategory>Other</snCategory>
         /// <param name="content"></param>
         /// <param name="context"></param>
         /// <returns>The type of the repository.</returns>

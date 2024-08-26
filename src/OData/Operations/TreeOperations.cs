@@ -16,7 +16,6 @@ namespace SenseNet.OData.Operations
         /// Gets a list of ancestor content items of the target content. The list will also contain child elements along
         /// the way so that a subtree can be built from the list.
         /// </summary>
-        /// <snCategory>Content Management</snCategory>
         /// <param name="content"></param>
         /// <param name="request"></param>
         /// <param name="rootPath">A root ancestor content. This is where the ancestor list will start.</param>

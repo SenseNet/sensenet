@@ -28,7 +28,6 @@ namespace SenseNet.Services.Core.Operations
         /// Approves the requested content. The content's version number will be the next major version according to
         /// the content's versioning mode.
         /// </summary>
-        /// <snCategory>Collaboration</snCategory>
         /// <param name="content"></param>
         /// <param name="httpContext"></param>
         /// <returns>The modified content.</returns>
@@ -51,7 +50,6 @@ namespace SenseNet.Services.Core.Operations
         /// Removes the exclusive lock from the requested content and persists the <paramref name="checkInComments"/>
         /// if there is. The version number is changed according to the content's versioning mode.
         /// </summary>
-        /// <snCategory>Collaboration</snCategory>
         /// <param name="content"></param>
         /// <param name="httpContext"></param>
         /// <param name="checkInComments" example="Very good.">The modifier's comments.</param>
@@ -86,7 +84,6 @@ namespace SenseNet.Services.Core.Operations
         /// Creates a new version of the requested content and locks it exclusively for the current user.
         /// The version number is changed according to the content's versioning mode.
         /// </summary>
-        /// <snCategory>Collaboration</snCategory>
         /// <param name="content"></param>
         /// <param name="httpContext"></param>
         /// <returns>The modified content.</returns>
@@ -109,7 +106,6 @@ namespace SenseNet.Services.Core.Operations
         /// Publishes the requested content. The version number is changed to the next major version
         /// according to the content's versioning mode.
         /// </summary>
-        /// <snCategory>Collaboration</snCategory>
         /// <param name="content"></param>
         /// <param name="httpContext"></param>
         /// <returns>The modified content.</returns>
@@ -132,7 +128,6 @@ namespace SenseNet.Services.Core.Operations
         /// Rejects the modifications of the requested content and persists the <paramref name="rejectReason"/>
         /// if there is.
         /// </summary>
-        /// <snCategory>Collaboration</snCategory>
         /// <param name="content"></param>
         /// <param name="httpContext"></param>
         /// <param name="rejectReason" example="Rewrite please.">The reviewer's comments.</param>
@@ -160,7 +155,6 @@ namespace SenseNet.Services.Core.Operations
         /// Drops the last draft version of the requested content if there is. This operation is allowed only
         /// for the user who locked the content or an administrator with <c>ForceCheckin</c> permissions.
         /// </summary>
-        /// <snCategory>Collaboration</snCategory>
         /// <param name="content"></param>
         /// <param name="httpContext"></param>
         /// <returns>The modified content.</returns>
@@ -183,7 +177,6 @@ namespace SenseNet.Services.Core.Operations
         /// Drops the last draft version of the requested content if there is. This operation is allowed only
         /// for users who have <c>ForceCheckin</c> permission on this content. 
         /// </summary>
-        /// <snCategory>Collaboration</snCategory>
         /// <param name="content"></param>
         /// <param name="httpContext"></param>
         /// <returns>The modified content.</returns>
@@ -212,7 +205,6 @@ namespace SenseNet.Services.Core.Operations
         /// - V[major].[minor].[status] e.g. "V1.2.D"
         /// <para>Note that [status] is not required but an incorrect value causes an exception.</para>
         /// </summary>
-        /// <snCategory>Collaboration</snCategory>
         /// <param name="content"></param>
         /// <param name="httpContext"></param>
         /// <param name="version">The old version number.</param>
@@ -274,7 +266,6 @@ namespace SenseNet.Services.Core.Operations
         /// could cause data loss. A workaround for this (if you do not mind losing list field data) is to first copy the
         /// content to a temporary folder outside of the source list than move them to the target location.</para>
         /// </summary>
-        /// <snCategory>Content Management</snCategory>
         /// <remarks>
         /// The response contains information about all copied items (subtree roots) and all errors if there is any.
         /// <code>
@@ -406,7 +397,6 @@ namespace SenseNet.Services.Core.Operations
         /// could cause data loss. A workaround for this (if you do not mind losing list field data) is to first move the
         /// content to a temporary folder outside of the source list than move them to the target location.</para>
         /// </summary>
-        /// <snCategory>Content Management</snCategory>
         /// <remarks>
         /// The response contains information about all moved items (subtree roots) and all errors if there is any.
         /// <code>
@@ -531,7 +521,6 @@ namespace SenseNet.Services.Core.Operations
         /// <summary>
         /// Deletes the requested content permanently or moves it to the Trash, depending on the <paramref name="permanent"/> parameter.
         /// </summary>
-        /// <snCategory>Content Management</snCategory>
         /// <param name="content"></param>
         /// <param name="httpContext"></param>
         /// <param name="permanent" example="true">True if the content must be deleted permanently.</param>
@@ -550,7 +539,6 @@ namespace SenseNet.Services.Core.Operations
         /// Deletes one or more content permanently or moves them to the Trash, depending on the <paramref name="permanent"/> parameter.
         /// The deletable items can be identified by their Id or Path. Ids and paths can also be mixed.
         /// </summary>
-        /// <snCategory>Content Management</snCategory>
         /// <remarks>
         /// The response contains information about all deleted items (subtree roots) and all errors if there is any.
         /// <code>
@@ -692,7 +680,6 @@ namespace SenseNet.Services.Core.Operations
         /// Returns the effective permission information of the requested content grouped by identities.
         /// The output can be filtered by the <paramref name="identity"/> parameter.
         /// </summary>
-        /// <snCategory>Permissions</snCategory>
         /// <remarks>
         /// If the current user does not have <c>SeePermissions</c> right, the provided identity must be the current user
         /// in which case they will get only their own permission entries.
@@ -850,7 +837,6 @@ namespace SenseNet.Services.Core.Operations
         /// Returns whether the current or given user has the provided permissions on the requested content.
         /// The value is <c>true</c> if all requested permissions are allowed.
         /// </summary>
-        /// <snCategory>Permissions</snCategory>
         /// <param name="content"></param>
         /// <param name="permissions" example='["Open", "RunApplication"]'>Permission name array.</param>
         /// <param name="user" example="/Root/IMS/BuiltIn/Portal/Visitor">Path of an existing user. If not specified,
@@ -891,7 +877,6 @@ namespace SenseNet.Services.Core.Operations
         /// <summary>
         /// Changes the permission inheritance on the requested content.
         /// </summary>
-        /// <snCategory>Permissions</snCategory>
         /// <remarks> After the <c>break</c> operation, all previous
         /// effective permissions that match any of the given entry types will be copied to the content.
         /// After the <c>unbreak</c> operation, the unnecessary explicit entries will be removed.
@@ -931,7 +916,6 @@ namespace SenseNet.Services.Core.Operations
         /// <summary>
         /// Modifies the explicit permission set of the requested content.
         /// </summary>
-        /// <snCategory>Permissions</snCategory>
         /// <remarks>
         /// <para>
         /// The given <paramref name="r"/> parameter is a <see cref="SetPermissionsRequest"/> object that has
@@ -1154,7 +1138,6 @@ namespace SenseNet.Services.Core.Operations
         /// WARNING: Known issue that you may get errors restoring a ContentListItem whose
         /// ContentListField structure has changed since it was deleted.
         /// </summary>
-        /// <snCategory>Content Management</snCategory>
         /// <param name="content"></param>
         /// <param name="destination" example="/Root/DifferentTarget">The path where the content should be restored,
         /// if it is not the same one from which it was deleted.</param>

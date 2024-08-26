@@ -17,7 +17,6 @@ namespace SenseNet.Services.Wopi
         private static readonly TimeSpan DefaultTokenTimeout = TimeSpan.FromHours(3);
 
         /// <summary>Gets document and security information required by the WOPI protocol.</summary>
-        /// <snCategory>Office Online Editing</snCategory>
         /// <param name="content"></param>
         /// <param name="context"></param>
         /// <param name="action">The required WOPI action: edit or open</param>
@@ -69,7 +68,6 @@ namespace SenseNet.Services.Wopi
         }
 
         /// <summary>This method serves only action listing and will not actually execute.</summary>
-        /// <snCategory>Office Online Editing</snCategory>
         /// <param name="content"></param>
         /// <returns></returns>
         [ODataFunction(Category = "Office Online Editing", Icon = "office", DisplayName = "$Action,WopiOpenView-DisplayName")]
@@ -83,7 +81,6 @@ namespace SenseNet.Services.Wopi
         }
 
         /// <summary>This method serves only action listing and will not actually execute.</summary>
-        /// <snCategory>Office Online Editing</snCategory>
         /// <param name="content"></param>
         /// <returns></returns>
         [ODataFunction(Category = "Office Online Editing", Icon = "office", DisplayName = "$Action,WopiOpenEdit-DisplayName")]

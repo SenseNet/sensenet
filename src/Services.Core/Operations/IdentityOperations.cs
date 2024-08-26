@@ -42,7 +42,6 @@ namespace SenseNet.Services.Core.Operations
     public static class IdentityOperations
     {
         /// <summary>Validates the provided user credentials.</summary>
-        /// <snCategory>Authentication</snCategory>
         /// <param name="content"></param>
         /// <param name="context"></param>
         /// <param name="userName">Username (domain name can be omitted if it is the default).</param>
@@ -74,7 +73,6 @@ namespace SenseNet.Services.Core.Operations
         }
 
         /// <summary>Validates the provided user credentials and two-factor code at the same time.</summary>
-        /// <snCategory>Authentication</snCategory>
         /// <param name="content"></param>
         /// <param name="context"></param>
         /// <param name="userName">Username (domain name can be omitted if it is the default).</param>
@@ -161,7 +159,6 @@ namespace SenseNet.Services.Core.Operations
         }
 
         /// <summary>Validates the target user with the two-factor code.</summary>
-        /// <snCategory>Authentication</snCategory>
         /// <param name="content"></param>
         /// <param name="context"></param>
         /// <param name="twoFactorCode">Two-factor code</param>
@@ -230,7 +227,6 @@ namespace SenseNet.Services.Core.Operations
         /// <summary>
         /// Gets the user's multifactor authentication info.
         /// </summary>
-        /// <snCategory>Authentication</snCategory>
         /// <param name="content"></param>
         /// <param name="context"></param>
         /// <returns>A custom object containing multifactor authentication data related to the user.</returns>
@@ -255,7 +251,6 @@ namespace SenseNet.Services.Core.Operations
         /// Resets two-factor authentication on a user. Administrators may use this method as a way
         /// to repair a user account.
         /// </summary>
-        /// <snCategory>Authentication</snCategory>
         /// <param name="content"></param>
         /// <param name="context"></param>
         /// <returns>A custom object containing multifactor authentication data related to the user.</returns>
@@ -310,7 +305,6 @@ namespace SenseNet.Services.Core.Operations
         /// <summary>
         /// Gets the currently authenticated user.
         /// </summary>
-        /// <snCategory></snCategory>
         /// <param name="content"></param>
         /// <param name="context"></param>
         /// <returns>The currently logged in user or Visitor.</returns>
@@ -328,7 +322,6 @@ namespace SenseNet.Services.Core.Operations
 
         /// <summary>Creates an external user who registered using one of the available
         /// external providers.</summary>
-        /// <snCategory>Users and Groups</snCategory>
         /// <param name="content"></param>
         /// <param name="context"></param>
         /// <param name="provider">Name of the provider (e.g. Google, GitHub).</param>
@@ -356,7 +349,6 @@ namespace SenseNet.Services.Core.Operations
         }
 
         /// <summary>Creates a local user who registered using a username and password.</summary>
-        /// <snCategory>Users and Groups</snCategory>
         /// <param name="content"></param>
         /// <param name="context"></param>
         /// <param name="loginName">Login name.</param>
@@ -382,7 +374,6 @@ namespace SenseNet.Services.Core.Operations
         /// <summary>
         /// Sends change password email to the specified email address.
         /// </summary>
-        /// <snCategory>Users and Groups</snCategory>
         /// <remarks>This action can be called only by the users themselves or
         /// by administrators who have save access on the user.</remarks>
         /// <param name="content"></param>
@@ -425,7 +416,6 @@ namespace SenseNet.Services.Core.Operations
         /// <summary>
         /// Sends change password email to the target user.
         /// </summary>
-        /// <snCategory>Users and Groups</snCategory>
         /// <remarks>This action can be called only by the users themselves or
         /// by administrators who have save access on the user.</remarks>
         /// <param name="content"></param>
@@ -528,7 +518,6 @@ namespace SenseNet.Services.Core.Operations
         /// <summary>
         /// Changes the password of the target user directly.
         /// </summary>
-        /// <snCategory>Users and Groups</snCategory>
         /// <remarks>This action can be called only by the users themselves or
         /// by administrators who have save access on the user.</remarks>
         /// <param name="content"></param>

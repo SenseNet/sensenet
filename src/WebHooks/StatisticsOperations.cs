@@ -222,7 +222,6 @@ namespace SenseNet.WebHooks
         /// <summary>
         /// Gets all webhook usage information.
         /// </summary>
-        /// <snCategory>WebHooks</snCategory>
         /// <param name="content"></param>
         /// <param name="httpContext"></param>
         /// <param name="maxTime">The maximum date boundary of the query. Only records before this date
@@ -253,7 +252,6 @@ namespace SenseNet.WebHooks
         /// <summary>
         /// Gets webhook usage information for the target subscription.
         /// </summary>
-        /// <snCategory>WebHooks</snCategory>
         /// <param name="content"></param>
         /// <param name="httpContext"></param>
         /// <param name="maxTime">The maximum date boundary of the query. Only records before this date
@@ -282,7 +280,6 @@ namespace SenseNet.WebHooks
         /// Gets the availability of webhook statistics by time window
         /// and the number of corresponding data points.
         /// </summary>
-        /// <snCategory>WebHooks</snCategory>
         /// <param name="content"></param>
         /// <param name="httpContext"></param>
         /// <param name="timeWindow">Size of the time window: Hour, Day, Month or Year. Default: Month.</param>
@@ -355,7 +352,6 @@ namespace SenseNet.WebHooks
         /// <summary>
         /// Gets aggregated webhook statistical data in the provided time window.
         /// </summary>
-        /// <snCategory>WebHooks</snCategory>
         /// <param name="content"></param>
         /// <param name="httpContext"></param>
         /// <param name="timeWindow">Size of the time window: Hour, Day, Month or Year. Default: Month.</param>

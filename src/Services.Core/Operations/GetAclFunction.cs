@@ -13,7 +13,6 @@ namespace SenseNet.Services.Core.Operations
     public static class GetAclFunction
     {
         /// <summary>Returns the access control list for the requested content.</summary>
-        /// <snCategory>Permissions</snCategory>
         /// <remarks>
         /// The returned object contains information about the permission inheritance state of the content, and
         /// all related permissions. 

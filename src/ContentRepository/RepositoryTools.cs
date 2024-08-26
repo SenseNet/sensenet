@@ -314,7 +314,6 @@ namespace SenseNet.ContentRepository
         /// <summary>
         /// Checks all containers in the requested subtree and returns all paths where AllowedChildTypes is empty.
         /// </summary>
-        /// <snCategory>Content Types</snCategory>
         /// <remarks>
         /// The response is a list of content paths where AllowedChildTypes is empty categorized by content type names.
         /// Here is an annotated example:
@@ -365,7 +364,6 @@ namespace SenseNet.ContentRepository
         /// <summary>
         /// Returns all content types.
         /// </summary>
-        /// <snCategory></snCategory>
         /// <param name="content"></param>
         /// <returns>Content list of all content types.</returns>
         [ODataFunction("GetAllContentTypes", Category = "Content Types")]
@@ -379,7 +377,6 @@ namespace SenseNet.ContentRepository
         /// <summary>
         /// Returns a path list of Contents that cannot be deleted.
         /// </summary>
-        /// <snCategory>Security</snCategory>
         /// <remarks>
         /// The default is the following:
         /// <code>
@@ -425,7 +422,6 @@ namespace SenseNet.ContentRepository
         /// <summary>
         /// Returns the list of content types that are allowed in the content type of the requested content.
         /// </summary>
-        /// <snCategory>Content Types</snCategory>
         /// <param name="content"></param>
         /// <returns>Content list of content types.</returns>
         [ODataFunction(Category = "Content Types")]
@@ -441,7 +437,6 @@ namespace SenseNet.ContentRepository
         /// containing items that have explicit security entry for the Everyone group but
         /// do not have an explicit security entry for the Visitor user.
         /// </summary>
-        /// <snCategory>Security</snCategory>
         /// <remarks>
         /// Result example:
         /// <code>
@@ -481,7 +476,6 @@ namespace SenseNet.ContentRepository
         /// Returns the requested content's ancestor chain. The first element is the parent,
         /// the last is the Root or the closest permitted content towards the Root.
         /// </summary>
-        /// <snCategory>Tools</snCategory>
         /// <param name="content"></param>
         /// <returns>Content list of the ancestors of the requested content.</returns>
         [ODataFunction(Category = "Tools")]
@@ -510,7 +504,6 @@ namespace SenseNet.ContentRepository
         /// The copy operation is executed on all content in the subtree of the requested content
         /// that are not in the <paramref name="exceptList"/>.
         /// </summary>
-        /// <snCategory>Security</snCategory>
         /// <param name="root"></param>
         /// <param name="exceptList">White list of untouched Contents.</param>
         /// <returns><c>Ok</c> if the operation is successfully executed.</returns>
@@ -546,7 +539,6 @@ namespace SenseNet.ContentRepository
         /// The target is typically a directory in the filesystem.
         /// The backup is an exclusive operation that can be started only once.
         /// </summary>
-        /// <snCategory>Indexing</snCategory>
         /// <remarks>
         /// The response contains a state and the current backup descriptor. The history is always null.
         /// 
@@ -603,7 +595,6 @@ namespace SenseNet.ContentRepository
         /// <summary>
         /// Queries the index backup state in the system.
         /// </summary>
-        /// <snCategory>Indexing</snCategory>
         /// <remarks>
         /// The response contains a state, the current backup descriptor (if the backup is running) and a history of
         /// backup operations that happened since the application has started.
@@ -650,7 +641,6 @@ namespace SenseNet.ContentRepository
         /// <summary>
         /// Requests the termination of the currently running backup operation.
         /// </summary>
-        /// <snCategory>Indexing</snCategory>
         /// <remarks>
         /// The response contains a state, the current backup descriptor (if the backup is running) and a history of
         /// backup operations that happened since the application has started.
@@ -692,7 +682,6 @@ namespace SenseNet.ContentRepository
         /// Contains the activity status, field info and a versionId list.
         /// Useful in debugging scenarios.
         /// </summary>
-        /// <snCategory>Indexing</snCategory>
         /// <remarks>
         /// A shortened example:
         /// <code>
@@ -734,7 +723,6 @@ namespace SenseNet.ContentRepository
 		/// Shows the whole inverted index in a raw format with some transformations for easier readability.
 		/// WARNING! The index may contain sensitive information.
 		/// </summary>
-		/// <snCategory>Indexing</snCategory>
 		/// <remarks>
 		/// <para>
 		/// Note that some index providers do not support this feature because of the size of the index.
@@ -816,7 +804,6 @@ namespace SenseNet.ContentRepository
         /// Shows the inverted index of the requested field in a raw format with some transformations for easier readability.
         /// WARNING! The index may contain sensitive information.
         /// </summary>
-        /// <snCategory>Indexing</snCategory>
         /// <remarks>
         /// A shortened example where the fieldName is "Description":
         /// <code>
@@ -851,7 +838,6 @@ namespace SenseNet.ContentRepository
         /// Gets the index document (not-inverted index) of the current version of the requested resource.
         /// WARNING! The index may contain sensitive information.
         /// </summary>
-        /// <snCategory>Indexing</snCategory>
         /// <remarks>
         /// <para>
         /// The version of the requested resource depends on the logged in user's permissions but can be tailored by the
@@ -912,7 +898,6 @@ namespace SenseNet.ContentRepository
         /// Gets the index document (not-inverted index) of the requested documentId.
         /// WARNING! The index may contain sensitive information.
         /// </summary>
-        /// <snCategory>Indexing</snCategory>
         /// <remarks>
         /// The documentId depends on the index provider and comes from the inverted index
         /// (see the <see cref="GetInvertedIndex"/> function).
@@ -986,7 +971,6 @@ namespace SenseNet.ContentRepository
 		/// If the <paramref name="userOrGroup"/> is null, the current user will be the owner.
 		/// The operation requires <c>TakeOwnership</c> permission.
 		/// </summary>
-		/// <snCategory>Permissions</snCategory>
 		/// <param name="content"></param>
 		/// <param name="userOrGroup">Path or id of the desired owner.</param>
 		/// <exception cref="ArgumentException">Thrown if the <paramref name="userOrGroup"/> parameter cannot be recognized
@@ -1033,7 +1017,6 @@ namespace SenseNet.ContentRepository
         /// If the target <paramref name="user"/> is null, the target will be the current user.
         /// Current user must have <c>ForceCheckin</c> permission on the requested content.
         /// </summary>
-        /// <snCategory>Permissions</snCategory>
         /// <param name="content"></param>
         /// <param name="user">Path or id of the desired lock owner User.</param>
         /// <returns><c>Ok</c> if the operation is executed successfully.</returns>
@@ -1084,7 +1067,6 @@ namespace SenseNet.ContentRepository
         /// A developer tool that returns an object that contains information about the execution of the last
         /// few security activities.
         /// </summary>
-        /// <snCategory>Security</snCategory>
         /// <remarks>
         /// Example response (truncated):
         /// <code>
@@ -1157,7 +1139,6 @@ namespace SenseNet.ContentRepository
         /// A developer tool that returns an object that contains information about the execution of the last
         /// few indexing activities.
         /// </summary>
-        /// <snCategory>Indexing</snCategory>
         /// <remarks>
         /// A possible response:
         /// <code>
@@ -1213,7 +1194,6 @@ namespace SenseNet.ContentRepository
         /// A developer tool that resets the indexing activity history.
         /// WARNING: Do not use it in a production environment.
         /// </summary>
-        /// <snCategory>Indexing</snCategory>
         /// <remarks>
         /// A possible response:
         /// <code>
@@ -1252,7 +1232,6 @@ namespace SenseNet.ContentRepository
         /// <summary>
         /// DEPRECATED. Checking index integrity online is not supported anymore. Use an offline solution instead.
         /// </summary>
-        /// <snCategory>Deprecated</snCategory>
         /// <param name="recurse">Irrelevant because throws SnNotSupportedException.</param>
         /// <returns>Throws SnNotSupportedException.</returns>
         /// <exception cref="SnNotSupportedException"></exception>
@@ -1267,7 +1246,6 @@ namespace SenseNet.ContentRepository
         /// Checks the security consistency in the subtree of the requested content.
         /// WARNING! The operation can be slow so use it only in justified cases and with a scope as small as possible.
         /// </summary>
-        /// <snCategory>Security</snCategory>
         /// <remarks>Compares the security cache and the main database. the investigation covers the
         /// parallelism of the entity vs content structure, membership vs content-references,
         /// and entity-identity existence in security entries. If the security data is consistent,
@@ -1528,7 +1506,6 @@ namespace SenseNet.ContentRepository
 
         /// <summary>Finalizes an AD sync task for a user, group or organizational unit.
         /// This action is intended for internal use by the Task Management module.</summary>
-        /// <snCategory>AdSync</snCategory>
         /// <param name="content"></param>
         /// <param name="context"></param>
         /// <param name="result">Result of the AD sync task.</param>

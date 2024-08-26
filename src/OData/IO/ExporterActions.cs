@@ -11,7 +11,6 @@ namespace SenseNet.OData.IO
         /// <summary>
         /// Returns the count of all contents in the requested subtree.
         /// </summary>
-        /// <snCategory>Tools</snCategory>
         /// <param name="content">The root of the requested subtree.</param>
         /// <param name="oDataRequest">The current <see cref="ODataRequest"/> instance.</param>
         /// <returns>Count of contents.</returns>

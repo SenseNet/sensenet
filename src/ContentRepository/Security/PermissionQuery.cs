@@ -112,7 +112,6 @@ namespace SenseNet.ContentRepository.Security
         /// <summary>
         /// Returns users and groups that have explicit permissions on the given content or its subtree.
         /// </summary>
-        /// <snCategory>Permissions</snCategory>
         /// <param name="content"></param>
         /// <param name="permissionLevel">Filtering by permission level. It can be Allowed, Denied, AllowedOrDenied.</param>
         /// <param name="identityKind">Filtering by identity kind. Valid values are: All, Users, Groups, OrganizationalUnits, UsersAndGroups, UsersAndOrganizationalUnits, GroupsAndOrganizationalUnits</param>
@@ -133,7 +132,6 @@ return new SCSS.PermissionQuery(securityHandler).GetRelatedIdentities(content.Id
         /// Collects all permission settings on the given content and its subtree related to the specified user or group.
         /// The output is grouped by permission types and can be filtered by permission value or content type.
         /// </summary>
-        /// <snCategory>Permissions</snCategory>
         /// <param name="content"></param>
         /// <param name="permissionLevel">Filtering by permission value. It can be Allowed, Denied, AllowedOrDenied.</param>
         /// <param name="explicitOnly">Filter parameter for future use only. The currently allowed value is true.</param>
@@ -158,7 +156,6 @@ return new SCSS.PermissionQuery(securityHandler).GetRelatedIdentities(content.Id
         /// Returns all content in the requested content's subtree that have permission settings
         /// filtered by permission value, user or group and a permission mask.
         /// </summary>
-        /// <snCategory>Permissions</snCategory>
         /// <param name="content"></param>
         /// <param name="permissionLevel">Filtering by permission value. It can be Allowed, Denied, AllowedOrDenied.</param>
         /// <param name="explicitOnly">Filter parameter for future use only. The currently allowed value is true.</param>
@@ -184,7 +181,6 @@ return new SCSS.PermissionQuery(securityHandler).GetRelatedIdentities(content.Id
         /// <summary>
         /// Returns users and groups that have explicit permissions on the given content or its subtree.
         /// </summary>
-        /// <snCategory>Permissions</snCategory>
         /// <param name="content"></param>
         /// <param name="permissionLevel">Filtering by permission level. It can be Allowed, Denied, AllowedOrDenied.</param>
         /// <param name="identityKind">Filtering by identity kind. Valid values are: All, Users, Groups, OrganizationalUnits, UsersAndGroups, UsersAndOrganizationalUnits, GroupsAndOrganizationalUnits</param>
@@ -210,7 +206,6 @@ return new SCSS.PermissionQuery(securityHandler).GetRelatedIdentities(content.Id
         /// Returns all content in the requested content's direct child collection that have permission settings
         /// filtered by permission value, user or group and a permission mask.
         /// </summary>
-        /// <snCategory>Permissions</snCategory>
         /// <param name="content"></param>
         /// <param name="permissionLevel">Filtering by permission value. It can be Allowed, Denied, AllowedOrDenied.</param>
         /// <param name="memberPath">Path of a group or user.</param>
@@ -237,7 +232,6 @@ return new SCSS.PermissionQuery(securityHandler).GetRelatedIdentities(content.Id
         /// Users will be included in the result set even if the permissions are granted on a group
         /// where they are members directly or indirectly.
         /// </summary>
-        /// <snCategory>Permissions</snCategory>
         /// <param name="content"></param>
         /// <param name="permissions">Only those users appear in the output that have permission settings
         /// in connection with the given permissions.</param>
@@ -259,7 +253,6 @@ return new SCSS.PermissionQuery(securityHandler).GetRelatedIdentities(content.Id
         /// <summary>
         /// Returns all groups where the given user or group is member directly or indirectly.
         /// </summary>
-        /// <snCategory>Users and Groups</snCategory>
         /// <param name="content"></param>
         /// <param name="directOnly">Whether only direct membership is requested.</param>
         /// <returns><see cref="Content"/> list of the groups.</returns>
@@ -276,7 +269,6 @@ return new SCSS.PermissionQuery(securityHandler).GetRelatedIdentities(content.Id
         /// Assembles an object containing identity information (basic fields and all groups), inherited and subtree permissions.
         /// The result object will contain permission infos only for the provided content.
         /// </summary>
-        /// <snCategory>Permissions</snCategory>
         /// <param name="content"></param>
         /// <param name="identity">Path of the related user.</param>
         /// <returns>A PermissionInfo object.</returns>
@@ -292,7 +284,6 @@ return new SCSS.PermissionQuery(securityHandler).GetRelatedIdentities(content.Id
         /// Assembles an object containing identity information (basic fields and all groups), inherited and subtree permissions.
         /// The result object will contain permission infos for the children of the requested content and not the root.
         /// </summary>
-        /// <snCategory>Permissions</snCategory>
         /// <param name="content"></param>
         /// <param name="identity">Path of the related user.</param>
         /// <returns>A PermissionInfo object.</returns>

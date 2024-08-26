@@ -22,7 +22,6 @@ namespace SenseNet.ContentRepository.Security.Cryptography
     public class CryptoServiceProvider
     {
         /// <summary>Encrypts a short text using the current crypto service provider.</summary>
-        /// <snCategory>Security</snCategory>
         /// <param name="content"></param>
         /// <param name="context"></param>
         /// <param name="text">The text to encrypt.</param>
@@ -47,7 +46,6 @@ namespace SenseNet.ContentRepository.Security.Cryptography
         }
 
         /// <summary>Decrypts a short encrypted text using the current crypto service provider.</summary>
-        /// <snCategory>Security</snCategory>
         /// <param name="content"></param>
         /// <param name="context"></param>
         /// <param name="text">The text to decrypt.</param>

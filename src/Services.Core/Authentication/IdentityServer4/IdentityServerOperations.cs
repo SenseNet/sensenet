@@ -12,7 +12,6 @@ namespace SenseNet.Services.Core.Authentication.IdentityServer4
     {
         /// <summary>Gets authority information for a repository.
         /// This action is intended for internal use by the admin UI client.</summary>
-        /// <snCategory>Authentication</snCategory>
         /// <param name="content"></param>
         /// <param name="context"></param>
         /// <param name="clientType">Client type (currently: adminui).</param>

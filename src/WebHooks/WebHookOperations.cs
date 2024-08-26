@@ -13,7 +13,6 @@ namespace SenseNet.WebHooks
         /// <summary>
         /// Fires the target webhook on the provided content for testing purposes.
         /// </summary>
-        /// <snCategory>WebHooks</snCategory>
         /// <param name="webHookContent"></param>
         /// <param name="context"></param>
         /// <param name="path">Target content path.</param>
@@ -34,7 +33,6 @@ namespace SenseNet.WebHooks
         ///  <summary>
         /// Fires the target webhook on the provided content for testing purposes.
         /// </summary>
-        /// <snCategory>WebHooks</snCategory>
         /// <param name="webHookContent"></param>
         /// <param name="context"></param>
         /// <param name="nodeId">Target content identifier.</param>

@@ -30,7 +30,6 @@ namespace SenseNet.OData.IO
         /// Imports a content to the content repository. This action is able to import both new and
         /// existing content items.
         /// </summary>
-        /// <snCategory>Content Management</snCategory>
         /// <remarks>
         /// An example request for importing a new content:
         /// <code>

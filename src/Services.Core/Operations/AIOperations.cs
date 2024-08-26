@@ -15,7 +15,6 @@ public static class AIOperations
     /// <summary>
     /// Generates the summary of a long text using AI.
     /// </summary>
-    /// <snCategory>AI</snCategory>
     /// <param name="content"></param>
     /// <param name="maxWordCount">Maximum number of words in the summary.</param>
     /// <param name="maxSentenceCount">Maximum number of sentences in the summary.</param>
@@ -43,7 +42,6 @@ public static class AIOperations
     /// <summary>
     /// Generates a content query from natural language text using AI.
     /// </summary>
-    /// <snCategory>AI</snCategory>
     /// <param name="content"></param>
     /// <param name="context"></param>
     /// <param name="text">A natural language text to generate a from.</param>
@@ -70,7 +68,6 @@ public static class AIOperations
     /// <summary>
     /// Generates an image from the provided text.
     /// </summary>
-    /// <snCategory>AI</snCategory>
     /// <param name="content"></param>
     /// <param name="context"></param>
     /// <param name="text">The text to generate the image from.</param>

@@ -47,7 +47,6 @@ namespace SenseNet.Services.Core
 
         /// <summary>Gets aggregated permission information on the content
         /// for the specified user.</summary>
-        /// <snCategory>Permissions</snCategory>
         /// <param name="content"></param>
         /// <param name="identity">User content path.</param>
         /// <returns>An array of permission entries relevant for the provided

@@ -15,7 +15,6 @@ namespace SenseNet.Services.Core.Operations
         /// <summary>
         /// Gets API keys related to the target user.
         /// </summary>
-        /// <snCategory>Authentication</snCategory>
         /// <param name="content"></param>
         /// <param name="context"></param>
         /// <returns>An object containing an array of API keys related to the target user.</returns>
@@ -36,7 +35,6 @@ namespace SenseNet.Services.Core.Operations
         /// <summary>
         /// Creates an api key for the target user.
         /// </summary>
-        /// <snCategory>Authentication</snCategory>
         /// <exception cref="SenseNetSecurityException">Thrown when the caller does not have enough permissions
         /// to manage the API keys of the target user.</exception>
         /// <param name="content"></param>
@@ -56,7 +54,6 @@ namespace SenseNet.Services.Core.Operations
         /// <summary>
         /// Deletes an API key.
         /// </summary>
-        /// <snCategory>Authentication</snCategory>
         /// <exception cref="SenseNetSecurityException">Thrown when the caller does not have enough permissions
         /// to manage the API keys of the target user.</exception>
         /// <param name="content"></param>
@@ -79,7 +76,6 @@ namespace SenseNet.Services.Core.Operations
         /// <summary>
         /// Deletes all api keys.
         /// </summary>
-        /// <snCategory>Authentication</snCategory>
         /// <exception cref="SenseNetSecurityException">Thrown when the caller does not have enough permissions
         /// to manage the API keys of the target user.</exception>
         /// <param name="content"></param>
@@ -96,7 +92,6 @@ namespace SenseNet.Services.Core.Operations
         /// <summary>
         /// Deletes api keys of the target user.
         /// </summary>
-        /// <snCategory>Authentication</snCategory>
         /// <exception cref="SenseNetSecurityException">Thrown when the caller does not have enough permissions
         /// to manage the API keys of the target user.</exception>
         /// <param name="content"></param>

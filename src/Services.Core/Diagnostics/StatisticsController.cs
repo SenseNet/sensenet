@@ -218,7 +218,6 @@ namespace SenseNet.Services.Core.Diagnostics
         /// <summary>
         /// Gets a list of HTTP requests received by the repository before the provided time.
         /// </summary>
-        /// <snCategory>Tools</snCategory>
         /// <remarks>
         /// This action was designed to aid a paging client that needs to display only a handful of records on screen.
         /// Querying for a longer period or for many records may result in a slower response.
@@ -250,7 +249,6 @@ namespace SenseNet.Services.Core.Diagnostics
         /// Gets the availability of HTTP request statistics by time window
         /// and the number of corresponding data points.
         /// </summary>
-        /// <snCategory>Tools</snCategory>
         /// <param name="content"></param>
         /// <param name="httpContext"></param>
         /// <param name="timeWindow">Size of the time window: Hour, Day, Month or Year. Default: Month.</param>
@@ -323,7 +321,6 @@ namespace SenseNet.Services.Core.Diagnostics
         /// <summary>
         /// Gets aggregated HTTP requests statistical data in the provided time window.
         /// </summary>
-        /// <snCategory>Tools</snCategory>
         /// <param name="content"></param>
         /// <param name="httpContext"></param>
         /// <param name="timeWindow">Size of the time window: Hour, Day, Month or Year. Default: Month.</param>
@@ -350,7 +347,6 @@ namespace SenseNet.Services.Core.Diagnostics
         /// <summary>
         /// Gets aggregated database usage statistical data in the provided time window.
         /// </summary>
-        /// <snCategory>Tools</snCategory>
         /// <param name="content"></param>
         /// <param name="httpContext"></param>
         /// <param name="timeWindow">Size of the time window: Hour, Day, Month or Year. Default: Month.</param>

@@ -15,7 +15,6 @@ namespace SenseNet.Services.Core.Operations
         /// <summary>
         /// Returns clients related to the current repository.
         /// </summary>
-        /// <snCategory>Authentication</snCategory>
         /// <param name="content">The root content.</param>
         /// <param name="context">The current HttpContext.</param>
         /// <returns>A result object containing an array of clients.</returns>
@@ -37,7 +36,6 @@ namespace SenseNet.Services.Core.Operations
         /// <summary>
         /// Creates a client.
         /// </summary>
-        /// <snCategory>Authentication</snCategory>
         /// <param name="content"></param>
         /// <param name="context"></param>
         /// <param name="name">Name of the client.</param>
@@ -64,7 +62,6 @@ namespace SenseNet.Services.Core.Operations
         /// <summary>
         /// Deletes a client.
         /// </summary>
-        /// <snCategory>Authentication</snCategory>
         /// <param name="content"></param>
         /// <param name="context"></param>
         /// <param name="clientId">Client identifier.</param>
@@ -88,7 +85,6 @@ namespace SenseNet.Services.Core.Operations
         /// <summary>
         /// Creates a secret for the specified client.
         /// </summary>
-        /// <snCategory>Authentication</snCategory>
         /// <param name="content"></param>
         /// <param name="context"></param>
         /// <param name="clientId">Client identifier.</param>
@@ -113,7 +109,6 @@ namespace SenseNet.Services.Core.Operations
         /// <summary>
         /// Deletes a secret.
         /// </summary>
-        /// <snCategory>Authentication</snCategory>
         /// <remarks>It is necessary to provide both the client and secret identifiers for security reasons.</remarks>
         /// <param name="content"></param>
         /// <param name="context"></param>
@@ -141,7 +136,6 @@ namespace SenseNet.Services.Core.Operations
         /// <summary>
         /// Regenerates a secret.
         /// </summary>
-        /// <snCategory>Authentication</snCategory>
         /// <param name="content"></param>
         /// <param name="context"></param>
         /// <param name="clientId">Client identifier.</param>
