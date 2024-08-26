@@ -947,7 +947,7 @@ namespace SenseNet.OData
                                     }).Where(ct => ct != null).ToArray();
 
                                     var ctName = content.ContentType.Name;
-                                    if (ctName != "Folder" && ctName != "Page")
+                                    if (!content.ContentType.IsTransitiveForAllowedTypes)
                                         gc.SetAllowedChildTypes(types);
                                 }
 

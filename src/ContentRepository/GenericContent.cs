@@ -520,10 +520,13 @@ namespace SenseNet.ContentRepository
         /// Persisted as <see cref="RepositoryDataType.Text"/>.
         /// </summary>
         [RepositoryProperty(ALLOWEDCHILDTYPES, RepositoryDataType.Text)]
-        public virtual IEnumerable<ContentType> AllowedChildTypes
+        public IEnumerable<ContentType> AllowedChildTypes
         {
             get
             {
+                if (this.ContentType.IsTransitiveForAllowedTypes)
+                    return ((GenericContent) Parent).AllowedChildTypes;
+
                 var value = this.GetProperty<string>(ALLOWEDCHILDTYPES);
                 if (string.IsNullOrEmpty(value))
                     return ContentType.EmptyAllowedChildTypes;
@@ -535,6 +538,8 @@ namespace SenseNet.ContentRepository
             }
             set
             {
+                if (ContentType.IsTransitiveForAllowedTypes)
+                    return;
                 var names = value == null ? null : string.Join(" ", value.Select(x => x.Name).Distinct());
                 this[ALLOWEDCHILDTYPES] = names;
             }
@@ -954,7 +959,7 @@ namespace SenseNet.ContentRepository
         private IEnumerable<string> GetAllowedChildTypeNames(bool withSystemFolder)
         {
             // in case of folders and pages inherit settings from parent
-            if (this.NodeType.Name == "Folder" || this.NodeType.Name == "Page")
+            if (this.ContentType.IsTransitiveForAllowedTypes)
             {
                 var parent = SystemAccount.Execute(() => Parent as GenericContent);
                 if (parent == null)
@@ -1013,7 +1018,7 @@ namespace SenseNet.ContentRepository
         public IEnumerable<ContentType> GetAllowedChildTypes()
         {
             // in case of folders and pages inherit settings from parent
-            if (this.NodeType.Name == "Folder" || this.NodeType.Name == "Page")
+            if (this.ContentType.IsTransitiveForAllowedTypes)
             {
                 GenericContent parent;
                 using (new SystemAccount())
@@ -1139,7 +1144,7 @@ namespace SenseNet.ContentRepository
             using (new SystemAccount())
             {
                 // using as object when it is unknown (Page)
-                while (current != null && (current.NodeType.Name == "Folder" || current.NodeType.Name == "Page"))
+                while (current != null && current.ContentType.IsTransitiveForAllowedTypes)
                     current = current.Parent as GenericContent;
             }
 
@@ -1158,7 +1163,7 @@ namespace SenseNet.ContentRepository
             var ancestor = parent;
             using (new SystemAccount())
             {
-                while (ancestor.NodeType.Name == "Folder" || ancestor.NodeType.Name == "Page")
+                while (ancestor.ContentType.IsTransitiveForAllowedTypes)
                 {
                     var p = ancestor.Parent as GenericContent;
                     if (p == null)
@@ -1179,7 +1184,7 @@ namespace SenseNet.ContentRepository
             using (new SystemAccount())
             {
                 var ancestor = target;
-                while (ancestor.NodeType.Name == "Folder" || ancestor.NodeType.Name == "Page")
+                while (ancestor.ContentType.IsTransitiveForAllowedTypes)
                 {
                     var p = ancestor.Parent as GenericContent;
                     if (p == null)
@@ -1200,66 +1205,53 @@ namespace SenseNet.ContentRepository
         /// The original list will be extended by the given <see cref="Schema.ContentType"/>>.
         /// </summary>
         /// <param name="contentTypeName">The name of the allowed <see cref="Schema.ContentType"/>.</param>
-        /// <param name="setOnAncestorIfInherits">If set to true and the current Content is a Folder or Page (meaning the allowed type list is inherited),
-        /// the provided content type will be added to the parent's list.
-        /// Optional parameter. Default: false.</param>
         /// <param name="throwOnError">Specifies whether an error should be thrown when the operation is unsuccessful. Optional, default: true.</param>
         /// <param name="save">Optional parameter that is true if the Content will be saved automatically after setting the new collection.
         /// Default: false</param>
-        public void AllowChildType(string contentTypeName, bool setOnAncestorIfInherits = false, bool throwOnError = true, bool save = false)
+        public void AllowChildType(string contentTypeName, bool throwOnError = true, bool save = false)
         {
-            AllowChildTypes(new[] { contentTypeName }, setOnAncestorIfInherits, throwOnError, save);
+            AllowChildTypes(new[] { contentTypeName }, throwOnError, save);
         }
         /// <summary>
         /// Allow a child type by the given parameters.
         /// The original list will be extended by the given <see cref="Schema.ContentType"/>>.
         /// </summary>
         /// <param name="contentType">The allowed <see cref="Schema.ContentType"/>.</param>
-        /// <param name="setOnAncestorIfInherits">If set to true and the current Content is a Folder or Page (meaning the allowed type list is inherited),
-        /// the provided content type will be added to the parent's list.
-        /// Optional parameter. Default: false.</param>
         /// <param name="throwOnError">Specifies whether an error should be thrown when the operation is unsuccessful. Optional, default: true.</param>
         /// <param name="save">Optional parameter that is true if the Content will be saved automatically after setting the new collection.
         /// Default: false</param>
-        public void AllowChildType(ContentType contentType, bool setOnAncestorIfInherits = false, bool throwOnError = true, bool save = false)
+        public void AllowChildType(ContentType contentType, bool throwOnError = true, bool save = false)
         {
-            AllowChildTypes(new[] { contentType }, setOnAncestorIfInherits, throwOnError, save);
+            AllowChildTypes(new[] { contentType }, throwOnError, save);
         }
         /// <summary>
         /// Allow child types by the given parameters.
         /// The original list will be extended by the given collection.
         /// </summary>
         /// <param name="contentTypeNames">The name collection of the allowed <see cref="Schema.ContentType"/>s.</param>
-        /// <param name="setOnAncestorIfInherits">If set to true and the current Content is a Folder or Page (meaning the allowed type list is inherited),
-        /// the provided content types will be added to the parent's list.
-        /// Optional parameter. Default: false.</param>
         /// <param name="throwOnError">Specifies whether an error should be thrown when the operation is unsuccessful. Optional, default: true.</param>
         /// <param name="save">Optional parameter that is true if the Content will be saved automatically after setting the new collection.
         /// Default: false</param>
-        public void AllowChildTypes(IEnumerable<string> contentTypeNames, bool setOnAncestorIfInherits = false, bool throwOnError = true, bool save = false)
+        public void AllowChildTypes(IEnumerable<string> contentTypeNames, bool throwOnError = true, bool save = false)
         {
             AllowChildTypes(contentTypeNames
                 .Select(ContentType.GetByName)
-                .Where(x => x != null), setOnAncestorIfInherits, throwOnError, save);
+                .Where(x => x != null), throwOnError, save);
         }
         /// <summary>
         /// Allow types of children by the given parameters.
         /// The original list will be extended by the given collection.
         /// </summary>
         /// <param name="contentTypes">The new collection of the allowed <see cref="Schema.ContentType"/>.</param>
-        /// <param name="setOnAncestorIfInherits">If set to true and the current Content is a Folder or Page (meaning the allowed type list is inherited),
-        /// the provided content types will be added to the parent's list.
-        /// Optional parameter. Default: false.</param>
         /// <param name="throwOnError">Specifies whether an error should be thrown when the operation is unsuccessful. Optional, default: true.</param>
         /// <param name="save">Optional parameter that is true if the Content will be saved automatically after setting the new collection.
         /// Default: false</param>
-        public void AllowChildTypes(IEnumerable<ContentType> contentTypes, bool setOnAncestorIfInherits = false, bool throwOnError = true, bool save = false)
+        public void AllowChildTypes(IEnumerable<ContentType> contentTypes, bool throwOnError = true, bool save = false)
         {
             if (contentTypes == null)
                 throw new ArgumentNullException(nameof(contentTypes));
 
             SetAllowedChildTypesByType(
-                parent => parent.AllowChildTypes(contentTypes, setOnAncestorIfInherits, throwOnError, true),
                 () =>
                 {
                     // get the full effective list and extend it with the new types
@@ -1267,7 +1259,6 @@ namespace SenseNet.ContentRepository
 
                     SetAllowedChildTypesInternal(effectiveList, save);
                 }, 
-                setOnAncestorIfInherits, 
                 throwOnError);
         }
         /// <summary>
@@ -1275,62 +1266,26 @@ namespace SenseNet.ContentRepository
         /// the property will be cleared and values will be inherited from the content type from now on.
         /// </summary>
         /// <param name="contentTypes">The new collection of the allowed <see cref="Schema.ContentType"/>.</param>
-        /// <param name="setOnAncestorIfInherits">If set to true and the current Content is a Folder or Page (meaning the allowed type list 
-        /// is inherited), the provided content types will be added to the parent's list.
-        /// Optional parameter. Default: false.</param>
         /// <param name="throwOnError">Specifies whether an error should be thrown when the operation is unsuccessful. Optional, default: true.</param>
         /// <param name="save">Optional parameter that is true if the Content should be saved automatically after setting the new collection.
         /// Default: false</param>
-        public void SetAllowedChildTypes(IEnumerable<ContentType> contentTypes, bool setOnAncestorIfInherits = false, bool throwOnError = true, bool save = false)
+        public void SetAllowedChildTypes(IEnumerable<ContentType> contentTypes, bool throwOnError = true, bool save = false)
         {
             if (contentTypes == null)
                 throw new ArgumentNullException(nameof(contentTypes));
 
-            SetAllowedChildTypesByType(
-                parent => parent.SetAllowedChildTypes(contentTypes, setOnAncestorIfInherits, throwOnError, true),
-                () => SetAllowedChildTypesInternal(contentTypes, save), 
-                setOnAncestorIfInherits, 
-                throwOnError);
+            SetAllowedChildTypesByType(() => SetAllowedChildTypesInternal(contentTypes, save), throwOnError);
         }
 
-        private void SetAllowedChildTypesByType(Action<GenericContent> parentAction, Action setAction, 
-            bool setOnAncestorIfInherits = false, bool throwOnError = true)
+        private void SetAllowedChildTypesByType(Action setAction, bool throwOnError = true)
         {
-            // This method provides the algorithm for handling special types (Folder, Page) 
-            // that are treated differenlty in case of the allowed child types feature.
-
-            switch (this.NodeType.Name)
+            if (this.ContentType.IsTransitiveForAllowedTypes)
             {
-                case "Folder":
-                case "Page":
-                    if (setOnAncestorIfInherits)
-                    {
-                        GenericContent parent;
-                        using (new SystemAccount())
-                            parent = this.Parent as GenericContent;
-
-                        if (parent != null)
-                        {
-                            // execute the action on the parent instead
-                            parentAction(parent);
-                        }
-                        else
-                        {
-                            if (throwOnError)
-                                throw GetCannotAllowContentTypeException();
-                        }
-                    }
-                    else
-                    {
-                        if (throwOnError)
-                            throw GetCannotAllowContentTypeException();
-                    }
-                    return;
-                default:
-                    // execute the action on the content itself
-                    setAction();
-                    return;
+                if (throwOnError)
+                    throw GetCannotAllowContentTypeException();
+                return;
             }
+            setAction();
         }
         private void SetAllowedChildTypesInternal(IEnumerable<ContentType> contentTypes, bool save = false)
         {
@@ -1351,7 +1306,7 @@ namespace SenseNet.ContentRepository
                 SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
         }
 
-        private Exception GetCannotAllowContentTypeException()
+        protected Exception GetCannotAllowContentTypeException()
         {
             return new InvalidOperationException(
                 $"Cannot allow any content type on a {this.NodeType.Name}. Path: {this.Path}");
@@ -1372,7 +1327,7 @@ namespace SenseNet.ContentRepository
             if (!(content.ContentHandler is GenericContent gc))
                 return string.Empty;
 
-            gc.AllowChildTypes(contentTypes, false, true, true);
+            gc.AllowChildTypes(contentTypes, true, true);
 
             return string.Empty;
         }
@@ -1521,8 +1476,15 @@ namespace SenseNet.ContentRepository
         /// <param name="target">The target <see cref="Node"/> that will be the parent of this Content.</param>
         public override void MoveTo(Node target)
         {
+            var transitiveNodeTypeIds = ContentType.GetContentTypes()
+                .Where(ct => ct.IsTransitiveForAllowedTypes)
+                .Select(ct => Providers.Instance.StorageSchema.NodeTypes[ct.Name])
+                .Where(nt => nt != null)
+                .Select(nt => nt.Id)
+                .ToArray();
+
             if (target is GenericContent targetGc)
-                foreach (var nt in this.GetChildTypesToAllow())
+                foreach (var nt in this.GetChildTypesToAllow(transitiveNodeTypeIds))
                     if (!targetGc.IsAllowedChildType(nt.Name))
                         throw new InvalidOperationException(
                             $"Cannot move {this.Path} ({this.NodeType.Name}) to {target.Path} ({target.NodeType.Name}) " +
@@ -1816,6 +1778,9 @@ namespace SenseNet.ContentRepository
 
         public override async System.Threading.Tasks.Task SaveAsync(NodeSaveSettings settings, CancellationToken cancel)
         {
+            if (ContentType.IsTransitiveForAllowedTypes && !string.IsNullOrEmpty(this.GetProperty<string>(ALLOWEDCHILDTYPES)))
+                throw GetCannotAllowContentTypeException();
+
             await base.SaveAsync(settings, cancel).ConfigureAwait(false);
 
             // if related workflows should be kept alive, update them on a separate thread

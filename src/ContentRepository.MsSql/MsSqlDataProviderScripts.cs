@@ -845,22 +845,28 @@ WHERE R.PropertyTypeId = @PropertyTypeId AND R.ReferredNodeId = @ReferredNodeId 
 
         #region LoadChildTypesToAllowScript
         protected override string LoadChildTypesToAllowScript => @"-- MsSqlDataProvider.LoadChildTypesToAllow
-DECLARE @FolderNodeTypeId int
-SELECT @FolderNodeTypeId = NodeTypeId FROM NodeTypes WHERE Name = 'Folder'
-DECLARE @PageNodeTypeId int
-SELECT @PageNodeTypeId = NodeTypeId FROM NodeTypes WHERE Name = 'Page'
+DECLARE @TransparentTypes AS TABLE(Id INT)
+INSERT INTO @TransparentTypes SELECT CONVERT(int, [value]) FROM STRING_SPLIT(@TransparentTypeIds, ',');
 
-;WITH Tree(Id, ParentId, TypeId) AS
-(
-    SELECT NodeId, ParentNodeId, NodeTypeId FROM Nodes WHERE NodeId = @NodeId
-    UNION ALL
-    SELECT NodeId, ParentNodeId, NodeTypeId FROM Nodes
-        JOIN Tree ON Tree.Id = Nodes.ParentNodeId
-    WHERE Tree.TypeId IN (@FolderNodeTypeId, @PageNodeTypeId)
-)
-SELECT DISTINCT S.Name FROM NodeTypes S
-    JOIN Nodes N ON N.NodeTypeId = S.NodeTypeId
-    JOIN Tree ON N.NodeId = Tree.Id
+DECLARE @Containers AS TABLE(NodeId int, NodeTypeId int)
+INSERT INTO @Containers SELECT NodeId, NodeTypeId FROM Nodes WHERE NodeId = @NodeId
+
+DECLARE @Id int, @TypeId int
+DECLARE walker_cursor CURSOR
+    FOR SELECT * FROM @Containers
+OPEN walker_cursor
+FETCH NEXT FROM walker_cursor INTO @Id, @TypeId
+WHILE @@FETCH_STATUS = 0 BEGIN
+	INSERT INTO @Containers SELECT NodeId, NodeTypeId FROM Nodes WHERE ParentNodeId = @Id AND NodeTypeId IN (SELECT Id FROM @TransparentTypes)
+	FETCH NEXT FROM walker_cursor INTO @Id, @TypeId
+END
+CLOSE walker_cursor;
+DEALLOCATE walker_cursor;
+
+SELECT t.[Name] FROM Nodes n JOIN NodeTypes t ON t.NodeTypeId = n.NodeTypeId WHERE NodeId = @NodeId
+UNION ALL
+SELECT DISTINCT t.[Name] FROM Nodes n JOIN NodeTypes t ON t.NodeTypeId = n.NodeTypeId
+WHERE ParentNodeId IN (SELECT NodeId FROM @Containers)
 ";
         #endregion
 

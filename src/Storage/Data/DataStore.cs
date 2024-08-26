@@ -531,9 +531,9 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         /* =============================================================================================== Tree */
 
-        public Task<IEnumerable<NodeType>> LoadChildTypesToAllowAsync(int nodeId, CancellationToken cancellationToken)
+        public Task<IEnumerable<NodeType>> LoadChildTypesToAllowAsync(int nodeId, int[] transitiveNodeTypeIds, CancellationToken cancellationToken)
         {
-            return DataProvider.LoadChildTypesToAllowAsync(nodeId, cancellationToken);
+            return DataProvider.LoadChildTypesToAllowAsync(nodeId, transitiveNodeTypeIds, cancellationToken);
         }
         public Task<List<ContentListType>> GetContentListTypesInTreeAsync(string path, CancellationToken cancellationToken)
         {

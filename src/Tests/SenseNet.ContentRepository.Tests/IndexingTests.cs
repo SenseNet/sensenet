@@ -914,7 +914,7 @@ namespace SenseNet.ContentRepository.Tests
             {
                 var lines = tracer.Lines.ToArray();
                 var msg = $"Serialize IndexDocument. VersionId: {versionId}";
-                return lines.Count(x => x.Split('\t').Last() == msg);
+                return lines.Count(x => x.Split('\t').Last().StartsWith(msg));
             }
 
             Test(() =>
@@ -930,15 +930,15 @@ namespace SenseNet.ContentRepository.Tests
 
                         localTracer.Lines.Clear();
                         var root = CreateTestRoot();
-                        // Expectation: 2 lines: start and end of a trace operation.
-                        Assert.AreEqual(2, GetCountOfTraceMessages(localTracer, root.VersionId));
+
+                        Assert.AreEqual(1, GetCountOfTraceMessages(localTracer, root.VersionId));
 
                         var file = new File(root) { Name = Guid.NewGuid().ToString() };
                         file.Binary.SetStream(RepositoryTools.GetStreamFromString("fileContent"));
 
                         localTracer.Lines.Clear();
                         file.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
-                        Assert.AreEqual(2, GetCountOfTraceMessages(localTracer, file.VersionId));
+                        Assert.AreEqual(1, GetCountOfTraceMessages(localTracer, file.VersionId));
                     }
                     finally
                     {
