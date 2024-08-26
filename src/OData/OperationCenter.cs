@@ -92,7 +92,7 @@ namespace SenseNet.OData
             var opAttr = attributes.OfType<ODataOperationAttribute>().FirstOrDefault();
             var name = opAttr?.OperationName ?? method.Name;
 
-            var info = new OperationInfo(name, opAttr?.DisplayName, opAttr?.Icon, opAttr?.Description, method, attributes)
+            var info = new OperationInfo(name, opAttr?.Category, opAttr?.DisplayName, opAttr?.Icon, opAttr?.Description, method, attributes)
             {
                 ControllerName = odataControllerName,
                 RequiredParameterNames = req.Select(x => x.Name).ToArray(),

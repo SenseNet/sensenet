@@ -42,7 +42,6 @@ namespace SenseNet.Services.Core.Operations
     public static class IdentityOperations
     {
         /// <summary>Validates the provided user credentials.</summary>
-        /// <snCategory>Authentication</snCategory>
         /// <param name="content"></param>
         /// <param name="context"></param>
         /// <param name="userName">Username (domain name can be omitted if it is the default).</param>
@@ -63,7 +62,7 @@ namespace SenseNet.Services.Core.Operations
         /// </example>
         /// <exception cref="SenseNetSecurityException">Thrown when login is unsuccessful.</exception>
         /// <exception cref="MissingDomainException">Thrown when the domain is missing but the login algorithm needs it.</exception>
-        [ODataAction]
+        [ODataAction(Category = "Authentication")]
         [ContentTypes(N.CT.PortalRoot)]
         [AllowedRoles(N.R.All)]
         public static CredentialValidationResult ValidateCredentials(Content content, HttpContext context,
@@ -74,7 +73,6 @@ namespace SenseNet.Services.Core.Operations
         }
 
         /// <summary>Validates the provided user credentials and two-factor code at the same time.</summary>
-        /// <snCategory>Authentication</snCategory>
         /// <param name="content"></param>
         /// <param name="context"></param>
         /// <param name="userName">Username (domain name can be omitted if it is the default).</param>
@@ -96,7 +94,7 @@ namespace SenseNet.Services.Core.Operations
         /// </example>
         /// <exception cref="SenseNetSecurityException">Thrown when login is unsuccessful.</exception>
         /// <exception cref="MissingDomainException">Thrown when the domain is missing but the login algorithm needs it.</exception>
-        [ODataAction]
+        [ODataAction(Category = "Authentication")]
         [ContentTypes(N.CT.PortalRoot)]
         [AllowedRoles(N.R.Administrators)]
         public static async Task<CredentialValidationResult> ValidateCredentialsWithTwoFactorCode(Content content, HttpContext context,
@@ -161,7 +159,6 @@ namespace SenseNet.Services.Core.Operations
         }
 
         /// <summary>Validates the target user with the two-factor code.</summary>
-        /// <snCategory>Authentication</snCategory>
         /// <param name="content"></param>
         /// <param name="context"></param>
         /// <param name="twoFactorCode">Two-factor code</param>
@@ -171,7 +168,7 @@ namespace SenseNet.Services.Core.Operations
         /// <exception cref="InvalidOperationException">Thrown when two-factor authentication is not enabled for the user.</exception>
         /// <exception cref="SenseNetSecurityException">Thrown when login is unsuccessful.</exception>
         /// <exception cref="MissingDomainException">Thrown when the domain is missing but the login algorithm needs it.</exception>
-        [ODataAction]
+        [ODataAction(Category = "Authentication")]
         [ContentTypes(N.CT.User)]
         [AllowedRoles(N.R.Administrators)]
         public static async Task<CredentialValidationResult> ValidateTwoFactorCode(Content content, HttpContext context, 
@@ -228,12 +225,12 @@ namespace SenseNet.Services.Core.Operations
         }
 
         /// <summary>
-            /// Gets the user's multifactor authentication info.
-            /// </summary>
-            /// <param name="content"></param>
-            /// <param name="context"></param>
-            /// <returns>A custom object containing multifactor authentication data related to the user.</returns>
-            [ODataFunction]
+        /// Gets the user's multifactor authentication info.
+        /// </summary>
+        /// <param name="content"></param>
+        /// <param name="context"></param>
+        /// <returns>A custom object containing multifactor authentication data related to the user.</returns>
+        [ODataFunction(Category = "Authentication")]
         [ContentTypes(N.CT.User)]
         [AllowedRoles(N.R.Administrators)]
         public static object GetMultiFactorAuthenticationInfo(Content content, HttpContext context)
@@ -257,7 +254,7 @@ namespace SenseNet.Services.Core.Operations
         /// <param name="content"></param>
         /// <param name="context"></param>
         /// <returns>A custom object containing multifactor authentication data related to the user.</returns>
-        [ODataAction]
+        [ODataAction(Category = "Authentication")]
         [ContentTypes(N.CT.User)]
         [AllowedRoles(N.R.Administrators)]
         public static async Task ResetTwoFactorKey(Content content, HttpContext context)
@@ -311,7 +308,7 @@ namespace SenseNet.Services.Core.Operations
         /// <param name="content"></param>
         /// <param name="context"></param>
         /// <returns>The currently logged in user or Visitor.</returns>
-        [ODataFunction]
+        [ODataFunction(Category = "Users and Groups")]
         [ContentTypes(N.CT.PortalRoot)]
         [AllowedRoles(N.R.All)]
         public static Task<Content> GetCurrentUser(Content content, HttpContext context)
@@ -325,14 +322,13 @@ namespace SenseNet.Services.Core.Operations
 
         /// <summary>Creates an external user who registered using one of the available
         /// external providers.</summary>
-        /// <snCategory>Users and Groups</snCategory>
         /// <param name="content"></param>
         /// <param name="context"></param>
         /// <param name="provider">Name of the provider (e.g. Google, GitHub).</param>
         /// <param name="userId">External user id given by the provider.</param>
         /// <param name="claims">List of claims given by the provider.</param>
         /// <returns>The newly created user content.</returns>
-        [ODataAction]
+        [ODataAction(Category = "Users and Groups")]
         [ContentTypes(N.CT.PortalRoot)]
         [AllowedRoles(N.R.Administrators)]
         public static async Task<Content> CreateUserByProvider(Content content, HttpContext context, string provider, 
@@ -353,14 +349,13 @@ namespace SenseNet.Services.Core.Operations
         }
 
         /// <summary>Creates a local user who registered using a username and password.</summary>
-        /// <snCategory>Users and Groups</snCategory>
         /// <param name="content"></param>
         /// <param name="context"></param>
         /// <param name="loginName">Login name.</param>
         /// <param name="password">Password.</param>
         /// <param name="email">Email address.</param>
         /// <returns>The newly created user content.</returns>
-        [ODataAction]
+        [ODataAction(Category = "Users and Groups")]
         [ContentTypes(N.CT.PortalRoot)]
         [AllowedRoles(N.R.Administrators)]
         public static async Task<Content> CreateLocalUser(Content content, HttpContext context, string loginName, 
@@ -379,7 +374,6 @@ namespace SenseNet.Services.Core.Operations
         /// <summary>
         /// Sends change password email to the specified email address.
         /// </summary>
-        /// <snCategory>Users and Groups</snCategory>
         /// <remarks>This action can be called only by the users themselves or
         /// by administrators who have save access on the user.</remarks>
         /// <param name="content"></param>
@@ -388,7 +382,7 @@ namespace SenseNet.Services.Core.Operations
         /// <param name="returnUrl">Return url to be included in the email.</param>
         /// <returns>An empty result.</returns>
         /// <exception cref="ArgumentNullException"></exception>
-        [ODataAction(OperationName = "SendChangePasswordMail", Icon = "security", DisplayName = "$Action,SendPasswordChange")]
+        [ODataAction(OperationName = "SendChangePasswordMail", Category = "Users and Groups", Icon = "security", DisplayName = "$Action,SendPasswordChange")]
         [ContentTypes(N.CT.PortalRoot)]
         [AllowedRoles(N.R.All)]
         public static async Task SendChangePasswordMailByEmail(Content content, HttpContext httpContext, 
@@ -422,7 +416,6 @@ namespace SenseNet.Services.Core.Operations
         /// <summary>
         /// Sends change password email to the target user.
         /// </summary>
-        /// <snCategory>Users and Groups</snCategory>
         /// <remarks>This action can be called only by the users themselves or
         /// by administrators who have save access on the user.</remarks>
         /// <param name="content"></param>
@@ -431,7 +424,7 @@ namespace SenseNet.Services.Core.Operations
         /// <returns>An empty result.</returns>
         /// <exception cref="SenseNetSecurityException"></exception>
         /// <exception cref="InvalidOperationException"></exception>
-        [ODataAction(Icon = "security", DisplayName = "$Action,SendPasswordChange")]
+        [ODataAction(Category = "Users and Groups", Icon = "security", DisplayName = "$Action,SendPasswordChange")]
         [ContentTypes(N.CT.User)]
         [RequiredPermissions(N.P.Open)]
         public static async Task SendChangePasswordMail(Content content, HttpContext httpContext, string returnUrl = null)
@@ -525,7 +518,6 @@ namespace SenseNet.Services.Core.Operations
         /// <summary>
         /// Changes the password of the target user directly.
         /// </summary>
-        /// <snCategory>Users and Groups</snCategory>
         /// <remarks>This action can be called only by the users themselves or
         /// by administrators who have save access on the user.</remarks>
         /// <param name="content"></param>
@@ -534,7 +526,7 @@ namespace SenseNet.Services.Core.Operations
         /// <exception cref="ArgumentNullException"></exception>
         /// <exception cref="SenseNetSecurityException"></exception>
         /// <exception cref="InvalidOperationException"></exception>
-        [ODataAction(Icon = "security", DisplayName = "$Action,PasswordChange")]
+        [ODataAction(Category = "Users and Groups", Icon = "security", DisplayName = "$Action,PasswordChange")]
         [ContentTypes(N.CT.User)]
         [RequiredPermissions(N.P.Open)]
         [Scenario(N.S.ContextMenu)]

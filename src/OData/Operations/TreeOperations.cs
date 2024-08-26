@@ -16,7 +16,6 @@ namespace SenseNet.OData.Operations
         /// Gets a list of ancestor content items of the target content. The list will also contain child elements along
         /// the way so that a subtree can be built from the list.
         /// </summary>
-        /// <snCategory>Content Management</snCategory>
         /// <param name="content"></param>
         /// <param name="request"></param>
         /// <param name="rootPath">A root ancestor content. This is where the ancestor list will start.</param>
@@ -25,7 +24,7 @@ namespace SenseNet.OData.Operations
         /// <returns>A list of parent and child content items between the provided root and the target content.</returns>
         /// <exception cref="ODataException"></exception>
         /// <exception cref="ContentNotFoundException"></exception>
-        [ODataFunction]
+        [ODataFunction(Category = "Content Management")]
         [ContentTypes(N.CT.GenericContent, N.CT.ContentType)]
         [AllowedRoles(N.R.Everyone)]
         public static object OpenTree(Content content, ODataRequest request, string rootPath,
