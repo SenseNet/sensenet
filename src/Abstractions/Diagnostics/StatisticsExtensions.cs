@@ -75,7 +75,7 @@ namespace SenseNet.Extensions.DependencyInjection
     {
         public static IServiceCollection AddDefaultStatisticalDataCollector(this IServiceCollection services)
         {
-            return AddStatisticalDataCollector<NullStatisticalDataCollector>(services);
+            return services.AddStatisticalDataCollector<NullStatisticalDataCollector>();
         }
         public static IServiceCollection AddStatisticalDataCollector<T>(this IServiceCollection services) where T : class, IStatisticalDataCollector
         {
@@ -88,7 +88,7 @@ namespace SenseNet.Extensions.DependencyInjection
 
         public static IServiceCollection AddDefaultStatisticalDataProvider(this IServiceCollection services)
         {
-            return AddStatisticalDataProvider<NullStatisticalDataProvider>(services);
+            return services.AddStatisticalDataProvider<NullStatisticalDataProvider>();
         }
         public static IServiceCollection AddStatisticalDataProvider<T>(this IServiceCollection services) where T : class, IStatisticalDataProvider
         {
