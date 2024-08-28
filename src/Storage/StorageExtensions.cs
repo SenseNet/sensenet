@@ -110,11 +110,37 @@ namespace SenseNet.Extensions.DependencyInjection
         /// <summary>
         /// Adds a NodeObserver implementation type to the service collection.
         /// </summary>
+        /// <example>
+        /// For example create your NodeObserver class
+        /// <code>
+        /// <![CDATA[internal static List<string> _forbiddenUserNames;
+        /// 
+        /// internal class MyNodeObserver : NodeObserver
+        /// {
+        ///     protected internal override void OnNodeModifying(object sender, CancellableNodeEventArgs e)
+        ///     {
+        ///         if (sender is IUser user && forbiddenUserNames.Contains(user.Username))
+        ///         {
+        ///             e.CancelMessage = "User cannot be created because of forbidden user name.";
+        ///             e.Cancel = true;
+        ///         }
+        ///         base.OnNodeModifying(sender, e);
+        ///     }
+        /// }]]>
+        /// </code>
+        /// And register it in the given IServiceCollection after calling AddDefaultNodeObservers()
+        /// <code>
+        /// <![CDATA[services
+        ///     .AddDefaultNodeObservers()
+        ///     .AddNodeObserver<MyNodeObserver>();]]>
+        /// </code>
+        /// </example>
         public static IServiceCollection AddNodeObserver<T>(this IServiceCollection services) where T : NodeObserver
         {
             services.AddSingleton<NodeObserver, T>();
             return services;
         }
+
         /// <summary>
         /// Removes an existing NodeObserver implementation type from the service collection.
         /// Used to disable items in the base set, so it is effective only after calling the AddSenseNet method.
