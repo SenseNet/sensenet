@@ -105,10 +105,12 @@ namespace SenseNet.OData
             var scenario = request?.Scenario;
             var actions = ActionFramework.GetActions(content, scenario, null, null, httpContext);
 
+            var hasScenario = !string.IsNullOrEmpty(scenario);
+
             return actions.Select(action => new ScenarioAction
             {
                 Action = action,
-                Scenario = scenario
+                Scenario = hasScenario ? scenario : action.GetApplication()?.Scenario
             });
         }
 
