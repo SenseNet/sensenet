@@ -143,6 +143,9 @@ namespace SenseNet.Extensions.DependencyInjection
             return services;
         }
 
+        /// <summary>
+        /// For internal use only.
+        /// </summary>
         public static IServiceCollection AddPlatformIndependentServices(this IServiceCollection services, 
             IConfiguration configuration)
         {
@@ -191,6 +194,9 @@ namespace SenseNet.Extensions.DependencyInjection
 
             return services;
         }
+        /// <summary>
+        /// For internal use only.
+        /// </summary>
         public static IServiceCollection AddDefaultNodeObservers(this IServiceCollection services)
         {
             services

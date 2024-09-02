@@ -80,6 +80,9 @@ namespace SenseNet.Extensions.DependencyInjection
             return services;
         }
 
+        /// <summary>
+        /// For internal use only.
+        /// </summary>
         public static IServiceCollection AddRepositoryComponents(this IServiceCollection services)
         {
             services.AddComponent(provider => new ServicesComponent());
