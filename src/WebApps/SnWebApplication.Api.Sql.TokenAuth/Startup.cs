@@ -1,6 +1,7 @@
 using System;
 using System.IdentityModel.Tokens.Jwt;
 using System.IO;
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -10,12 +11,14 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.Diagnostics;
 using SenseNet.Extensions.DependencyInjection;
 using SenseNet.Search.Lucene29;
 using SenseNet.Services.Core.Authentication;
+using SnWebApplication.Api.Sql.TokenAuth.TokenValidator;
 
 namespace SnWebApplication.Api.Sql.TokenAuth
 {
@@ -42,15 +45,30 @@ namespace SnWebApplication.Api.Sql.TokenAuth
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 .AddJwtBearer(options =>
                 {
-                    options.Authority = authOptions.Authority;
                     options.RequireHttpsMetadata = false;
                     options.SaveToken = true;
 
-                    options.Audience = "sensenet";
+                    if (authOptions.AuthServerType == AuthenticationServerType.SNAuth)
+                    {
+                        options.TokenValidationParameters = new TokenValidationParameters
+                        {
+                            ValidateIssuerSigningKey = false
+                        };
 
-                    if (!string.IsNullOrWhiteSpace(authOptions.MetadataHost))
-                        options.MetadataAddress =
-                            $"{authOptions.MetadataHost.AddUrlSchema().TrimEnd('/')}/.well-known/openid-configuration";
+                        options.SecurityTokenValidators.Clear();
+                        options.SecurityTokenValidators.Add(new CustomJwtSecurityTokenHandler(
+                            $"{authOptions.Authority}/api/auth/validate-token",
+                            authOptions.TokenValidatorKey));
+                    }
+                    else
+                    {
+                        options.Audience = "sensenet";
+
+                        options.Authority = authOptions.Authority;
+                        if (!string.IsNullOrWhiteSpace(authOptions.MetadataHost))
+                            options.MetadataAddress =
+                        $"{authOptions.MetadataHost.AddUrlSchema().TrimEnd('/')}/.well-known/openid-configuration";
+                    }
                 });
 
             // [sensenet]: Set options for EFCSecurityDataProvider
@@ -66,7 +84,7 @@ namespace SnWebApplication.Api.Sql.TokenAuth
                     var searchEngineLogger = repositoryBuilder.Services.GetService<ILogger<Lucene29SearchEngine>>();
                     repositoryBuilder
                         .UseLogger(provider)
-                        .UseLucene29LocalSearchEngine(searchEngineLogger, 
+                        .UseLucene29LocalSearchEngine(searchEngineLogger,
                             Path.Combine(Environment.CurrentDirectory, "App_Data", "LocalIndex"));
                 })
                 .AddEFCSecurityDataProvider()

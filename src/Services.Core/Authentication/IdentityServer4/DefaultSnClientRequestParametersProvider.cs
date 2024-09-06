@@ -87,6 +87,7 @@ namespace SenseNet.Services.Core.Authentication.IdentityServer4
                 _parameters[client.ClientType] = new ReadOnlyDictionary<string, string>(new Dictionary<string, string>
                 {
                     {"authority", authority},
+                    {"type",  authOptions.Value?.AuthServerType.ToString()},
                     {"client_id", client.ClientId}
                 });
             }

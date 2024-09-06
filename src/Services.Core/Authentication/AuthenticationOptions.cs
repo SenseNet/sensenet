@@ -10,6 +10,12 @@ namespace SenseNet.Services.Core.Authentication
     public class AuthenticationOptions
     {
         /// <summary>
+        /// If the application uses sn-auth as authentication server, token validator 
+        /// key is required to call the token validator endpoint.
+        /// </summary>
+        public AuthenticationServerType AuthServerType { get; set; } = AuthenticationServerType.IdentityServer;
+
+        /// <summary>
         /// Url of the authentication authority - for example IdentityServer.
         /// </summary>
         public string Authority { get; set; }
@@ -42,5 +48,11 @@ namespace SenseNet.Services.Core.Authentication
         /// at the beginning of a request based on the claims received.
         /// </summary>
         public Func<ClaimsPrincipal, Task<User>> FindUserAsync { get; set; }
+
+        /// <summary>
+        /// If the application uses sn-auth as authentication server, token validator 
+        /// key is required to call the token validator endpoint.
+        /// </summary>
+        public string TokenValidatorKey { get; set; }
     }
 }
