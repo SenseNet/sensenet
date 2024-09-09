@@ -40,7 +40,7 @@ namespace SenseNet.Extensions.DependencyInjection
         }
 
         /// <summary>
-        /// Adds the default ILatestComponentStore implementation to the service collection.
+        /// Adds the default <c>ILatestComponentStore</c> implementation to the service collection.
         /// </summary>
         public static IServiceCollection AddLatestComponentStore(this IServiceCollection services)
         {
@@ -48,7 +48,9 @@ namespace SenseNet.Extensions.DependencyInjection
             return services.AddLatestComponentStore<DefaultLatestComponentStore>();
         }
         /// <summary>
-        /// Adds the provided ILatestComponentStore implementation to the service collection.
+        /// Adds the provided <c>ILatestComponentStore</c> implementation to the service collection.
+        /// Use this method when the default implementation
+        /// (<c>SenseNet.ContentRepository.Packaging.DefaultLatestComponentStore</c>) needs to be replaced.
         /// </summary>
         public static IServiceCollection AddLatestComponentStore<T>(this IServiceCollection services)
             where T : class, ILatestComponentStore
@@ -57,7 +59,7 @@ namespace SenseNet.Extensions.DependencyInjection
         }
 
         /// <summary>
-        /// Adds an <see cref="ISnComponent"/> to the service collection so that the system can
+        /// Adds an <c>ISnComponent</c> to the service collection so that the system can
         /// collect components and their patches during repository start.
         /// </summary>
         public static IServiceCollection AddComponent(this IServiceCollection services, 
@@ -69,7 +71,7 @@ namespace SenseNet.Extensions.DependencyInjection
             return services;
         }
         /// <summary>
-        /// Adds an <see cref="ISnComponent"/> to the service collection so that the system can
+        /// Adds an <c>ISnComponent</c> to the service collection so that the system can
         /// collect components and their patches during repository start.
         /// </summary>
         public static IServiceCollection AddComponent<T>(this IServiceCollection services) where T: class, ISnComponent
@@ -80,6 +82,9 @@ namespace SenseNet.Extensions.DependencyInjection
             return services;
         }
 
+        /// <summary>
+        /// For internal use only.
+        /// </summary>
         public static IServiceCollection AddRepositoryComponents(this IServiceCollection services)
         {
             services.AddComponent(provider => new ServicesComponent());
@@ -179,7 +184,8 @@ namespace SenseNet.Extensions.DependencyInjection
         }
 
         /// <summary>
-        /// Adds the provided tracer to the service collection.
+        /// Adds the provided custom <c>ISnTracer</c> implementation type to the service collection.
+        /// Available built-in tracers: <c>SnDebugViewTracer</c>, <c>SnFileSystemTracer</c>, <c>SnILoggerTracer</c>
         /// </summary>
         public static IServiceCollection AddSenseNetTracer<T>(this IServiceCollection services) where T : class, ISnTracer
         {
@@ -203,6 +209,9 @@ namespace SenseNet.Extensions.DependencyInjection
             });
         }
 
+        /// <summary>
+        /// For internal use only.
+        /// </summary>
         public static IServiceCollection AddDefaultTextExtractors(this IServiceCollection services)
         {
             return services
