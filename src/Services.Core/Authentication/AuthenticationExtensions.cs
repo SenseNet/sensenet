@@ -21,7 +21,7 @@ namespace SenseNet.Extensions.DependencyInjection
     public static class AuthenticationExtensions
     {
         /// <summary>
-        /// Adds the sensenet registration feature to the service collection.
+        /// Adds the sensenet user registration feature to the service collection.
         /// </summary>
         /// <param name="services">The IServiceCollection instance.</param>
         /// <param name="configure">Optional configuration method.</param>

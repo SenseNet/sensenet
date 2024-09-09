@@ -8,7 +8,7 @@ namespace SenseNet.Extensions.DependencyInjection
     {
         /// <summary>
         /// Adds a webhook client service as singleton.
-        /// Use this method when the default implementation (SenseNet.WebHooks.HttpWebHookClient) needs to be modified.
+        /// Use this method when the default implementation (<c>SenseNet.WebHooks.HttpWebHookClient</c>) needs to be replaced.
         /// </summary>
         public static IServiceCollection AddSenseNetWebHookClient<T>(this IServiceCollection services) where T : class, IWebHookClient
         {
