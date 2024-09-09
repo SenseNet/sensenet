@@ -97,9 +97,9 @@ namespace SenseNet.Extensions.DependencyInjection
 
             return services;
         }
-        
+
         /// <summary>
-        /// Adds an ISnService implementation to the service collection. These services
+        /// Adds an <c>ISnService</c> implementation to the service collection. These services
         /// will be started and stopped during repository startup and shutdown.
         /// </summary>
         public static IServiceCollection AddSenseNetBackgroundService<T>(this IServiceCollection services) where T : class, ISnService
@@ -108,10 +108,10 @@ namespace SenseNet.Extensions.DependencyInjection
         }
 
         /// <summary>
-        /// Adds a NodeObserver implementation type to the service collection.
+        /// Adds a <c>NodeObserver</c> implementation type to the service collection.
         /// </summary>
         /// <example>
-        /// For example create your NodeObserver class
+        /// For example create your <c>NodeObserver</c> class
         /// <code>
         /// <![CDATA[internal static List<string> _forbiddenUserNames;
         /// 
@@ -128,7 +128,7 @@ namespace SenseNet.Extensions.DependencyInjection
         ///     }
         /// }]]>
         /// </code>
-        /// And register it in the given IServiceCollection after calling AddDefaultNodeObservers()
+        /// And register it in the given <c>IServiceCollection</c> after calling <c>AddDefaultNodeObservers()</c>
         /// <code>
         /// <![CDATA[services
         ///     .AddDefaultNodeObservers()
@@ -142,8 +142,8 @@ namespace SenseNet.Extensions.DependencyInjection
         }
 
         /// <summary>
-        /// Removes an existing NodeObserver implementation type from the service collection.
-        /// Used to disable items in the base set, so it is effective only after calling the AddSenseNet method.
+        /// Removes an existing <c>NodeObserver</c> implementation type from the service collection.
+        /// Used to disable items in the base set, so it is effective only after calling the <c>AddSenseNet</c> method.
         /// </summary>
         public static IServiceCollection RemoveNodeObserver<T>(this IServiceCollection services) where T : NodeObserver
         {
@@ -153,8 +153,8 @@ namespace SenseNet.Extensions.DependencyInjection
             return services;
         }
         /// <summary>
-        /// Removes all existing NodeObserver implementation types from the service collection.
-        /// Used to disable all items of the base set, so it is effective only after calling the AddSenseNet method.
+        /// Removes all existing <c>NodeObserver</c> implementation types from the service collection.
+        /// Used to disable all items of the base set, so it is effective only after calling the <c>AddSenseNet</c> method.
         /// </summary>
         public static IServiceCollection RemoveAllNodeObservers(this IServiceCollection services)
         {

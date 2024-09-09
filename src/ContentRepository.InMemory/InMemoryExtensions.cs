@@ -104,7 +104,7 @@ namespace SenseNet.Extensions.DependencyInjection
                 .AddComponent<InMemoryClientStoreComponent>();
         }
 
-        public static IServiceCollection AddInMemorySecurityDataProviderExperimental(this IServiceCollection services)
+        internal static IServiceCollection AddInMemorySecurityDataProviderExperimental(this IServiceCollection services)
         {
             return services.AddSingleton<ISecurityDataProvider>(provider =>
             {

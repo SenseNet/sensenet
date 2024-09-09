@@ -43,8 +43,28 @@ namespace SenseNet.Extensions.DependencyInjection
         }
 
         /// <summary>
-        /// Registers a custom OData controller in the DI container.
+        /// Registers a custom OData controller in the service collection.
         /// </summary>
+        /// <example>
+        /// If the <c>MyProject.CarsController</c> is registered with name "Cars", the name will be the route name:
+        /// <code><![CDATA[services.AddSenseNetODataController<MyProject.CarsController>("Cars");]]></code>
+        /// The controller's <c>Rent(int days)</c> method can be called like this:
+        /// <code><![CDATA[https://example.com/OData.svc/Root/Content/('MyAutomobile-1')/Cars/Rent?days=2
+        /// or
+        /// https://example.com/OData.svc/Root/Content/('MyAutomobile-1')/Cars.Rent?days=2]]>
+        /// </code>
+        /// If the same controller is registered without name, the class name will be the route name:
+        /// <code><![CDATA[services.AddSenseNetODataController<MyProject.CarsController>();]]></code>
+        /// And the calling:
+        /// <code><![CDATA[https://example.com/OData.svc/Root/Content/('MyAutomobile-1')/CarsController/Rent?days=2
+        /// or
+        /// https://example.com/OData.svc/Root/Content/('MyAutomobile-1')/CarsController.Rent?days=2]]>
+        /// </code>
+        /// </example>
+        /// <typeparam name="TImpl">Type of controller that derived from the abstract <see cref="ODataController"/>.</typeparam>
+        /// <param name="services"></param>
+        /// <param name="name">Route name of the controller. Default: Name of the implementation class without namespace.</param>
+        /// <returns></returns>
         public static IServiceCollection AddSenseNetODataController<TImpl>(this IServiceCollection services, string name = null)
             where TImpl : ODataController
         {
@@ -109,7 +129,7 @@ namespace SenseNet.Extensions.DependencyInjection
             return builder;
         }
         /// <summary>
-        /// Adds an inline Func&lt;IUser, OperationCallingContext, bool&gt; as an OperationMethod execution policy.
+        /// Adds an inline <c>Func&lt;IUser, OperationCallingContext, bool&gt;</c> as an OperationMethod execution policy.
         /// </summary>
         /// <param name="builder">The <see cref="IApplicationBuilder"/> instance.</param>
         /// <param name="name">Name of the policy.</param>
