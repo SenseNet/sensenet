@@ -52,7 +52,7 @@ namespace SenseNet.ContentRepository.InMemory
             return STT.Task.FromResult(result);
         }
 
-        public STT.Task InsertBinaryPropertyAsync(IBlobProvider blobProvider, BinaryDataValue value, int versionId, int propertyTypeId,
+        public async STT.Task InsertBinaryPropertyAsync(IBlobProvider blobProvider, BinaryDataValue value, int versionId, int propertyTypeId,
             bool isNewNode, SnDataContext dataContext)
         {
             var streamLength = value.Stream?.Length ?? 0;
@@ -60,10 +60,11 @@ namespace SenseNet.ContentRepository.InMemory
 
             // blob operation
 
-            blobProvider.AllocateAsync(ctx, CancellationToken.None).GetAwaiter().GetResult();
+            await blobProvider.AllocateAsync(ctx, dataContext.CancellationToken).ConfigureAwait(false);
 
             using (var stream = blobProvider.GetStreamForWrite(ctx))
-                value.Stream?.CopyTo(stream);
+                if (value.Stream != null)
+                    await value.Stream.CopyToAsync(stream);
 
             value.BlobProviderName = ctx.Provider.GetType().FullName;
             value.BlobProviderData = BlobStorageContext.SerializeBlobProviderData(ctx.BlobProviderData);
@@ -71,7 +72,7 @@ namespace SenseNet.ContentRepository.InMemory
             // metadata operation
             var db = DataProvider.DB;
             if (!isNewNode)
-                DeleteBinaryPropertyAsync(versionId, propertyTypeId, dataContext).GetAwaiter().GetResult();
+                await DeleteBinaryPropertyAsync(versionId, propertyTypeId, dataContext).ConfigureAwait(false);
 
             var fileId = db.Files.GetNextId();
             db.Files.Insert(new FileDoc
@@ -96,16 +97,14 @@ namespace SenseNet.ContentRepository.InMemory
             value.Id = binaryPropertyId;
             value.FileId = fileId;
             value.Timestamp = 0L; //TODO: file row timestamp
-
-            return STT.Task.CompletedTask;
         }
 
-        public STT.Task InsertBinaryPropertyWithFileIdAsync(BinaryDataValue value, int versionId, int propertyTypeId, bool isNewNode,
+        public async STT.Task InsertBinaryPropertyWithFileIdAsync(BinaryDataValue value, int versionId, int propertyTypeId, bool isNewNode,
             SnDataContext dataContext)
         {
             var db = DataProvider.DB;
             if (!isNewNode)
-                DeleteBinaryPropertyAsync(versionId, propertyTypeId, dataContext).GetAwaiter().GetResult();
+                await DeleteBinaryPropertyAsync(versionId, propertyTypeId, dataContext).ConfigureAwait(false);
 
             var binaryPropertyId = db.BinaryProperties.GetNextId();
             db.BinaryProperties.Insert(new BinaryPropertyDoc
@@ -117,11 +116,9 @@ namespace SenseNet.ContentRepository.InMemory
             });
 
             value.Id = binaryPropertyId;
-
-            return STT.Task.CompletedTask;
         }
 
-        public STT.Task UpdateBinaryPropertyAsync(IBlobProvider blobProvider, BinaryDataValue value, SnDataContext dataContext)
+        public async STT.Task UpdateBinaryPropertyAsync(IBlobProvider blobProvider, BinaryDataValue value, SnDataContext dataContext)
         {
             var streamLength = value.Stream?.Length ?? 0;
             var isExternal = false;
@@ -136,7 +133,7 @@ namespace SenseNet.ContentRepository.InMemory
                     Length = streamLength,
                 };
 
-                blobProvider.AllocateAsync(ctx, CancellationToken.None).GetAwaiter().GetResult();
+                await blobProvider.AllocateAsync(ctx, dataContext.CancellationToken).ConfigureAwait(false);
                 isExternal = true;
 
                 value.BlobProviderName = ctx.Provider.GetType().FullName;
@@ -147,7 +144,7 @@ namespace SenseNet.ContentRepository.InMemory
             var hasStream = isRepositoryStream || value.Stream is MemoryStream;
             if (!isExternal && !hasStream)
                 // do not do any database operation if the stream is not modified
-                return STT.Task.CompletedTask;
+                return;
 
             var db = DataProvider.DB;
             var fileId = db.Files.GetNextId();
@@ -179,16 +176,14 @@ namespace SenseNet.ContentRepository.InMemory
 
             if(streamLength == 0)
             {
-                blobProvider.ClearAsync(newCtx, dataContext.CancellationToken)
-                    .ConfigureAwait(false).GetAwaiter().GetResult();
+                await blobProvider.ClearAsync(newCtx, dataContext.CancellationToken).ConfigureAwait(false);
             }
             else
             {
                 using (var stream = blobProvider.GetStreamForWrite(newCtx))
-                    value.Stream?.CopyTo(stream);
+                    if (value.Stream != null)
+                        await value.Stream.CopyToAsync(stream);
             }
-
-            return STT.Task.CompletedTask;
         }
 
         public STT.Task DeleteBinaryPropertyAsync(int versionId, int propertyTypeId, SnDataContext dataContext)
@@ -428,13 +423,13 @@ namespace SenseNet.ContentRepository.InMemory
                 item.IsDeleted = true;
         }
 
-        public virtual Task<bool> CleanupFilesAsync(CancellationToken cancel)
+        public virtual async Task<bool> CleanupFilesAsync(CancellationToken cancel)
         {
             var db = DataProvider.DB;
 
             var file = db.Files.FirstOrDefault(x => x.IsDeleted);
             if (file == null)
-                return STT.Task.FromResult(false);
+                return false;
             db.Files.Remove(file);
 
             // delete bytes from the blob storage
@@ -443,9 +438,9 @@ namespace SenseNet.ContentRepository.InMemory
             {
                 VersionId = 0, PropertyTypeId = 0, FileId = file.FileId, Length = file.Size
             };
-            ctx.Provider.DeleteAsync(ctx, cancel).ConfigureAwait(false).GetAwaiter().GetResult();
+            await ctx.Provider.DeleteAsync(ctx, cancel).ConfigureAwait(false);
 
-            return STT.Task.FromResult(true);
+            return true;
         }
 
         // Do not increase this value int he production scenario. It is only used in tests.
@@ -457,6 +452,14 @@ namespace SenseNet.ContentRepository.InMemory
                 if (_waitBetweenCleanupFilesMilliseconds != 0)
                     await STT.Task.Delay(_waitBetweenCleanupFilesMilliseconds, cancellationToken).ConfigureAwait(false);
             }
+        }
+
+        public Task<int> GetFirstFileIdAsync(CancellationToken cancel)
+        {
+            var first = DataProvider.DB.Files.FirstOrDefault();
+            if (first == null)
+                throw new Exception("No data available");
+            return STT.Task.FromResult(first.FileId);
         }
     }
 }

@@ -278,15 +278,6 @@ namespace SenseNet.ContentRepository
             }
         }
 
-        [Obsolete("Use async version instead.", true)]
-        public override void FinalizeContent()
-        {
-            base.FinalizeContent();
-
-            // refresh image width/height than save the content again
-            if (SetDimension(this))
-                this.Save(SavingMode.KeepVersion);
-        }
         public override async System.Threading.Tasks.Task FinalizeContentAsync(CancellationToken cancel)
         {
             await base.FinalizeContentAsync(cancel).ConfigureAwait(false);

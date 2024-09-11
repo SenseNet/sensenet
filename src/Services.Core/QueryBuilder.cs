@@ -32,10 +32,9 @@ namespace SenseNet.Services.Core
         /// <summary>
         /// Generic OData action method for collecting all fields of all types in the system.
         /// </summary>
-        /// <snCategory>Content and Schema</snCategory>
         /// <param name="content">Compulsory generic OData action parameter, currently not used.</param>
         /// <returns>Two arrays: one with regular fields and one for aspect fields.</returns>
-        [ODataFunction]
+        [ODataFunction(Category = "Content and Schema")]
         [AllowedRoles(N.R.Everyone)]
         public static async Task<string> GetMetadata(Content content, HttpContext httpContext)
         {
@@ -115,11 +114,10 @@ namespace SenseNet.Services.Core
         /// <summary>Gets saved queries accessible by the current user.
         /// Queries can be in the following places: either in a public folder under the
         /// current workspace or private queries under the profile of the current user.</summary>
-        /// <snCategory>Queries</snCategory>
         /// <param name="content"></param>
         /// <param name="onlyPublic">True if only public queries should be returned.</param>
         /// <returns>A list of Query content items.</returns>
-        [ODataFunction]
+        [ODataFunction(Category = "Queries")]
         [AllowedRoles(N.R.Everyone)]
         public static IEnumerable<Content> GetQueries(Content content, bool onlyPublic = false)
         {
@@ -154,14 +152,13 @@ namespace SenseNet.Services.Core
         }
 
         /// <summary>Add or edit a saved content query.</summary>
-        /// <snCategory>Queries</snCategory>
         /// <param name="content"></param>
         /// <param name="query">Query text.</param>
         /// <param name="displayName">Display name for the saved query.</param>
         /// <param name="queryType">Type of the query (Public or Private).</param>
         /// <param name="uiFilters">Technical data containing filter information.</param>
         /// <returns>The Query content.</returns>
-        [ODataAction]
+        [ODataAction(Category = "Queries")]
         [AllowedRoles(N.R.Everyone)]
         public static object SaveQuery(Content content, string query, string displayName, 
             string queryType, string uiFilters = null)

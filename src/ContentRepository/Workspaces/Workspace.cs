@@ -133,24 +133,12 @@ namespace SenseNet.ContentRepository.Workspaces
 
         // ===================================================================================== Overrides
 
-        [Obsolete("Use async version instead.", true)]
-        public override void Save(NodeSaveSettings settings)
-        {
-            SaveAsync(settings, CancellationToken.None).GetAwaiter().GetResult();
-        }
         public override async System.Threading.Tasks.Task SaveAsync(NodeSaveSettings settings, CancellationToken cancel)
         {
             if(!this.IsNew)
                 this.Security.Assert(PermissionType.ManageListsAndWorkspaces);
 
             await base.SaveAsync(settings, cancel).ConfigureAwait(false);
-        }
-
-        /// <inheritdoc />
-        [Obsolete("Use async version instead", false)]
-        public override void ForceDelete()
-        {
-            ForceDeleteAsync(CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
         }
 
         public override async System.Threading.Tasks.Task ForceDeleteAsync(CancellationToken cancel)

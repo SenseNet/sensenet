@@ -7,6 +7,7 @@ using SenseNet.Extensions.DependencyInjection;
 using SenseNet.Services.Core.Authentication;
 using SenseNet.Services.Core.Operations;
 using SenseNet.Tests.Core;
+using System.Threading;
 using Task = System.Threading.Tasks.Task;
 
 namespace SenseNet.Services.Core.Tests
@@ -38,7 +39,7 @@ namespace SenseNet.Services.Core.Tests
 
                 // ACTION: disable the user
                 user["Enabled"] = false;
-                user.SaveSameVersion();
+                user.SaveSameVersionAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var thrown = false;
                 try

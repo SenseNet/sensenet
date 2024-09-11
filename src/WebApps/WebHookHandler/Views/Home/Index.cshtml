@@ -65,19 +65,7 @@
                         @webhook.arrivedTime
                     </td>
                     <td>
-                        VersionId: @webhook.versionId
-                        <br />
-                        Version: @webhook.version
-                        <br />
-                        Previous version: @webhook.previousVersion
-                        <br />
-                        Modification date: @webhook.versionModificationDate
-                        <br />
-                        Modified by: @webhook.modifiedBy
-                        <br />
-                        Display name: @webhook.displayName
-                        <br />
-                        <br />
+                        @webhook.ToString()
                     </td>
                 </tr>
             }

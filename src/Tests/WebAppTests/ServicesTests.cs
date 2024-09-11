@@ -11,6 +11,10 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SenseNet.AI.Text;
+using SenseNet.AI.Text.SemanticKernel;
+using SenseNet.AI.Vision;
+using SenseNet.AI.Vision.Azure;
 using SenseNet.ApplicationModel;
 using SenseNet.BackgroundOperations;
 using SenseNet.Communication.Messaging;
@@ -35,15 +39,18 @@ using SenseNet.ContentRepository.Storage.AppModel;
 using SenseNet.ContentRepository.Storage.Caching;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Data.MsSqlClient;
+using SenseNet.ContentRepository.Storage.Events;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
 using SenseNet.Events;
+using SenseNet.Extensions.DependencyInjection;
 using SenseNet.IntegrationTests.Infrastructure;
 using SenseNet.IntegrationTests.MsSql.Infrastructure;
 using SenseNet.IntegrationTests.MsSql.Platforms;
 using SenseNet.IntegrationTests.Platforms;
 using SenseNet.OData;
 using SenseNet.OData.Metadata;
+using SenseNet.OData.Operations;
 using SenseNet.ODataTests;
 using SenseNet.Packaging;
 using SenseNet.Portal.Virtualization;
@@ -76,6 +83,7 @@ using SenseNet.Tests.Core;
 using SenseNet.Tests.Core.Implementations;
 using SenseNet.Tools;
 using SenseNet.Tools.Diagnostics;
+using SenseNet.Tools.Features;
 using SenseNet.Tools.SnInitialDataGenerator;
 using SenseNet.WebHooks;
 using BlobStorage = SenseNet.ContentRepository.Storage.Data.BlobStorage;
@@ -199,7 +207,10 @@ namespace WebAppTests
                 {
                     foreach (DictionaryEntry entry in dictionary)
                     {
-                        result.Add((Type)entry.Key, (ServiceDescriptor)GetPropertyValue(entry.Value, "Last"));
+                        var serviceType = (Type)GetPropertyValue(entry.Key, "ServiceType");
+                        var descriptor = (ServiceDescriptor)GetPropertyValue(entry.Value, "Last");
+
+                        result.Add(serviceType, descriptor);
                     }
                 }
 
@@ -420,6 +431,8 @@ namespace WebAppTests
                 {typeof(ISecurityMessageFormatter), typeof(SnSecurityMessageFormatter)},
                 {typeof(DistributedMessageType), typeof(DistributedMessageType)},
                 {typeof(IMultiFactorAuthenticationProvider), typeof(DefaultMultiFactorProvider)},
+                {typeof(IHealthHandler), typeof(HealthHandler)},
+                {typeof(ISenseNetStatus), typeof(SenseNetStatus)},
             };
         }
         private IDictionary<Type, Type> GetInMemoryPlatform()
@@ -565,14 +578,14 @@ namespace WebAppTests
 
         private readonly Type[] _defaultIncludedProvidersByType = new[]
         {
-            typeof(IStatisticalDataProvider),
+            //typeof(IStatisticalDataProvider),
             //typeof(ISnTracer[]),
             typeof(ILogger<SnILogger>),
             typeof(ICryptoServiceProvider),
         };
         private readonly Type[] _includedProvidersByTypeWithTests = new[]
         {
-            typeof(IStatisticalDataProvider),
+            //typeof(IStatisticalDataProvider),
             //typeof(ISnTracer[]),
             typeof(ILogger<SnILogger>),
             typeof(ICryptoServiceProvider),
@@ -604,10 +617,35 @@ namespace WebAppTests
                     }},
                     {typeof(OperationInspector), typeof(OperationInspector)},
                     {typeof(IOperationMethodStorage), typeof(OperationMethodStorage)},
+                    {typeof(IODataControllerFactory), typeof(ODataControllerFactory)},
+                    {typeof(ODataControllerRegistration), typeof(ODataControllerRegistration)},
+                    {typeof(HelpController), typeof(HelpController)},
+                    // more controllers: {typeof(__Controller), typeof(__Controller)},
                     {typeof(ISnService), new[] {typeof(WopiService) }},
                     {typeof(IClientMetadataProvider), typeof(ClientMetadataProvider)},
 
                     {typeof(ISnTracer), typeof(SnDebugViewTracer)},
+                    {typeof(ISnFeature), new []
+                    {
+                        typeof(SummaryGenerator),
+                        typeof(ContentQueryGenerator),
+                        typeof(ContentTypeGenerator),
+                        typeof(ContentManager),
+                        typeof(ImageGenerator)
+                    }},
+                    {typeof(ISummaryGenerator), typeof(SummaryGenerator)},
+                    {typeof(IContentQueryGenerator), typeof(ContentQueryGenerator)},
+                    {typeof(IContentTypeGenerator ), typeof(ContentTypeGenerator)},
+                    {typeof(IContentManager), typeof(ContentManager)},
+                    {typeof(IImageGenerator), typeof(ImageGenerator)},
+                    {typeof(NodeObserver), new[] {
+                        typeof(AppCacheInvalidator),
+                        typeof(AppStorageInvalidator),
+                        typeof(GroupMembershipObserver),
+                        typeof(RepositoryEventRouter),
+                        typeof(SettingsCache),
+                        typeof(SharingNodeObserver),
+                    }},
                 },
                 includedProvidersByType: _defaultIncludedProvidersByType,
                 includedProvidersByName: _defaultIncludedProvidersByName
@@ -636,10 +674,35 @@ namespace WebAppTests
                     }},
                     {typeof(OperationInspector), typeof(OperationInspector)},
                     {typeof(IOperationMethodStorage), typeof(OperationMethodStorage)},
+                    {typeof(IODataControllerFactory), typeof(ODataControllerFactory)},
+                    {typeof(ODataControllerRegistration), typeof(ODataControllerRegistration)},
+                    {typeof(HelpController), typeof(HelpController)},
+                    // more controllers: {typeof(__Controller), typeof(__Controller)},
                     {typeof(ISnService), new[] {typeof(WopiService) }},
                     {typeof(IClientMetadataProvider), typeof(ClientMetadataProvider)},
 
                     {typeof(ISnTracer), typeof(SnDebugViewTracer)},
+                    {typeof(ISnFeature), new []
+                    {
+                        typeof(SummaryGenerator),
+                        typeof(ContentQueryGenerator),
+                        typeof(ContentTypeGenerator),
+                        typeof(ContentManager),
+                        typeof(ImageGenerator)
+                    }},
+                    {typeof(ISummaryGenerator), typeof(SummaryGenerator)},
+                    {typeof(IContentQueryGenerator), typeof(ContentQueryGenerator)},
+                    {typeof(IContentTypeGenerator ), typeof(ContentTypeGenerator)},
+                    {typeof(IContentManager), typeof(ContentManager)},
+                    {typeof(IImageGenerator), typeof(ImageGenerator)},
+                    {typeof(NodeObserver), new[] {
+                        typeof(AppCacheInvalidator),
+                        typeof(AppStorageInvalidator),
+                        typeof(GroupMembershipObserver),
+                        typeof(RepositoryEventRouter),
+                        typeof(SettingsCache),
+                        typeof(SharingNodeObserver),
+                    }},
                 },
                 includedProvidersByType: _defaultIncludedProvidersByType,
                 includedProvidersByName: _defaultIncludedProvidersByName
@@ -670,8 +733,33 @@ namespace WebAppTests
                     }},
                     {typeof(OperationInspector), typeof(OperationInspector)},
                     {typeof(IOperationMethodStorage), typeof(OperationMethodStorage)},
+                    {typeof(IODataControllerFactory), typeof(ODataControllerFactory)},
+                    {typeof(ODataControllerRegistration), typeof(ODataControllerRegistration)},
+                    {typeof(HelpController), typeof(HelpController)},
+                    // more controllers: {typeof(__Controller), typeof(__Controller)},
                     {typeof(ISnService), new[] {typeof(WopiService) }},
                     {typeof(IClientMetadataProvider), typeof(ClientMetadataProvider)},
+                    {typeof(ISnFeature), new []
+                    {
+                        typeof(SummaryGenerator),
+                        typeof(ContentQueryGenerator),
+                        typeof(ContentTypeGenerator),
+                        typeof(ContentManager),
+                        typeof(ImageGenerator)
+                    }},
+                    {typeof(ISummaryGenerator), typeof(SummaryGenerator)},
+                    {typeof(IContentQueryGenerator), typeof(ContentQueryGenerator)},
+                    {typeof(IContentTypeGenerator ), typeof(ContentTypeGenerator)},
+                    {typeof(IContentManager), typeof(ContentManager)},
+                    {typeof(IImageGenerator), typeof(ImageGenerator)},
+                    {typeof(NodeObserver), new[] {
+                        typeof(AppCacheInvalidator),
+                        typeof(AppStorageInvalidator),
+                        typeof(GroupMembershipObserver),
+                        typeof(RepositoryEventRouter),
+                        typeof(SettingsCache),
+                        typeof(SharingNodeObserver),
+                    }},
                 },
                 includedProvidersByType: _defaultIncludedProvidersByType,
                 includedProvidersByName: _defaultIncludedProvidersByName,
@@ -703,8 +791,33 @@ namespace WebAppTests
                     }},
                     {typeof(OperationInspector), typeof(OperationInspector)},
                     {typeof(IOperationMethodStorage), typeof(OperationMethodStorage)},
+                    {typeof(IODataControllerFactory), typeof(ODataControllerFactory)},
+                    {typeof(ODataControllerRegistration), typeof(ODataControllerRegistration)},
+                    {typeof(HelpController), typeof(HelpController)},
+                    // more controllers: {typeof(__Controller), typeof(__Controller)},
                     {typeof(ISnService), new[] {typeof(WopiService) }},
                     {typeof(IClientMetadataProvider), typeof(ClientMetadataProvider)},
+                    {typeof(ISnFeature), new []
+                    {
+                        typeof(SummaryGenerator),
+                        typeof(ContentQueryGenerator),
+                        typeof(ContentTypeGenerator),
+                        typeof(ContentManager),
+                        typeof(ImageGenerator)
+                    }},
+                    {typeof(ISummaryGenerator), typeof(SummaryGenerator)},
+                    {typeof(IContentQueryGenerator), typeof(ContentQueryGenerator)},
+                    {typeof(IContentTypeGenerator ), typeof(ContentTypeGenerator)},
+                    {typeof(IContentManager), typeof(ContentManager)},
+                    {typeof(IImageGenerator), typeof(ImageGenerator)},
+                    {typeof(NodeObserver), new[] {
+                        typeof(AppCacheInvalidator),
+                        typeof(AppStorageInvalidator),
+                        typeof(GroupMembershipObserver),
+                        typeof(RepositoryEventRouter),
+                        typeof(SettingsCache),
+                        typeof(SharingNodeObserver),
+                    }},
                 },
                 includedProvidersByType: _defaultIncludedProvidersByType,
                 includedProvidersByName: _defaultIncludedProvidersByName,
@@ -742,11 +855,36 @@ namespace WebAppTests
                     }},
                     {typeof(OperationInspector), typeof(OperationInspector)},
                     {typeof(IOperationMethodStorage), typeof(OperationMethodStorage)},
+                    {typeof(IODataControllerFactory), typeof(ODataControllerFactory)},
+                    {typeof(ODataControllerRegistration), typeof(ODataControllerRegistration)},
+                    {typeof(HelpController), typeof(HelpController)},
+                    // more controllers: {typeof(__Controller), typeof(__Controller)},
                     {typeof(ISnService), new[] {
                         typeof(ClusterChannelMonitor),
                         typeof(WopiService),
                     }},
                     {typeof(IClientMetadataProvider), typeof(ClientMetadataProvider)},
+                    {typeof(ISnFeature), new []
+                    {
+                        typeof(SummaryGenerator),
+                        typeof(ContentQueryGenerator),
+                        typeof(ContentTypeGenerator),
+                        typeof(ContentManager),
+                        typeof(ImageGenerator)
+                    }},
+                    {typeof(ISummaryGenerator), typeof(SummaryGenerator)},
+                    {typeof(IContentQueryGenerator), typeof(ContentQueryGenerator)},
+                    {typeof(IContentTypeGenerator ), typeof(ContentTypeGenerator)},
+                    {typeof(IContentManager), typeof(ContentManager)},
+                    {typeof(IImageGenerator), typeof(ImageGenerator)},
+                    {typeof(NodeObserver), new[] {
+                        typeof(AppCacheInvalidator),
+                        typeof(AppStorageInvalidator),
+                        typeof(GroupMembershipObserver),
+                        typeof(RepositoryEventRouter),
+                        typeof(SettingsCache),
+                        typeof(SharingNodeObserver),
+                    }},
                 },
                 includedProvidersByType: _defaultIncludedProvidersByType,
                 includedProvidersByName: _defaultIncludedProvidersByName,
@@ -783,11 +921,36 @@ namespace WebAppTests
                     }},
                     {typeof(OperationInspector), typeof(OperationInspector)},
                     {typeof(IOperationMethodStorage), typeof(OperationMethodStorage)},
+                    {typeof(IODataControllerFactory), typeof(ODataControllerFactory)},
+                    {typeof(ODataControllerRegistration), typeof(ODataControllerRegistration)},
+                    {typeof(HelpController), typeof(HelpController)},
+                    // more controllers: {typeof(__Controller), typeof(__Controller)},
                     {typeof(ISnService), new[] {
                         typeof(ClusterChannelMonitor),
                         typeof(WopiService),
                     }},
                     {typeof(IClientMetadataProvider), typeof(ClientMetadataProvider)},
+                    {typeof(ISnFeature), new []
+                    {
+                        typeof(SummaryGenerator),
+                        typeof(ContentQueryGenerator),
+                        typeof(ContentTypeGenerator),
+                        typeof(ContentManager),
+                        typeof(ImageGenerator)
+                    }},
+                    {typeof(ISummaryGenerator), typeof(SummaryGenerator)},
+                    {typeof(IContentQueryGenerator), typeof(ContentQueryGenerator)},
+                    {typeof(IContentTypeGenerator ), typeof(ContentTypeGenerator)},
+                    {typeof(IContentManager), typeof(ContentManager)},
+                    {typeof(IImageGenerator), typeof(ImageGenerator)},
+                    {typeof(NodeObserver), new[] {
+                        typeof(AppCacheInvalidator),
+                        typeof(AppStorageInvalidator),
+                        typeof(GroupMembershipObserver),
+                        typeof(RepositoryEventRouter),
+                        typeof(SettingsCache),
+                        typeof(SharingNodeObserver),
+                    }},
                 },
                 includedProvidersByType: _defaultIncludedProvidersByType,
                 includedProvidersByName: _defaultIncludedProvidersByName,
@@ -829,6 +992,10 @@ namespace WebAppTests
                     {typeof(ISnService), new[] {typeof(WopiService) }},
 
                     {typeof(ISnTracer), typeof(SnDebugViewTracer)},
+
+                    {typeof(NodeObserver), new[] {
+                        typeof(SettingsCache),
+                    }},
                 },
                 includedProvidersByType: _includedProvidersByTypeWithTests,
                 includedProvidersByName: _defaultIncludedProvidersByName
@@ -865,10 +1032,18 @@ namespace WebAppTests
                     }},
                     {typeof(OperationInspector), typeof(OperationInspector)},
                     {typeof(IOperationMethodStorage), typeof(OperationMethodStorage)},
+                    {typeof(IODataControllerFactory), typeof(ODataControllerFactory)},
+                    {typeof(ODataControllerRegistration), typeof(ODataControllerRegistration)},
+                    {typeof(HelpController), typeof(HelpController)},
+                    // more controllers: {typeof(__Controller), typeof(__Controller)},
                     {typeof(IClientMetadataProvider), typeof(ClientMetadataProvider)},
                     {typeof(ISnService), new[] {typeof(WopiService) }},
 
                     {typeof(ISnTracer), typeof(SnDebugViewTracer)},
+
+                    {typeof(NodeObserver), new[] {
+                        typeof(SettingsCache),
+                    }},
                 },
                 includedProvidersByType: _includedProvidersByTypeWithTests,
                 includedProvidersByName: _defaultIncludedProvidersByName
@@ -903,6 +1078,14 @@ namespace WebAppTests
                     }},
 
                     {typeof(ISnTracer), typeof(SnDebugViewTracer)},
+                    {typeof(NodeObserver), new[] {
+                        typeof(AppCacheInvalidator),
+                        typeof(AppStorageInvalidator),
+                        typeof(GroupMembershipObserver),
+                        typeof(RepositoryEventRouter),
+                        typeof(SettingsCache),
+                        typeof(SharingNodeObserver),
+                    }},
                 },
                 includedProvidersByType: _defaultIncludedProvidersByType,
                 includedProvidersByName: _defaultIncludedProvidersByName
@@ -938,6 +1121,14 @@ namespace WebAppTests
                         typeof(MsSqlClientStoreComponent),
                     }},
                     {typeof(ISnTracer), typeof(SnDebugViewTracer)},
+                    {typeof(NodeObserver), new[] {
+                        typeof(AppCacheInvalidator),
+                        typeof(AppStorageInvalidator),
+                        typeof(GroupMembershipObserver),
+                        typeof(RepositoryEventRouter),
+                        typeof(SettingsCache),
+                        typeof(SharingNodeObserver),
+                    }},
                 },
                 includedProvidersByType: _defaultIncludedProvidersByType,
                 includedProvidersByName: _defaultIncludedProvidersByName,
@@ -970,6 +1161,10 @@ namespace WebAppTests
                     }},
 
                     {typeof(ISnTracer), typeof(SnFileSystemTracer)},
+
+                    {typeof(NodeObserver), new[] {
+                        typeof(SettingsCache),
+                    }},
                 },
                 includedProvidersByType: _defaultIncludedProvidersByType,
                 includedProvidersByName: _defaultIncludedProvidersByName

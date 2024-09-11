@@ -24,6 +24,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Sharing;
+using System.Net.Http;
 
 // ReSharper disable ArrangeThisQualifier
 // ReSharper disable VirtualMemberCallInConstructor
@@ -519,10 +520,13 @@ namespace SenseNet.ContentRepository
         /// Persisted as <see cref="RepositoryDataType.Text"/>.
         /// </summary>
         [RepositoryProperty(ALLOWEDCHILDTYPES, RepositoryDataType.Text)]
-        public virtual IEnumerable<ContentType> AllowedChildTypes
+        public IEnumerable<ContentType> AllowedChildTypes
         {
             get
             {
+                if (this.ContentType.IsTransitiveForAllowedTypes)
+                    return ((GenericContent) Parent).AllowedChildTypes;
+
                 var value = this.GetProperty<string>(ALLOWEDCHILDTYPES);
                 if (string.IsNullOrEmpty(value))
                     return ContentType.EmptyAllowedChildTypes;
@@ -534,6 +538,8 @@ namespace SenseNet.ContentRepository
             }
             set
             {
+                if (ContentType.IsTransitiveForAllowedTypes)
+                    return;
                 var names = value == null ? null : string.Join(" ", value.Select(x => x.Name).Distinct());
                 this[ALLOWEDCHILDTYPES] = names;
             }
@@ -953,7 +959,7 @@ namespace SenseNet.ContentRepository
         private IEnumerable<string> GetAllowedChildTypeNames(bool withSystemFolder)
         {
             // in case of folders and pages inherit settings from parent
-            if (this.NodeType.Name == "Folder" || this.NodeType.Name == "Page")
+            if (this.ContentType.IsTransitiveForAllowedTypes)
             {
                 var parent = SystemAccount.Execute(() => Parent as GenericContent);
                 if (parent == null)
@@ -1012,7 +1018,7 @@ namespace SenseNet.ContentRepository
         public IEnumerable<ContentType> GetAllowedChildTypes()
         {
             // in case of folders and pages inherit settings from parent
-            if (this.NodeType.Name == "Folder" || this.NodeType.Name == "Page")
+            if (this.ContentType.IsTransitiveForAllowedTypes)
             {
                 GenericContent parent;
                 using (new SystemAccount())
@@ -1088,8 +1094,7 @@ namespace SenseNet.ContentRepository
         /// <summary>
         /// Defines constants for the verification of the child type.
         /// </summary>
-        [Obsolete("This enum will become private in the future.")]
-        public enum TypeAllow
+        internal enum TypePermission
         {
             /// <summary>The type is allowed and permitted.</summary>
             Allowed,
@@ -1103,35 +1108,35 @@ namespace SenseNet.ContentRepository
         {
             switch (CheckAllowedChildType(node))
             {
-                case TypeAllow.Allowed:
+                case TypePermission.Allowed:
                     return;
-                case TypeAllow.TypeIsNotPermitted:
+                case TypePermission.TypeIsNotPermitted:
                     throw new SenseNetSecurityException(node.Path, PermissionType.See, User.Current);
-                case TypeAllow.NotAllowed:
+                case TypePermission.NotAllowed:
                     if (move)
                         throw GetNotAllowedContentTypeExceptionOnMove(node, this);
                     else
                         throw GetNotAllowedContentTypeExceptionOnCreate(node, this);
             }
         }
-        internal TypeAllow CheckAllowedChildType(Node node)
+        internal TypePermission CheckAllowedChildType(Node node)
         {
             var contentTypeName = node.NodeType.Name;
 
             // Ok if the new node is exactly TrashBag
             if (contentTypeName == "TrashBag")
-                return TypeAllow.Allowed;
+                return TypePermission.Allowed;
 
             // Ok if the new node is exactly SystemFolder and it is permitted
             if (contentTypeName == typeof(SystemFolder).Name)
             {
                 if (node.CopyInProgress)
-                    return TypeAllow.Allowed;
+                    return TypePermission.Allowed;
 
                 var contentType = ContentType.GetByName(contentTypeName);
                 if(contentType.Security.HasPermission(PermissionType.See))
-                    return TypeAllow.Allowed;
-                return TypeAllow.TypeIsNotPermitted;
+                    return TypePermission.Allowed;
+                return TypePermission.TypeIsNotPermitted;
             }
 
             // Get parent if this is Folder or Page. Exit if current is SystemFolder or it is not a GenericContent
@@ -1139,18 +1144,18 @@ namespace SenseNet.ContentRepository
             using (new SystemAccount())
             {
                 // using as object when it is unknown (Page)
-                while (current != null && (current.NodeType.Name == "Folder" || current.NodeType.Name == "Page"))
+                while (current != null && current.ContentType.IsTransitiveForAllowedTypes)
                     current = current.Parent as GenericContent;
             }
 
             if (current != null && current.NodeType.Name == "SystemFolder")
-                return TypeAllow.Allowed;
+                return TypePermission.Allowed;
             if (current == null)
-                return TypeAllow.Allowed;
+                return TypePermission.Allowed;
 
             if(current.IsAllowedChildType(contentTypeName))
-                return TypeAllow.Allowed;
-            return TypeAllow.NotAllowed;
+                return TypePermission.Allowed;
+            return TypePermission.NotAllowed;
         }
 
         private Exception GetNotAllowedContentTypeExceptionOnCreate(Node node, GenericContent parent)
@@ -1158,7 +1163,7 @@ namespace SenseNet.ContentRepository
             var ancestor = parent;
             using (new SystemAccount())
             {
-                while (ancestor.NodeType.Name == "Folder" || ancestor.NodeType.Name == "Page")
+                while (ancestor.ContentType.IsTransitiveForAllowedTypes)
                 {
                     var p = ancestor.Parent as GenericContent;
                     if (p == null)
@@ -1179,7 +1184,7 @@ namespace SenseNet.ContentRepository
             using (new SystemAccount())
             {
                 var ancestor = target;
-                while (ancestor.NodeType.Name == "Folder" || ancestor.NodeType.Name == "Page")
+                while (ancestor.ContentType.IsTransitiveForAllowedTypes)
                 {
                     var p = ancestor.Parent as GenericContent;
                     if (p == null)
@@ -1200,66 +1205,53 @@ namespace SenseNet.ContentRepository
         /// The original list will be extended by the given <see cref="Schema.ContentType"/>>.
         /// </summary>
         /// <param name="contentTypeName">The name of the allowed <see cref="Schema.ContentType"/>.</param>
-        /// <param name="setOnAncestorIfInherits">If set to true and the current Content is a Folder or Page (meaning the allowed type list is inherited),
-        /// the provided content type will be added to the parent's list.
-        /// Optional parameter. Default: false.</param>
         /// <param name="throwOnError">Specifies whether an error should be thrown when the operation is unsuccessful. Optional, default: true.</param>
         /// <param name="save">Optional parameter that is true if the Content will be saved automatically after setting the new collection.
         /// Default: false</param>
-        public void AllowChildType(string contentTypeName, bool setOnAncestorIfInherits = false, bool throwOnError = true, bool save = false)
+        public void AllowChildType(string contentTypeName, bool throwOnError = true, bool save = false)
         {
-            AllowChildTypes(new[] { contentTypeName }, setOnAncestorIfInherits, throwOnError, save);
+            AllowChildTypes(new[] { contentTypeName }, throwOnError, save);
         }
         /// <summary>
         /// Allow a child type by the given parameters.
         /// The original list will be extended by the given <see cref="Schema.ContentType"/>>.
         /// </summary>
         /// <param name="contentType">The allowed <see cref="Schema.ContentType"/>.</param>
-        /// <param name="setOnAncestorIfInherits">If set to true and the current Content is a Folder or Page (meaning the allowed type list is inherited),
-        /// the provided content type will be added to the parent's list.
-        /// Optional parameter. Default: false.</param>
         /// <param name="throwOnError">Specifies whether an error should be thrown when the operation is unsuccessful. Optional, default: true.</param>
         /// <param name="save">Optional parameter that is true if the Content will be saved automatically after setting the new collection.
         /// Default: false</param>
-        public void AllowChildType(ContentType contentType, bool setOnAncestorIfInherits = false, bool throwOnError = true, bool save = false)
+        public void AllowChildType(ContentType contentType, bool throwOnError = true, bool save = false)
         {
-            AllowChildTypes(new[] { contentType }, setOnAncestorIfInherits, throwOnError, save);
+            AllowChildTypes(new[] { contentType }, throwOnError, save);
         }
         /// <summary>
         /// Allow child types by the given parameters.
         /// The original list will be extended by the given collection.
         /// </summary>
         /// <param name="contentTypeNames">The name collection of the allowed <see cref="Schema.ContentType"/>s.</param>
-        /// <param name="setOnAncestorIfInherits">If set to true and the current Content is a Folder or Page (meaning the allowed type list is inherited),
-        /// the provided content types will be added to the parent's list.
-        /// Optional parameter. Default: false.</param>
         /// <param name="throwOnError">Specifies whether an error should be thrown when the operation is unsuccessful. Optional, default: true.</param>
         /// <param name="save">Optional parameter that is true if the Content will be saved automatically after setting the new collection.
         /// Default: false</param>
-        public void AllowChildTypes(IEnumerable<string> contentTypeNames, bool setOnAncestorIfInherits = false, bool throwOnError = true, bool save = false)
+        public void AllowChildTypes(IEnumerable<string> contentTypeNames, bool throwOnError = true, bool save = false)
         {
             AllowChildTypes(contentTypeNames
                 .Select(ContentType.GetByName)
-                .Where(x => x != null), setOnAncestorIfInherits, throwOnError, save);
+                .Where(x => x != null), throwOnError, save);
         }
         /// <summary>
         /// Allow types of children by the given parameters.
         /// The original list will be extended by the given collection.
         /// </summary>
         /// <param name="contentTypes">The new collection of the allowed <see cref="Schema.ContentType"/>.</param>
-        /// <param name="setOnAncestorIfInherits">If set to true and the current Content is a Folder or Page (meaning the allowed type list is inherited),
-        /// the provided content types will be added to the parent's list.
-        /// Optional parameter. Default: false.</param>
         /// <param name="throwOnError">Specifies whether an error should be thrown when the operation is unsuccessful. Optional, default: true.</param>
         /// <param name="save">Optional parameter that is true if the Content will be saved automatically after setting the new collection.
         /// Default: false</param>
-        public void AllowChildTypes(IEnumerable<ContentType> contentTypes, bool setOnAncestorIfInherits = false, bool throwOnError = true, bool save = false)
+        public void AllowChildTypes(IEnumerable<ContentType> contentTypes, bool throwOnError = true, bool save = false)
         {
             if (contentTypes == null)
                 throw new ArgumentNullException(nameof(contentTypes));
 
             SetAllowedChildTypesByType(
-                parent => parent.AllowChildTypes(contentTypes, setOnAncestorIfInherits, throwOnError, true),
                 () =>
                 {
                     // get the full effective list and extend it with the new types
@@ -1267,7 +1259,6 @@ namespace SenseNet.ContentRepository
 
                     SetAllowedChildTypesInternal(effectiveList, save);
                 }, 
-                setOnAncestorIfInherits, 
                 throwOnError);
         }
         /// <summary>
@@ -1275,62 +1266,26 @@ namespace SenseNet.ContentRepository
         /// the property will be cleared and values will be inherited from the content type from now on.
         /// </summary>
         /// <param name="contentTypes">The new collection of the allowed <see cref="Schema.ContentType"/>.</param>
-        /// <param name="setOnAncestorIfInherits">If set to true and the current Content is a Folder or Page (meaning the allowed type list 
-        /// is inherited), the provided content types will be added to the parent's list.
-        /// Optional parameter. Default: false.</param>
         /// <param name="throwOnError">Specifies whether an error should be thrown when the operation is unsuccessful. Optional, default: true.</param>
         /// <param name="save">Optional parameter that is true if the Content should be saved automatically after setting the new collection.
         /// Default: false</param>
-        public void SetAllowedChildTypes(IEnumerable<ContentType> contentTypes, bool setOnAncestorIfInherits = false, bool throwOnError = true, bool save = false)
+        public void SetAllowedChildTypes(IEnumerable<ContentType> contentTypes, bool throwOnError = true, bool save = false)
         {
             if (contentTypes == null)
                 throw new ArgumentNullException(nameof(contentTypes));
 
-            SetAllowedChildTypesByType(
-                parent => parent.SetAllowedChildTypes(contentTypes, setOnAncestorIfInherits, throwOnError, true),
-                () => SetAllowedChildTypesInternal(contentTypes, save), 
-                setOnAncestorIfInherits, 
-                throwOnError);
+            SetAllowedChildTypesByType(() => SetAllowedChildTypesInternal(contentTypes, save), throwOnError);
         }
 
-        private void SetAllowedChildTypesByType(Action<GenericContent> parentAction, Action setAction, 
-            bool setOnAncestorIfInherits = false, bool throwOnError = true)
+        private void SetAllowedChildTypesByType(Action setAction, bool throwOnError = true)
         {
-            // This method provides the algorithm for handling special types (Folder, Page) 
-            // that are treated differenlty in case of the allowed child types feature.
-
-            switch (this.NodeType.Name)
+            if (this.ContentType.IsTransitiveForAllowedTypes)
             {
-                case "Folder":
-                case "Page":
-                    if (setOnAncestorIfInherits)
-                    {
-                        GenericContent parent;
-                        using (new SystemAccount())
-                            parent = this.Parent as GenericContent;
-
-                        if (parent != null)
-                        {
-                            // execute the action on the parent instead
-                            parentAction(parent);
-                        }
-                        else
-                        {
-                            if (throwOnError)
-                                throw GetCannotAllowContentTypeException();
-                        }
-                    }
-                    else
-                    {
-                        if (throwOnError)
-                            throw GetCannotAllowContentTypeException();
-                    }
-                    return;
-                default:
-                    // execute the action on the content itself
-                    setAction();
-                    return;
+                if (throwOnError)
+                    throw GetCannotAllowContentTypeException();
+                return;
             }
+            setAction();
         }
         private void SetAllowedChildTypesInternal(IEnumerable<ContentType> contentTypes, bool save = false)
         {
@@ -1351,7 +1306,7 @@ namespace SenseNet.ContentRepository
                 SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
         }
 
-        private Exception GetCannotAllowContentTypeException()
+        protected Exception GetCannotAllowContentTypeException()
         {
             return new InvalidOperationException(
                 $"Cannot allow any content type on a {this.NodeType.Name}. Path: {this.Path}");
@@ -1362,18 +1317,17 @@ namespace SenseNet.ContentRepository
         /// <nodoc>The Content will be saved after the operation.
         /// This is an <see cref="ODataAction"/>.</nodoc>
         /// </summary>
-        /// <snCategory>Content Types</snCategory>
         /// <param name="content"></param>
         /// <param name="contentTypes" example='["Task", "Event"]'>The extension.</param>
         /// <returns>Empty string.</returns>
-        [ODataAction]
+        [ODataAction(Category = "Content Types")]
         [AllowedRoles(N.R.Everyone)]
         public static string AddAllowedChildTypes(Content content, string[] contentTypes)
         {
             if (!(content.ContentHandler is GenericContent gc))
                 return string.Empty;
 
-            gc.AllowChildTypes(contentTypes, false, true, true);
+            gc.AllowChildTypes(contentTypes, true, true);
 
             return string.Empty;
         }
@@ -1383,12 +1337,11 @@ namespace SenseNet.ContentRepository
         /// <nodoc>The Content will be saved after the operation.
         /// This is an <see cref="ODataAction"/>.</nodoc>
         /// </summary>
-        /// <snCategory>Content Types</snCategory>
         /// <param name="content"></param>
         /// <param name="httpContext"></param>
         /// <param name="contentTypes">The items that will be removed.</param>
         /// <returns>Empty string.</returns>
-        [ODataAction(OperationName = "RemoveAllowedChildTypes")]
+        [ODataAction(OperationName = "RemoveAllowedChildTypes", Category = "Content Types")]
         [AllowedRoles(N.R.Everyone)]
         public static async Task<string> RemoveAllowedChildTypesAsync(Content content, HttpContext httpContext,
             string[] contentTypes)
@@ -1429,7 +1382,7 @@ namespace SenseNet.ContentRepository
                     continue;
 
                 var checkResult = parentGc.CheckAllowedChildType(node);
-                if(checkResult != TypeAllow.Allowed)
+                if(checkResult != TypePermission.Allowed)
                 {
                     result.AppendFormat("{0}\t{1}\t{2}\t{3}\t{4}\t{5}\r\n", parentGc.Path, parentGc.NodeType.Name, node.Name, node.NodeType.Name, 
                         string.Join(", ", parentGc.GetAllowedChildTypeNames()), checkResult);
@@ -1523,8 +1476,15 @@ namespace SenseNet.ContentRepository
         /// <param name="target">The target <see cref="Node"/> that will be the parent of this Content.</param>
         public override void MoveTo(Node target)
         {
+            var transitiveNodeTypeIds = ContentType.GetContentTypes()
+                .Where(ct => ct.IsTransitiveForAllowedTypes)
+                .Select(ct => Providers.Instance.StorageSchema.NodeTypes[ct.Name])
+                .Where(nt => nt != null)
+                .Select(nt => nt.Id)
+                .ToArray();
+
             if (target is GenericContent targetGc)
-                foreach (var nt in this.GetChildTypesToAllow())
+                foreach (var nt in this.GetChildTypesToAllow(transitiveNodeTypeIds))
                     if (!targetGc.IsAllowedChildType(nt.Name))
                         throw new InvalidOperationException(
                             $"Cannot move {this.Path} ({this.NodeType.Name}) to {target.Path} ({target.NodeType.Name}) " +
@@ -1645,14 +1605,6 @@ namespace SenseNet.ContentRepository
             this.Path).ConfigureAwait(false).GetAwaiter().GetResult().Count;
 
         /// <summary>
-        /// Moves this Content and the whole subtree to the Trash if possible, otherwise deletes it physically.
-        /// </summary>
-        [Obsolete("Use async version instead", false)]
-        public override void Delete()
-        {
-            DeleteAsync(CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
-        }
-        /// <summary>
         /// Asynchronously moves this Content and the whole subtree to the Trash if possible, otherwise deletes it physically.
         /// </summary>
         public override System.Threading.Tasks.Task DeleteAsync(CancellationToken cancel)
@@ -1660,15 +1612,6 @@ namespace SenseNet.ContentRepository
             return DeleteAsync(false, cancel);
         }
 
-        /// <summary>
-        /// Moves this Content and the whole subtree to the Trash if possible, otherwise deletes it physically.
-        /// </summary>
-        /// <param name="bypassTrash">Specifies whether the content should be deleted physically or only to the Trash.</param>
-        [Obsolete("Use async version instead", false)]
-        public virtual void Delete(bool bypassTrash)
-        {
-            DeleteAsync(bypassTrash, CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
-        }
         /// <summary>
         /// Asynchronously moves this Content and the whole subtree to the Trash if possible, otherwise deletes it physically.
         /// </summary>
@@ -1763,16 +1706,6 @@ namespace SenseNet.ContentRepository
         }
 
         /// <summary>
-        /// Persist this Content's changes.
-        /// In derived classes to modify or extend the general persistence mechanism of a content, please
-        /// override the <see cref="Save(NodeSaveSettings)"/> method instead, to avoid duplicate Save calls.
-        /// </summary>
-        [Obsolete("Use async version instead.", true)]
-        public override void Save()
-        {
-            SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
-        }
-        /// <summary>
         /// Asynchronously persist this Content's changes.
         /// In derived classes to modify or extend the general persistence mechanism of a content, please
         /// override the <see cref="Save(NodeSaveSettings)"/> method instead, to avoid duplicate Save calls.
@@ -1795,17 +1728,6 @@ namespace SenseNet.ContentRepository
         }
 
         private bool _savingExplicitVersion;
-        /// <summary>
-        /// Persist this Content's changes by the given mode.
-        /// In derived classes to modify or extend the general persistence mechanism of a content, please
-        /// override the <see cref="Save(NodeSaveSettings)"/> method instead, to avoid duplicate Save calls.
-        /// </summary>
-        /// <param name="mode"><see cref="SavingMode"/> that controls versioning.</param>
-        [Obsolete("Use async version instead.", true)]
-        public virtual void Save(SavingMode mode)
-        {
-            SaveAsync(mode, CancellationToken.None).GetAwaiter().GetResult();
-        }
         /// <summary>
         /// Asynchronously persist this Content's changes by the given mode.
         /// In derived classes to modify or extend the general persistence mechanism of a content, please
@@ -1854,17 +1776,11 @@ namespace SenseNet.ContentRepository
             }
         }
 
-        /// <summary>
-        /// Persist this Content's changes by the given settings.
-        /// </summary>
-        /// <param name="settings"><see cref="NodeSaveSettings"/> that contains the algorithm of the persistence.</param>
-        [Obsolete("Use async version instead.", true)]
-        public override void Save(NodeSaveSettings settings)
-        {
-            SaveAsync(settings, CancellationToken.None).GetAwaiter().GetResult();
-        }
         public override async System.Threading.Tasks.Task SaveAsync(NodeSaveSettings settings, CancellationToken cancel)
         {
+            if (ContentType.IsTransitiveForAllowedTypes && !string.IsNullOrEmpty(this.GetProperty<string>(ALLOWEDCHILDTYPES)))
+                throw GetCannotAllowContentTypeException();
+
             await base.SaveAsync(settings, cancel).ConfigureAwait(false);
 
             // if related workflows should be kept alive, update them on a separate thread
@@ -1938,16 +1854,6 @@ namespace SenseNet.ContentRepository
         }
 
         /// <summary>
-        /// Check this Content out. Enables modifications for the currently logged in user exclusively.
-        /// Enables other users to access it but only for reading.
-        /// After this operation the version of the Content is always raised even if the versioning mode is "off".
-        /// </summary>
-        [Obsolete("Use async version instead.", true)]
-        public virtual void CheckOut()
-        {
-            CheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();
-        }
-        /// <summary>
         /// Asynchronously check this Content out. Enables modifications for the currently logged in user exclusively.
         /// Enables other users to access it but only for reading.
         /// After this operation the version of the Content is always raised even if the versioning mode is "off".
@@ -1972,14 +1878,6 @@ namespace SenseNet.ContentRepository
         }
 
         /// <summary>
-        /// Commits the modifications of the checked out Content and releases the lock.
-        /// </summary>
-        [Obsolete("Use async version instead.", true)]
-        public virtual void CheckIn()
-        {
-            CheckInAsync(CancellationToken.None).GetAwaiter().GetResult();
-        }
-        /// <summary>
         /// Asynchronously commits the modifications of the checked out Content and releases the lock.
         /// </summary>
         public virtual async System.Threading.Tasks.Task CheckInAsync(CancellationToken cancel)
@@ -1995,14 +1893,6 @@ namespace SenseNet.ContentRepository
         }
 
         /// <summary>
-        /// Reverts the Content to the state before the user checked it out and reloads it.
-        /// </summary>
-        [Obsolete("Use async version instead.", true)]
-        public virtual void UndoCheckOut()
-        {
-            UndoCheckOutAsync(true, CancellationToken.None).GetAwaiter().GetResult();
-        }
-        /// <summary>
         /// Asynchronously reverts the Content to the state before the user checked it out and reloads it.
         /// </summary>
         public virtual System.Threading.Tasks.Task UndoCheckOutAsync(CancellationToken cancel)
@@ -2010,17 +1900,6 @@ namespace SenseNet.ContentRepository
             return UndoCheckOutAsync(true, cancel);
         }
 
-        /// <summary>
-        /// Reverts the Content to the state before the user checked it out.
-        /// If the "'forceRefresh" parameter is true, the Content will be reloaded.
-        /// </summary>
-        /// <param name="forceRefresh">Optional boolean value that specifies
-        /// whether the Content will be reloaded or not. Default: true.</param>
-        [Obsolete("Use async version instead.", true)]
-        public void UndoCheckOut(bool forceRefresh)
-        {
-            UndoCheckOutAsync(forceRefresh, CancellationToken.None).GetAwaiter().GetResult();
-        }
         /// <summary>
         /// Asynchronously reverts the Content to the state before the user checked it out.
         /// If the "'forceRefresh" parameter is true, the Content will be reloaded.
@@ -2044,16 +1923,6 @@ namespace SenseNet.ContentRepository
         }
 
         /// <summary>
-        /// Publishes the Content. Depending on the versioning workflow, the version
-        /// will be the next public version with Approved state or remains the same but the 
-        /// versioning state will be changed to Pending.
-        /// </summary>
-        [Obsolete("Use async version instead.", true)]
-        public virtual void Publish()
-        {
-            PublishAsync(CancellationToken.None).GetAwaiter().GetResult();
-        }
-        /// <summary>
         /// Asynchronously publishes the Content. Depending on the versioning workflow, the version
         /// will be the next public version with Approved state or remains the same but the 
         /// versioning state will be changed to Pending.
@@ -2070,15 +1939,6 @@ namespace SenseNet.ContentRepository
             }
         }
 
-        /// <summary>
-        /// Approves the Content. After this action the Content's version number
-        /// (depending on the mode) will be raised to the next public version.
-        /// </summary>
-        [Obsolete("Use async version instead.", true)]
-        public virtual void Approve()
-        {
-            ApproveAsync(CancellationToken.None).GetAwaiter().GetResult();
-        }
         /// <summary>
         /// Asynchronously approves the Content. After this action the Content's version number
         /// (depending on the mode) will be raised to the next public version.
@@ -2100,15 +1960,6 @@ namespace SenseNet.ContentRepository
         }
 
         /// <summary>
-        /// Rejects the approvable Content. After this action the Content's version number
-        /// remains the same but the versioning state of the Content will be changed to Rejected.
-        /// </summary>
-        [Obsolete("Use async version instead.", true)]
-        public virtual void Reject()
-        {
-            RejectAsync(CancellationToken.None).GetAwaiter().GetResult();
-        }
-        /// <summary>
         /// Asynchronously rejects the approvable Content. After this action the Content's version number
         /// remains the same but the versioning state of the Content will be changed to Rejected.
         /// </summary>
@@ -2122,6 +1973,41 @@ namespace SenseNet.ContentRepository
 
                 op.Successful = true;
             }
+        }
+
+        /// <summary>
+        /// Asynchronously restores the requested of this content. The restored version-number will be
+        /// the next draft version according to the current versioning mode.
+        /// </summary>
+        /// <remarks>
+        /// The requested version's state is irrelevant, only the major and minor numbers are considered.
+        /// </remarks>
+        /// <param name="version">The requested version-number e.g. V2.3</param>
+        /// <param name="cancel">The token to monitor for cancellation requests.</param>
+        /// <returns>A Task that represents the asynchronous operation containing
+        /// a byte array containing the requested number of bytes (or less if there is not enough in the binary data).</returns>
+        /// <exception cref="InvalidContentActionException">Throws when the current user does not have RecallOldVersion permission for this content.</exception>
+        /// <exception cref="InvalidContentActionException">Throws if the <paramref name="version"/> does not exist.</exception>
+        public async System.Threading.Tasks.Task<GenericContent> RestoreVersionAsync(VersionNumber version, CancellationToken cancel)
+        {
+            if (!this.Security.HasPermission(PermissionType.RecallOldVersion))
+                throw new SenseNetSecurityException($"Not enough permission to restore an older version. Path: '{this.Path}', Id: {Id}, User: {User.Current.Username}.");
+
+            // Load the requested version
+            var oldVersion = this.Versions.AsEnumerable()
+                .SingleOrDefault(n => n.Version.Major == version.Major && n.Version.Minor == version.Minor) as GenericContent;
+
+            // Throw an exception if it does not exist
+            if (oldVersion == null)
+                throw new InvalidContentActionException($"Cannot restore the version '{version}' because it does not exist on content '{this.Path}' (Id: {Id}).");
+
+            // copy current versioning and approving local-data
+            oldVersion.VersioningMode = base.GetProperty<VersioningType>("VersioningMode");
+            oldVersion.ApprovingMode = base.GetProperty<ApprovingType>("ApprovingMode");
+            await oldVersion.SaveAsync(SavingMode.RaiseVersion, cancel);
+
+            // reload
+            return (GenericContent)await Node.LoadNodeAsync(oldVersion.Id, cancel);
         }
 
         internal async System.Threading.Tasks.Task SaveExplicitVersionAsync(CancellationToken cancel)
@@ -2151,11 +2037,6 @@ namespace SenseNet.ContentRepository
             await SaveAsync(update ? SavingMode.KeepVersion : SavingMode.RaiseVersion, cancel).ConfigureAwait(false);
         }
 
-        [Obsolete("Use async version instead.", true)]
-        public override void FinalizeContent()
-        {
-            FinalizeContentAsync(CancellationToken.None).GetAwaiter().GetResult();
-        }
         public override async System.Threading.Tasks.Task FinalizeContentAsync(CancellationToken cancel)
         {
             using var op = SnTrace.ContentOperation.StartOperation("GC.FinalizeContent: SavingState:{0}, VId:{1}, Path:{2}", this.SavingState, this.VersionId, this.Path);

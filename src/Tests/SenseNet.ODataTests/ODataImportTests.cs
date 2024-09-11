@@ -7,6 +7,7 @@ using MimeKit.IO.Filters;
 using Newtonsoft.Json;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
+using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.OData.IO;
@@ -310,8 +311,8 @@ public class ODataImportTests : ODataTestBase
             // Assert for Importer
             using (new CurrentUserBlock(importerUser))
             {
-                //Assert.AreEqual(null, importedContent.GetReference<User>("Manager"));
-                //TODO: delete the following assert and use importedContent.GetReference if the bug #1900 resolved.
+                Assert.AreEqual(null, importedContent.GetReference<User>("Manager"));
+                Assert.IsFalse(importedContent.HasReference("Manager", (User)referredUser));
                 var content = Content.Create(importedContent);
                 var manager = ((List<Node>)content["Manager"]).FirstOrDefault();
                 Assert.IsNull(manager);
@@ -383,12 +384,37 @@ public class ODataImportTests : ODataTestBase
             // Assert for Importer
             using (new CurrentUserBlock(importerUser))
             {
-                //Assert.AreEqual(null, importedContent.GetReference<User>("Manager"));
-                //TODO: delete the following assert and use importedContent.GetReference if the bug #1900 resolved.
+                Assert.AreEqual(null, importedContent.GetReference<User>("Manager"));
+                Assert.IsFalse(importedContent.HasReference("Manager", (User)referredUser));
                 var content = Content.Create(importedContent);
                 var manager = ((List<Node>) content["Manager"]).FirstOrDefault();
                 Assert.IsNull(manager);
             }
+        });
+    }
+    [TestMethod]
+    public async STT.Task OD_Import_Create_SingleReference_Compulsory()
+    {
+        await ODataTestAsync(async () =>
+        {
+            ContentType.GetByName("User").FieldSettings.First(x => x.Name == "Manager").Compulsory = true;
+
+            var referredUser = await CreateUserAsync("Boss", default);
+            await Node.DeleteAsync(referredUser.Id, default);
+
+            var importerUser = await CreateAdminUserAsync("Importer", default);
+            Assert.IsTrue(importerUser.IsOperator);
+
+            // ACT
+            var result = await ImportSingleReferenceAsync(importerUser, referredUser, CancellationToken.None)
+                .ConfigureAwait(false);
+
+            // ASSERT
+            Assert.AreEqual("created", result.Action);
+            var importedContent = Node.Load<User>(result.Path);
+            Assert.AreEqual(null, importedContent.GetReference<User>("Manager"));
+            Assert.AreEqual(1, result.BrokenReferences.Length);
+            Assert.AreEqual(0, result.Messages.Length);
         });
     }
 

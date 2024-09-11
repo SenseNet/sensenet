@@ -457,7 +457,7 @@ namespace SenseNet.IntegrationTests.TestCases
                     await RegisterActivityAsync(IndexingActivityType.AddDocument,    IndexingActivityRunningState.Waiting, 5, 5, "/Root/Path5"),
                 };
 
-                await DP.DeleteFinishedIndexingActivitiesAsync(CancellationToken.None);
+                await DP.DeleteFinishedIndexingActivitiesAsync(23, CancellationToken.None);
 
                 var indexingActivityFactory = Providers.Instance.Services.GetRequiredService<IIndexingActivityFactory>();
                 var loaded = await DP.LoadIndexingActivitiesAsync(0, int.MaxValue, 9999, false, indexingActivityFactory, CancellationToken.None);

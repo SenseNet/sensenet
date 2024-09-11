@@ -93,7 +93,7 @@ namespace SenseNet.ContentRepository.Storage.Caching.Dependency
             return true;
         }
         
-        [Obsolete("Use FireChanged(string) method instead.")]
+        [Obsolete("Use FireChanged(string) method instead.", true)]
         public static void NotifyChange(string portletId)
         {
             FireChanged(portletId);

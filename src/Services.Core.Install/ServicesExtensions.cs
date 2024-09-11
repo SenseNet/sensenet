@@ -8,6 +8,8 @@ namespace SenseNet.Extensions.DependencyInjection
     {
         /// <summary>
         /// Adds the sensenet installer to the service collection.
+        /// This allows sensenet to install its default content repository database
+        /// automatically when the application starts.
         /// </summary>
         public static IServiceCollection AddSenseNetInstallPackage(this IServiceCollection services)
         {

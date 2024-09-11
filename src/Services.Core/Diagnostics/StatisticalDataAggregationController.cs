@@ -143,6 +143,7 @@ namespace SenseNet.Services.Core.Diagnostics
                 (await _statDataProvider.LoadAggregatedUsageAsync(aggregator.DataType, resolution, startTime, endTimeExclusive, cancel))
                 .ToArray();
 
+            aggregations = aggregations.Where(x => !string.IsNullOrEmpty(x.Data) && x.Data != "null").ToArray();
             if (aggregations.Length == 0)
                 return false;
 

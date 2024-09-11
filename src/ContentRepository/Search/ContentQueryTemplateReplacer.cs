@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using SenseNet.ContentRepository;
+using SenseNet.Search.Querying;
 
 // ReSharper disable once CheckNamespace
 namespace SenseNet.Search
@@ -24,6 +25,11 @@ namespace SenseNet.Search
         /// Resolve a named template in the given expression.
         /// </summary>
         public override string EvaluateTemplate(string templateName, string templateExpression, object templatingContext)
+        {
+            var evaluated = EvaluateTemplatePrivate(templateName, templateExpression, templatingContext);
+            return string.IsNullOrEmpty(evaluated) ? SnQuery.NotResolvedTemplateText : evaluated;
+        }
+        public string EvaluateTemplatePrivate(string templateName, string templateExpression, object templatingContext)
         {
             switch (templateName)
             {

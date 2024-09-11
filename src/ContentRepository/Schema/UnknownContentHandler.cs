@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Threading;
+using System.Threading.Tasks;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage;
 
@@ -12,10 +14,17 @@ namespace SenseNet.Storage
         protected UnknownContentHandler(NodeToken nt) : base(nt) { }
         public override bool IsContentType { get; } = false;
 
-        public override void Save(NodeSaveSettings settings)
+        public override Task SaveAsync(CancellationToken cancel)
         {
             ThrowException("save");
+            return Task.CompletedTask;
         }
+        public override Task SaveAsync(NodeSaveSettings settings, CancellationToken cancel)
+        {
+            ThrowException("save");
+            return Task.CompletedTask;
+        }
+
         public override void CopyTo(Node target)
         {
             ThrowException("copy");
@@ -24,22 +33,29 @@ namespace SenseNet.Storage
         {
             ThrowException("copy");
         }
-        public override void Delete()
+        public override Task DeleteAsync(CancellationToken cancel)
         {
             ThrowException("delete");
+            return Task.CompletedTask;
         }
-        public override void FinalizeContent()
+
+        public override Task FinalizeContentAsync(CancellationToken cancel)
         {
             ThrowException("finalize");
+            return Task.CompletedTask;
         }
-        public override void ForceDelete()
+
+        public override Task ForceDeleteAsync(CancellationToken cancel)
         {
             ThrowException("delete");
+            return Task.CompletedTask;
         }
+
         public override void MoveTo(Node target)
         {
             ThrowException("move");
         }
+
 
         private static void ThrowException(string operation)
         {

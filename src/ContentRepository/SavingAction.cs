@@ -404,11 +404,6 @@ namespace SenseNet.ContentRepository
             this.LockerUserId = User.Current.Id;
         }
 
-        [Obsolete("Use async version instead.", true)]
-        public void Execute()
-        {
-            ExecuteAsync(CancellationToken.None).GetAwaiter().GetResult();
-        }
         public async System.Threading.Tasks.Task ExecuteAsync(CancellationToken cancel)
         {
             if (this.Node.IsNew)
@@ -874,9 +869,7 @@ namespace SenseNet.ContentRepository
             {
                 "checkin" => HasCheckIn(generic),
                 "checkout" => !generic.IsHeadOnly &&
-                               (generic.VersioningMode > VersioningType.None || 
-                               generic is IFile || 
-                               generic.NodeType.IsInstaceOfOrDerivedFrom("Page")) && 
+                               (generic.VersioningMode > VersioningType.None || generic is IFile) && 
                               HasCheckOut(generic),
                 "undocheckout" => HasUndoCheckOut(generic),
                 "forceundocheckout" => HasForceUndoCheckOutRight(generic),

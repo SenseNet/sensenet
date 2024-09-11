@@ -17,7 +17,7 @@ namespace SenseNet.ContentRepository
 	    /// </summary>
         long Size { get; }
 
-	    [Obsolete("This property and content field will be removed in the future.")]
+	    [Obsolete("This property and content field will be removed in the future.", true)]
         long FullSize { get; }
     }
 }

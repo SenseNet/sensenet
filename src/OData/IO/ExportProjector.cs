@@ -33,7 +33,9 @@ namespace SenseNet.OData.IO
 
                 if (IsAllowedField(content, fieldName))
                 {
-                    if (content.Fields.TryGetValue(fieldName, out var field))
+                    if(fieldName == "Password" && content.ContentHandler is User user)
+                        fields.Add(fieldName, user.PasswordHash == null ? null : new { Hash = user.PasswordHash });
+                    else if (content.Fields.TryGetValue(fieldName, out var field))
                         fields.Add(fieldName, GetJsonObject(field, selfurl, Request));
                     else if (fieldName == ICONPROPERTY)
                         fields.Add(fieldName, content.Icon ?? content.ContentType.Icon);
@@ -68,8 +70,7 @@ namespace SenseNet.OData.IO
                 case ODataMiddleware.ChildrenPropertyName:
                     return false;
                 case "AllowedChildTypes":
-                    var ctName = content.ContentType.Name;
-                    if (ctName == "Folder" || ctName == "Page")
+                    if(content.ContentType.IsTransitiveForAllowedTypes)
                         return false;
                     break;
             }
@@ -83,6 +84,11 @@ namespace SenseNet.OData.IO
             if (field is ReferenceField refField)
                 return GetReference(refField, selfUrl, oDataRequest);
             return base.GetJsonObject(field, selfUrl, oDataRequest);
+        }
+
+        protected override object GetRichTextOutput(string fieldName, RichTextFieldValue rtfValue, ODataRequest oDataRequest)
+        {
+            return rtfValue;
         }
 
         private object GetAllowedChildTypes(AllowedChildTypesField field, string selfUrl, ODataRequest oDataRequest)

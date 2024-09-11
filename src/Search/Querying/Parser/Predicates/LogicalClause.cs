@@ -57,7 +57,7 @@ namespace SenseNet.Search.Querying.Parser.Predicates
         /// <summary>Returns a string that represents the current object.</summary>
         public override string ToString()
         {
-            return $"{(Occur == Occurence.Must ? "+" : "")}{Predicate}";
+            return $"{(Occur == Occurence.Must ? "+" : Occur == Occurence.MustNot ? "-" : "")}{Predicate}";
         }
     }
 }

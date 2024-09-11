@@ -31,8 +31,6 @@ namespace SenseNet.ContentRepository.Storage.Data
     {
         protected int IndexBlockSize = 100;
 
-        public virtual IDataPlatform<DbConnection, DbCommand, DbParameter> GetPlatform() { return null; } //TODO:~ UNDELETABLE
-
         //TODO: [DIBLOB] get this instance through the constructor later
         private IBlobStorage BlobStorage => Providers.Instance.BlobStorage;
         private StorageSchema StorageSchema => Providers.Instance.StorageSchema;
@@ -727,6 +725,65 @@ namespace SenseNet.ContentRepository.Storage.Data
                 throw new DataException(msg, e);
             }
         }
+
+        /// <inheritdoc />
+        public override async Task<long> AddChangedDataAsync(int versionId, ChangedData changedProperty, CancellationToken cancel)
+        {
+            var changedData = await LoadChangedDataAsync(versionId, cancel).ConfigureAwait(false);
+            if (changedData != null)
+            {
+                var changedDataList = changedData.ToList();
+                changedDataList.Add(changedProperty);
+                var timestamp = await SaveChangedData(versionId, changedDataList, cancel).ConfigureAwait(false);
+                return timestamp;
+            }
+            return default;
+        }
+        protected async Task<IEnumerable<ChangedData>> LoadChangedDataAsync(int versionId, CancellationToken cancel)
+        {
+            using var op = SnTrace.Database.StartOperation(() => "RelationalDataProviderBase: " +
+                                                                 $"LoadChangedData(versionId: {versionId})");
+
+            using var ctx = CreateDataContext(cancel);
+            var result = await ctx.ExecuteReaderAsync(LoadChangedDataScript, cmd =>
+            {
+                cmd.Parameters.Add(ctx.CreateParameter("@VersionId", DbType.Int32, versionId));
+            }, async (reader, cancellationToken) =>
+            {
+                IEnumerable<ChangedData> data = null;
+                if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                    data = reader.GetChangedData(0);
+                return data;
+            }).ConfigureAwait(false);
+            op.Successful = true;
+            return result;
+        }
+        protected abstract string LoadChangedDataScript { get; }
+
+        protected async Task<long> SaveChangedData(int versionId, IEnumerable<ChangedData> changedData, CancellationToken cancel)
+        {
+            using var op = SnTrace.Database.StartOperation("RelationalDataProviderBase: " +
+                                                           "SaveChangedData: versionId: {0}", versionId);
+
+            var result = await RetryAsync(async () =>
+            {
+                using var ctx = CreateDataContext(cancel);
+                var result = await ctx.ExecuteScalarAsync(SaveChangedDataScript, cmd =>
+                {
+                    cmd.Parameters.AddRange(new[]
+                    {
+                        ctx.CreateParameter("@VersionId", DbType.Int32, versionId),
+                        ctx.CreateParameter("@ChangedData", DbType.String, int.MaxValue, JsonConvert.SerializeObject(changedData)),
+                    });
+                }).ConfigureAwait(false);
+                return ConvertTimestampToInt64(result);
+            }, cancel);
+            op.Successful = true;
+
+            return result;
+        }
+        protected abstract string SaveChangedDataScript { get; }
+
 
         /// <inheritdoc />
         public override async Task<IEnumerable<NodeData>> LoadNodesAsync(int[] versionIds, CancellationToken cancellationToken)
@@ -1456,7 +1513,7 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         /* =============================================================================================== Tree */
 
-        public override async Task<IEnumerable<NodeType>> LoadChildTypesToAllowAsync(int nodeId, CancellationToken cancellationToken)
+        public override async Task<IEnumerable<NodeType>> LoadChildTypesToAllowAsync(int nodeId, int[] transitiveNodeTypeIds, CancellationToken cancellationToken)
         {
             using var op = SnTrace.Database.StartOperation("RelationalDataProviderBase: " +
                 "LoadChildTypesToAllow(nodeId: {0})", nodeId);
@@ -1465,6 +1522,8 @@ namespace SenseNet.ContentRepository.Storage.Data
             var result = await ctx.ExecuteReaderAsync(LoadChildTypesToAllowScript, cmd =>
             {
                 cmd.Parameters.Add(ctx.CreateParameter("@NodeId", DbType.Int32, nodeId));
+                var ids = string.Join(",", transitiveNodeTypeIds.Select(x => x.ToString()));
+                cmd.Parameters.Add(ctx.CreateParameter("@TransparentTypeIds", DbType.String, ids.Length, ids));
             }, async (reader, cancel) =>
             {
                 cancel.ThrowIfCancellationRequested();
@@ -2044,11 +2103,14 @@ namespace SenseNet.ContentRepository.Storage.Data
         }
         protected abstract string RefreshIndexingActivityLockTimeScript { get; }
 
-        public override async Task DeleteFinishedIndexingActivitiesAsync(CancellationToken cancellationToken)
+        public override async Task DeleteFinishedIndexingActivitiesAsync(int maxAgeInMinutes, CancellationToken cancellationToken)
         {
             using var op = SnTrace.Database.StartOperation("RelationalDataProviderBase: DeleteFinishedIndexingActivities()");
             using var ctx = CreateDataContext(cancellationToken);
-            await ctx.ExecuteNonQueryAsync(DeleteFinishedIndexingActivitiesScript).ConfigureAwait(false);
+            await ctx.ExecuteNonQueryAsync(DeleteFinishedIndexingActivitiesScript, cmd =>
+            {
+                cmd.Parameters.Add(ctx.CreateParameter("@Minutes", DbType.Int32, maxAgeInMinutes));
+            }).ConfigureAwait(false);
             op.Successful = true;
         }
         protected abstract string DeleteFinishedIndexingActivitiesScript { get; }
@@ -2392,7 +2454,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                 "GetTreeSize(path: {0}, includeChildren: {1})", path, includeChildren);
 
             using var ctx = CreateDataContext(cancellationToken);
-            var result = (long)await ctx.ExecuteScalarAsync(GetTreeSizeScript, cmd =>
+            var result = await ctx.ExecuteScalarAsync(GetTreeSizeScript, cmd =>
             {
                 cmd.Parameters.AddRange(new[]
                 {
@@ -2400,9 +2462,13 @@ namespace SenseNet.ContentRepository.Storage.Data
                     ctx.CreateParameter("@NodePath", DbType.String, PathMaxLength, path),
                 });
             }).ConfigureAwait(false);
-            op.Successful = true;
 
-            return result;
+
+            op.Successful = true;
+            if (result == DBNull.Value)
+                return 0L;
+
+            return (long)result;
         }
         protected abstract string GetTreeSizeScript { get; }
 

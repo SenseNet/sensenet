@@ -8,6 +8,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Logging;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Security;
+using SenseNet.ContentRepository.Security.ApiKeys;
 using SenseNet.Extensions.DependencyInjection;
 using SenseNet.Services.Core.Authentication;
 
@@ -48,6 +49,9 @@ namespace SnWebApplication.Api.InMem.TokenAuth
                             $"{authOptions.MetadataHost.AddUrlSchema().TrimEnd('/')}/.well-known/openid-configuration";
                 });
 
+            // [sensenet]: Set options for ApiKeys
+            services.Configure<ApiKeysOptions>(Configuration.GetSection("sensenet:ApiKeys"));
+
             // [sensenet]: add sensenet services
             services.AddSenseNet(Configuration, (repositoryBuilder, provider) =>
                 {
@@ -59,7 +63,15 @@ namespace SnWebApplication.Api.InMem.TokenAuth
                 .AddSenseNetInMemoryProviders()
                 .AddSenseNetOData()
                 .AddSenseNetWebHooks()
-                .AddSenseNetWopi();
+                .AddSenseNetWopi()
+                .AddSenseNetSemanticKernel(options =>
+                {
+                    Configuration.Bind("sensenet:ai:SemanticKernel", options);
+                })
+                .AddSenseNetAzureVision(options =>
+                {
+                    Configuration.Bind("sensenet:ai:AzureVision", options);
+                });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -87,6 +99,8 @@ namespace SnWebApplication.Api.InMem.TokenAuth
             // [sensenet] Add the sensenet binary handler
             app.UseSenseNetFiles();
 
+            // [sensenet]: Health middleware
+            app.UseSenseNetHealth();
             // [sensenet]: OData middleware
             app.UseSenseNetOdata();
             // [sensenet]: WOPI middleware

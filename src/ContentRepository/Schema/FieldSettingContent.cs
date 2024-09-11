@@ -153,15 +153,6 @@ namespace SenseNet.ContentRepository.Schema
         // ================================================================= Node methods
 
         /// <summary>
-        /// Saves the <see cref="Schema.FieldSetting"/> data to the Content List definition xml. This method
-        /// does not call the base Save implementation, no standalone field setting content is saved into the
-        /// Content Repository.
-        /// </summary>
-        public override void Save(SavingMode mode)
-        {
-            SaveAsync(mode, CancellationToken.None).GetAwaiter().GetResult();
-        }
-        /// <summary>
         /// Asynchronously saves the <see cref="Schema.FieldSetting"/> data to the Content List definition xml. This method
         /// does not call the base Save implementation, no standalone field setting content is saved into the
         /// Content Repository.
@@ -172,17 +163,15 @@ namespace SenseNet.ContentRepository.Schema
             return System.Threading.Tasks.Task.CompletedTask;
         }
 
-        /// <summary>
-        /// Deletes the <see cref="Schema.FieldSetting"/> data from the Content List definition xml. This method
-        /// does not call the base Delete implementation.
-        /// </summary>
-        public override void Delete()
+        public override System.Threading.Tasks.Task DeleteAsync(CancellationToken cancel)
         {
             // remove column from views
             var ivm = Providers.Instance.GetProvider<IViewManager>("ViewManager");
             ivm?.RemoveFieldFromViews(this.FieldSetting, this.ContentList);
 
             this.ContentList.DeleteField(this.FieldSetting);
+
+            return System.Threading.Tasks.Task.CompletedTask;
         }
 
         private void SaveFieldSetting()

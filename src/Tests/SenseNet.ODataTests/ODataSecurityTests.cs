@@ -356,7 +356,7 @@ namespace SenseNet.ODataTests
                 // ASSERT
                 var error = GetError(response);
                 var expectedMessage = "Ambiguous call: SetPermissions(r,inheritance) --> " +
-                                      "SetPermissions(string inheritance), SetPermissions(SetPermissionsRequest r)";
+                                      "SetPermissions(string inheritance) : Content, SetPermissions(SetPermissionsRequest r) : Content";
                 Assert.AreEqual(ODataExceptionCode.NotSpecified, error.Code);
                 Assert.AreEqual(expectedMessage, error.Message);
             }).ConfigureAwait(false);

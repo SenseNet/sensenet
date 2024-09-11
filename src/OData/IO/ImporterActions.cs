@@ -30,7 +30,6 @@ namespace SenseNet.OData.IO
         /// Imports a content to the content repository. This action is able to import both new and
         /// existing content items.
         /// </summary>
-        /// <snCategory>Content Management</snCategory>
         /// <remarks>
         /// An example request for importing a new content:
         /// <code>
@@ -64,7 +63,7 @@ namespace SenseNet.OData.IO
         /// <param name="data">Content metadata (name, type, fields).</param>
         /// <returns>A result object containing basic metadata of the created or modified content, the action that happened
         /// and the postponed references or permission settings.</returns>
-        [ODataFunction]
+        [ODataFunction(Category = "Content Management")]
         [ContentTypes(N.CT.PortalRoot)]
         [AllowedRoles(N.R.Administrators, N.R.PublicAdministrators, N.R.Developers)]
         public static async Task<object> Import(Content content, HttpContext context, string path, object data)
@@ -123,7 +122,7 @@ namespace SenseNet.OData.IO
 
                 var parentPath = RepositoryPath.GetParentPath(realPath);
                 var creationResult = await ODataMiddleware.CreateNewContentAsync(parentPath, type, null, requestedName,
-                    null, false, model, true, context.RequestAborted).ConfigureAwait(false);
+                    null, false, model, true, context.RequestAborted, true).ConfigureAwait(false);
 
                 targetContent = creationResult.Content;
                 brokenReferences = creationResult.BrokenReferenceFieldNames;

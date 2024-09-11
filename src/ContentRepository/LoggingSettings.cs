@@ -2,7 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using STT=System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.DependencyInjection;
+using STT =System.Threading.Tasks;
 using SenseNet.Communication.Messaging;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Schema;
@@ -25,11 +27,6 @@ namespace SenseNet.ContentRepository
 
         private const string TRACESETTINGS_UPDATED_KEY = "TraceUpdated";
 
-        [Obsolete("Use async version instead.", true)]
-        public override void Save(NodeSaveSettings settings)
-        {
-            SaveAsync(settings, CancellationToken.None).GetAwaiter().GetResult();
-        }
         public override async STT.Task SaveAsync(NodeSaveSettings settings, CancellationToken cancel)
         {
             await base.SaveAsync(settings, cancel).ConfigureAwait(false);
@@ -91,8 +88,7 @@ namespace SenseNet.ContentRepository
                     category.Enabled = value ?? _basicCategories[category.Name];
                 }
 
-                SnLog.WriteInformation("Trace settings were updated (from settings).", EventId.RepositoryRuntime,
-                    properties: SnTrace.Categories.ToDictionary(c => c.Name, c => (object)c.Enabled.ToString()));
+                WriteInformation("settings");
             }
 
             public static void ConfigureCategories()
@@ -100,8 +96,7 @@ namespace SenseNet.ContentRepository
                 foreach (var category in SnTrace.Categories)
                     category.Enabled = Tracing.StartupTraceCategories.Contains(category.Name);
 
-                SnLog.WriteInformation("Trace settings were updated (from configuration).", EventId.RepositoryRuntime,
-                    properties: SnTrace.Categories.ToDictionary(c => c.Name, c => (object)c.Enabled.ToString()));
+                WriteInformation("configuration");
 
                 UpdateBasicCategories();
             }
@@ -127,13 +122,26 @@ namespace SenseNet.ContentRepository
 
                 UpdateBasicCategories();
 
-                SnLog.WriteInformation("Trace settings were updated (from assembly).", EventId.RepositoryRuntime,
-                    properties: SnTrace.Categories.ToDictionary(c => c.Name, c => (object)c.Enabled.ToString()));
+                WriteInformation("assembly");
             }
 
             private static void UpdateBasicCategories()
             {
                 _basicCategories = SnTrace.Categories.ToDictionary(c => c.Name, c => c.Enabled);
+            }
+
+            private static void WriteInformation(string source)
+            {
+                var logger = Providers.Instance?.Services.GetService<ILogger<LoggingSettings>>();
+                logger?.LogInformation($"Trace settings were updated (from {source}). " +
+                                       $"Enabled: {CategoriesToString(true)}. " +
+                                       $"Disabled: {CategoriesToString(false)}");
+            }
+            private static string CategoriesToString(bool isEnabled)
+            {
+                return string.Join(", ", SnTrace.Categories
+                    .Where(x => x.Enabled == isEnabled)
+                    .Select(x => x.Name));
             }
         }
     }

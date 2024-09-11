@@ -7,6 +7,7 @@ using System.Net.Mail;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage;
@@ -357,7 +358,7 @@ namespace SenseNet.ContentRepository.Sharing
             {
                 // set sharing id on the group if it is not there yet
                 group[Constants.SharingIdsFieldName] = AddSharingIdToText((string)group[Constants.SharingIdsFieldName], id);
-                group.SaveSameVersion();
+                group.SaveSameVersionAsync(CancellationToken.None).GetAwaiter().GetResult();
             }
 
             return group.ContentHandler as Group;
@@ -631,9 +632,21 @@ namespace SenseNet.ContentRepository.Sharing
             // and add user id and set permissions for this user on the content.
 
             // Collect all content that has been shared with the email of this user.
-            var results = ContentQuery.QueryAsync(SharingQueries.PrivatelySharedWithNoIdentityByEmail,
-                    QuerySettings.AdminSettings, CancellationToken.None, user.Email)
-                .ConfigureAwait(false).GetAwaiter().GetResult();
+            if (!Providers.Instance.SearchManager.ContentQueryIsAllowed)
+            {
+                var logger = Providers.Instance.Services.GetService<ILogger<SharingHandler>>();
+                var message = $"Cannot query shared content for the email '{user.Email}' because the ContentQuery is not allowed.";
+                if (logger != null)
+                    logger.LogWarning(message);
+                else
+                    SnTrace.Query.Write("WARNING: " + message);
+                return;
+            }
+            var results = !Providers.Instance.SearchManager.ContentQueryIsAllowed
+                ? QueryResult.Empty
+                : ContentQuery.QueryAsync(SharingQueries.PrivatelySharedWithNoIdentityByEmail,
+                        QuerySettings.AdminSettings, CancellationToken.None, user.Email)
+                    .ConfigureAwait(false).GetAwaiter().GetResult();
 
             ProcessContentWithRetry(results.Nodes, gc =>
             {

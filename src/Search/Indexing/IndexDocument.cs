@@ -1,32 +1,16 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.IO;
 using System.Linq;
 using System.Runtime.Serialization;
-using System.Runtime.Serialization.Formatters.Binary;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using SenseNet.Diagnostics;
-using SenseNet.Search.Querying;
 
 namespace SenseNet.Search.Indexing
 {
-    /// <summary>
-    /// Represents an atomic data structure to updating a document in the index.
-    /// </summary>
-    public class DocumentUpdate
-    {
-        /// <summary>
-        /// A term that identifies the document in the index
-        /// </summary>
-        public SnTerm UpdateTerm;
-        /// <summary>
-        /// The new document that will overwrite the existing one.
-        /// </summary>
-        public IndexDocument Document;
-    }
-
     /// <summary>
     /// Represents a class for the index document that will be not included in the index.
     /// </summary>
@@ -370,29 +354,26 @@ namespace SenseNet.Search.Indexing
 
         /* =========================================================================================== */
 
-        private static readonly JsonSerializerSettings FormattedSerializerSettings = new JsonSerializerSettings
-        {
-            Converters = new List<JsonConverter> {new IndexFieldJsonConverter()},
-            NullValueHandling = NullValueHandling.Ignore,
-            DateTimeZoneHandling = DateTimeZoneHandling.Utc,
-            Formatting = Formatting.Indented
-        };
-        private static readonly JsonSerializerSettings OneLineSerializerSettings = new JsonSerializerSettings
-        {
-            Converters = new List<JsonConverter> { new IndexFieldJsonConverter() },
-            NullValueHandling = NullValueHandling.Ignore,
-            DateTimeZoneHandling = DateTimeZoneHandling.Utc,
-            Formatting = Formatting.None
-        };
-
         public static IndexDocument Deserialize(string serializedIndexDocument)
         {
             try
             {
-                var deserialized = JsonSerializer.Create(FormattedSerializerSettings).Deserialize(
+                var deserialized = JsonSerializer.Create(IndexField.FormattedSerializerSettings).Deserialize(
                     new JsonTextReader(new StringReader(serializedIndexDocument)));
+                var documentJArray = (JArray) deserialized;
+                return Deserialize(documentJArray);
+            }
+            catch (Exception e)
+            {
+                throw new SerializationException("Cannot deserialize the index document: " + e.Message, e);
+            }
+        }
+        internal static IndexDocument Deserialize(JArray documentJArray)
+        {
+            try
+            {
                 var result = new IndexDocument();
-                foreach (JObject field in (JArray)deserialized)
+                foreach (JObject field in documentJArray)
                 {
                     string name = null;
                     var type = IndexValueType.String;
@@ -437,7 +418,7 @@ namespace SenseNet.Search.Indexing
                             indexField = new IndexField(name, Convert.ToInt32(value), mode, store, termVector);
                             break;
                         case IndexValueType.IntArray:
-                            var stringArray = (string[]) value ?? Array.Empty<string>();
+                            var stringArray = (string[])value ?? Array.Empty<string>();
                             var intValues = stringArray.Select(x => Convert.ToInt32(x)).ToArray();
                             indexField = new IndexField(name, intValues, mode, store, termVector);
                             break;
@@ -477,16 +458,14 @@ namespace SenseNet.Search.Indexing
         {
             if (_serializedIndexDocument == null)
             {
-                using (var op = SnTrace.Index.StartOperation($"Serialize IndexDocument. VersionId: {VersionId}"))
+                using (var writer = new StringWriter())
                 {
-                    using (var writer = new StringWriter())
-                    {
-                        var settings = oneLine ? OneLineSerializerSettings : FormattedSerializerSettings;
-                        JsonSerializer.Create(settings).Serialize(writer, this);
-                        _serializedIndexDocument = writer.GetStringBuilder().ToString();
-                    }
-                    op.Successful = true;
+                    var settings = oneLine ? IndexField.OneLineSerializerSettings : IndexField.FormattedSerializerSettings;
+                    JsonSerializer.Create(settings).Serialize(writer, this);
+                    _serializedIndexDocument = writer.GetStringBuilder().ToString();
                 }
+                SnTrace.Index.Write($"Serialize IndexDocument. VersionId: {VersionId}, " +
+                                    $"size: {_serializedIndexDocument.Length}");
             }
             return _serializedIndexDocument;
         }

@@ -5,6 +5,7 @@ using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Tests.Core;
+using STT = System.Threading.Tasks;
 
 namespace SenseNet.ContentRepository.Tests
 {
@@ -39,7 +40,7 @@ namespace SenseNet.ContentRepository.Tests
                     AccessProvider.Current.SetCurrentUser(User.Visitor);
 
                     // action: try to trash the file as Visitor
-                    TrashBin.DeleteNode(file);
+                    TrashBin.DeleteNodeAsync(file, CancellationToken.None).GetAwaiter().GetResult();
                 }
                 catch (InvalidOperationException ex)
                 {
@@ -82,13 +83,32 @@ namespace SenseNet.ContentRepository.Tests
                     AccessProvider.Current.SetCurrentUser(User.Visitor);
 
                     // action: try to trash the file as Visitor - it should succeed
-                    TrashBin.DeleteNode(file);
+                    TrashBin.DeleteNodeAsync(file, CancellationToken.None).GetAwaiter().GetResult();
                 }
                 finally
                 {
                     AccessProvider.Current.SetCurrentUser(originalUser);
                 }
             });
+        }
+
+        [TestMethod]
+        public async STT.Task Delete_Trash_AdminDeletesWhenOwnerIsVisitor()
+        {
+            await Test(true, async () =>
+            {
+                var file = CreateTestFile();
+                // The Visitor cannot be owner of a content. Set OwnerId with a deeper API.
+                file.MakePrivateData();
+                file.Data.OwnerId = User.Visitor.Id;
+                await file.SaveAsync(CancellationToken.None);
+
+                using (new CurrentUserBlock(User.Administrator))
+                {
+                    // ACT
+                    await TrashBin.DeleteNodeAsync(file, CancellationToken.None);
+                }
+            }).ConfigureAwait(false);
         }
 
         #region Helper methods

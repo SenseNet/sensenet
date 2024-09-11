@@ -12,12 +12,6 @@ namespace SenseNet.ContentRepository
         public Book(Node parent, string nodeTypeName) : base(parent, nodeTypeName) { }
         protected Book(NodeToken nt) : base(nt) { }
 
-
-        [Obsolete("Use async version instead.", true)]
-        public override void Save(SavingMode mode)
-        {
-            SaveAsync(mode, CancellationToken.None).GetAwaiter().GetResult();
-        }
         public override async System.Threading.Tasks.Task SaveAsync(SavingMode mode, CancellationToken cancel)
         {
             this["Genre"] = ParentName;

@@ -96,6 +96,19 @@ namespace SenseNet.OData
         /// </summary>
         public bool IsMemberRequest { get; private set; }
         /// <summary>
+        /// Gets a value that is true if the current request is a controller request.
+        /// </summary>
+        public bool IsControllerRequest { get; set; }
+        /// <summary>
+        /// Gets the name of the requested controller if the request is a controller request.
+        /// </summary>
+        public string ControllerName { get; set; }
+        /// <summary>
+        /// Gets the name of the requested controller method if the request is a controller request.
+        /// </summary>
+        public string ControllerMethod { get; set; }
+
+        /// <summary>
         /// Gets true if the URI of the requested single resource refers to its member's value.
         /// (the URI of the requested resource ends with the "$value" segment).
         /// </summary>
@@ -371,7 +384,14 @@ namespace SenseNet.OData
                 }
                 else
                 {
-                    if (prmSegments.Count > 0)
+                    if (prmSegments.Count > 1)
+                    {
+                        req.IsControllerRequest = true;
+                        req.ControllerName = prmSegments[0];
+                        req.ControllerMethod = prmSegments[1];
+                        req.PropertyName = $"{prmSegments[0]}.{prmSegments[1]}" ;
+                    }
+                    else if (prmSegments.Count > 0)
                     {
                         req.IsMemberRequest = true;
                         req.PropertyName = prmSegments[0];
@@ -398,6 +418,7 @@ namespace SenseNet.OData
             }
             return req;
         }
+
         private void ParseQuery(string path, HttpContext httpContext)
         {
             var req = httpContext.Request.Query;

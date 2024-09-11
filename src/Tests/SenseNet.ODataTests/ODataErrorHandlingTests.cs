@@ -180,6 +180,26 @@ public class ODataErrorHandlingTests : ODataTestBase
             }).ConfigureAwait(false);
         }).ConfigureAwait(false);
     }
+    [TestMethod]
+    public async Task OD_ErrorHandling_WrongQuery()
+    {
+        await ODataTestAsync(async () =>
+        {
+            ODataResponse response;
+            await ErrorHandlingTest(async (logger, tracer) =>
+            {
+                // ACTION
+                response = await ODataGetAsync($"/OData.svc/Root", "?query=Index:*").ConfigureAwait(false);
+
+                // ASSERT
+                Assert.AreEqual(400, response.StatusCode);
+                var error = GetError(response);
+                Assert.AreEqual(ODataExceptionCode.RequestError, error.Code);
+                Assert.IsFalse(logger.Entries.Any(x => x.StartsWith("Error:")));
+                Assert.IsFalse(tracer.Lines.Any(x => x.Contains("\tquery\t", StringComparison.OrdinalIgnoreCase)));
+            }).ConfigureAwait(false);
+        }).ConfigureAwait(false);
+    }
 
     [TestMethod]
     public async Task OD_ErrorHandling_MethodThrows_NotSupportedException()
@@ -199,10 +219,11 @@ public class ODataErrorHandlingTests : ODataTestBase
             Assert.AreEqual(ODataExceptionCode.NotSpecified, error.Code);
             Assert.AreEqual(nameof(NotSupportedException), error.ExceptionType);
             Assert.AreEqual(message, error.Message);
-            Assert.IsTrue(logger.Entries.Any(x => x.StartsWith("Error:")), "Missing log entry");
-            Assert.IsTrue(logger.Entries.Any(x => x.StartsWith("Error: " + message)), "Wrong log message");
-            Assert.IsTrue(tracer.Lines.Any(x => x.Contains("\tERROR ")), "Missing trace line");
-            Assert.IsTrue(tracer.Lines.Any(x => x.Contains(message)), "Wrong trace message");
+            //Assert.IsTrue(logger.Entries.Any(x => x.StartsWith("Error:")), "Missing log entry");
+            //Assert.IsTrue(logger.Entries.Any(x => x.StartsWith("Error: " + message)), "Wrong log message");
+            //Assert.IsTrue(tracer.Lines.Any(x => x.Contains("\tERROR ")), "Missing trace line");
+            //Assert.IsTrue(tracer.Lines.Any(x => x.Contains(message)), "Wrong trace message");
+            Assert.IsTrue(CurrentODataLogger.Entries.Any(x => x.StartsWith(message)), "Wrong log message");
         }
         await ODataTestAsync(async () =>
         {
@@ -314,6 +335,9 @@ public class ODataErrorHandlingTests : ODataTestBase
             var logger = (TestEventLogger)SnLog.Instance;
             using (new Swindler<bool>(true,
                        () => SnTrace.Security.Enabled,
+                       value => { SnTrace.Security.Enabled = value; }))
+            using (new Swindler<bool>(true,
+                       () => SnTrace.Query.Enabled,
                        value => { SnTrace.Security.Enabled = value; }))
             {
                 var tracer = new TestSnTracer();

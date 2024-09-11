@@ -1,4 +1,5 @@
-﻿using System.Threading;
+﻿using System;
+using System.Threading;
 using Microsoft.Extensions.Logging;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.i18n;
@@ -19,12 +20,11 @@ namespace SenseNet.WebHooks
         public override string ComponentId { get; } = "SenseNet.WebHooks";
 
         private const string WebHooksPath = "/Root/System/WebHooks";
-
         public override void AddPatches(PatchBuilder builder)
         {
             builder
-                .Install("0.0.5", "2023-11-08", "sensenet WebHooks")
-                .DependsOn("SenseNet.Services", "7.7.22")
+                .Install("0.0.6", "2024-05-29", "sensenet WebHooks")
+                .DependsOn("SenseNet.Services", "7.7.40")
                 .Action(context =>
                 {
                     #region String resource
@@ -134,6 +134,28 @@ namespace SenseNet.WebHooks
                         .VisibleEdit(FieldVisibility.Hide);
 
                     cb.Apply();
+
+                    #endregion
+                });
+
+            builder.Patch("0.0.5", "0.0.6", "2023-11-08", "Upgrades the WebHook component")
+                .DependsOn("SenseNet.Services", "7.7.40")
+                .Action(context =>
+                {
+                    var logger = context.GetService<ILogger<WebHookComponent>>();
+
+                    #region CTD changes
+
+                    try
+                    {
+                        var cb = new ContentTypeBuilder(context.GetService<ILogger<ContentTypeBuilder>>());
+                        cb.ChangeFieldType("Description", "LongText");
+                        cb.Apply();
+                    }
+                    catch (Exception ex)
+                    {
+                        logger.LogWarning(ex, "Error during CTD changes.");
+                    }
 
                     #endregion
                 });

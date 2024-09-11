@@ -9,9 +9,9 @@ namespace SenseNet.Extensions.DependencyInjection
     public static class MiddlewareExtensions
     {
         /// <summary>
-        /// Registers a sensenet middleware in the pipeline
-        /// if the request contains the provided prefix.
+        /// Registers a sensenet middleware in the pipeline if the provided predicate matches.
         /// </summary>
+        /// <typeparam name="T">Type of the registered middleware</typeparam>
         /// <param name="builder">IApplicationBuilder instance.</param>
         /// <param name="predicate">If this predicate returns true, the provided middleware will be added to the pipeline.</param>
         /// <param name="buildAppBranchBefore">Optional builder method. Use this when you want to add
@@ -25,6 +25,7 @@ namespace SenseNet.Extensions.DependencyInjection
             Action<IApplicationBuilder> buildAppBranchBefore = null,
             Action<IApplicationBuilder> buildAppBranchAfter = null,
             bool terminateAppBranch = false)
+            where T : class
         {
             // add the middleware only if the request contains the appropriate prefix
             builder.MapWhen(predicate, appBranch =>
@@ -47,9 +48,9 @@ namespace SenseNet.Extensions.DependencyInjection
         }
 
         /// <summary>
-        /// Registers a sensenet middleware in the pipeline
-        /// if the request contains the provided prefix.
+        /// Registers a sensenet middleware in the pipeline if the request contains the provided prefix.
         /// </summary>
+        /// <typeparam name="T">Type of the registered middleware</typeparam>
         /// <param name="builder">IApplicationBuilder instance.</param>
         /// <param name="pathSegmentStart">The url segment to match for (e.g. /myprefix).</param>
         /// <param name="buildAppBranchBefore">Optional builder method. Use this when you want to add

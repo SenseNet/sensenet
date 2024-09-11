@@ -92,7 +92,7 @@ namespace SenseNet.ContentRepository.Tests
                 var head = DataStore.LoadNodeHeadAsync(contentId, CancellationToken.None).GetAwaiter().GetResult();
 
                 //-- Thread #1
-                file.ForceDelete();
+                file.ForceDeleteAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 //-- Thread #2
                 var node = LoadNode(head, VersionNumber.LastAccessible);
@@ -168,8 +168,8 @@ namespace SenseNet.ContentRepository.Tests
 
                 //-- Thread #1
                 gcontents[1].CheckInAsync(CancellationToken.None).GetAwaiter().GetResult();
-                gcontents[3].ForceDelete();
-                gcontents[2].ForceDelete();
+                gcontents[3].ForceDeleteAsync(CancellationToken.None).GetAwaiter().GetResult();
+                gcontents[2].ForceDeleteAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 //-- Thread #2
                 var nodes = LoadNodes(heads, VersionNumber.LastAccessible);

@@ -10,6 +10,7 @@ using SenseNet.ContentRepository.Storage.Search;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Search;
 using SenseNet.Search.Indexing;
+using System.Xml;
 
 namespace SenseNet.ContentRepository.Fields
 {
@@ -37,9 +38,10 @@ namespace SenseNet.ContentRepository.Fields
             }
         }
 
-        protected override void ParseConfiguration(System.Xml.XPath.XPathNavigator configurationElement, System.Xml.IXmlNamespaceResolver xmlNamespaceResolver, Schema.ContentType contentType)
+        protected override void ParseConfiguration(XPathNavigator configurationElement, IXmlNamespaceResolver xmlNamespaceResolver,
+            ContentType contentType, List<string> parsedElementNames)
         {
-            base.ParseConfiguration(configurationElement, xmlNamespaceResolver, contentType);
+            base.ParseConfiguration(configurationElement, xmlNamespaceResolver, contentType, parsedElementNames);
 
             foreach (XPathNavigator node in configurationElement.SelectChildren(XPathNodeType.Element))
             {
@@ -49,6 +51,7 @@ namespace SenseNet.ContentRepository.Fields
                         int visiblePermissionCount;
                         if (Int32.TryParse(node.InnerXml, out visiblePermissionCount))
                             _visiblePermissionCount = visiblePermissionCount;
+                        parsedElementNames.Add(VisiblePermissionCountName);
                         break;
                 }
             }

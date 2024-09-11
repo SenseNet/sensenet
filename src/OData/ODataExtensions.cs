@@ -2,25 +2,83 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using SenseNet.ApplicationModel;
-using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.OData;
 using SenseNet.OData.Metadata;
-using SenseNet.Tools;
+using SenseNet.OData.Operations;
 
 // ReSharper disable once CheckNamespace
 namespace SenseNet.Extensions.DependencyInjection
 {
+    /// <summary>
+    /// Represents an OData controller in the DI container.
+    /// </summary>
+    public class ODataControllerRegistration
+    {
+        /// <summary>
+        /// Gets the name of the controller.
+        /// </summary>
+        public string Name { get; set; }
+        /// <summary>
+        /// Gets the type of the controller.
+        /// </summary>
+        public Type Type { get; set; }
+    }
+
     public static class ODataExtensions
     {
+        /// <summary>
+        /// Adds the required services for the sensenet OData layer.
+        /// </summary>
         public static IServiceCollection AddSenseNetOData(this IServiceCollection services)
         {
             return services
                 .AddSingleton<OperationInspector>()
                 .AddSingleton<IOperationMethodStorage, OperationMethodStorage>()
                 .AddSingleton<IClientMetadataProvider, ClientMetadataProvider>()
+                .AddSingleton<IODataControllerFactory, ODataControllerFactory>()
+                .AddSenseNetODataController<HelpController>("Help")
                 ;
+        }
+
+        /// <summary>
+        /// Registers a custom OData controller in the service collection.
+        /// </summary>
+        /// <example>
+        /// If the <c>MyProject.CarsController</c> is registered with name "Cars", the name will be the route name:
+        /// <code><![CDATA[services.AddSenseNetODataController<MyProject.CarsController>("Cars");]]></code>
+        /// The controller's <c>Rent(int days)</c> method can be called like this:
+        /// <code><![CDATA[https://example.com/OData.svc/Root/Content/('MyAutomobile-1')/Cars/Rent?days=2
+        /// or
+        /// https://example.com/OData.svc/Root/Content/('MyAutomobile-1')/Cars.Rent?days=2]]>
+        /// </code>
+        /// If the same controller is registered without name, the class name will be the route name:
+        /// <code><![CDATA[services.AddSenseNetODataController<MyProject.CarsController>();]]></code>
+        /// And the calling:
+        /// <code><![CDATA[https://example.com/OData.svc/Root/Content/('MyAutomobile-1')/CarsController/Rent?days=2
+        /// or
+        /// https://example.com/OData.svc/Root/Content/('MyAutomobile-1')/CarsController.Rent?days=2]]>
+        /// </code>
+        /// </example>
+        /// <typeparam name="TImpl">Type of controller that derived from the abstract <see cref="ODataController"/>.</typeparam>
+        /// <param name="services"></param>
+        /// <param name="name">Route name of the controller. Default: Name of the implementation class without namespace.</param>
+        /// <returns></returns>
+        public static IServiceCollection AddSenseNetODataController<TImpl>(this IServiceCollection services, string name = null)
+            where TImpl : ODataController
+        {
+            if (name != null && name.Length == 0)
+                name = null;
+
+            services.AddTransient<TImpl>();
+            services.AddSingleton(new ODataControllerRegistration
+            {
+                Name = name?.Trim() ?? typeof(TImpl).Name,
+                Type = typeof(TImpl)
+            });
+
+            return services;
         }
 
         /// <summary>
@@ -71,7 +129,7 @@ namespace SenseNet.Extensions.DependencyInjection
             return builder;
         }
         /// <summary>
-        /// Adds an inline Func&lt;IUser, OperationCallingContext, bool&gt; as an OperationMethod execution policy.
+        /// Adds an inline <c>Func&lt;IUser, OperationCallingContext, bool&gt;</c> as an OperationMethod execution policy.
         /// </summary>
         /// <param name="builder">The <see cref="IApplicationBuilder"/> instance.</param>
         /// <param name="name">Name of the policy.</param>

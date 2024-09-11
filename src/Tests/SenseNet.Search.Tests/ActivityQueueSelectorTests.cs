@@ -124,11 +124,13 @@ namespace SenseNet.Search.Tests
 
         private class QueryEngineForActivityQueueSelectorTests : IQueryEngine
         {
+            [Obsolete("Use async version instead", true)]
             public QueryResult<int> ExecuteQuery(SnQuery query, IPermissionFilter filter, IQueryContext context)
             {
-                return QueryResult<int>.Empty;
+                return ExecuteQueryAsync(query, filter, context, CancellationToken.None).GetAwaiter().GetResult();
             }
 
+            [Obsolete("Use async version instead", true)]
             public QueryResult<string> ExecuteQueryAndProject(SnQuery query, IPermissionFilter filter, IQueryContext context)
             {
                 throw new NotImplementedException();
@@ -136,13 +138,13 @@ namespace SenseNet.Search.Tests
 
             public Task<QueryResult<int>> ExecuteQueryAsync(SnQuery query, IPermissionFilter filter, IQueryContext context, CancellationToken cancel)
             {
-                return Task.FromResult(ExecuteQuery(query, filter, context));
+                return Task.FromResult(QueryResult<int>.Empty);
             }
 
             public Task<QueryResult<string>> ExecuteQueryAndProjectAsync(SnQuery query, IPermissionFilter filter, IQueryContext context,
                 CancellationToken cancel)
             {
-                return Task.FromResult(ExecuteQueryAndProject(query, filter, context));
+                throw new NotImplementedException();
             }
         }
 
@@ -165,6 +167,16 @@ namespace SenseNet.Search.Tests
 
             public void SetIndexingInfo(IDictionary<string, IPerFieldIndexingInfo> indexingInfo)
             {
+            }
+
+            public object GetConfigurationForHealthDashboard()
+            {
+                throw new NotImplementedException();
+            }
+
+            public Task<object> GetHealthAsync(CancellationToken cancel)
+            {
+                throw new NotImplementedException();
             }
 
             public string GetIndexingLog()

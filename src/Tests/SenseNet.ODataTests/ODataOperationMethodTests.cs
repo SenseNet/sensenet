@@ -9,6 +9,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Primitives;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
@@ -2679,7 +2681,7 @@ namespace SenseNet.ODataTests
                     user1.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                     var publicAdmins = Node.Load<Group>("/Root/IMS/Public/Administrators");
                     publicAdmins.AddMember(user1);
-                    new SecurityHandler().CreateAclEditor()
+                    new SecurityHandler(Providers.Instance.Services.GetService<ILogger<SecurityHandler>>()).CreateAclEditor()
                         .Allow(Repository.ImsFolder.Id, publicAdmins.Id, false, PermissionType.BuiltInPermissionTypes)
                         .ApplyAsync(CancellationToken.None).GetAwaiter().GetResult();
 
@@ -2977,13 +2979,13 @@ namespace SenseNet.ODataTests
                 
                 // workaround for trash disabled default value (true for Folders)
                 parent["TrashDisabled"] = false;
-                parent.SaveSameVersion();
+                parent.SaveSameVersionAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 var file = new File(parent.ContentHandler) { Name = Guid.NewGuid() + ".docx" };
                 file.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 // delete to the Trash
-                file.Delete();
+                file.DeleteAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 // reload to get the new trashbag parent
                 file = Node.Load<File>(file.Id);
@@ -3005,11 +3007,11 @@ namespace SenseNet.ODataTests
 
         private OperationInfo AddMethod(MethodInfo method)
         {
-            return OperationCenter.AddMethod(method);
+            return OperationCenter.AddMethod(method, null);
         }
         private OperationInfo AddMethod(TestMethodInfo method, Attribute[] attributes = null)
         {
-            return OperationCenter.AddMethod(method, attributes ?? _defaultAttributes);
+            return OperationCenter.AddMethod(method, attributes ?? _defaultAttributes, null);
         }
 
         #region Nested classes
@@ -3018,7 +3020,8 @@ namespace SenseNet.ODataTests
         {
             public CleanOperationCenterBlock()
             {
-                var _ = new ODataMiddleware(null, null, null); // Ensure running the first-touch discover
+                var _ = new ODataMiddleware(null, null, null, 
+                    NullLogger<ODataMiddleware>.Instance); // Ensure running the first-touch discover
                 OperationCenter.Operations.Clear();
             }
             public void Dispose()

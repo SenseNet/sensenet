@@ -129,13 +129,13 @@ namespace SenseNet.ContentRepository.Tests
                 _stringResults = stringResults;
             }
 
+            [Obsolete("Use async version instead", true)]
             public QueryResult<int> ExecuteQuery(SnQuery query, IPermissionFilter filter, IQueryContext context)
             {
-                if (_intResults.TryGetValue(query.Querytext, out var result))
-                    return result;
-                return QueryResult<int>.Empty;
+                return ExecuteQueryAsync(query, filter, context, CancellationToken.None).GetAwaiter().GetResult();
             }
 
+            [Obsolete("Use async version instead", true)]
             public QueryResult<string> ExecuteQueryAndProject(SnQuery query, IPermissionFilter filter, IQueryContext context)
             {
                 return _stringResults[query.Querytext];
@@ -143,13 +143,15 @@ namespace SenseNet.ContentRepository.Tests
 
             public Task<QueryResult<int>> ExecuteQueryAsync(SnQuery query, IPermissionFilter filter, IQueryContext context, CancellationToken cancel)
             {
-                return System.Threading.Tasks.Task.FromResult(ExecuteQuery(query, filter, context));
+                if (_intResults.TryGetValue(query.Querytext, out var result))
+                    return System.Threading.Tasks.Task.FromResult(result);
+                return System.Threading.Tasks.Task.FromResult(QueryResult<int>.Empty);
             }
 
             public Task<QueryResult<string>> ExecuteQueryAndProjectAsync(SnQuery query, IPermissionFilter filter, IQueryContext context,
                 CancellationToken cancel)
             {
-                return System.Threading.Tasks.Task.FromResult(ExecuteQueryAndProject(query, filter, context));
+                return System.Threading.Tasks.Task.FromResult(_stringResults[query.Querytext]);
             }
 
         }

@@ -8,11 +8,13 @@ using Microsoft.Extensions.Options;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Configuration;
+using SenseNet.ContentRepository.Security.Clients;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.Diagnostics;
 using SenseNet.Tools;
 using SenseNet.Packaging;
 using SenseNet.Search;
+using SenseNet.Storage.Diagnostics;
 
 namespace SenseNet.ContentRepository
 {
@@ -58,16 +60,21 @@ namespace SenseNet.ContentRepository
         }
         public static RepositoryInstance Start(RepositoryBuilder builder)
         {
+            var repositoryStatus = Providers.Instance.RepositoryStatus;
             var connectionStrings = builder.Services?.GetRequiredService<IOptions<ConnectionStringOptions>>();
 
+            repositoryStatus?.SetStatus("Starting BlobProviders");
             Providers.Instance.InitializeBlobProviders(connectionStrings?.Value ?? new ConnectionStringOptions());
 
             EnsureDatabase(builder);
             
             var initialData = builder.InitialData;
             if (initialData != null)
+            {
+                repositoryStatus?.SetStatus("Installing initial data");
                 Providers.Instance.DataStore.InstallInitialDataAsync(initialData, CancellationToken.None)
                     .GetAwaiter().GetResult();
+            }
 
             RepositoryInstance repositoryInstance = null;
             var exclusiveLockOptions = builder.Services?.GetService<IOptions<ExclusiveLockOptions>>()?.Value;
@@ -77,8 +84,10 @@ namespace SenseNet.ContentRepository
             {
                 var logger = Providers.Instance.GetProvider<ILogger<SnILogger>>();
                 var patchManager = new PatchManager(builder, logRecord => { logRecord.WriteTo(logger); });
+                repositoryStatus?.SetStatus("Executing patches before start");
                 patchManager.ExecutePatchesOnBeforeStart();
 
+                repositoryStatus?.SetStatus("Calling Repository.Start");
                 repositoryInstance = Start((RepositoryStartSettings)builder);
 
                 var permissions = initialData?.Permissions;
@@ -105,11 +114,26 @@ namespace SenseNet.ContentRepository
                     }
                 }
 
+                repositoryStatus?.SetStatus("Executing patches after start");
                 patchManager.ExecutePatchesOnAfterStart();
                 RepositoryVersionInfo.Reset();
 
                 return System.Threading.Tasks.Task.CompletedTask;
             }).GetAwaiter().GetResult();
+
+            // generate default clients and secrets
+            repositoryStatus?.SetStatus("Checking default items in ClientStore");
+            var clientStore = builder.Services?.GetService<ClientStore>();
+            var clientOptions = builder.Services?.GetService<IOptions<ClientStoreOptions>>()?.Value;
+            var logger = builder.Services?.GetService<ILogger<RepositoryInstance>>();
+
+            logger?.LogInformation("Ensuring default clients and secrets...");
+
+            clientStore?.EnsureClientsAsync(clientOptions?.Authority, clientOptions?.RepositoryUrl?.RemoveUrlSchema())
+                .GetAwaiter().GetResult();
+
+            if(repositoryStatus != null)
+                repositoryStatus.IsRunning = true;
 
             return repositoryInstance;
         }
@@ -145,6 +169,8 @@ namespace SenseNet.ContentRepository
             if (dbExists) 
                 return;
 
+            Providers.Instance.RepositoryStatus?.SetStatus("Database is not ready");
+
             var logger = builder.Services.GetService<ILogger<RepositoryInstance>>();
             var packageDescriptor = builder.Services.GetService<IInstallPackageDescriptor>();
             if (packageDescriptor == null)
@@ -157,6 +183,8 @@ namespace SenseNet.ContentRepository
 
         private static void EnsureIndex(RepositoryBuilder builder)
         {
+            Providers.Instance.RepositoryStatus?.SetStatus("Checking index existence");
+
             var logger = builder.Services?.GetService<ILogger<RepositoryInstance>>();
             logger?.LogInformation("Checking the index...");
 
@@ -169,6 +197,7 @@ namespace SenseNet.ContentRepository
 
             // This scenario auto-generates the whole index from the database. The most common case is
             // when a new web app domain (usually a container) is started in a load balanced environment.
+            Providers.Instance.RepositoryStatus?.SetStatus("Executing ClearAndPopulateAll");
 
             var populator = Providers.Instance.SearchManager.GetIndexPopulator();
             var indexCount = 0;
@@ -246,9 +275,6 @@ namespace SenseNet.ContentRepository
         [Obsolete("After V6.5 PATCH 9: Use RepositoryStructure.SkinGlobalFolderPath instead.")]
         public static string SkinGlobalFolderPath => RepositoryStructure.SkinGlobalFolderPath;
 
-        [Obsolete("After V6.5 PATCH 9: Use Skin.DefaultSkinName instead.", true)]
-        public static string DefaultSkinName => "sensenet";
-
         public static string WorkflowDefinitionPath { get; internal set; } = "/Root/System/Workflows/";
         public static string UserProfilePath { get; internal set; } = "/Root/Profiles";
         public static string LocalGroupsFolderName { get; internal set; } = "Groups";
@@ -300,12 +326,6 @@ namespace SenseNet.ContentRepository
         public static bool SkipImportingMissingReferences => RepositoryEnvironment.SkipImportingMissingReferences;
         [Obsolete("After V6.5 PATCH 9: Use RepositoryEnvironment.SkipReferenceNames instead.")]
         public static string[] SkipReferenceNames => RepositoryEnvironment.SkipReferenceNames;
-        [Obsolete("After V6.5 PATCH 9: Use WebApplication.EditSourceExtensions instead.", true)]
-        public static string[] EditSourceExtensions => new string[0];
-        [Obsolete("After V6.5 PATCH 9: Use Webdav.WebdavEditExtensions instead.", true)]
-        public static string[] WebdavEditExtensions => new string[0];
-        [Obsolete("After V6.5 PATCH 9: Use WebApplication.DownloadExtensions instead.", true)]
-        public static string[] DownloadExtensions => new string[0];
 
         [Obsolete("After V6.5 PATCH 9: Use Notification.DefaultEmailSender instead.")]
         public static string EmailSenderAddress => Notification.DefaultEmailSender;

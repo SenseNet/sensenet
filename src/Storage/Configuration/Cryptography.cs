@@ -12,9 +12,15 @@ namespace SenseNet.Configuration
         public static string CertificateThumbprint { get; internal set; } = GetString(SectionName, "CertificateThumbprint", string.Empty);
     }
 
+    /// <summary>
+    /// Options for configuring the cryptography service.
+    /// </summary>
     [OptionsClass(sectionName: "sensenet:cryptography")]
     public class CryptographyOptions
     {
+        /// <summary>
+        /// The thumbprint of the certificate used for encrypting values.
+        /// </summary>
         public string CertificateThumbprint { get; set; }
     }
 }

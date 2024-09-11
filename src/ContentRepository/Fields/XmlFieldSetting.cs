@@ -34,7 +34,8 @@ namespace SenseNet.ContentRepository.Fields
             }
         }
 
-        protected override void ParseConfiguration(XPathNavigator configurationElement, IXmlNamespaceResolver xmlNamespaceResolver, ContentType contentType)
+        protected override void ParseConfiguration(XPathNavigator configurationElement, IXmlNamespaceResolver xmlNamespaceResolver,
+            ContentType contentType, List<string> parsedElementNames)
         {
             // <ExpectedXmlNamespace>htp://example.com/namespace</ExpectedXmlNamespace>
             foreach (XPathNavigator element in configurationElement.SelectChildren(XPathNodeType.Element))
@@ -42,6 +43,7 @@ namespace SenseNet.ContentRepository.Fields
                 if (element.LocalName != ExpectedXmlNamespaceName)
                     continue;
                 _expectedXmlNamespace = element.InnerXml;
+                parsedElementNames.Add(ExpectedXmlNamespaceName);
                 return;
             }
         }

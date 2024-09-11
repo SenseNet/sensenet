@@ -41,16 +41,10 @@ namespace SenseNet.ContentRepository.Fields
 		}
 		private object ConvertFromControlInner(object value)
 		{
-			List<string> listValue = value as List<string>;
-			string stringValue = listValue[0];
-			int intValue;
-			if (Int32.TryParse(stringValue, out intValue))
-				return (ApprovingType)intValue;
-			return (ApprovingType)Enum.Parse(typeof(ApprovingType), stringValue);
-
+            return ConvertFromInputToEnumValue<ApprovingType, ApprovingModeField>(value);
 		}
 
-		protected override void ImportData(System.Xml.XmlNode fieldNode, ImportContext context)
+        protected override void ImportData(System.Xml.XmlNode fieldNode, ImportContext context)
 		{
 			this.SetData(new List<string>(new string[] { fieldNode.InnerXml }));
 		}

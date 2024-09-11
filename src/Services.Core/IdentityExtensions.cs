@@ -79,7 +79,7 @@ namespace SenseNet.Extensions.DependencyInjection
             app.Use(async (context, next) =>
             {
                 var identity = context?.User?.Identity;
-                User user = null;
+                IUser user = null;
 
                 // At this point the user is already authenticated, which means
                 // we can trust the information in the identity: we load the
@@ -131,7 +131,7 @@ namespace SenseNet.Extensions.DependencyInjection
 
                         user = await SystemAccount.ExecuteAsync(async () =>
                                 await akm.GetUserByApiKeyAsync(apiKey, context.RequestAborted).ConfigureAwait(false))
-                            .ConfigureAwait(false) as User;
+                            .ConfigureAwait(false);
                     }
                 }
 

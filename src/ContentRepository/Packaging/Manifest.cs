@@ -252,11 +252,7 @@ namespace SenseNet.Packaging
 
             if (SystemInstall && editConnectionString)
             {
-                //UNDONE:CNSTR: Get ConnectionStringOptions from ServiceProvider or another general location.
-                var connectionStrings = new ConnectionStringOptions();
-                throw new SnNotSupportedException();
-                EditConnectionString(connectionStrings, this.Parameters, packageParameters);
-                RepositoryVersionInfo.Reset();
+                throw new SnNotSupportedException("Editing ConnectionString is not supported.");
             }
 
             var versionInfo = RepositoryVersionInfo.Instance;
@@ -381,10 +377,10 @@ namespace SenseNet.Packaging
                     PackagingExceptionType.DependencyNotFound);
 
             var current = existingComponent.Version;
-            var min = dependency.MinVersion;
-            var max = dependency.MaxVersion;
-            var minEx = dependency.MinVersionIsExclusive;
-            var maxEx = dependency.MaxVersionIsExclusive;
+            var min = dependency.Boundary.MinVersion;
+            var max = dependency.Boundary.MaxVersion;
+            var minEx = dependency.Boundary.MinVersionIsExclusive;
+            var maxEx = dependency.Boundary.MaxVersionIsExclusive;
 
             if (log)
             {

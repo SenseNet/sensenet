@@ -49,34 +49,18 @@ namespace SenseNet.ApplicationModel
             return false;
         }
 
-        [Obsolete("Use async version instead.", true)]
-        public override void Save(NodeSaveSettings settings)
-        {
-            SaveAsync(settings, CancellationToken.None).GetAwaiter().GetResult();
-        }
         public override async Task SaveAsync(NodeSaveSettings settings, CancellationToken cancel)
         {
             await base.SaveAsync(settings, cancel).ConfigureAwait(false);
             DeviceManager.Reset();
         }
 
-        [Obsolete("Use async version instead", false)]
-        public override void Delete(bool bypassTrash)
-        {
-            base.Delete(bypassTrash);
-            DeviceManager.Reset();
-        }
         public override async Task DeleteAsync(bool bypassTrash, CancellationToken cancel)
         {
             await base.DeleteAsync(bypassTrash, cancel);
             DeviceManager.Reset();
         }
 
-        [Obsolete("Use async version instead", false)]
-        public override void ForceDelete()
-        {
-            ForceDeleteAsync(CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
-        }
         public override async Task ForceDeleteAsync(CancellationToken cancel)
         {
             await base.ForceDeleteAsync(cancel);

@@ -182,7 +182,7 @@ namespace SenseNet.WebHooks.Tests
             await Test_Versioning(VersioningType.None, ApprovingType.False,
                 file =>
                 {
-                    file.ForceDelete();
+                    file.ForceDeleteAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                     return Task.CompletedTask;
                 },
@@ -196,14 +196,14 @@ namespace SenseNet.WebHooks.Tests
                 file =>
                 {
                     // Initial version: 1.0.A
-                    file.CheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();    // --> 2.0.L    --> no event on checkout
+                    file.CheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();    // --> 2.0.L    --> Modify,CheckOut
                     file.CheckInAsync(CancellationToken.None).GetAwaiter().GetResult();     // --> 1.0.A    --> Modify,Approve
 
                     file.Index = 41;
                     file.SaveAsync(SavingMode.KeepVersion, CancellationToken.None)
                         .GetAwaiter().GetResult();  // --> Modify
 
-                    file.CheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();    // --> 2.0.L    --> no event on checkout
+                    file.CheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();    // --> 2.0.L    --> Modify,CheckOut
 
                     file.Index = 42;
                     file.SaveAsync(SavingMode.KeepVersion, CancellationToken.None)
@@ -213,7 +213,7 @@ namespace SenseNet.WebHooks.Tests
 
                     return Task.CompletedTask;
                 },
-                "Modify,Approve,Modify,Modify,Approve");
+                "Modify,CheckOut,Modify,Modify,Modify,CheckOut,Modify");
         }
         [TestMethod]
         public async Task WebHookSubscription_Versioning_None_Approving_True()
@@ -222,7 +222,7 @@ namespace SenseNet.WebHooks.Tests
                 file =>
                 {
                     // Initial version: 1.0.P
-                    file.CheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();    // --> 2.0.L    --> no event on checkout
+                    file.CheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();    // --> 2.0.L    --> Modify,CheckOut
                     file.CheckInAsync(CancellationToken.None).GetAwaiter().GetResult();     // --> 1.0.P    --> Modify,Pending
 
                     file.Index = 41;
@@ -230,13 +230,13 @@ namespace SenseNet.WebHooks.Tests
 
                     file.ApproveAsync(CancellationToken.None).GetAwaiter().GetResult();     // --> 1.0.A    --> Modify,Approve
 
-                    file.CheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();    // --> 2.0.L    --> no event on checkout
+                    file.CheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();    // --> 2.0.L    --> Modify,CheckOut
                     file.CheckInAsync(CancellationToken.None).GetAwaiter().GetResult();     // --> 2.0.P    --> Modify,Pending
                     file.RejectAsync(CancellationToken.None).GetAwaiter().GetResult();      // --> 2.0.R    --> Modify,Reject
 
                     return Task.CompletedTask;
                 },
-                "Modify,Pending,Modify,Modify,Approve,Modify,Pending,Modify,Reject");
+                "Modify,CheckOut,Modify,Modify,Modify,Approve,Modify,CheckOut,Modify,Pending,Modify,Reject");
         }
         [TestMethod]
         public async Task WebHookSubscription_Versioning_Major_Approving_False()
@@ -245,13 +245,13 @@ namespace SenseNet.WebHooks.Tests
                 file =>
                 {
                     // Initial version: 1.0.A
-                    file.CheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();    // --> 2.0.L    --> no event on checkout
+                    file.CheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();    // --> 2.0.L    --> Modify,CheckOut
                     file.CheckInAsync(CancellationToken.None).GetAwaiter().GetResult();     // --> 2.0.A    --> Modify,Approve
 
                     file.Index = 41;
                     file.SaveAsync(SavingMode.KeepVersion, CancellationToken.None).GetAwaiter().GetResult();  // --> 2.0.A    --> Modify
 
-                    file.CheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();    // --> 3.0.L    --> no event on checkout
+                    file.CheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();    // --> 3.0.L    --> Modify,CheckOut
 
                     file.Index = 42;
                     file.SaveAsync(SavingMode.KeepVersion, CancellationToken.None).GetAwaiter().GetResult();  // no event on modification when locked 
@@ -262,7 +262,7 @@ namespace SenseNet.WebHooks.Tests
 
                     return Task.CompletedTask;
                 },
-                "Modify,Approve,Modify,Modify,Approve,Modify,Approve");
+                "Modify,CheckOut,Modify,Approve,Modify,Modify,CheckOut,Modify,Approve,Modify,Approve");
         }
         [TestMethod]
         public async Task WebHookSubscription_Versioning_Major_Approving_True()
@@ -271,7 +271,7 @@ namespace SenseNet.WebHooks.Tests
                 file =>
                 {
                     // Initial version: 1.0.P
-                    file.CheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();    // --> 2.0.L    --> no event on checkout
+                    file.CheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();    // --> 2.0.L    --> Modify,CheckOut
                     file.CheckInAsync(CancellationToken.None).GetAwaiter().GetResult();     // --> 2.0.P    --> Modify,Pending
 
                     file.Index = 42;
@@ -279,14 +279,14 @@ namespace SenseNet.WebHooks.Tests
 
                     file.ApproveAsync(CancellationToken.None).GetAwaiter().GetResult();     // --> 1.0.A    --> Modify,Approve
 
-                    file.CheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();    // --> 2.0.L    --> no event on checkout
+                    file.CheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();    // --> 2.0.L    --> Modify,CheckOut
                     file.CheckInAsync(CancellationToken.None).GetAwaiter().GetResult();     // --> 2.0.P    --> Modify,Pending
                     file.RejectAsync(CancellationToken.None).GetAwaiter().GetResult();      // --> 2.0.R    --> Modify,Reject
                     file.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();        // --> 3.0.P    --> Modify,Pending
 
                     return Task.CompletedTask;
                 },
-                "Modify,Pending,Modify,Modify,Approve,Modify,Pending,Modify,Reject,Modify,Pending");
+                "Modify,CheckOut,Modify,Modify,Modify,Approve,Modify,CheckOut,Modify,Pending,Modify,Reject,Modify,Pending");
         }
         [TestMethod]
         public async Task WebHookSubscription_Versioning_Full_Approving_False()
@@ -295,7 +295,7 @@ namespace SenseNet.WebHooks.Tests
                 file =>
                 {
                     // Initial version: 0.1.D
-                    file.CheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();    // --> 0.2.L    --> no event on checkout
+                    file.CheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();    // --> 0.2.L    --> Modify,CheckOut
                     file.CheckInAsync(CancellationToken.None).GetAwaiter().GetResult();     // --> 0.2.D    --> Modify,Draft
 
                     file.Index = 41;
@@ -305,7 +305,7 @@ namespace SenseNet.WebHooks.Tests
 
                     return Task.CompletedTask;
                 },
-                "Modify,Draft,Modify,Draft,Modify,Approve");
+                "Modify,CheckOut,Modify,Draft,Modify,Draft,Modify,Approve");
         }
         [TestMethod]
         public async Task WebHookSubscription_Versioning_Full_Approving_True()
@@ -314,7 +314,7 @@ namespace SenseNet.WebHooks.Tests
                 file =>
                 {
                     // Initial version: 0.1.D
-                    file.CheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();    // --> 0.2.L    --> no event on checkout
+                    file.CheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();    // --> 0.2.L    --> Modify,CheckOut
                     file.CheckInAsync(CancellationToken.None).GetAwaiter().GetResult();     // --> 0.2.D    --> Modify,Draft
 
                     file.Index = 41;
@@ -323,7 +323,7 @@ namespace SenseNet.WebHooks.Tests
                     file.PublishAsync(CancellationToken.None).GetAwaiter().GetResult();     // --> 0.2.P    --> Modify,Pending
                     file.ApproveAsync(CancellationToken.None).GetAwaiter().GetResult();     // --> 1.0.A    --> Modify,Approve
 
-                    file.CheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();    // --> 1.1.L    --> no event on checkout
+                    file.CheckOutAsync(CancellationToken.None).GetAwaiter().GetResult();    // --> 1.1.L    --> Modify,CheckOut
                     file.CheckInAsync(CancellationToken.None).GetAwaiter().GetResult();     // --> 1.1.D    --> Modify,Draft
 
                     file.Index = 42;
@@ -334,8 +334,8 @@ namespace SenseNet.WebHooks.Tests
 
                     return Task.CompletedTask;
                 },
-                "Modify,Draft,Modify,Modify,Pending,Modify,Approve,Modify,Draft," +
-                "Modify,Draft,Modify,Pending,Modify,Reject");
+                "Modify,CheckOut,Modify,Draft,Modify,Modify,Pending,Modify,Approve," +
+                "Modify,CheckOut,Modify,Draft,Modify,Draft,Modify,Pending,Modify,Reject");
         }
 
         public async Task Test_Versioning(VersioningType versioningType, ApprovingType approvingType,

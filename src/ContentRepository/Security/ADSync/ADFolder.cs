@@ -39,13 +39,6 @@ namespace SenseNet.ContentRepository.Security.ADSync
 
         /// <inheritdoc />
         /// <remarks>Synchronizes the modifications via the current <see cref="DirectoryProvider"/>.</remarks>
-        [Obsolete("Use async version instead.", true)]
-        public override void Save(SavingMode mode)
-        {
-            SaveAsync(mode, CancellationToken.None).GetAwaiter().GetResult();
-        }
-        /// <inheritdoc />
-        /// <remarks>Synchronizes the modifications via the current <see cref="DirectoryProvider"/>.</remarks>
         public override async System.Threading.Tasks.Task SaveAsync(SavingMode mode, CancellationToken cancel)
         {
             var originalId = this.Id;
@@ -61,13 +54,6 @@ namespace SenseNet.ContentRepository.Security.ADSync
             _syncObject = true;
         }
 
-        /// <inheritdoc />
-        /// <remarks>Synchronizes the deletion via the current <see cref="DirectoryProvider"/>.</remarks>
-        [Obsolete("Use async version instead", false)]
-        public override void ForceDelete()
-        {
-            ForceDeleteAsync(CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
-        }
         /// <inheritdoc />
         /// <remarks>Synchronizes the deletion via the current <see cref="DirectoryProvider"/>.</remarks>
         public override async System.Threading.Tasks.Task ForceDeleteAsync(CancellationToken cancel)

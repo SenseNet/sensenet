@@ -446,21 +446,6 @@ namespace SenseNet.ContentRepository.Storage
         }
 
         /// <summary>
-        /// Inserts a set of bytes into a binary field. Can be used to upload large files in chunks. After calling this method with all the chunks, CommitChunk method must be called to finalize the process.
-        /// </summary>
-        /// <param name="token">The token received from the StartChunk method that needs to be called before the chunk saving operation starts.</param>
-        /// <param name="fullStreamSize">Full size of the binary stream</param>
-        /// <param name="buffer">Byte array that contains the chunk to write</param>
-        /// <param name="offset">The position where the write operation should start</param>
-        /// <param name="count">Number of bytes to write. If -1, the full buffer will be written</param>
-        [Obsolete("Use WriteChunk instead.", true)]
-        public static void SaveChunk(string token, long fullStreamSize, byte[] buffer, long offset, int count)
-        {
-            // call the new method that is able to write chunks in random order
-            WriteChunk(0, token, fullStreamSize, buffer, offset);
-        }
-
-        /// <summary>
         /// Finalizes a chunk saving process: sets the stream size and length for the binary.
         /// </summary>
         /// <param name="contentId">Id of the content</param>

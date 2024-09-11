@@ -656,7 +656,7 @@ namespace SenseNet.ApplicationModel
         /*=================================================================================== Get Apps */
 
         // caller: Scenarios and tests
-        [Obsolete("Use an override with device")]
+        [Obsolete("Use an override with device", true)]
         public Application GetApplication(string applicationName, Content context)
         {
             return GetApplication(applicationName, context, null);
@@ -668,7 +668,7 @@ namespace SenseNet.ApplicationModel
         }
 
         // caller: nobody
-        [Obsolete("Use an override with device")]
+        [Obsolete("Use an override with device", true)]
         public Application GetApplication(string applicationName, NodeHead head)
         {
             return GetApplication(applicationName, head, null);
@@ -680,7 +680,7 @@ namespace SenseNet.ApplicationModel
         }
 
         // caller: ActionFramework
-        [Obsolete("Use an override with device")]
+        [Obsolete("Use an override with device", true)]
         public Application GetApplication(string applicationName, Content context, out bool existingApplication)
         {
             return GetApplication(applicationName, context, out existingApplication, null);
@@ -695,7 +695,7 @@ namespace SenseNet.ApplicationModel
         }
 
         // caller: nobody
-        [Obsolete("Use an override with device")]
+        [Obsolete("Use an override with device", true)]
         public Application GetApplication(string applicationName, NodeHead head, out bool existingApplication)
         {
             return GetApplication(applicationName, head, out existingApplication, null);
@@ -710,7 +710,7 @@ namespace SenseNet.ApplicationModel
         }
 
         // caller: ApplicationListPresenterPortlet
-        [Obsolete("Use an override with device")]
+        [Obsolete("Use an override with device", true)]
         public List<Application> GetApplications(Content context)
         {
             return GetApplications(context, null);
@@ -721,7 +721,7 @@ namespace SenseNet.ApplicationModel
         }
 
         // caller: nobody
-        [Obsolete("Use an override with device")]
+        [Obsolete("Use an override with device", true)]
         public List<Application> GetApplications(NodeHead head)
         {
             return GetApplications(head, null);
@@ -732,7 +732,7 @@ namespace SenseNet.ApplicationModel
         }
 
         // caller: ActionFramework
-        [Obsolete("Use an override with device")]
+        [Obsolete("Use an override with device", true)]
         public List<Application> GetApplications(string scenarioName, Content context)
         {
             return GetApplications(scenarioName, context, null);
@@ -743,7 +743,7 @@ namespace SenseNet.ApplicationModel
         }
 
         // caller: nobody
-        [Obsolete("Use an override with device")]
+        [Obsolete("Use an override with device", true)]
         public List<Application> GetApplications(string scenarioName, NodeHead head)
         {
             return GetApplications(scenarioName, head, null);

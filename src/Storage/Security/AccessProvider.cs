@@ -19,7 +19,7 @@ namespace SenseNet.ContentRepository.Storage.Security
             Initialize();
         }
 
-        [Obsolete]
+        [Obsolete("Do not use this property anymore.", true)]
         public static bool IsInitialized => Current != null;
 
         public virtual int DefaultUserId => Identifiers.VisitorUserId;

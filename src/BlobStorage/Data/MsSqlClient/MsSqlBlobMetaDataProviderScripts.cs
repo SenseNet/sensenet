@@ -208,5 +208,9 @@ OUTPUT DELETED.FileId, DELETED.Size, DELETED.BlobProvider, DELETED.BlobProviderD
 WHERE IsDeleted = 1
 ";
         #endregion
+
+        public string GetFirstFileId = @"-- MsSqlBlobMetaDataProvider.GetFirstFileId
+SELECT TOP 1 FileId FROM Files
+";
     }
 }

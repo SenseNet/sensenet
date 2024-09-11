@@ -10,7 +10,7 @@ namespace SenseNet.Packaging.Steps
         private bool _startIndexingEngineChanged;
         private bool _startIndexingEngine;
 
-        [Obsolete("Use the StartIndexingEngine property instead.")]
+        [Obsolete("Use the StartIndexingEngine property instead.", true)]
         public bool StartLuceneManager
         {
             get => StartIndexingEngine;
@@ -28,6 +28,7 @@ namespace SenseNet.Packaging.Steps
 
         public string PluginsPath { get; set; }
         public string IndexPath { get; set; }
+        [Obsolete("Old-school configuration method. Do not use anymore.", true)]
         public bool StartWorkflowEngine { get; set; }
 
         public override void Execute(ExecutionContext context)
@@ -60,7 +61,6 @@ namespace SenseNet.Packaging.Steps
                 StartIndexingEngine = startIndexingEngine,
                 PluginsPath = PluginsPath ?? context.SandboxPath,
                 IndexPath = indexPath,
-                StartWorkflowEngine = StartWorkflowEngine,
                 Console = context.Console
             }) as RepositoryBuilder;
 

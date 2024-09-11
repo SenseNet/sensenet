@@ -28,18 +28,31 @@ namespace SenseNet.ContentRepository.Tests
             Test(() =>
             {
                 var ctd = @"<ContentType name=""MyType1"" parentType=""GenericContent"" handler=""SenseNet.ContentRepository.GenericContent"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
-  <DisplayName>displayName1</DisplayName>
-  <Description>description1</Description>
-  <Icon>icon1</Icon>
-  <Preview>true</Preview>
-  <Extension>extension1</Extension>
-  <AllowIncrementalNaming>true</AllowIncrementalNaming>
-  <AppInfo>appInfo</AppInfo>
-  <AllowedChildTypes>User,Group</AllowedChildTypes>
-  <Categories>cat1 cat2</Categories>
-  <SystemType>true</SystemType>
-  <AllowIndexing>true</AllowIndexing>
-  <Fields />
+    <DisplayName>displayName1</DisplayName>
+    <Description>description1</Description>
+    <Icon>icon1</Icon>
+    <Preview>true</Preview>
+    <Extension>extension1</Extension>
+    <AllowIncrementalNaming>true</AllowIncrementalNaming>
+    <AppInfo>appInfo</AppInfo>
+    <AllowedChildTypes>User,Group</AllowedChildTypes>
+    <Categories>cat1 cat2</Categories>
+    <SystemType>true</SystemType>
+    <AllowIndexing>true</AllowIndexing>
+    <Fields>
+        <Field name=""MyField"" type=""ShortText"">
+            <DisplayName>$Ctd-GenericContent,Name-DisplayName</DisplayName>
+            <Description>$Ctd-GenericContent,Name-Description</Description>
+            <Icon>Field-icon</Icon>
+            <AppInfo>Any well-formed xml</AppInfo>
+            <Bind property=""Name"" />
+            <Indexing>
+                <Store>Yes</Store>
+            </Indexing>
+            <Categories>Category1 Category2</Categories>
+            <Configuration />
+        </Field>
+    </Fields>
 </ContentType>";
 
                 ContentTypeInstaller.InstallContentType(ctd);
@@ -54,6 +67,11 @@ namespace SenseNet.ContentRepository.Tests
                 AssertSequenceEqual(new[] { "cat1", "cat2" }, contentType.Categories);
                 Assert.AreEqual(true, contentType.IsSystemType);
                 Assert.AreEqual(true, contentType.IsIndexingEnabled);
+
+                var field = contentType.FieldSettings.First(f => f.Name == "MyField");
+                Assert.AreEqual("Any well-formed xml", field.AppInfo);
+                Assert.AreEqual(IndexStoringMode.Yes, field.IndexingInfo.IndexStoringMode);
+                AssertSequenceEqual(new[] { "Category1", "Category2" }, field.Categories);
             });
         }
 
@@ -86,6 +104,42 @@ namespace SenseNet.ContentRepository.Tests
                 Assert.IsNotNull(contentType.Categories);
                 var categories = contentType.Categories.ToArray();
                 AssertSequenceEqual(new[] {"Cat1", "Cat2", "Cat3", "Cat4"}, categories);
+            });
+        }
+
+        [TestMethod]
+        [TestCategory("ContentType")]
+        public void ContentType_Field_Categories()
+        {
+            Test(() =>
+            {
+                var prefix = @"<ContentType name=""MyType1"" parentType=""GenericContent"" handler=""SenseNet.ContentRepository.GenericContent"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
+  <Fields>
+    <Field name=""MyField"" type=""ShortText"">
+";
+                var suffix = @"
+    </Field>
+  </Fields>
+</ContentType>";
+
+                ContentTypeInstaller.InstallContentType($@"{prefix}{suffix}");
+                var contentType = ContentType.GetByName("MyType1");
+                var field = contentType.FieldSettings.First(f => f.Name == "MyField");
+                Assert.IsNotNull(field.Categories);
+                Assert.AreEqual(0, field.Categories.Count());
+
+                ContentTypeInstaller.InstallContentType($@"{prefix}<Categories />{suffix}");
+                contentType = ContentType.GetByName("MyType1");
+                field = contentType.FieldSettings.First(f => f.Name == "MyField");
+                Assert.IsNotNull(field.Categories);
+                Assert.AreEqual(0, field.Categories.Count());
+
+                ContentTypeInstaller.InstallContentType($@"{prefix}<Categories>Cat1, Cat2 ; Cat3 Cat4</Categories>{suffix}");
+                contentType = ContentType.GetByName("MyType1");
+                field = contentType.FieldSettings.First(f => f.Name == "MyField");
+                Assert.IsNotNull(field.Categories);
+                var categories = field.Categories.ToArray();
+                AssertSequenceEqual(new[] { "Cat1", "Cat2", "Cat3", "Cat4" }, categories);
             });
         }
 
@@ -532,7 +586,7 @@ namespace SenseNet.ContentRepository.Tests
 
             var contentType = ContentType.GetByName(contentTypeName);
             if(contentType != null)
-                ContentTypeInstaller.RemoveContentType(contentTypeName);
+                ContentTypeInstaller.RemoveContentTypeAsync(contentTypeName, CancellationToken.None).GetAwaiter().GetResult();
 
             return result;
         }

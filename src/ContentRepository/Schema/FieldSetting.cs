@@ -8,6 +8,7 @@ using SenseNet.ContentRepository.i18n;
 using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.ContentRepository.Storage.Scripting;
 using System.IO;
+using System.Linq;
 using System.Runtime.Serialization;
 using Newtonsoft.Json;
 using SenseNet.ContentRepository.Search.Indexing;
@@ -64,6 +65,7 @@ namespace SenseNet.ContentRepository.Schema
         public const string AppInfoName = "AppInfo";
         public const string OwnerName = "Owner";
         public const string FieldIndexName = "FieldIndex";
+        public const string CategoriesName = "Categories";
 
         // Member variables /////////////////////////////////////////////////////////////////
         protected bool _mutable = false;
@@ -83,6 +85,8 @@ namespace SenseNet.ContentRepository.Schema
         private int? _defaultOrder;
         private string _controlHint;
         private int? _fieldIndex;
+
+        private string[] _categories = Array.Empty<string>();
 
         // Properties /////////////////////////////////////////////////////////////
 
@@ -242,6 +246,7 @@ namespace SenseNet.ContentRepository.Schema
             }
         }
 
+
         /// <summary>
         /// Gets the icon name of the descripted Field. This value comes from the ContentTypeDefinition.
         /// </summary>
@@ -369,6 +374,18 @@ namespace SenseNet.ContentRepository.Schema
                 {
                     _fieldIndex = int.MaxValue;
                 }
+            }
+        }
+
+        public string[] Categories
+        {
+            get => _categories;
+            set
+            {
+                if (!_mutable)
+                    throw new InvalidOperationException("Setting Categories is not allowed within readonly instance.");
+
+                _categories = value ?? Array.Empty<string>();
             }
         }
 
@@ -578,6 +595,8 @@ namespace SenseNet.ContentRepository.Schema
             }
         }
 
+        public Dictionary<string, string> Customization { get; private set; }
+
         internal Type GetHandlerSlot(int slotIndex)
         {
             if (this.HandlerSlotIndices == null)
@@ -599,7 +618,8 @@ namespace SenseNet.ContentRepository.Schema
 
         public virtual void Initialize() { }
 
-        protected virtual void ParseConfiguration(XPathNavigator configurationElement, IXmlNamespaceResolver xmlNamespaceResolver, ContentType contentType)
+        protected virtual void ParseConfiguration(XPathNavigator configurationElement, IXmlNamespaceResolver xmlNamespaceResolver,
+            ContentType contentType, List<string> parsedElementNames)
         {
         }
         protected virtual void ParseConfiguration(Dictionary<string, object> info)
@@ -963,6 +983,8 @@ namespace SenseNet.ContentRepository.Schema
             VisibleNew = source.VisibleNew;
 
             FieldIndex = source.FieldIndex;
+
+            Categories = source.Categories.ToArray();
         }
 
         public virtual object GetProperty(string name, out bool found)
@@ -1181,6 +1203,7 @@ namespace SenseNet.ContentRepository.Schema
             fieldInfo.Icon = this.Icon;
             fieldInfo.Name = this.Name;
             fieldInfo.Type = this.ShortName;
+            fieldInfo.Categories = this.Categories;
 
             // Set up the configuration
             fieldInfo.Configuration = new ConfigurationInfo();
@@ -1214,37 +1237,34 @@ namespace SenseNet.ContentRepository.Schema
             if (nav == null)
                 return;
 
-            var iter = nav.Select(string.Concat("x:", ReadOnlyName), nsres);
-            _configIsReadOnly = iter.MoveNext() ? (bool?)(ParseBoolean(iter.Current.InnerXml)) : null;
+            var customElementNames = new List<string>();
+            ParseConfiguration(nav, nsres, contentType, customElementNames);
 
-            iter = nav.Select(string.Concat("x:", CompulsoryName), nsres);
-            _required = iter.MoveNext() ? (bool?)(ParseBoolean(iter.Current.InnerXml)) : null;
+            foreach (XPathNavigator element in nav.SelectChildren(XPathNodeType.Element))
+            {
+                if (customElementNames.Contains(element.LocalName))
+                    continue;
 
-            iter = nav.Select(string.Concat("x:", OutputMethodName), nsres);
-            _outputMethod = iter.MoveNext() ? (OutputMethod?)Enum.Parse(typeof(SenseNet.ContentRepository.Schema.OutputMethod), iter.Current.InnerXml, true) : null;
+                switch (element.LocalName)
+                {
+                    case ReadOnlyName: _configIsReadOnly = ParseBoolean(element.InnerXml); break;
+                    case CompulsoryName: _required = ParseBoolean(element.InnerXml); break;
+                    case OutputMethodName: _outputMethod = (OutputMethod?)Enum.Parse(typeof(OutputMethod), element.InnerXml, true); break;
+                    case DefaultValueName: _defaultValue = element.Value; break;
+                    case DefaultOrderName: _defaultOrder = element.ValueAsInt; break;
+                    case VisibleBrowseName: _visibleBrowse = ParseVisibleValue(element.Value); break;
+                    case VisibleEditName: _visibleEdit = ParseVisibleValue(element.Value); break;
+                    case VisibleNewName: _visibleNew = ParseVisibleValue(element.Value); break;
+                    case ControlHintName: _controlHint = element.Value; break;
+                    case FieldIndexName: _fieldIndex = element.ValueAsInt; break;
 
-            iter = nav.Select(string.Concat("x:", DefaultValueName), nsres);
-            _defaultValue = iter.MoveNext() ? iter.Current.Value : null;
-
-            iter = nav.Select(string.Concat("x:", DefaultOrderName), nsres);
-            _defaultOrder = iter.MoveNext() ? (int?)iter.Current.ValueAsInt : null;
-
-            iter = nav.Select(string.Concat("x:", VisibleBrowseName), nsres);
-            _visibleBrowse = iter.MoveNext() ? ParseVisibleValue(iter.Current.Value) : null;
-
-            iter = nav.Select(string.Concat("x:", VisibleEditName), nsres);
-            _visibleEdit = iter.MoveNext() ? ParseVisibleValue(iter.Current.Value) : null;
-
-            iter = nav.Select(string.Concat("x:", VisibleNewName), nsres);
-            _visibleNew = iter.MoveNext() ? ParseVisibleValue(iter.Current.Value) : null;
-
-            iter = nav.Select(string.Concat("x:", ControlHintName), nsres);
-            _controlHint = iter.MoveNext() ? iter.Current.Value : null;
-
-            iter = nav.Select(string.Concat("x:", FieldIndexName), nsres);
-            _fieldIndex = iter.MoveNext() ? (int?)iter.Current.ValueAsInt : null;
-
-            ParseConfiguration(nav, nsres, contentType);
+                    default:
+                        if (Customization == null)
+                            Customization = new Dictionary<string, string>();
+                        Customization.Add(element.LocalName, element.InnerXml);
+                        break;
+                }
+            }
         }
 
         private bool? ParseBoolean(string value)
@@ -1289,6 +1309,8 @@ namespace SenseNet.ContentRepository.Schema
 
             if (descriptor.AppInfo != null)
                 setting._appInfo = descriptor.AppInfo.Value;
+
+            setting.Categories = descriptor.Categories;
 
             var indexingInfo = new PerFieldIndexingInfo();
 
@@ -1356,6 +1378,7 @@ namespace SenseNet.ContentRepository.Schema
             setting.HandlerSlotIndices = bindings != null ? new int[bindings.Count] : descriptor.Bind == null ? new int[0] : new int[1];
             setting.FieldDataType = FieldManager.GetFieldDataType(descriptor.GetHandlerName());
             setting.AppInfo = descriptor.AppInfo;
+            setting.Categories = descriptor.Categories;
 
             setting.SetConfiguration(descriptor);
 
@@ -1405,7 +1428,7 @@ namespace SenseNet.ContentRepository.Schema
                 this.Aspect.SetPerFieldIndexingInfo(this.Name, indexingInfo);
         }
 
-        [Obsolete("This method will be removed in the next release.")]
+        [Obsolete("This method will be removed in the next release.", true)]
         public IEnumerable<string> GetValueForQuery(Field field)
         {
             return IndexingInfo.IndexFieldHandler.GetParsableValues(field);
@@ -1421,8 +1444,9 @@ namespace SenseNet.ContentRepository.Schema
         private void Reset()
         {
             SetDefaults();
-            _configIsReadOnly = false;
-            _required = false;
+            _configIsReadOnly = null;
+            _required = null;
+            Customization = null;
         }
 
         public string EvaluateDefaultValue()
@@ -1460,8 +1484,8 @@ namespace SenseNet.ContentRepository.Schema
             WriteElement(writer, this._description, "Description");
             WriteElement(writer, this._icon, "Icon");
             WriteElement(writer, this._appInfo, "AppInfo");
-
             WriteIndexingInfo(writer);
+            WriteElement(writer, string.Join(" ", this._categories), "Categories");
 
             if (!isListField)
             {

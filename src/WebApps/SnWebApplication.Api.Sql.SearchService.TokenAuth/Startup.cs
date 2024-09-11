@@ -10,6 +10,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
+using SenseNet.ContentRepository.Security.ApiKeys;
 using SenseNet.Diagnostics;
 using SenseNet.Extensions.DependencyInjection;
 using SenseNet.Search.Lucene29.Centralized;
@@ -56,6 +57,9 @@ namespace SnWebApplication.Api.Sql.SearchService.TokenAuth
             //TODO: temp switch, remove this after upgrading to .net5
             AppContext.SetSwitch("System.Net.Http.SocketsHttpHandler.Http2UnencryptedSupport", true);
 
+            // [sensenet]: Set options for ApiKeys
+            services.Configure<ApiKeysOptions>(Configuration.GetSection("sensenet:ApiKeys"));
+
             // [sensenet]: Set options for EFCSecurityDataProvider
             services.AddOptions<SenseNet.Security.EFCSecurityStore.Configuration.DataOptions>()
                 .Configure<IOptions<ConnectionStringOptions>>((securityOptions, systemConnections) =>
@@ -85,7 +89,15 @@ namespace SnWebApplication.Api.Sql.SearchService.TokenAuth
                 })
                 .AddSenseNetOData()
                 .AddSenseNetWebHooks()
-                .AddSenseNetWopi();
+                .AddSenseNetWopi()
+                .AddSenseNetSemanticKernel(options =>
+                {
+                    Configuration.Bind("sensenet:ai:SemanticKernel", options);
+                })
+                .AddSenseNetAzureVision(options =>
+                {
+                    Configuration.Bind("sensenet:ai:AzureVision", options);
+                });
 
             // [sensenet]: statistics overrides
             var statOptions = new StatisticsOptions();
@@ -122,6 +134,8 @@ namespace SnWebApplication.Api.Sql.SearchService.TokenAuth
             // [sensenet] Add the sensenet binary handler
             app.UseSenseNetFiles();
 
+            // [sensenet]: Health middleware
+            app.UseSenseNetHealth();
             // [sensenet]: OData middleware
             app.UseSenseNetOdata();
             // [sensenet]: WOPI middleware

@@ -2,7 +2,7 @@
 
 	<PropertyGroup>
 		<TargetFrameworks>netstandard2.0;net6.0</TargetFrameworks>
-		<Version>7.6.11</Version>
+		<Version>7.6.14</Version>
 		<Authors>kavics,tusmester</Authors>
 		<Company>Sense/Net Inc.</Company>
 		<Copyright>Copyright © Sense/Net Inc.</Copyright>
@@ -28,7 +28,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="SenseNet.Tools" Version="3.2.12" />
+		<PackageReference Include="SenseNet.Tools" Version="3.2.13" />
 	</ItemGroup>
 
 	<ItemGroup>

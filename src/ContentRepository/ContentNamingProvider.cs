@@ -19,14 +19,6 @@ using SenseNet.Tools;
 
 namespace SenseNet.ContentRepository
 {
-    public static class ContentNamingProviderExtensions
-    {
-        public static IServiceCollection AddContentNamingProvider<T>(this IServiceCollection services) where T : class, IContentNamingProvider
-        {
-            return services.AddSingleton<IContentNamingProvider, T>();
-        }
-    }
-
     /// <summary>
     /// Base class that provides methods to generate and validate content names.
     /// </summary>
@@ -51,11 +43,10 @@ namespace SenseNet.ContentRepository
         /// <summary>
         /// OData function that converts the human readable name to the valid content name.
         /// </summary>
-        /// <snCategory>Content and Schema</snCategory>
         /// <param name="content">Required parameter for the OData function.</param>
         /// <param name="displayName">Source of the conversion.</param>
         /// <returns>The converted name.</returns>
-        [ODataFunction]
+        [ODataFunction(Category = "Content and Schema")]
         [ContentTypes(N.CT.PortalRoot)]
         [AllowedRoles(N.R.Everyone, N.R.Visitor)]
         public static string GetNameFromDisplayName(Content content, string displayName)

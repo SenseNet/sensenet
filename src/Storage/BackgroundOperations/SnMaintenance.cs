@@ -4,6 +4,8 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using SenseNet.Diagnostics;
+using SenseNet.Storage.Diagnostics;
 
 // ReSharper disable once CheckNamespace
 namespace SenseNet.BackgroundOperations
@@ -20,45 +22,62 @@ namespace SenseNet.BackgroundOperations
         private int _currentCycle;
         internal const string TracePrefix = "#SnMaintenance> ";
         private readonly IMaintenanceTask[] _maintenanceTasks;
+        private readonly ISenseNetStatus _senseNetStatus;
         private readonly ILogger<SnMaintenance> _logger;
 
-        public SnMaintenance(IEnumerable<IMaintenanceTask> tasks, ILogger<SnMaintenance> logger)
+        public SnMaintenance(IEnumerable<IMaintenanceTask> tasks, ISenseNetStatus senseNetStatus, ILogger<SnMaintenance> logger)
         {
             _maintenanceTasks = tasks.ToArray();
+            _senseNetStatus = senseNetStatus;
             _logger = logger;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
+            _healthStatus = SenseNetStatus.Starting;
+_logger?.LogDebug("STARTUP: SnMaintenance starting");
             _logger?.LogInformation("SnMaintenance Service is starting. Tasks: " +
                                     string.Join(", ", _maintenanceTasks.Select(mt => mt.GetType().FullName)));
 
-            stoppingToken.Register(() => _logger?.LogDebug(" SnMaintenance background task is stopping."));
+            stoppingToken.Register(() => _logger?.LogDebug("SnMaintenance background task is stopping."));
 
             // Wait one cycle at the beginning. This will allow the Start service method to finish quickly.
             await Task.Delay(TimerInterval * 1000, stoppingToken);
 
+            _healthStatus = SenseNetStatus.Running;
+            _logger?.LogDebug("STARTUP: SnMaintenance started");
             while (!stoppingToken.IsCancellationRequested)
             {
-                // start tasks, but do not wait for them to finish
-                var _ = _maintenanceTasks
-                    .Where(mt => IsTaskExecutable(mt.WaitingSeconds))
-                    .Select(mt => mt.ExecuteAsync(stoppingToken)).ToArray();
+                if(_senseNetStatus.IsRunning)
+                {
+                    _healthStatus = SenseNetStatus.Running;
+                    // start tasks, but do not wait for them to finish
+                    var _ = _maintenanceTasks
+                        .Where(mt => IsTaskExecutable(mt.WaitingSeconds))
+                        .Select(mt => mt.ExecuteAsync(stoppingToken)).ToArray();
 
-                // Increment the global cycle counter.
-                Interlocked.Increment(ref _currentCycle);
+                    // Increment the global cycle counter.
+                    Interlocked.Increment(ref _currentCycle);
 
-                // Protecting the counter from overflow.
-                if (_currentCycle > 100000)
-                    _currentCycle = 0;
+                    // Protecting the counter from overflow.
+                    if (_currentCycle > 100000)
+                        _currentCycle = 0;
+                }
+                else
+                {
+                    _healthStatus = "Execution skipped";
+                }
 
                 // wait one cycle
                 await Task.Delay(TimerInterval * 1000, stoppingToken);
             }
 
+            _healthStatus = SenseNetStatus.Stopped;
             _logger?.LogDebug("SnMaintenance background task is stopping.");
         }
-        
+
+        private string _healthStatus = SenseNetStatus.WaitingForStart;
+
         // ========================================================================================= Helper methods
 
         private bool IsTaskExecutable(int waitingSeconds)

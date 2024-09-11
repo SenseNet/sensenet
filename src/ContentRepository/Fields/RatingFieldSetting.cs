@@ -53,9 +53,10 @@ namespace SenseNet.ContentRepository.Fields
             }
         }
 
-        protected override void ParseConfiguration(XPathNavigator configurationElement, IXmlNamespaceResolver xmlNamespaceResolver, ContentType contentType)
+        protected override void ParseConfiguration(XPathNavigator configurationElement, IXmlNamespaceResolver xmlNamespaceResolver,
+            ContentType contentType, List<string> parsedElementNames)
         {
-            base.ParseConfiguration(configurationElement, xmlNamespaceResolver, contentType);
+            base.ParseConfiguration(configurationElement, xmlNamespaceResolver, contentType, parsedElementNames);
 
             foreach (XPathNavigator element in configurationElement.SelectChildren(XPathNodeType.Element))
             {
@@ -64,10 +65,12 @@ namespace SenseNet.ContentRepository.Fields
                     case RangeName:
                         int range;
                         _range = Int32.TryParse(element.InnerXml, out range) ? range : DefaultRange;
+                        parsedElementNames.Add(RangeName);
                         break;
                     case SplitName:
                         int split;
                         _split = Int32.TryParse(element.InnerXml, out split) ? split : DefaultSplit;
+                        parsedElementNames.Add(SplitName);
                         break;
                 }
             }

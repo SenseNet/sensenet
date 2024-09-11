@@ -36,7 +36,7 @@ namespace SenseNet.ContentRepository
                 throw new ArgumentNullException("children");
             _children = children;
         }
-        protected override IEnumerable<Node> GetChildren()
+        public override IEnumerable<Node> GetChildren()
         {
             return _children;
         }

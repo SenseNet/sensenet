@@ -30,9 +30,10 @@ namespace SenseNet.ContentRepository.Fields
             }
         }
 
-        protected override void ParseConfiguration(XPathNavigator configurationElement, IXmlNamespaceResolver xmlNamespaceResolver, ContentType contentType)
+        protected override void ParseConfiguration(XPathNavigator configurationElement, IXmlNamespaceResolver xmlNamespaceResolver,
+            ContentType contentType, List<string> parsedElementNames)
         {
-            base.ParseConfiguration(configurationElement, xmlNamespaceResolver, contentType);
+            base.ParseConfiguration(configurationElement, xmlNamespaceResolver, contentType, parsedElementNames);
 
             // <Regex>^[a-zA-Z0-9]*$</Regex>
             foreach (XPathNavigator element in configurationElement.SelectChildren(XPathNodeType.Element))
@@ -41,6 +42,7 @@ namespace SenseNet.ContentRepository.Fields
                 {
                     case RegexName:
                         _regex = element.Value;
+                        parsedElementNames.Add(RegexName);
                         break;
                 }
             }

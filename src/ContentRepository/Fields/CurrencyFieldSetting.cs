@@ -30,8 +30,9 @@ namespace SenseNet.ContentRepository.Fields
             }
         }
 
-        [Obsolete("Please use RegionInfos instead", true)]
-        public static NameValueCollection CurrencyTypes { get; } = new NameValueCollection();
+        public string CurrencySymbol => GetCurrencySymbol(Format);
+        public string CurrencyName => GetCurrencyName(Format);
+        public string CurrencyNativeName => GetCurrencyNativeName(Format);
 
         private static Dictionary<string, RegionInfo> _regionInfos;
         private static object _regionLock = new object();
@@ -79,9 +80,10 @@ namespace SenseNet.ContentRepository.Fields
             }
         }
 
-        protected override void ParseConfiguration(XPathNavigator configurationElement, IXmlNamespaceResolver xmlNamespaceResolver, ContentType contentType)
+        protected override void ParseConfiguration(XPathNavigator configurationElement, IXmlNamespaceResolver xmlNamespaceResolver,
+            ContentType contentType, List<string> parsedElementNames)
         {
-            base.ParseConfiguration(configurationElement, xmlNamespaceResolver, contentType);
+            base.ParseConfiguration(configurationElement, xmlNamespaceResolver, contentType, parsedElementNames);
 
             foreach (XPathNavigator node in configurationElement.SelectChildren(XPathNodeType.Element))
             {
@@ -90,6 +92,7 @@ namespace SenseNet.ContentRepository.Fields
                     case FormatName:
                         if (!string.IsNullOrEmpty(node.InnerXml))
                             _format = node.InnerXml;
+                        parsedElementNames.Add(FormatName);
                         break;
                 }
             }
@@ -204,11 +207,28 @@ namespace SenseNet.ContentRepository.Fields
             if (string.IsNullOrEmpty(cultureName))
                 return string.Empty;
             
-            return RegionInfos.ContainsKey(cultureName)
-                ? RegionInfos[cultureName].CurrencySymbol
+            return RegionInfos.TryGetValue(cultureName, out var regionInfo)
+                ? regionInfo.CurrencySymbol
                 : string.Empty;
         }
+        private static string GetCurrencyName(string cultureName)
+        {
+            if (string.IsNullOrEmpty(cultureName))
+                return string.Empty;
 
+            return RegionInfos.TryGetValue(cultureName, out var regionInfo)
+                ? regionInfo.ISOCurrencySymbol
+                : string.Empty;
+        }
+        private static string GetCurrencyNativeName(string cultureName)
+        {
+            if (string.IsNullOrEmpty(cultureName))
+                return string.Empty;
+
+            return RegionInfos.TryGetValue(cultureName, out var regionInfo)
+                ? regionInfo.CurrencyNativeName
+                : string.Empty;
+        }
         private static string GetCurrencyText(string cultureName)
         {
             if (string.IsNullOrEmpty(cultureName))

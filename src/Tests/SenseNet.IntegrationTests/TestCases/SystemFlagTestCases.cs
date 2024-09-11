@@ -42,7 +42,7 @@ namespace SenseNet.IntegrationTests.TestCases
                 }
                 finally
                 {
-                    root.ForceDelete();
+                    root.ForceDeleteAsync(CancellationToken.None).GetAwaiter().GetResult();
                 }
             });
         }
@@ -59,7 +59,7 @@ namespace SenseNet.IntegrationTests.TestCases
                 }
                 finally
                 {
-                    root.ForceDelete();
+                    root.ForceDeleteAsync(CancellationToken.None).GetAwaiter().GetResult();
                 }
             });
         }
@@ -78,7 +78,7 @@ namespace SenseNet.IntegrationTests.TestCases
                 }
                 finally
                 {
-                    root.ForceDelete();
+                    root.ForceDeleteAsync(CancellationToken.None).GetAwaiter().GetResult();
                 }
             });
         }
@@ -155,8 +155,8 @@ namespace SenseNet.IntegrationTests.TestCases
                 }
                 finally
                 {
-                    srcParent.ForceDelete();
-                    target.ForceDelete();
+                    srcParent.ForceDeleteAsync(CancellationToken.None).GetAwaiter().GetResult();
+                    target.ForceDeleteAsync(CancellationToken.None).GetAwaiter().GetResult();
                 }
             });
         }
@@ -232,8 +232,8 @@ namespace SenseNet.IntegrationTests.TestCases
                 }
                 finally
                 {
-                    srcParent.ForceDelete();
-                    target.ForceDelete();
+                    srcParent.ForceDeleteAsync(CancellationToken.None).GetAwaiter().GetResult();
+                    target.ForceDeleteAsync(CancellationToken.None).GetAwaiter().GetResult();
                 }
             });
         }
@@ -309,8 +309,8 @@ namespace SenseNet.IntegrationTests.TestCases
                 }
                 finally
                 {
-                    srcParent.ForceDelete();
-                    target.ForceDelete();
+                    srcParent.ForceDeleteAsync(CancellationToken.None).GetAwaiter().GetResult();
+                    target.ForceDeleteAsync(CancellationToken.None).GetAwaiter().GetResult();
                 }
             });
         }
@@ -386,8 +386,8 @@ namespace SenseNet.IntegrationTests.TestCases
                 }
                 finally
                 {
-                    srcParent.ForceDelete();
-                    target.ForceDelete();
+                    srcParent.ForceDeleteAsync(CancellationToken.None).GetAwaiter().GetResult();
+                    target.ForceDeleteAsync(CancellationToken.None).GetAwaiter().GetResult();
                 }
             });
         }
@@ -463,8 +463,8 @@ namespace SenseNet.IntegrationTests.TestCases
                 }
                 finally
                 {
-                    srcParent.ForceDelete();
-                    target.ForceDelete();
+                    srcParent.ForceDeleteAsync(CancellationToken.None).GetAwaiter().GetResult();
+                    target.ForceDeleteAsync(CancellationToken.None).GetAwaiter().GetResult();
                 }
             });
         }
@@ -539,8 +539,8 @@ namespace SenseNet.IntegrationTests.TestCases
                 }
                 finally
                 {
-                    srcParent.ForceDelete();
-                    target.ForceDelete();
+                    srcParent.ForceDeleteAsync(CancellationToken.None).GetAwaiter().GetResult();
+                    target.ForceDeleteAsync(CancellationToken.None).GetAwaiter().GetResult();
                 }
             });
         }
@@ -615,8 +615,8 @@ namespace SenseNet.IntegrationTests.TestCases
                 }
                 finally
                 {
-                    srcParent.ForceDelete();
-                    target.ForceDelete();
+                    srcParent.ForceDeleteAsync(CancellationToken.None).GetAwaiter().GetResult();
+                    target.ForceDeleteAsync(CancellationToken.None).GetAwaiter().GetResult();
                 }
             });
         }
@@ -691,8 +691,8 @@ namespace SenseNet.IntegrationTests.TestCases
                 }
                 finally
                 {
-                    srcParent.ForceDelete();
-                    target.ForceDelete();
+                    srcParent.ForceDeleteAsync(CancellationToken.None).GetAwaiter().GetResult();
+                    target.ForceDeleteAsync(CancellationToken.None).GetAwaiter().GetResult();
                 }
             });
         }
@@ -773,9 +773,9 @@ namespace SenseNet.IntegrationTests.TestCases
                 }
                 finally
                 {
-                    srcParent.ForceDelete();
-                    target.ForceDelete();
-                    ContentTypeInstaller.RemoveContentType(nameof(TestSystemFolder));
+                    srcParent.ForceDeleteAsync(CancellationToken.None).GetAwaiter().GetResult();
+                    target.ForceDeleteAsync(CancellationToken.None).GetAwaiter().GetResult();
+                    ContentTypeInstaller.RemoveContentTypeAsync(nameof(TestSystemFolder), CancellationToken.None).GetAwaiter().GetResult();
                 }
             });
         }
@@ -817,7 +817,7 @@ namespace SenseNet.IntegrationTests.TestCases
             {
                 var f2 = new Folder(f1) { Name = "F2", Description = "SystemFlagTest" }; f2.SaveAsync(CancellationToken.None).GetAwaiter().GetResult(); ids.Add(f2.Name, f2.Id);
                 {
-                    f2.AllowChildType(nameof(TestSystemFolder), true, save: true);
+                    AllowChildType(f2, nameof(TestSystemFolder));
                     var s5 = new TestSystemFolder(f2) { Name = "S5", Description = "SystemFlagTest" }; s5.SaveAsync(CancellationToken.None).GetAwaiter().GetResult(); ids.Add(s5.Name, s5.Id);
                     {
                         var f11 = new Folder(s5) { Name = "F11", Description = "SystemFlagTest" }; f11.SaveAsync(CancellationToken.None).GetAwaiter().GetResult(); ids.Add(f11.Name, f11.Id);
@@ -838,6 +838,22 @@ namespace SenseNet.IntegrationTests.TestCases
             }
 
             return ids;
+        }
+
+        private void AllowChildType(GenericContent content, string contentTypeName)
+        {
+            AllowChildTypeRecursive(content, contentTypeName, content);
+        }
+        private void AllowChildTypeRecursive(GenericContent content, string contentTypeName, GenericContent originalContent)
+        {
+            if (content == null)
+                throw new InvalidOperationException($"Cannot allow any childType on the {originalContent.Path}, ({originalContent.ContentType.Name}).");
+            if (content.ContentType.IsTransitiveForAllowedTypes)
+            {
+                AllowChildTypeRecursive(content.Parent as GenericContent, contentTypeName, originalContent);
+                return;
+            }
+            content.AllowChildType(contentTypeName, save: true);
         }
 
         private int GetSystemFlagRelatedContentCount(bool isSystem)

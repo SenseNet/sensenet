@@ -52,7 +52,7 @@ namespace SenseNet.ContentRepository.Tests
 
                     //var keysBefore = Cache.WhatIsInTheCache();
 
-                    testRoot.ForceDelete();
+                    testRoot.ForceDeleteAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                     Assert.IsTrue(IsInCache(root.Data));
                     Assert.IsTrue(IsInCache(rootHead));

@@ -628,11 +628,6 @@ namespace SenseNet.ContentRepository.Storage.Schema
         #endregion
 
         #region NodeType
-        [Obsolete("Do not create NodeType without valid classname.", true)]
-        public NodeType CreateNodeType(NodeType parent, string name)
-        {
-            return CreateNodeType(parent, name, null);
-        }
         public NodeType CreateNodeType(NodeType parent, string name, string className)
         {
             return CreateNodeType(0, parent, name, className);

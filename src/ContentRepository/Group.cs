@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Schema;
@@ -245,15 +247,6 @@ namespace SenseNet.ContentRepository
         }
 
         /// <summary>
-        /// This method is obsolete. Use <see cref="Group.IsInGroup"/> instead.
-        /// </summary>
-        /// <param name="securityGroupId">Id of the container group.</param>
-        [Obsolete("Use IsInGroup instead.", false)]
-        public bool IsInRole(int securityGroupId)
-        {
-            return IsInGroup(securityGroupId);
-        }
-        /// <summary>
         /// Returns true if this group is a member of a group identified by the given groupId.
         /// This method is transitive, meaning it will look for relations in the whole group graph, not 
         /// only direct memberships.
@@ -354,13 +347,6 @@ namespace SenseNet.ContentRepository
 
         /// <inheritdoc />
         /// <remarks>Synchronizes the modifications via the current <see cref="DirectoryProvider"/>.</remarks>
-        [Obsolete("Use async version instead.", true)]
-        public override void Save(NodeSaveSettings settings)
-        {
-            SaveAsync(settings, CancellationToken.None).GetAwaiter().GetResult();
-        }
-        /// <inheritdoc />
-        /// <remarks>Synchronizes the modifications via the current <see cref="DirectoryProvider"/>.</remarks>
         public override async System.Threading.Tasks.Task SaveAsync(NodeSaveSettings settings, CancellationToken cancel)
         {
             AssertValidMembers();
@@ -378,13 +364,6 @@ namespace SenseNet.ContentRepository
             _syncObject = true;
         }
 
-        /// <inheritdoc />
-        /// <remarks>Synchronizes the deletion via the current <see cref="DirectoryProvider"/>.</remarks>
-        [Obsolete("Use async version instead", false)]
-        public override void ForceDelete()
-        {
-            ForceDeleteAsync(CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
-        }
         /// <inheritdoc />
         /// <remarks>Synchronizes the deletion via the current <see cref="DirectoryProvider"/>.</remarks>
         public override async System.Threading.Tasks.Task ForceDeleteAsync(CancellationToken cancel)
@@ -454,14 +433,13 @@ namespace SenseNet.ContentRepository
         /// Adds the specified items to the members list of the given group <see cref="Content"/>.
         /// If the content is not a <see cref="Group"/>, an <see cref="InvalidOperationException"/> will be thrown.
         /// </summary>
-        /// <snCategory>Users and Groups</snCategory>
         /// <param name="content">A <see cref="Content"/> that should be a <see cref="Group"/>.</param>
         /// <param name="contentIds">An array of contentIds that represents the new members.</param>
         /// <returns></returns>
-        [ODataAction]
+        [ODataAction(Category = "Users and Groups")]
         [ContentTypes(N.CT.Group)]
         [AllowedRoles(N.R.Everyone)]
-        public static object AddMembers(Content content, int[] contentIds)
+        public static async Task<object> AddMembers(Content content, HttpContext httpContext, int[] contentIds)
         {
             RepositoryTools.AssertArgumentNull(content, "content");
             RepositoryTools.AssertArgumentNull(contentIds, "contentIds");
@@ -474,7 +452,7 @@ namespace SenseNet.ContentRepository
 
             // add the provided reference nodes
             group.AddReferences<Node>(MEMBERS, Node.LoadNodes(contentIds));
-            group.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
+            await group.SaveAsync(httpContext.RequestAborted).ConfigureAwait(false);
 
             return null;
         }
@@ -482,11 +460,10 @@ namespace SenseNet.ContentRepository
         /// <summary>
         /// Removes the specified items from the members list of the given group <see cref="Content"/>.
         /// </summary>
-        /// <snCategory>Users and Groups</snCategory>
         /// <param name="content">A <see cref="Content"/> that should be a <see cref="Group"/>.</param>
         /// <param name="contentIds">An array of contentIds that represents the members to remove.</param>
         /// <returns></returns>
-        [ODataAction]
+        [ODataAction(Category = "Users and Groups")]
         [ContentTypes(N.CT.Group)]
         [AllowedRoles(N.R.Everyone)]
         public static object RemoveMembers(Content content, int[] contentIds)

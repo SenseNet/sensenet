@@ -12,7 +12,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
-using SenseNet.ContentRepository.Components;
+using SenseNet.ContentRepository.Security.ApiKeys;
 using SenseNet.Diagnostics;
 using SenseNet.Extensions.DependencyInjection;
 using SenseNet.Search.Lucene29;
@@ -54,6 +54,9 @@ namespace SnWebApplication.Api.Sql.TokenAuth.Preview
                             $"{authOptions.MetadataHost.AddUrlSchema().TrimEnd('/')}/.well-known/openid-configuration";
                 });
 
+            // [sensenet]: Set options for ApiKeys
+            services.Configure<ApiKeysOptions>(Configuration.GetSection("sensenet:ApiKeys"));
+
             // [sensenet]: Set options for EFCSecurityDataProvider
             services.AddOptions<SenseNet.Security.EFCSecurityStore.Configuration.DataOptions>()
                 .Configure<IOptions<ConnectionStringOptions>>((securityOptions, systemConnections) =>
@@ -82,6 +85,14 @@ namespace SnWebApplication.Api.Sql.TokenAuth.Preview
                 {
                     options.SkipLicenseCheck =
                         Configuration.GetValue("sensenet:AsposePreviewProvider:SkipLicenseCheck", false);
+                })
+                .AddSenseNetSemanticKernel(options =>
+                {
+                    Configuration.Bind("sensenet:ai:SemanticKernel", options);
+                })
+                .AddSenseNetAzureVision(options =>
+                {
+                    Configuration.Bind("sensenet:ai:AzureVision", options);
                 });
 
             // [sensenet]: statistics overrides
@@ -119,6 +130,8 @@ namespace SnWebApplication.Api.Sql.TokenAuth.Preview
             // [sensenet] Add the sensenet binary handler
             app.UseSenseNetFiles();
 
+            // [sensenet]: Health middleware
+            app.UseSenseNetHealth();
             // [sensenet]: OData middleware
             app.UseSenseNetOdata();
             // [sensenet]: WOPI middleware

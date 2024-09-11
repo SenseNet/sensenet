@@ -96,7 +96,8 @@ namespace SenseNet.ContentRepository.Storage.Security
             base.OnNodeDeletedPhysically(sender, e);
 
             if (e.GetCustomData(IdentitiesCustomDataKey) is List<int> ids)
-                Providers.Instance.SecurityHandler.DeleteIdentitiesAsync(ids, CancellationToken.None).GetAwaiter().GetResult();
+                if (ids.Count > 0)
+                    Providers.Instance.SecurityHandler.DeleteIdentitiesAsync(ids, CancellationToken.None).GetAwaiter().GetResult();
         }
 
         // ======================================================================================= Helper methods

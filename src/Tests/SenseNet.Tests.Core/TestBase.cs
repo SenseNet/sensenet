@@ -272,6 +272,8 @@ namespace SenseNet.Tests.Core
                             .UseAccessProvider(new UserAccessProvider());
                     })
                     .AddSenseNetInMemoryProviders()
+                    .RemoveAllNodeObservers()
+                    .AddNodeObserver<SettingsCache>()
 
                     //.AddSenseNetWebHooks()
                     .AddSenseNetWopi()
@@ -306,11 +308,7 @@ namespace SenseNet.Tests.Core
                 .UseBlobProviderStore(services.GetRequiredService<IBlobProviderStore>())
                 .UseBlobMetaDataProvider(services.GetRequiredService<IBlobStorageMetaDataProvider>())
                 .UseBlobProviderSelector(services.GetRequiredService<IBlobProviderSelector>())
-                .UseStatisticalDataProvider(services.GetRequiredService<IStatisticalDataProvider>())
                 .UseSearchEngine(new InMemorySearchEngine(GetInitialIndex()))
-                .StartWorkflowEngine(false)
-                .DisableNodeObservers()
-                .EnableNodeObservers(typeof(SettingsCache))
                 .UseTraceCategories("Test", "Event", "Custom") as RepositoryBuilder;
 
             ContentTypeManager.Reset();
@@ -474,7 +472,7 @@ namespace SenseNet.Tests.Core
     <Field name='EngineSize' type='ShortText'/>
     <Field name='Power' type='ShortText'/>
     <Field name='Price' type='Number'/>
-    <Field name='Description' type='RichText'/>
+    <Field name='Description' type='LongText'/>
   </Fields>
 </ContentType>
 ";

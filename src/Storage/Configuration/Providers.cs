@@ -21,8 +21,10 @@ using SenseNet.Events;
 using SenseNet.Search.Querying;
 using SenseNet.Tools.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using SenseNet.ContentRepository.Search;
 using SenseNet.Storage;
+using SenseNet.Storage.Diagnostics;
 using SenseNet.Storage.Security;
 using SenseNet.TaskManagement.Core;
 using EventId = SenseNet.Diagnostics.EventId;
@@ -37,8 +39,12 @@ namespace SenseNet.Configuration
 
         public static string AccessProviderClassName => "SenseNet.ContentRepository.Security.DesktopAccessProvider";
         public static string DirectoryProviderClassName => null;
-        public static string MembershipExtenderClassName => "SenseNet.ContentRepository.Storage.Security.DefaultMembershipExtender";
-        public static bool RepositoryPathProviderEnabled { get;  } = GetValue<bool>(SectionName, "RepositoryPathProviderEnabled", true);
+
+        public static string MembershipExtenderClassName =>
+            "SenseNet.ContentRepository.Storage.Security.DefaultMembershipExtender";
+
+        public static bool RepositoryPathProviderEnabled { get; } =
+            GetValue<bool>(SectionName, "RepositoryPathProviderEnabled", true);
 
         private static string GetProvider(string key, string defaultValue = null)
         {
@@ -48,10 +54,14 @@ namespace SenseNet.Configuration
         //===================================================================================== Instance
 
         public IServiceProvider Services { get; }
+        private ILogger<Providers> _logger;
 
         public Providers(IServiceProvider services)
         {
             Services = services ?? throw new ArgumentNullException(nameof(services));
+            _logger = services.GetService<ILogger<Providers>>();
+
+            RepositoryStatus = services.GetService<ISenseNetStatus>();
 
             DataProvider = services.GetService<DataProvider>();
             DataStore = services.GetService<IDataStore>();
@@ -84,6 +94,9 @@ namespace SenseNet.Configuration
             ClusterChannelProvider = services.GetService<IClusterChannel>();
             Retrier = services.GetService<IRetrier>();
             MultiFactorAuthenticationProvider = services.GetService<IMultiFactorAuthenticationProvider>();
+
+            NodeObservers = services.GetServices<NodeObserver>().ToArray();
+            StatisticalDataProvider = services.GetService<IStatisticalDataProvider>();
         }
 
         /// <summary>
@@ -95,6 +108,7 @@ namespace SenseNet.Configuration
 
         /* ===================================================================================== Named providers */
 
+        public ISenseNetStatus RepositoryStatus { get; }
         public IEventPropertyCollector PropertyCollector { get; }
         public IAuditEventWriter AuditEventWriter { get; }
         public IMessageProvider SecurityMessageProvider { get; }
@@ -125,6 +139,12 @@ namespace SenseNet.Configuration
         public IRetrier Retrier { get; }
 
         public IMultiFactorAuthenticationProvider MultiFactorAuthenticationProvider { get; }
+
+        public NodeObserver[] NodeObservers { get; }
+
+        public IClusterChannel ClusterChannelProvider { get; }
+
+        public IStatisticalDataProvider StatisticalDataProvider { get; }
 
         /* ========================================================= Need to refactor */
 
@@ -211,7 +231,7 @@ namespace SenseNet.Configuration
             // We have to skip logging the creation of this provider, because the logger
             // itself tries to use the access provider when collecting event properties,
             // which would lead to a circular reference.
-            var provider = CreateProviderInstance<AccessProvider>(AccessProviderClassName, "AccessProvider", true);
+            var provider = CreateProviderInstance<AccessProvider>(AccessProviderClassName, "AccessProvider");
             provider.InitializeInternal();
 
             return provider;
@@ -230,51 +250,6 @@ namespace SenseNet.Configuration
         {
             get { return _membershipExtender.Value; }
             set { _membershipExtender = new Lazy<MembershipExtenderBase>(() => value); }
-        }
-        #endregion
-
-        public IClusterChannel ClusterChannelProvider { get; set; }
-
-        #region NodeObservers
-        private Lazy<NodeObserver[]> _nodeObservers = new Lazy<NodeObserver[]>(() =>
-        {
-            var nodeObserverTypes = TypeResolver.GetTypesByBaseType(typeof(NodeObserver));
-            var activeObservers = nodeObserverTypes.Where(t => !t.IsAbstract).Select(t => (NodeObserver)Activator.CreateInstance(t, true))
-                .Where(n => !RepositoryEnvironment.DisabledNodeObservers.Contains(n.GetType().FullName)).ToArray();
-
-            if (SnTrace.Repository.Enabled)
-            {
-                SnTrace.Repository.Write("NodeObservers (count: {0}):", nodeObserverTypes.Length);
-                for (var i = 0; i < nodeObserverTypes.Length; i++)
-                {
-                    var observerType = nodeObserverTypes[i];
-                    var fullName = observerType.FullName;
-                    SnTrace.Repository.Write("  #{0} ({1}): {2}:{3} // {4}",
-                        i + 1,
-                        RepositoryEnvironment.DisabledNodeObservers.Contains(fullName) ? "disabled" : "active",
-                        observerType.Name,
-                        observerType.BaseType?.Name,
-                        observerType.Assembly.GetName().Name);
-                }
-            }
-
-            var activeObserverNames = activeObservers.Select(x => x.GetType().FullName).ToArray();
-            SnLog.WriteInformation("NodeObservers are instantiated. ", EventId.RepositoryLifecycle,
-                properties: new Dictionary<string, object> { { "Types", string.Join(", ", activeObserverNames) } });
-
-            return activeObservers;
-        });
-        public NodeObserver[] NodeObservers
-        {
-            get { return _nodeObservers.Value; }
-            set
-            {
-                _nodeObservers = new Lazy<NodeObserver[]>(() => value);
-
-                SnLog.WriteInformation("NodeObservers have changed. ", EventId.RepositoryLifecycle,
-                    properties: new Dictionary<string, object>
-                        {{"Types", string.Join(", ", value?.Select(n => n.GetType().Name) ?? Array.Empty<string>())}});
-            }
         }
         #endregion
 
@@ -328,7 +303,7 @@ namespace SenseNet.Configuration
         {
             _providersByName[providerName] = provider;
         }
-        [Obsolete]
+        [Obsolete("Do not use this method anymore.", false)] // 16 references
         public void SetProvider(Type providerType, object provider)
         {
             SetProviderPrivate(providerType, provider);
@@ -338,7 +313,7 @@ namespace SenseNet.Configuration
             _providersByType[providerType] = provider;
         }
 
-        private static T CreateProviderInstance<T>(string className, string providerName, bool skipLog = false)
+        private static T CreateProviderInstance<T>(string className, string providerName)
         {
             T provider;
 
@@ -355,11 +330,7 @@ namespace SenseNet.Configuration
                 throw new ConfigurationException($"Invalid {providerName} implementation: {className}");
             }
 
-            // in some cases the logger is not available yet
-            if (skipLog)
-                SnTrace.System.Write($"{providerName} created: {className}");
-            else
-                SnLog.WriteInformation($"{providerName} created: {className}");
+            SnTrace.System.Write($"{providerName} created: {className}");
 
             return provider;
         }

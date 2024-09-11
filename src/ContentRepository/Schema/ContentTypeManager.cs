@@ -20,6 +20,9 @@ using SnCS = SenseNet.ContentRepository.Storage;
 using SenseNet.Search.Indexing;
 using SenseNet.Tools;
 using STT=System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using EventId = SenseNet.Diagnostics.EventId;
 
 namespace SenseNet.ContentRepository.Schema
 {
@@ -49,8 +52,9 @@ namespace SenseNet.ContentRepository.Schema
         private static bool _initializing = false;
 
         private const string ContentTypeManagerProviderKey = "ContentTypeManager";
+        private ILogger<ContentTypeManager> _logger;
 
-        [Obsolete("Use Instace instead.")]
+        [Obsolete("Use Instance instead.", true)]
         public static ContentTypeManager Current => Instance;
 
         public static ContentTypeManager Instance
@@ -71,7 +75,7 @@ namespace SenseNet.ContentRepository.Schema
                             contentTypeManager = ctm;
                             _initializing = false;
                             Providers.Instance.SetProvider(ContentTypeManagerProviderKey, ctm);
-                            SnLog.WriteInformation("ContentTypeManager created. Content types: " + ctm._contentTypes.Count);
+                            contentTypeManager._logger.LogInformation("ContentTypeManager created. Content types: " + ctm._contentTypes.Count);
                         }
                     }
                 }
@@ -149,6 +153,8 @@ namespace SenseNet.ContentRepository.Schema
 
         private void Initialize()
         {
+            _logger = Providers.Instance.Services.GetRequiredService<ILogger<ContentTypeManager>>();
+
             using (new SenseNet.ContentRepository.Storage.Security.SystemAccount())
             {
                 _contentPaths = new Dictionary<string, string>();
@@ -189,23 +195,24 @@ namespace SenseNet.ContentRepository.Schema
                 return;
             var m = Instance;
         }
+
+        private static ILogger<ContentTypeManager> GetLogger()
+            => Providers.Instance.Services.GetRequiredService<ILogger<ContentTypeManager>>();
+
         internal static void Reset()
         {
-            SnLog.WriteInformation("ContentTypeManager.Reset called.", EventId.RepositoryRuntime,
-                properties: new Dictionary<string, object> { { "AppDomain", AppDomain.CurrentDomain.FriendlyName } });
-
+            GetLogger().LogTrace("ContentTypeManager.Reset called.");
             new ContentTypeManagerResetDistributedAction().ExecuteAsync(CancellationToken.None).GetAwaiter().GetResult();
         }
         private static void ResetPrivate()
         {
             lock (_syncRoot)
             {
-                SnLog.WriteInformation("ContentTypeManager.Reset executed.", EventId.RepositoryRuntime,
-                   properties: new Dictionary<string, object> { { "AppDomain", AppDomain.CurrentDomain.FriendlyName } });
-
                 Providers.Instance.SetProvider(ContentTypeManagerProviderKey, null);
                 _indexingInfoTable = new Dictionary<string, IPerFieldIndexingInfo>();
                 ContentType.OnTypeSystemRestarted();
+
+                GetLogger().LogInformation("ContentTypeManager.Reset executed.");
             }
         }
 
