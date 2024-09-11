@@ -26,7 +26,7 @@ Param (
 	[Parameter(Mandatory=$False)]
 	[string]$SnType="InSql",
 	[Parameter(Mandatory=$False)]
-	[string]$SensenetDockerImage="sensenetcsp/sn-api-sql",
+	[string]$SensenetDockerImage="sensenetcsp/sn-api-sql:latest",
 	[Parameter(Mandatory=$False)]
 	[string]$SensenetContainerName="$($ProjectName)-snapp",
 	[Parameter(Mandatory=$False)]
@@ -120,14 +120,14 @@ $date = Get-Date -Format "yyyy-MM-dd HH:mm K"
 
 switch ($SnType) {
 	"InMem" { 
-		$SensenetDockerImage="sensenetcsp/sn-api-inmem"
+		$SensenetDockerImage="sensenetcsp/sn-api-inmem:latest"
 	}
 	"InSql" { 
 		if ($SearchService) { 			
-			$SensenetDockerImage="sensenetcsp/sn-api-nlb"
+			$SensenetDockerImage="sensenetcsp/sn-api-nlb:latest"
 		}
 		else {
-			$SensenetDockerImage="sensenetcsp/sn-api-sql"
+			$SensenetDockerImage="sensenetcsp/sn-api-sql:latest"
 		}		
 	}
 	Default {
@@ -164,8 +164,8 @@ $execFile = "docker"
 $params = "run", "-it", "-d", "eol",
 "--net", $NetworkName, "eol",
 "--name", $SensenetContainerName, "eol",
-"-e", "`"ASPNETCORE_URLS=$aspnetUrls`"", "eol",
-"-e", "`"ASPNETCORE_ENVIRONMENT=$AppEnvironment`"", "eol",
+"-e", "ASPNETCORE_URLS=$aspnetUrls", "eol",
+"-e", "ASPNETCORE_ENVIRONMENT=$AppEnvironment", "eol",
 "-e", "sensenet__Container__Name=$($SensenetContainerName)", "eol",
 "-e", "sensenet__identityManagement__UserProfilesEnabled=false", "eol",
 "-e", "sensenet__authentication__authority=$($IdentityPublicHost)", "eol",
@@ -201,11 +201,11 @@ if ($SnType -ne "InMem" -and -not $UseDbContainer) {
 }
 
 if ($CertPath -ne "") {
-	$params += "-e", "`"Kestrel__Certificates__Default__Path=$CertPath`"", "eol"
+	$params += "-e", "Kestrel__Certificates__Default__Path=$CertPath", "eol"
 }
 
 if ($CertPass -ne "") {
-	$params += "-e", "`"Kestrel__Certificates__Default__Password=$CertPass`"", "eol"
+	$params += "-e", "Kestrel__Certificates__Default__Password=$CertPass", "eol"
 }
 
 if ($UseVolume -and $CertFolder -ne "") {
@@ -246,6 +246,10 @@ if (-not $DryRun) {
 	}
 
 	$CRIP=$(docker inspect -f "{{ .NetworkSettings.Networks.$($NetworkName).IPAddress }}" $SensenetContainerName)
+	if ($CRIP -is [array] -and $CRIP[1] -is [string]) {
+		# workaround for "failed to get console mode for stdout: The handle is invalid."
+		$CRIP = $CRIP[1]
+	}
 	Write-Output "`n[$($date) INFO] Sensenet App Ip: $CRIP"
 	if ($OpenPort) {
 		Write-Output "[$($date) INFO] Sensenet App url: https://localhost:$SnHostPort"

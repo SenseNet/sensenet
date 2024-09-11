@@ -38,7 +38,7 @@ Param (
 
 	# Search service parameters
     [Parameter(Mandatory=$False)]
-	[string]$SearchDockerImage="sensenetcsp/sn-searchservice",
+	[string]$SearchDockerImage="sensenetcsp/sn-searchservice:latest",
 	[Parameter(Mandatory=$False)]
 	[string]$SearchContainerName="$($ProjectName)-snsearch",
     [Parameter(Mandatory=$False)]
@@ -119,17 +119,17 @@ $execFile = "docker"
 $params = "run", "-it", "-d", "eol",
 "--net", $NetworkName, "eol",
 "--name", $SearchContainerName, "eol",
-"-e", "`"ASPNETCORE_URLS=$aspnetUrls`"", "eol",
-"-e", "`"ASPNETCORE_ENVIRONMENT=$AppEnvironment`"", "eol",
+"-e", "ASPNETCORE_URLS=$aspnetUrls", "eol",
+"-e", "ASPNETCORE_ENVIRONMENT=$AppEnvironment", "eol",
 "-e", "ConnectionStrings__SecurityStorage=Persist Security Info=False;Initial Catalog=$($SqlDbName);Data Source=$($DataSource);User ID=$($SqlUser);Password=$($SqlPsw);TrustServerCertificate=true", "eol",
 "-e", "sensenet__security__rabbitmq__ServiceUrl=$($RabbitServiceHost)", "eol"
 
 if ($CertPath -ne "") {
-	$params += "-e", "`"Kestrel__Certificates__Default__Path=$CertPath`"", "eol"
+	$params += "-e", "Kestrel__Certificates__Default__Path=$CertPath", "eol"
 }
 
 if ($CertPass -ne "") {
-	$params += "-e", "`"Kestrel__Certificates__Default__Password=$CertPass`"", "eol"
+	$params += "-e", "Kestrel__Certificates__Default__Password=$CertPass", "eol"
 }
 
 if ($UseVolume -and $CertFolder -ne "") {
@@ -171,5 +171,9 @@ if (-not $DryRun) {
 	}
 
 	$SCIP=(docker inspect -f "{{ .NetworkSettings.Networks.$($NetworkName).IPAddress }}" $SearchContainerName)
+	if ($SCIP -is [array] -and $SCIP[1] -is [string]) {
+		# workaround for "failed to get console mode for stdout: The handle is invalid."
+		$SCIP = $SCIP[1]
+	}
 	Write-Output "`n[$($date) INFO] Search Service Ip: $SCIP"
 }

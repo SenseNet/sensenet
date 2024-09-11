@@ -72,17 +72,21 @@ Write-Output "############################"
 
 $execFile = "docker"
 $params = "run", "-d", "eol",
-	"--net", "`"$NetworkName`"", "eol",
-	"--hostname", "`"$($RabbitContainerName)`"", "eol",
-	"--name", "`"$($RabbitContainerName)`"", "eol",
-	"-e", "`"RABBITMQ_DEFAULT_USER=$RabbitUser`"", "eol",
-	"-e", "`"RABBITMQ_DEFAULT_PASS=$RabbitPsw`"", "eol",
-	"-p", "`"$($RabbitPort):15672`"", "eol",
+	"--net", "$NetworkName", "eol",
+	"--hostname", "$($RabbitContainerName)", "eol",
+	"--name", "$($RabbitContainerName)", "eol",
+	"-e", "RABBITMQ_DEFAULT_USER=$RabbitUser", "eol",
+	"-e", "RABBITMQ_DEFAULT_PASS=$RabbitPsw", "eol",
+	"-p", "$($RabbitPort):15672", "eol",
 	"$RABBIT_DOCKERIMAGE"
 
 Invoke-Cli -execFile $execFile -params $params -DryRun $DryRun -ErrorAction stop
 if (-not $DryRun) {	
 	$RABBITIP=$(docker inspect -f "{{ .NetworkSettings.Networks.$($NetworkName).IPAddress }}" $RabbitContainerName)
+	if ($RABBITIP -is [array] -and $RABBITIP[1] -is [string]) {
+		# workaround for "failed to get console mode for stdout: The handle is invalid."
+		$RABBITIP = $RABBITIP[1]
+	}
 	Write-Output "`n[$($date) INFO] RABBITIP: $RABBITIP"
 	Write-Output "[$($date) INFO] RabbitMq url: http://localhost:$RabbitPort"
 }

@@ -168,7 +168,7 @@ if ($SnType -eq "InSql") {
 #====================== clean up ======================
 
 if ($CleanUp -or $Uninstall) {
-	./scripts/cleanup-sensenet.ps1 `
+	& $PSScriptRoot/scripts/cleanup-sensenet.ps1 `
 		-ProjectName $ProjectName `
 		-SnType $SnType `
 		-UseDbContainer $UseDbContainer `
@@ -179,7 +179,7 @@ if ($CleanUp -or $Uninstall) {
 		-ErrorAction stop
 	
 	if ($SnType -eq "InSql" -and -not $UseDbContainer -and -not $KeepRemoteDatabase) {
-		./scripts/install-sql-server.ps1 `
+		& $PSScriptRoot/scripts/install-sql-server.ps1 `
 			-ProjectName $ProjectName `
 			-HostName $Hostname `
 			-VolumeBasePath $VolumeBasePath `
@@ -196,7 +196,7 @@ if ($CleanUp -or $Uninstall) {
 	if ($Uninstall) {
 		# rabbitmq shared across installments so remove only at uninstall 
 		if ($createRabbitContainer -and -not $KeepRabbitMq) {
-			./scripts/install-rabbit.ps1 `
+			& $PSScriptRoot/scripts/install-rabbit.ps1 `
 				-RabbitContainername $rabbitContainerName `
 				-Uninstall $True `
 				-DryRun $DryRun `
@@ -210,7 +210,7 @@ if ($CleanUp -or $Uninstall) {
 #====================== prerequisites ======================
 
 # create dev cert if cert is not available
-./scripts/create-devcert.ps1 `
+& $PSScriptRoot/scripts/create-devcert.ps1 `
 	-VolumeBasePath $VolumeBasePath `
 	-CertPsw $CertPsw `
 	-UseVolume $UseVolume `
@@ -220,7 +220,7 @@ if ($CleanUp -or $Uninstall) {
 
 if ($CreateImages) {
 	foreach ($imageType in $imageTypes) {
-		./scripts/create-images.ps1 `
+		& $PSScriptRoot/scripts/create-images.ps1 `
 			-ImageType $imageType `
 			-SearchService $SearchService `
 			-LocalSn $LocalSn `
@@ -235,12 +235,12 @@ if ($NoInstall) {
 	return
 }
 
-./scripts/install-sensenet-init.ps1 `
+& $PSScriptRoot/scripts/install-sensenet-init.ps1 `
 	-DryRun $DryRun `
 	-ErrorAction stop
 
 if ($SearchService -and $createRabbitContainer) {
-	./scripts/install-rabbit.ps1 `
+	& $PSScriptRoot/scripts/install-rabbit.ps1 `
 		-RabbitContainername $rabbitContainerName `
 		-RabbitPort $rabbitPort `
 		-RabbitUser $rabbitUSer `
@@ -250,7 +250,7 @@ if ($SearchService -and $createRabbitContainer) {
 }
 
 if ($SnType -eq "InSql") {
-	./scripts/install-sql-server.ps1 `
+	& $PSScriptRoot/scripts/install-sql-server.ps1 `
 		-ProjectName $ProjectName `
 		-HostName $Hostname `
 		-VolumeBasePath $VolumeBasePath `
@@ -263,7 +263,7 @@ if ($SnType -eq "InSql") {
 		-ErrorAction stop
 }
 
-./scripts/install-identity-server.ps1 `
+& $PSScriptRoot/scripts/install-identity-server.ps1 `
 	-ProjectName $ProjectName `
 	-VolumeBasePath $VolumeBasePath `
 	-Routing cnt `
@@ -278,7 +278,7 @@ if ($SnType -eq "InSql") {
 	-ErrorAction stop
 
 if ($SearchService) {
-	./scripts/install-search-service.ps1 `
+	& $PSScriptRoot/scripts/install-search-service.ps1 `
 		-ProjectName $ProjectName `
 		-HostName $HostName `
 		-VolumeBasePath $VolumeBasePath `
@@ -297,7 +297,7 @@ if ($SearchService) {
 		-ErrorAction stop
 }
 
-./scripts/install-sensenet-app.ps1 `
+& $PSScriptRoot/scripts/install-sensenet-app.ps1 `
 	-ProjectName $ProjectName `
 	-HostName $Hostname `
 	-VolumeBasePath $VolumeBasePath `
@@ -326,14 +326,14 @@ if (-not $DryRun -and ($OpenInBrowser -or $SearchService)) {
 
 if ($SearchService) {
 	# Search service workaround to refresh lucene index after sensenet repository is initialized
-	./scripts/install-search-service.ps1 `
+	& $PSScriptRoot/scripts/install-search-service.ps1 `
 		-ProjectName $ProjectName `
 		-Restart $True `
 		-DryRun $DryRun `
 		-ErrorAction stop
 
 	# Sensenet application workaround if preparation was too slow and app terminated
-	./scripts/install-sensenet-app.ps1 `
+	& $PSScriptRoot/scripts/install-sensenet-app.ps1 `
 		-ProjectName $ProjectName `
 		-Restart $True `
 		-DryRun $DryRun `
