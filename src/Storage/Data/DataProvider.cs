@@ -522,9 +522,10 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// </summary>
         /// <remarks>Not all types will be returned, only the ones that should be allowed on the target container.</remarks>
         /// <param name="nodeId">Node identifier.</param>
+        /// <param name="transitiveNodeTypeIds">Ids of the nodeTypes that are transitive for allowed child types.</param>
         /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation and wraps a list of node types in a subtree.</returns>
-        public abstract Task<IEnumerable<NodeType>> LoadChildTypesToAllowAsync(int nodeId, CancellationToken cancellationToken);
+        public abstract Task<IEnumerable<NodeType>> LoadChildTypesToAllowAsync(int nodeId, int[] transitiveNodeTypeIds, CancellationToken cancellationToken);
         /// <summary>
         /// Gets a list of content list types in a subtree.
         /// </summary>
@@ -931,6 +932,11 @@ namespace SenseNet.ContentRepository.Storage.Data
             Action<FileModel> fileCallback,
             Action<LogEntriesTableModel> logEntriesTableCallback,
             CancellationToken cancel);
+
+        /* =============================================================================================== Health */
+
+        public abstract object GetConfigurationForHealthDashboard();
+        public abstract Task<HealthResult> GetHealthAsync(CancellationToken cancel);
 
         /* =============================================================================================== Tools */
 

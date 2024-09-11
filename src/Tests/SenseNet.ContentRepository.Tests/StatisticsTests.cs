@@ -2196,7 +2196,6 @@ namespace SenseNet.ContentRepository.Tests
 
             await ODataTestAsync(builder =>
             {
-                builder.UseStatisticalDataProvider(new InMemoryStatisticalDataProvider());
             }, async () =>
             {
                 async STT.Task<string> GetApiUsagePeriods(DateTime now, TimeWindow window)

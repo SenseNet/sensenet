@@ -139,6 +139,7 @@ namespace SenseNet.OData.Metadata
                 AllowIndexing = schemaClass.ContentType.IndexingEnabled,
                 schemaClass.ContentType.AllowIncrementalNaming,
                 AllowedChildTypes = schemaClass.ContentType.AllowedChildTypeNames,
+                schemaClass.ContentType.IsTransitiveForAllowedTypes,
                 schemaClass.ContentType.Categories,
                 schemaClass.ContentType.HandlerName,
                 FieldSettings = schemaClass.ContentType.FieldSettings
@@ -149,12 +150,11 @@ namespace SenseNet.OData.Metadata
         //======================================================================================= OData API
 
         /// <summary>Gets type and field information for a single content type or all of them.</summary>
-        /// <snCategory>Content and Schema</snCategory>
         /// <param name="content"></param>
         /// <param name="contentTypeName">Optional content type name.</param>
         /// <returns>A list of type objects containing content type head information
         /// (name, parent, etc.) and field settings.</returns>
-        [ODataFunction]
+        [ODataFunction(Category = "Content and Schema")]
         [ContentTypes(N.CT.PortalRoot)]
         [AllowedRoles(N.R.All)]
         public static object GetSchema(Content content, string contentTypeName = null)

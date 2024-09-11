@@ -166,21 +166,21 @@ namespace SenseNet.ContentRepository.Tests
                 var node = new SystemFolder(Repository.Root) { Name = contentName, Description = "Desc1" };
                 var fieldName = nameof(node.Description);
                 var content = node.Content;
-                Assert.AreEqual("Desc1", ((RichTextFieldValue)content[fieldName]).Text);
+                Assert.AreEqual("Desc1", (string)content[fieldName]);
 
                 node.Description = "Desc2";
-                Assert.AreEqual("Desc2", ((RichTextFieldValue)content[fieldName]).Text);
+                Assert.AreEqual("Desc2", (string)content[fieldName]);
 
                 node.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 Assert.AreEqual("Desc2", node.Description);
-                Assert.AreEqual("Desc2", ((RichTextFieldValue)content[fieldName]).Text);
+                Assert.AreEqual("Desc2", (string)content[fieldName]);
 
                 content[fieldName] = "Desc42";
                 Assert.AreEqual("Desc2", node.Description);
                 Assert.AreEqual("Desc42", (string)content[fieldName]);
 
                 node.Description = "Desc3";
-                Assert.AreEqual("Desc3", ((RichTextFieldValue)content[fieldName]).Text);
+                Assert.AreEqual("Desc3", (string)content[fieldName]);
 
                 node.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
@@ -200,13 +200,13 @@ namespace SenseNet.ContentRepository.Tests
                 var content = node.Content;
                 node.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
                 Assert.AreEqual(originalValue, node.Description);
-                Assert.AreEqual(originalValue, ((RichTextFieldValue)content[fieldName]).Text);
+                Assert.AreEqual(originalValue, (string)content[fieldName]);
 
                 node.Description = "Changed";
-                Assert.AreEqual("Changed", ((RichTextFieldValue)content[fieldName]).Text);
+                Assert.AreEqual("Changed", (string)content[fieldName]);
 
                 node.Description = originalValue;
-                Assert.AreEqual(originalValue, ((RichTextFieldValue)content[fieldName]).Text);
+                Assert.AreEqual(originalValue, (string)content[fieldName]);
 
                 node.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 

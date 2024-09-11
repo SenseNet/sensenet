@@ -18,6 +18,7 @@ using SenseNet.ContentRepository.Storage.Events;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.ContentRepository.InMemory;
 using SenseNet.ContentRepository.Schema;
+using SenseNet.ContentRepository.Sharing;
 using SenseNet.Diagnostics;
 using SenseNet.Extensions.DependencyInjection;
 using SenseNet.Search;
@@ -128,9 +129,10 @@ namespace SenseNet.ContentRepository.Tests
 
         #endregion
 
-        private IRepositoryBuilder CreateRepositoryBuilder(AccessProvider accessProvider = null, ISearchEngine searchEngine = null)
+        private IRepositoryBuilder CreateRepositoryBuilder(AccessProvider accessProvider = null, ISearchEngine searchEngine = null,
+            Action<IServiceCollection> modifyServices = null)
         {
-            var services = CreateServiceProviderForTest();
+            var services = CreateServiceProviderForTest(modifyServices: modifyServices);
             Providers.Instance = new Providers(services);
 
             var dbProvider = services.GetRequiredService<DataProvider>();
@@ -142,15 +144,18 @@ namespace SenseNet.ContentRepository.Tests
                 .AddBlobProvider(new InMemoryBlobProvider())
                 .UseSearchEngine(searchEngine ?? services.GetRequiredService<ISearchEngine>())
                 .StartIndexingEngine(false)
-                .StartWorkflowEngine(false)
                 .UseTraceCategories("Test", "Web", "System");
         }
 
+        /* ================================================================================= */
+
         [TestMethod]
-        public void RepositoryStart_NodeObservers_DisableAll()
+        public void RepositoryStart_NodeObservers__OLD_DisableAll()
         {
-            var repoBuilder = CreateRepositoryBuilder()
-                .DisableNodeObservers();
+            var repoBuilder = CreateRepositoryBuilder(modifyServices: services =>
+            {
+                services.RemoveAllNodeObservers();
+            });
 
             using (Repository.Start(repoBuilder))
             {
@@ -159,12 +164,15 @@ namespace SenseNet.ContentRepository.Tests
         }
 
         [TestMethod]
-        public void RepositoryStart_NodeObservers_EnableOne()
+        public void RepositoryStart_NodeObservers__OLD_EnableOne()
         {
-            var repoBuilder = CreateRepositoryBuilder()
-                .DisableNodeObservers()
-                .EnableNodeObservers(typeof(TestNodeObserver1));
-
+            Providers.Instance = null;
+            var repoBuilder = CreateRepositoryBuilder(modifyServices: services =>
+            {
+                services
+                    .RemoveAllNodeObservers()
+                    .AddNodeObserver<TestNodeObserver1>();
+            });
 
             using (Repository.Start(repoBuilder))
             {
@@ -174,11 +182,16 @@ namespace SenseNet.ContentRepository.Tests
         }
 
         [TestMethod]
-        public void RepositoryStart_NodeObservers_EnableMore()
+        public void RepositoryStart_NodeObservers__OLD_EnableMore()
         {
-            var repoBuilder = CreateRepositoryBuilder()
-                .DisableNodeObservers()
-                .EnableNodeObservers(typeof(TestNodeObserver1), typeof(TestNodeObserver2));
+            Providers.Instance = null;
+            var repoBuilder = CreateRepositoryBuilder(modifyServices: services =>
+            {
+                services
+                    .RemoveAllNodeObservers()
+                    .AddNodeObserver<TestNodeObserver1>()
+                    .AddNodeObserver<TestNodeObserver2>();
+            });
 
             using (Repository.Start(repoBuilder))
             {
@@ -189,20 +202,66 @@ namespace SenseNet.ContentRepository.Tests
         }
 
         [TestMethod]
-        public void RepositoryStart_NodeObservers_DisableOne()
+        public void RepositoryStart_NodeObservers__OLD_DisableOne()
         {
-            var repoBuilder = CreateRepositoryBuilder()
-                .DisableNodeObservers(typeof(TestNodeObserver1));
+            Providers.Instance = null;
+            var repoBuilder = CreateRepositoryBuilder(modifyServices: services =>
+            {
+                services.AddNodeObserver<TestNodeObserver1>();
+                services.AddNodeObserver<TestNodeObserver2>();
+                services.RemoveNodeObserver<TestNodeObserver1>();
+            });
 
             using (Repository.Start(repoBuilder))
             {
                 Assert.IsFalse(Providers.Instance.NodeObservers.Any(no => no.GetType() == typeof(TestNodeObserver1)));
-
-                //TODO: currently this does not work, because observers are enabled/disabled globally.
-                // Itt will, when we move to a per-thread environment in tests.
-                //Assert.IsTrue(Providers.Instance.NodeObservers.Any(no => no.GetType() == typeof(TestNodeObserver2)));
+                Assert.IsTrue(Providers.Instance.NodeObservers.Any(no => no.GetType() == typeof(TestNodeObserver2)));
             }
         }
+
+        [TestMethod]
+        public void RepositoryStart_NodeObservers_DefaultSet()
+        {
+            Providers.Instance = null;
+            Test(() =>
+            {
+                var expected = "SettingsCache"; // Default set of the test environment.
+                var actual = string.Join(", ", Providers.Instance.NodeObservers
+                    .Select(no => no.GetType().Name)
+                    .OrderBy(n => n));
+                Assert.AreEqual(expected, actual);
+            });
+        }
+        [TestMethod]
+        public void RepositoryStart_NodeObservers_RemoveAll()
+        {
+            Providers.Instance = null;
+            Test2(services =>
+            {
+                services.RemoveAllNodeObservers();
+            }, () =>
+            {
+                Assert.AreEqual(0, Providers.Instance.NodeObservers.Length);
+            });
+        }
+        [TestMethod]
+        public void RepositoryStart_NodeObservers_AddRemove()
+        {
+            Providers.Instance = null;
+            Test2(services =>
+            {
+                services
+                    .AddNodeObserver<TestNodeObserver1>()
+                    .AddNodeObserver<TestNodeObserver2>()
+                    .RemoveNodeObserver<TestNodeObserver2>();
+            }, () =>
+            {
+                Assert.IsTrue(Providers.Instance.NodeObservers.Any(no => no.GetType() == typeof(TestNodeObserver1)));
+                Assert.IsFalse(Providers.Instance.NodeObservers.Any(no => no.GetType() == typeof(TestNodeObserver2)));
+            });
+        }
+
+        /* ================================================================================= */
 
         [TestMethod]
         public void RepositoryStart_NullPopulator()

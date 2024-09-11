@@ -183,7 +183,7 @@ namespace SenseNet.ContentRepository.Storage.AppModel
         }
     }
 
-    internal sealed class AppCacheInvalidator : NodeObserver
+    public sealed class AppCacheInvalidator : NodeObserver
     {
         public static event EventHandler<AppCacheInvalidateEventArgs> Invalidate;
 
@@ -215,7 +215,7 @@ namespace SenseNet.ContentRepository.Storage.AppModel
                 Invalidate(sender, new AppCacheInvalidateEventArgs(path));
         }
     }
-    internal class AppCacheInvalidateEventArgs : EventArgs
+    public class AppCacheInvalidateEventArgs : EventArgs
     {
         public string Path { get; private set; }
 

@@ -3589,22 +3589,20 @@ namespace SenseNet.ContentRepository.Storage
         }
         #endregion
 
-        //TODO: Node.GetChildTypesToAllow(int nodeId): check SQL procedure algorithm. See issue #259
         /// <summary>
         /// Gets all the types that can be found in a subtree under a node defined by an Id.
         /// </summary>
-        public static IEnumerable<NodeType> GetChildTypesToAllow(int nodeId)
+        public static IEnumerable<NodeType> GetChildTypesToAllow(int nodeId, int[] transitiveNodeTypeIds)
         {
             return Providers.Instance.DataStore
-                .LoadChildTypesToAllowAsync(nodeId, CancellationToken.None).GetAwaiter().GetResult();
+                .LoadChildTypesToAllowAsync(nodeId, transitiveNodeTypeIds, CancellationToken.None).GetAwaiter().GetResult();
         }
-        //TODO: Node.GetChildTypesToAllow(): check SQL procedure algorithm. See issue #259
         /// <summary>
         /// Gets all the types that can be found in a subtree under the current node.
         /// </summary>
-        public IEnumerable<NodeType> GetChildTypesToAllow()
+        public IEnumerable<NodeType> GetChildTypesToAllow(int[] transitiveNodeTypeIds)
         {
-            return DataStore.LoadChildTypesToAllowAsync(this.Id, CancellationToken.None).GetAwaiter().GetResult();
+            return DataStore.LoadChildTypesToAllowAsync(this.Id, transitiveNodeTypeIds, CancellationToken.None).GetAwaiter().GetResult();
         }
 
         #region // ================================================================================================= Move methods

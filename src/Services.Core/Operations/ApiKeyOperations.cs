@@ -6,6 +6,7 @@ using SenseNet.ApplicationModel;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Security.ApiKeys;
 using SenseNet.ContentRepository.Storage.Security;
+using SenseNet.Diagnostics.Analysis;
 
 namespace SenseNet.Services.Core.Operations
 {
@@ -14,11 +15,10 @@ namespace SenseNet.Services.Core.Operations
         /// <summary>
         /// Gets API keys related to the target user.
         /// </summary>
-        /// <snCategory>Authentication</snCategory>
         /// <param name="content"></param>
         /// <param name="context"></param>
         /// <returns>An object containing an array of API keys related to the target user.</returns>
-        [ODataFunction]
+        [ODataFunction(Category = "Authentication")]
         [ContentTypes(N.CT.User)]
         [AllowedRoles(N.R.All)]
         public static async Task<object> GetApiKeys(Content content, HttpContext context)
@@ -35,13 +35,12 @@ namespace SenseNet.Services.Core.Operations
         /// <summary>
         /// Creates an api key for the target user.
         /// </summary>
-        /// <snCategory>Authentication</snCategory>
         /// <exception cref="SenseNetSecurityException">Thrown when the caller does not have enough permissions
         /// to manage the API keys of the target user.</exception>
         /// <param name="content"></param>
         /// <param name="context"></param>
         /// <returns>The newly created API key.</returns>
-        [ODataAction]
+        [ODataAction(Category = "Authentication")]
         [ContentTypes(N.CT.User)]
         [AllowedRoles(N.R.All)]
         public static async Task<ApiKey> CreateApiKey(Content content, HttpContext context)
@@ -55,7 +54,6 @@ namespace SenseNet.Services.Core.Operations
         /// <summary>
         /// Deletes an API key.
         /// </summary>
-        /// <snCategory>Authentication</snCategory>
         /// <exception cref="SenseNetSecurityException">Thrown when the caller does not have enough permissions
         /// to manage the API keys of the target user.</exception>
         /// <param name="content"></param>
@@ -63,7 +61,7 @@ namespace SenseNet.Services.Core.Operations
         /// <param name="apiKey">API key identifier.</param>
         /// <returns>An empty result.</returns>
         /// <exception cref="ArgumentNullException"></exception>
-        [ODataAction]
+        [ODataAction(Category = "Authentication")]
         [ContentTypes(N.CT.User, N.CT.PortalRoot)]
         [AllowedRoles(N.R.All)]
         public static async System.Threading.Tasks.Task DeleteApiKey(Content content, HttpContext context, string apiKey)
@@ -78,13 +76,12 @@ namespace SenseNet.Services.Core.Operations
         /// <summary>
         /// Deletes all api keys.
         /// </summary>
-        /// <snCategory>Authentication</snCategory>
         /// <exception cref="SenseNetSecurityException">Thrown when the caller does not have enough permissions
         /// to manage the API keys of the target user.</exception>
         /// <param name="content"></param>
         /// <param name="context"></param>
         /// <returns>An empty result.</returns>
-        [ODataAction]
+        [ODataAction(Category = "Authentication")]
         [ContentTypes(N.CT.PortalRoot)]
         [AllowedRoles(N.R.Administrators, N.R.PublicAdministrators)]
         public static System.Threading.Tasks.Task DeleteApiKeys(Content content, HttpContext context)
@@ -95,13 +92,12 @@ namespace SenseNet.Services.Core.Operations
         /// <summary>
         /// Deletes api keys of the target user.
         /// </summary>
-        /// <snCategory>Authentication</snCategory>
         /// <exception cref="SenseNetSecurityException">Thrown when the caller does not have enough permissions
         /// to manage the API keys of the target user.</exception>
         /// <param name="content"></param>
         /// <param name="context"></param>
         /// <returns>An empty result.</returns>
-        [ODataAction(OperationName = "DeleteApiKeys")]
+        [ODataAction(OperationName = "DeleteApiKeys", Category = "Authentication")]
         [ContentTypes(N.CT.User)]
         [AllowedRoles(N.R.Administrators, N.R.PublicAdministrators)]
         public static System.Threading.Tasks.Task DeleteApiKeysByUser(Content content, HttpContext context)

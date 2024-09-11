@@ -807,7 +807,7 @@ namespace SenseNet.ContentRepository.Tests
         public void Sharing_Create_User_CSrv()
         {
             // we need the sharing observer for this feature
-            Test(builder => { builder.EnableNodeObservers(typeof(SharingNodeObserver)); }, () =>
+            Test2(services => { services.AddNodeObserver<SharingNodeObserver>(); }, () =>
             {
                 var root = CreateTestRoot();
 
@@ -856,7 +856,7 @@ namespace SenseNet.ContentRepository.Tests
         public void Sharing_Change_Email()
         {
             // we need the sharing observer for this feature
-            Test(builder => { builder.EnableNodeObservers(typeof(SharingNodeObserver)); }, () =>
+            Test2(services => { services.AddNodeObserver<SharingNodeObserver>(); }, () =>
             {
                 var root = CreateTestRoot();
 
@@ -938,7 +938,7 @@ namespace SenseNet.ContentRepository.Tests
         public void Sharing_Delete_User()
         {
             // we need the sharing observer for this feature
-            Test(builder => { builder.EnableNodeObservers(typeof(SharingNodeObserver)); }, () =>
+            Test2(services => { services.AddNodeObserver<SharingNodeObserver>(); }, () =>
             {
                 var root = CreateTestRoot();
 
@@ -992,7 +992,7 @@ namespace SenseNet.ContentRepository.Tests
         public void Sharing_Delete_Group()
         {
             // we need the sharing observer for this feature
-            Test(builder => { builder.EnableNodeObservers(typeof(SharingNodeObserver)); }, () =>
+            Test2(services => { services.AddNodeObserver<SharingNodeObserver>(); }, () =>
             {
                 var root = CreateTestRoot();
 
@@ -1150,7 +1150,7 @@ namespace SenseNet.ContentRepository.Tests
         public void Sharing_Public_DeleteContent()
         {
             // we need the sharing observer for this feature
-            Test(builder => { builder.EnableNodeObservers(typeof(SharingNodeObserver)); }, () =>
+            Test2(services => { services.AddNodeObserver<SharingNodeObserver>(); }, () =>
             {
 
                 var root = CreateTestRoot();
@@ -1180,7 +1180,7 @@ namespace SenseNet.ContentRepository.Tests
         public void Sharing_Public_DeleteTree()
         {
             // we need the sharing observer for this feature
-            Test(builder => { builder.EnableNodeObservers(typeof(SharingNodeObserver)); }, () =>
+            Test2(services => { services.AddNodeObserver<SharingNodeObserver>(); }, () =>
             {
 
                 var root = CreateTestRoot();

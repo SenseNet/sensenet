@@ -222,14 +222,13 @@ namespace SenseNet.WebHooks
         /// <summary>
         /// Gets all webhook usage information.
         /// </summary>
-        /// <snCategory>WebHooks</snCategory>
         /// <param name="content"></param>
         /// <param name="httpContext"></param>
         /// <param name="maxTime">The maximum date boundary of the query. Only records before this date
         /// will be returned. Default: current time.</param>
         /// <param name="count">Maximum number of records to load. Default: 10.</param>
         /// <returns>A list of webhook usage records.</returns>
-        [ODataFunction(operationName: "GetWebHookUsageList")]
+        [ODataFunction(operationName: "GetWebHookUsageList", Category = "WebHooks")]
         [ContentTypes(N.CT.PortalRoot)]
         [AllowedRoles(N.R.Administrators, N.R.PublicAdministrators, N.R.Developers)]
         public static async Task<IEnumerable<WebHookUsageListItemViewModel>> GetAllWebHookUsageList(Content content, HttpContext httpContext,
@@ -253,14 +252,13 @@ namespace SenseNet.WebHooks
         /// <summary>
         /// Gets webhook usage information for the target subscription.
         /// </summary>
-        /// <snCategory>WebHooks</snCategory>
         /// <param name="content"></param>
         /// <param name="httpContext"></param>
         /// <param name="maxTime">The maximum date boundary of the query. Only records before this date
         /// will be returned. Default: current time.</param>
         /// <param name="count">Maximum number of records to load. Default: 10.</param>
         /// <returns>A list of webhook usage records.</returns>
-        [ODataFunction]
+        [ODataFunction(Category = "WebHooks")]
         [ContentTypes("WebHookSubscription")]
         [AllowedRoles(N.R.Administrators, N.R.PublicAdministrators, N.R.Developers)]
         public static async Task<IEnumerable<WebHookUsageListItemViewModel>> GetWebHookUsageList(Content content, HttpContext httpContext,
@@ -282,12 +280,11 @@ namespace SenseNet.WebHooks
         /// Gets the availability of webhook statistics by time window
         /// and the number of corresponding data points.
         /// </summary>
-        /// <snCategory>WebHooks</snCategory>
         /// <param name="content"></param>
         /// <param name="httpContext"></param>
         /// <param name="timeWindow">Size of the time window: Hour, Day, Month or Year. Default: Month.</param>
         /// <returns>A webhook statistical data containing start and end dates and count of records.</returns>
-        [ODataFunction]
+        [ODataFunction(Category = "WebHooks")]
         [ContentTypes(N.CT.PortalRoot)]
         [AllowedRoles(N.R.Administrators, N.R.PublicAdministrators, N.R.Developers)]
         public static Task<object> GetWebHookUsagePeriods(Content content, HttpContext httpContext,
@@ -355,13 +352,12 @@ namespace SenseNet.WebHooks
         /// <summary>
         /// Gets aggregated webhook statistical data in the provided time window.
         /// </summary>
-        /// <snCategory>WebHooks</snCategory>
         /// <param name="content"></param>
         /// <param name="httpContext"></param>
         /// <param name="timeWindow">Size of the time window: Hour, Day, Month or Year. Default: Month.</param>
         /// <param name="time">Start time. Default: now.</param>
         /// <returns>WebHook data containing time window information and a list of aggregated data points.</returns>
-        [ODataFunction]
+        [ODataFunction(Category = "WebHooks")]
         [ContentTypes(N.CT.PortalRoot)]
         [AllowedRoles(N.R.Administrators, N.R.PublicAdministrators, N.R.Developers)]
         public static async Task<object> GetWebHookUsagePeriod(Content content, HttpContext httpContext,

@@ -65,9 +65,9 @@ public class ChangedDataTests : TestBase
     [TestMethod]
     public async STT.Task ChangedData_CheckOutTriggeredLockedNotTriggered()
     {
-        await Test(builder =>
+        await Test2(services =>
         {
-            builder.EnableNodeObservers(typeof(ChangedDataTestsObserver));
+            services.AddNodeObserver<ChangedDataTestsObserver>();
         }, async () =>
         {
 

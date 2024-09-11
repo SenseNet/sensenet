@@ -145,7 +145,7 @@ namespace SenseNet.Search.Tests
             q = Test("Name:>aaa"); Assert.AreEqual(typeof(RangePredicate), q.QueryTree.GetType());
             q = Test("Name:<=aaa"); Assert.AreEqual(typeof(RangePredicate), q.QueryTree.GetType());
             q = Test("Name:>=aaa"); Assert.AreEqual(typeof(RangePredicate), q.QueryTree.GetType());
-            q = Test("Id:<1000"); Assert.AreEqual(typeof(RangePredicate), q.QueryTree.GetType());
+            q = Test("Id:<10000"); Assert.AreEqual(typeof(RangePredicate), q.QueryTree.GetType());
             q = Test("Id:>1000"); Assert.AreEqual(typeof(RangePredicate), q.QueryTree.GetType());
             q = Test("Id:<=1000"); Assert.AreEqual(typeof(RangePredicate), q.QueryTree.GetType());
             q = Test("Id:>=1000"); Assert.AreEqual(typeof(RangePredicate), q.QueryTree.GetType());
@@ -158,6 +158,46 @@ namespace SenseNet.Search.Tests
             q = Test("DoubleField1:<=3.14"); Assert.AreEqual(typeof(RangePredicate), q.QueryTree.GetType());
             q = Test("DoubleField1:>=3.14"); Assert.AreEqual(typeof(RangePredicate), q.QueryTree.GetType());
         }
+        [TestMethod, TestCategory("IR")]
+        public void SnQuery_Parser_NegativeNumbers()
+        {
+            SnQuery q;
+            NegativeErrorTest("Id:-42");
+            NegativeTest("Id:'-42'", "Id:'-42'");
+            NegativeTest("Id:'-42'", "Id:'-42'");
+            NegativeTest("Id:<'-42'", "Id:<'-42'");
+            NegativeTest("Id:>'-42'", "Id:>'-42'");
+            NegativeTest("Id:<='-42'", "Id:<='-42'");
+            NegativeTest("Id:>='-42'", "Id:>='-42'");
+            NegativeTest("Id:\\-42", "Id:'-42'");
+            NegativeTest("Id:<\\-42", "Id:<'-42'");
+            NegativeTest("Id:>\\-42", "Id:>'-42'");
+            NegativeTest("Id:<=\\-42", "Id:<='-42'");
+            NegativeTest("Id:>=\\-42", "Id:>='-42'");
+            NegativeErrorTest("SingleField1:-3.14");
+            NegativeTest("SingleField1:'-3.14'", "SingleField1:'-3.14'");
+            NegativeTest("SingleField1:<'-3.14'", "SingleField1:<'-3.14'");
+            NegativeTest("SingleField1:>'-3.14'", "SingleField1:>'-3.14'");
+            NegativeTest("SingleField1:<='-3.14'", "SingleField1:<='-3.14'");
+            NegativeTest("SingleField1:>='-3.14'", "SingleField1:>='-3.14'");
+            NegativeTest("SingleField1:\\-3.14", "SingleField1:'-3.14'");
+            NegativeTest("SingleField1:<\\-3.14", "SingleField1:<'-3.14'");
+            NegativeTest("SingleField1:>\\-3.14", "SingleField1:>'-3.14'");
+            NegativeTest("SingleField1:<=\\-3.14", "SingleField1:<='-3.14'");
+            NegativeTest("SingleField1:>=\\-3.14", "SingleField1:>='-3.14'");
+            NegativeErrorTest("DoubleField1:-3.14");
+            NegativeTest("DoubleField1:'-3.14'", "DoubleField1:'-3.14'");
+            NegativeTest("DoubleField1:<'-3.14'", "DoubleField1:<'-3.14'");
+            NegativeTest("DoubleField1:>'-3.14'", "DoubleField1:>'-3.14'");
+            NegativeTest("DoubleField1:<='-3.14'", "DoubleField1:<='-3.14'");
+            NegativeTest("DoubleField1:>='-3.14'", "DoubleField1:>='-3.14'");
+            NegativeTest("DoubleField1:\\-3.14", "DoubleField1:'-3.14'");
+            NegativeTest("DoubleField1:<\\-3.14", "DoubleField1:<'-3.14'");
+            NegativeTest("DoubleField1:>\\-3.14", "DoubleField1:>'-3.14'");
+            NegativeTest("DoubleField1:<=\\-3.14", "DoubleField1:<='-3.14'");
+            NegativeTest("DoubleField1:>=\\-3.14", "DoubleField1:>='-3.14'");
+        }
+
         [TestMethod, TestCategory("IR")]
         public void SnQuery_Parser_AstToString_CqlExtension_SpecialChars()
         {
@@ -319,6 +359,43 @@ namespace SenseNet.Search.Tests
                 Assert.Fail($"Thrown exception is {thrownException.GetType().FullName}, Expected: {typeof(ParserException).FullName}");
         }
 
+        private void NegativeErrorTest(string queryText)
+        {
+            try
+            {
+                var _ = Test(queryText);
+                Assert.Fail($"The expected {nameof(ParserException)} was not thrown.");
+            }
+            catch (ParserException e)
+            {
+                // 
+            }
+        }
+
+        private void NegativeTest(string queryText, string expectedParsed)
+        {
+            var q = Test(queryText, expectedParsed); Assert.AreEqual(expectedParsed, q.ToString());
+            IndexValue value = null;
+            if (q.QueryTree is SimplePredicate simplePredicate)
+                value = simplePredicate.Value;
+            else if (q.QueryTree is RangePredicate rangePredicate)
+                value = rangePredicate.Max ?? rangePredicate.Min;
+            else
+                Assert.Inconclusive("The query is not a simple term or not a range.");
+
+            Assert.IsNotNull(value);
+            switch (value.Type)
+            {
+                case IndexValueType.Int:
+                case IndexValueType.Long:
+                case IndexValueType.Float:
+                case IndexValueType.Double:
+                    return;
+                default:
+                    Assert.Fail($"The parsed predicate is {value.Type} but expected is int, long, float or double.");
+                    break;
+            }
+        }
         private SnQuery Test(string queryText, string expected = null)
         {
             var queryContext = new TestQueryContext(QuerySettings.Default, 0, _indexingInfo);

@@ -62,12 +62,7 @@ namespace SenseNet.Extensions.DependencyInjection
                 .UseBlobMetaDataProvider(new InMemoryBlobStorageMetaDataProvider(dataProvider))
                 .UseBlobProviderSelector(new InMemoryBlobProviderSelector())
                 .AddBlobProvider(new InMemoryBlobProvider())
-                .UseSearchEngine(services.GetRequiredService<ISearchEngine>())
-                .StartWorkflowEngine(false);
-
-            var statDp = services?.GetService<IStatisticalDataProvider>() as InMemoryStatisticalDataProvider
-                       ?? new InMemoryStatisticalDataProvider();
-            repositoryBuilder.UseStatisticalDataProvider(statDp);
+                .UseSearchEngine(services.GetRequiredService<ISearchEngine>());
 
             return repositoryBuilder;
         }
@@ -109,7 +104,7 @@ namespace SenseNet.Extensions.DependencyInjection
                 .AddComponent<InMemoryClientStoreComponent>();
         }
 
-        public static IServiceCollection AddInMemorySecurityDataProviderExperimental(this IServiceCollection services)
+        internal static IServiceCollection AddInMemorySecurityDataProviderExperimental(this IServiceCollection services)
         {
             return services.AddSingleton<ISecurityDataProvider>(provider =>
             {

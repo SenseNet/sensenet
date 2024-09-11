@@ -70,8 +70,7 @@ namespace SenseNet.OData.IO
                 case ODataMiddleware.ChildrenPropertyName:
                     return false;
                 case "AllowedChildTypes":
-                    var ctName = content.ContentType.Name;
-                    if (ctName == "Folder" || ctName == "Page")
+                    if(content.ContentType.IsTransitiveForAllowedTypes)
                         return false;
                     break;
             }
@@ -85,6 +84,11 @@ namespace SenseNet.OData.IO
             if (field is ReferenceField refField)
                 return GetReference(refField, selfUrl, oDataRequest);
             return base.GetJsonObject(field, selfUrl, oDataRequest);
+        }
+
+        protected override object GetRichTextOutput(string fieldName, RichTextFieldValue rtfValue, ODataRequest oDataRequest)
+        {
+            return rtfValue;
         }
 
         private object GetAllowedChildTypes(AllowedChildTypesField field, string selfUrl, ODataRequest oDataRequest)

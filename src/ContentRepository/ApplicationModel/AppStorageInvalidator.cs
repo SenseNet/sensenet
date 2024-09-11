@@ -3,7 +3,7 @@ using SenseNet.ContentRepository.Storage;
 
 namespace SenseNet.ApplicationModel
 {
-    internal sealed class AppStorageInvalidator : NodeObserver
+    public sealed class AppStorageInvalidator : NodeObserver
     {
         protected override void OnNodeCopied(object sender, NodeOperationEventArgs e)
         {

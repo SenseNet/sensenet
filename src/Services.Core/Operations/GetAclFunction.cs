@@ -13,7 +13,6 @@ namespace SenseNet.Services.Core.Operations
     public static class GetAclFunction
     {
         /// <summary>Returns the access control list for the requested content.</summary>
-        /// <snCategory>Permissions</snCategory>
         /// <remarks>
         /// The returned object contains information about the permission inheritance state of the content, and
         /// all related permissions. 
@@ -63,7 +62,7 @@ namespace SenseNet.Services.Core.Operations
         /// </example>
         /// <param name="content"></param>
         /// <returns>The access control list for the requested content.</returns>
-        [ODataFunction(Description = "$Action,GetAcl", DisplayName = "$Action,GetAcl-DisplayName")]
+        [ODataFunction(Category = "Permissions", Description = "$Action,GetAcl", DisplayName = "$Action,GetAcl-DisplayName")]
         [ContentTypes(N.CT.GenericContent, N.CT.ContentType)]
         [AllowedRoles(N.R.Everyone)]
         public static object GetAcl(Content content)

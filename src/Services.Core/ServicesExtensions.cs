@@ -35,6 +35,7 @@ using SenseNet.Services.Core.Diagnostics;
 using SenseNet.Services.Core.Operations;
 using SenseNet.Storage;
 using SenseNet.Storage.BackgroundOperations;
+using SenseNet.Storage.Diagnostics;
 using SenseNet.Storage.DistributedApplication.Messaging;
 using SenseNet.Storage.Security;
 using SenseNet.TaskManagement.Core;
@@ -142,11 +143,15 @@ namespace SenseNet.Extensions.DependencyInjection
             return services;
         }
 
+        /// <summary>
+        /// For internal use only.
+        /// </summary>
         public static IServiceCollection AddPlatformIndependentServices(this IServiceCollection services, 
             IConfiguration configuration)
         {
             services
                 .AddSenseNetDefaultRepositoryServices()
+                .AddDefaultNodeObservers()
                 .AddSingleton<StorageSchema>()
                 .AddSingleton<ITreeLockController, TreeLockController>()
 
@@ -175,6 +180,8 @@ namespace SenseNet.Extensions.DependencyInjection
                 .AddSingleton<IContentProtector, ContentProtector>()
                 .AddSingleton<DocumentBinaryProvider, DefaultDocumentBinaryProvider>()
                 .AddSingleton<ISharingNotificationFormatter, DefaultSharingNotificationFormatter>()
+                .AddSingleton<IHealthHandler, HealthHandler>()
+                .AddSingleton<ISenseNetStatus, SenseNetStatus>()
 
                 .AddSenseNetDefaultClientManager()
                 .AddSenseNetApiKeys()
@@ -185,6 +192,21 @@ namespace SenseNet.Extensions.DependencyInjection
             if (configuration?.GetSection("sensenet:replication")?.GetValue<bool>("Enabled") ?? false)
                 services.AddSingleton<IReplicationService, SingleNodeReplicationService>();
 
+            return services;
+        }
+        /// <summary>
+        /// For internal use only.
+        /// </summary>
+        public static IServiceCollection AddDefaultNodeObservers(this IServiceCollection services)
+        {
+            services
+                .AddNodeObserver<AppCacheInvalidator>()
+                .AddNodeObserver<ApplicationModel.AppStorageInvalidator>()
+                .AddNodeObserver<GroupMembershipObserver>()
+                .AddNodeObserver<RepositoryEventRouter>()
+                .AddNodeObserver<SettingsCache>()
+                .AddNodeObserver<SharingNodeObserver>()
+                ;
             return services;
         }
 
@@ -203,10 +225,6 @@ namespace SenseNet.Extensions.DependencyInjection
             var searchEngine = provider.GetService<ISearchEngine>();
             if (searchEngine != null)
                 Providers.Instance.SearchEngine = searchEngine;
-
-            var statisticalDataProvider = provider.GetService<IStatisticalDataProvider>();
-            if (statisticalDataProvider != null)
-                Providers.Instance.SetProvider(typeof(IStatisticalDataProvider), statisticalDataProvider);
 
             var cmi = provider.GetService<IOptions<ClusterMemberInfo>>()?.Value;
             if (cmi != null)
@@ -314,6 +332,25 @@ namespace SenseNet.Extensions.DependencyInjection
             where T: class, IDashboardDataProvider
         {
             return services.AddSingleton<IDashboardDataProvider, T>();
+        }
+
+        /// <summary>
+        /// Registers the sensenet health middleware in the pipeline if the request contains the 'health' prefix.
+        /// </summary>
+        /// <param name="builder">IApplicationBuilder instance.</param>
+        /// <param name="buildAppBranchBefore">Optional builder method. Use this when you want to add
+        /// additional middleware in the pipeline before the sensenet health middleware.</param>
+        /// <param name="buildAppBranchAfter">Optional builder method. Use this when you want to add
+        /// additional middleware in the pipeline after the sensenet health middleware.</param>
+        /// <returns></returns>
+        public static IApplicationBuilder UseSenseNetHealth(this IApplicationBuilder builder,
+            Action<IApplicationBuilder> buildAppBranchBefore = null,
+            Action<IApplicationBuilder> buildAppBranchAfter = null)
+        {
+            builder.MapMiddlewareWhen<HealthMiddleware>("/health", buildAppBranchBefore,
+                buildAppBranchAfter, true);
+
+            return builder;
         }
     }
 }

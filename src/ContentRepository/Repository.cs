@@ -14,6 +14,7 @@ using SenseNet.Diagnostics;
 using SenseNet.Tools;
 using SenseNet.Packaging;
 using SenseNet.Search;
+using SenseNet.Storage.Diagnostics;
 
 namespace SenseNet.ContentRepository
 {
@@ -59,16 +60,21 @@ namespace SenseNet.ContentRepository
         }
         public static RepositoryInstance Start(RepositoryBuilder builder)
         {
+            var repositoryStatus = Providers.Instance.RepositoryStatus;
             var connectionStrings = builder.Services?.GetRequiredService<IOptions<ConnectionStringOptions>>();
 
+            repositoryStatus?.SetStatus("Starting BlobProviders");
             Providers.Instance.InitializeBlobProviders(connectionStrings?.Value ?? new ConnectionStringOptions());
 
             EnsureDatabase(builder);
             
             var initialData = builder.InitialData;
             if (initialData != null)
+            {
+                repositoryStatus?.SetStatus("Installing initial data");
                 Providers.Instance.DataStore.InstallInitialDataAsync(initialData, CancellationToken.None)
                     .GetAwaiter().GetResult();
+            }
 
             RepositoryInstance repositoryInstance = null;
             var exclusiveLockOptions = builder.Services?.GetService<IOptions<ExclusiveLockOptions>>()?.Value;
@@ -78,8 +84,10 @@ namespace SenseNet.ContentRepository
             {
                 var logger = Providers.Instance.GetProvider<ILogger<SnILogger>>();
                 var patchManager = new PatchManager(builder, logRecord => { logRecord.WriteTo(logger); });
+                repositoryStatus?.SetStatus("Executing patches before start");
                 patchManager.ExecutePatchesOnBeforeStart();
 
+                repositoryStatus?.SetStatus("Calling Repository.Start");
                 repositoryInstance = Start((RepositoryStartSettings)builder);
 
                 var permissions = initialData?.Permissions;
@@ -106,6 +114,7 @@ namespace SenseNet.ContentRepository
                     }
                 }
 
+                repositoryStatus?.SetStatus("Executing patches after start");
                 patchManager.ExecutePatchesOnAfterStart();
                 RepositoryVersionInfo.Reset();
 
@@ -113,6 +122,7 @@ namespace SenseNet.ContentRepository
             }).GetAwaiter().GetResult();
 
             // generate default clients and secrets
+            repositoryStatus?.SetStatus("Checking default items in ClientStore");
             var clientStore = builder.Services?.GetService<ClientStore>();
             var clientOptions = builder.Services?.GetService<IOptions<ClientStoreOptions>>()?.Value;
             var logger = builder.Services?.GetService<ILogger<RepositoryInstance>>();
@@ -121,6 +131,9 @@ namespace SenseNet.ContentRepository
 
             clientStore?.EnsureClientsAsync(clientOptions?.Authority, clientOptions?.RepositoryUrl?.RemoveUrlSchema())
                 .GetAwaiter().GetResult();
+
+            if(repositoryStatus != null)
+                repositoryStatus.IsRunning = true;
 
             return repositoryInstance;
         }
@@ -156,6 +169,8 @@ namespace SenseNet.ContentRepository
             if (dbExists) 
                 return;
 
+            Providers.Instance.RepositoryStatus?.SetStatus("Database is not ready");
+
             var logger = builder.Services.GetService<ILogger<RepositoryInstance>>();
             var packageDescriptor = builder.Services.GetService<IInstallPackageDescriptor>();
             if (packageDescriptor == null)
@@ -168,6 +183,8 @@ namespace SenseNet.ContentRepository
 
         private static void EnsureIndex(RepositoryBuilder builder)
         {
+            Providers.Instance.RepositoryStatus?.SetStatus("Checking index existence");
+
             var logger = builder.Services?.GetService<ILogger<RepositoryInstance>>();
             logger?.LogInformation("Checking the index...");
 
@@ -180,6 +197,7 @@ namespace SenseNet.ContentRepository
 
             // This scenario auto-generates the whole index from the database. The most common case is
             // when a new web app domain (usually a container) is started in a load balanced environment.
+            Providers.Instance.RepositoryStatus?.SetStatus("Executing ClearAndPopulateAll");
 
             var populator = Providers.Instance.SearchManager.GetIndexPopulator();
             var indexCount = 0;

@@ -116,11 +116,9 @@ namespace SenseNet.Extensions.DependencyInjection
         /// </summary>
         /// <param name="repositoryBuilder"></param>
         /// <param name="clusterChannelProvider">IClusterChannel instance.</param>
+        [Obsolete("Old-school configuration method. Do not use anymore.", true)]
         public static IRepositoryBuilder UseClusterChannelProvider(this IRepositoryBuilder repositoryBuilder, IClusterChannel clusterChannelProvider)
         {
-            Configuration.Providers.Instance.ClusterChannelProvider = clusterChannelProvider;
-            WriteLog("ClusterChannelProvider", clusterChannelProvider);
-
             return repositoryBuilder;
         }
 
@@ -191,6 +189,7 @@ namespace SenseNet.Extensions.DependencyInjection
         /// <param name="repositoryBuilder"></param>
         /// <param name="providerName">Name of the provider.</param>
         /// <param name="provider">Provider instance.</param>
+        [Obsolete("Old-school configuration method. Do not use anymore.", true)]
         public static IRepositoryBuilder UseProvider(this IRepositoryBuilder repositoryBuilder, string providerName, object provider)
         {
             repositoryBuilder.SetProvider(providerName, provider);
@@ -204,6 +203,7 @@ namespace SenseNet.Extensions.DependencyInjection
         /// </summary>
         /// <param name="repositoryBuilder"></param>
         /// <param name="provider">Provider instance.</param>
+        [Obsolete("Old-school configuration method. Do not use anymore.", true)]
         public static IRepositoryBuilder UseProvider(this IRepositoryBuilder repositoryBuilder, object provider)
         {
             repositoryBuilder.SetProvider(provider);
@@ -245,15 +245,9 @@ namespace SenseNet.Extensions.DependencyInjection
 
             return repositoryBuilder;
         }
+        [Obsolete("Old-school configuration method. Do not use anymore.", true)]
         public static IRepositoryBuilder IsWebContext(this IRepositoryBuilder repositoryBuilder, bool webContext = false)
         {
-            // Old behavior: set a property on the instance that will be used
-            // by the repo start process later.
-            if (repositoryBuilder is RepositoryBuilder repoBuilder)
-                repoBuilder.IsWebContext = webContext;
-            else
-                throw new NotImplementedException();
-
             return repositoryBuilder;
         }
         /// <summary>
@@ -263,6 +257,7 @@ namespace SenseNet.Extensions.DependencyInjection
         /// If your tool needs to run the workflow engine and its running is postponed (StartWorkflowEngine = false), 
         /// call the RepositoryInstance.StartWorkflowEngine() method.
         /// </remarks>
+        [Obsolete("Old-school configuration method. Do not use anymore.", true)]
         public static IRepositoryBuilder StartWorkflowEngine(this IRepositoryBuilder repositoryBuilder, bool start = true)
         {
             // Old behavior: set a property on the instance that will be used
@@ -278,6 +273,7 @@ namespace SenseNet.Extensions.DependencyInjection
         /// Sets a local directory path of plugins if it is different from your tool's path. 
         /// Default is null that means the plugins are placed in the appdomain's working directory.
         /// </summary>
+        [Obsolete("Old-school configuration method. Do not use anymore.", true)]
         public static IRepositoryBuilder SetPluginsPath(this IRepositoryBuilder repositoryBuilder, string path)
         {
             // Old behavior: set a property on the instance that will be used
@@ -324,43 +320,17 @@ namespace SenseNet.Extensions.DependencyInjection
         /// Disables one or more node observers in the system. If you call it without parameters, 
         /// it will disable all available node observers.
         /// </summary>
+        [Obsolete("Use IServiceCollection.RemoveNodeObserver or RemoveAllNodeObservers method instead.", true)]
         public static IRepositoryBuilder DisableNodeObservers(this IRepositoryBuilder repositoryBuilder, params Type[] nodeObserverTypes)
         {
-            if (nodeObserverTypes == null || nodeObserverTypes.Length == 0)
-            {
-                Configuration.Providers.Instance.NodeObservers = new NodeObserver[0];
-            }
-            else
-            {
-                var observers = Configuration.Providers.Instance.NodeObservers;
-
-                // remove only the provided types
-                Configuration.Providers.Instance.NodeObservers =
-                    observers.Where(o => !nodeObserverTypes.Contains(o.GetType())).ToArray();
-            }
             return repositoryBuilder;
         }
         /// <summary>
         /// Enables one or more node observers.
         /// </summary>
+        [Obsolete("Use IServiceCollection.AddNodeObserver method instead.", true)]
         public static IRepositoryBuilder EnableNodeObservers(this IRepositoryBuilder repositoryBuilder, params Type[] nodeObserverTypes)
         {
-            if (nodeObserverTypes != null && nodeObserverTypes.Any())
-            {
-                var observers = new List<NodeObserver>(Configuration.Providers.Instance.NodeObservers);
-
-                // add missing observer instances
-                foreach (var nodeObserverType in nodeObserverTypes)
-                {
-                    if (observers.All(no => no.GetType() != nodeObserverType))
-                    {
-                        observers.Add((NodeObserver)Activator.CreateInstance(nodeObserverType, true));
-                    }
-                }
-
-                Configuration.Providers.Instance.NodeObservers = observers.ToArray();
-            }
-
             return repositoryBuilder;
         }
 

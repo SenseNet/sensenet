@@ -8,6 +8,7 @@ using SenseNet.ContentRepository.i18n;
 using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.ContentRepository.Storage.Scripting;
 using System.IO;
+using System.Linq;
 using System.Runtime.Serialization;
 using Newtonsoft.Json;
 using SenseNet.ContentRepository.Search.Indexing;
@@ -64,6 +65,7 @@ namespace SenseNet.ContentRepository.Schema
         public const string AppInfoName = "AppInfo";
         public const string OwnerName = "Owner";
         public const string FieldIndexName = "FieldIndex";
+        public const string CategoriesName = "Categories";
 
         // Member variables /////////////////////////////////////////////////////////////////
         protected bool _mutable = false;
@@ -83,6 +85,8 @@ namespace SenseNet.ContentRepository.Schema
         private int? _defaultOrder;
         private string _controlHint;
         private int? _fieldIndex;
+
+        private string[] _categories = Array.Empty<string>();
 
         // Properties /////////////////////////////////////////////////////////////
 
@@ -242,6 +246,7 @@ namespace SenseNet.ContentRepository.Schema
             }
         }
 
+
         /// <summary>
         /// Gets the icon name of the descripted Field. This value comes from the ContentTypeDefinition.
         /// </summary>
@@ -369,6 +374,18 @@ namespace SenseNet.ContentRepository.Schema
                 {
                     _fieldIndex = int.MaxValue;
                 }
+            }
+        }
+
+        public string[] Categories
+        {
+            get => _categories;
+            set
+            {
+                if (!_mutable)
+                    throw new InvalidOperationException("Setting Categories is not allowed within readonly instance.");
+
+                _categories = value ?? Array.Empty<string>();
             }
         }
 
@@ -966,6 +983,8 @@ namespace SenseNet.ContentRepository.Schema
             VisibleNew = source.VisibleNew;
 
             FieldIndex = source.FieldIndex;
+
+            Categories = source.Categories.ToArray();
         }
 
         public virtual object GetProperty(string name, out bool found)
@@ -1184,6 +1203,7 @@ namespace SenseNet.ContentRepository.Schema
             fieldInfo.Icon = this.Icon;
             fieldInfo.Name = this.Name;
             fieldInfo.Type = this.ShortName;
+            fieldInfo.Categories = this.Categories;
 
             // Set up the configuration
             fieldInfo.Configuration = new ConfigurationInfo();
@@ -1290,6 +1310,8 @@ namespace SenseNet.ContentRepository.Schema
             if (descriptor.AppInfo != null)
                 setting._appInfo = descriptor.AppInfo.Value;
 
+            setting.Categories = descriptor.Categories;
+
             var indexingInfo = new PerFieldIndexingInfo();
 
             if (!string.IsNullOrEmpty(descriptor.IndexingMode))
@@ -1356,6 +1378,7 @@ namespace SenseNet.ContentRepository.Schema
             setting.HandlerSlotIndices = bindings != null ? new int[bindings.Count] : descriptor.Bind == null ? new int[0] : new int[1];
             setting.FieldDataType = FieldManager.GetFieldDataType(descriptor.GetHandlerName());
             setting.AppInfo = descriptor.AppInfo;
+            setting.Categories = descriptor.Categories;
 
             setting.SetConfiguration(descriptor);
 
@@ -1461,8 +1484,8 @@ namespace SenseNet.ContentRepository.Schema
             WriteElement(writer, this._description, "Description");
             WriteElement(writer, this._icon, "Icon");
             WriteElement(writer, this._appInfo, "AppInfo");
-
             WriteIndexingInfo(writer);
+            WriteElement(writer, string.Join(" ", this._categories), "Categories");
 
             if (!isListField)
             {

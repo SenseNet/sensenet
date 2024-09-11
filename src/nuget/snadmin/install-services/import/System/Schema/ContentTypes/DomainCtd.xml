@@ -22,7 +22,7 @@
         <VisibleNew>Hide</VisibleNew>
       </Configuration>
     </Field>
-    <Field name="Description" type="RichText">
+    <Field name="Description" type="LongText">
       <Configuration>
         <VisibleBrowse>Advanced</VisibleBrowse>
         <VisibleEdit>Advanced</VisibleEdit>

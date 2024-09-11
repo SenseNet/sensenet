@@ -453,5 +453,13 @@ namespace SenseNet.ContentRepository.InMemory
                     await STT.Task.Delay(_waitBetweenCleanupFilesMilliseconds, cancellationToken).ConfigureAwait(false);
             }
         }
+
+        public Task<int> GetFirstFileIdAsync(CancellationToken cancel)
+        {
+            var first = DataProvider.DB.Files.FirstOrDefault();
+            if (first == null)
+                throw new Exception("No data available");
+            return STT.Task.FromResult(first.FileId);
+        }
     }
 }

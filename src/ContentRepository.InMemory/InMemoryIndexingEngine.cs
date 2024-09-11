@@ -126,7 +126,7 @@ namespace SenseNet.ContentRepository.InMemory
             var raw = Index.IndexData
                 .TryGetValue(fieldName, out var subIndex) ? subIndex : null;
             if (raw == null)
-                return null;
+                return STT.Task.FromResult((IDictionary<string, List<int>>) null);
             var result = raw
                 .OrderBy(x=>x.Key)
                 .ToDictionary(x => GetTermText(fieldName, x.Key), x => x.Value);

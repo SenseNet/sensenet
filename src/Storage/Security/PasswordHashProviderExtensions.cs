@@ -15,6 +15,8 @@ namespace SenseNet.Extensions.DependencyInjection
         }
         /// <summary>
         /// Adds a custom password hash provider to the service collection.
+        /// Use this method when the default implementation
+        /// (<c>SenseNet.ContentRepository.Storage.Security.SenseNetPasswordHashProvider</c>) needs to be replaced.
         /// </summary>
         public static IServiceCollection AddPasswordHashProvider<T>(this IServiceCollection services) where T : class, IPasswordHashProvider
         {
@@ -23,6 +25,7 @@ namespace SenseNet.Extensions.DependencyInjection
 
         /// <summary>
         /// Adds a custom password hash provider for migration to the service collection.
+        /// For internal use only.
         /// </summary>
         public static IServiceCollection AddPasswordHashProviderForMigration<T>(this IServiceCollection services) where T : class, IPasswordHashProviderForMigration
         {

@@ -8,6 +8,8 @@ using System.Linq;
 using System.Threading;
 using SenseNet.Configuration;
 using SenseNet.Security;
+using System.Threading.Channels;
+using System.Threading.Tasks;
 
 namespace SenseNet.ContentRepository.Tests
 {
@@ -1322,6 +1324,235 @@ namespace SenseNet.ContentRepository.Tests
                 Assert.AreEqual("V1.0.A", file.Version.ToString());
 
                 Assert.AreEqual(1, Node.GetVersionNumbers(file.Id).Count);
+            });
+        }
+
+        [TestMethod]
+        public async System.Threading.Tasks.Task GC_RestoreVersion_MajorAndMinor_SystemUser()
+        {
+            await Test(async () =>
+            {
+                var cancel = new CancellationToken();
+                Assert.AreEqual(Identifiers.SystemUserId, User.Current.Id);
+
+                var file = CreateTestFile(save: false);
+                file.VersioningMode = VersioningType.MajorAndMinor;
+                file.Description = "1.0";
+                await file.SaveAsync(cancel); // V0.1.D
+                await file.PublishAsync(cancel); // V1.0.A
+                file = await CreateVersionsFor_RestoreVersion_MajorAndMinor(file, cancel);
+
+                // ACT
+                file = (File)await file.RestoreVersionAsync(new VersionNumber(1, 1), cancel);
+                // versions before: V1.0.A, V1.1.D, V2.0.A, V2.1.D, V3.0.A, V3.1.D
+                // versions after:  V1.0.A, V1.1.D, V2.0.A, V2.1.D, V3.0.A, V3.1.D, V3.2.D
+
+                // ASSERT
+                Assert.IsTrue(file.IsLatestVersion, "File version is not correct after restore.");
+                Assert.AreEqual("V3.2.D", file.Version.ToString());
+                Assert.AreEqual("1.1", file.Description);
+            });
+        }
+        [TestMethod]
+        public async System.Threading.Tasks.Task GC_RestoreVersion_MajorAndMinor_Admin()
+        {
+            await Test(true, async () =>
+            {
+                var cancel = new CancellationToken();
+                Assert.AreEqual(Identifiers.AdministratorUserId, User.Current.Id);
+
+                var file = CreateTestFile(save: false);
+                file.VersioningMode = VersioningType.MajorAndMinor;
+                file.Description = "1.0";
+                await file.SaveAsync(cancel); // V0.1.D
+                await file.PublishAsync(cancel); // V1.0.A
+                file = await CreateVersionsFor_RestoreVersion_MajorAndMinor(file, cancel);
+
+                // ACT
+                file = (File)await file.RestoreVersionAsync(new VersionNumber(1, 1), cancel);
+                // versions before: V1.0.A, V1.1.D, V2.0.A, V2.1.D, V3.0.A, V3.1.D
+                // versions after:  V1.0.A, V1.1.D, V2.0.A, V2.1.D, V3.0.A, V3.1.D, V3.2.D
+
+                // ASSERT
+                Assert.IsTrue(file.IsLatestVersion, "File version is not correct after restore.");
+                Assert.AreEqual("V3.2.D", file.Version.ToString());
+                Assert.AreEqual("1.1", file.Description);
+            });
+        }
+        [TestMethod]
+        public async System.Threading.Tasks.Task GC_RestoreVersion_MajorAndMinor_TestUser_Error()
+        {
+            await Test(true, async () =>
+            {
+                var cancel = new CancellationToken();
+                var user = new User(await Node.LoadNodeAsync(Identifiers.PortalOrgUnitId, cancel))
+                {
+                    Name = "testUsr124",
+                    LoginName = "testUsr124",
+                    Email = "testusr124@example.com",
+                    Enabled = true
+                };
+                user.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
+
+                Assert.AreEqual(Identifiers.AdministratorUserId, User.Current.Id);
+
+                var file = CreateTestFile(save: false);
+                file.VersioningMode = VersioningType.MajorAndMinor;
+                file.Description = "1.0";
+                await file.SaveAsync(cancel); // V0.1.D
+                await file.PublishAsync(cancel); // V1.0.A
+                file = await CreateVersionsFor_RestoreVersion_MajorAndMinor(file, cancel);
+
+                string errorMessage = null;
+                try
+                {
+                    using (new CurrentUserBlock(user))
+                    {
+                        // ACT
+                        file = (File)await file.RestoreVersionAsync(new VersionNumber(1, 1), cancel);
+                    }
+                    Assert.Fail("The expected exception was not thrown.");
+                }
+                catch (SenseNetSecurityException e)
+                {
+                    errorMessage = e.Message;
+                }
+
+                // ASSERT
+                Assert.IsNotNull(errorMessage);
+                Assert.IsTrue(errorMessage.StartsWith("Not enough permission to restore an older version"));
+                Assert.IsTrue(file.IsLatestVersion, "File version is not correct after restore.");
+                Assert.AreEqual("V3.1.D", file.Version.ToString());
+                Assert.AreEqual("3.1", file.Description);
+            });
+        }
+        [TestMethod]
+        public async System.Threading.Tasks.Task GC_RestoreVersion_MajorAndMinor_MissingVersion_Error()
+        {
+            await Test(async () =>
+            {
+                var cancel = new CancellationToken();
+                Assert.AreEqual(Identifiers.SystemUserId, User.Current.Id);
+
+                var file = CreateTestFile(save: false);
+                file.VersioningMode = VersioningType.MajorAndMinor;
+                file.Description = "1.0";
+                await file.SaveAsync(cancel); // V0.1.D
+                await file.PublishAsync(cancel); // V1.0.A
+                file = await CreateVersionsFor_RestoreVersion_MajorAndMinor(file, cancel);
+
+                string errorMessage = null;
+                try
+                {
+                    // ACT
+                    file = (File)await file.RestoreVersionAsync(new VersionNumber(4, 2), cancel);
+                    Assert.Fail("The expected exception was not thrown.");
+                }
+                catch (InvalidContentActionException e)
+                {
+                    errorMessage = e.Message;
+                }
+
+                // ASSERT
+                Assert.IsNotNull(errorMessage);
+                Assert.IsTrue(errorMessage.StartsWith("Cannot restore the version 'V4.2.D' because it does not exist on content"));
+                Assert.IsTrue(file.IsLatestVersion, "File version is not correct after restore.");
+                Assert.AreEqual("V3.1.D", file.Version.ToString());
+                Assert.AreEqual("3.1", file.Description);
+            });
+        }
+        private async Task<File> CreateVersionsFor_RestoreVersion_MajorAndMinor(File file, CancellationToken cancel)
+        {
+            await file.CheckOutAsync(cancel); // V1.1.L
+            file.Description = "1.1";
+            await file.SaveAsync(cancel);
+            await file.CheckInAsync(cancel); // V1.1.D
+
+            await file.CheckOutAsync(cancel); // V1.2.L
+            file.Description = "2.0";
+            await file.SaveAsync(cancel);
+            await file.CheckInAsync(cancel); // V1.2.D
+
+            await file.PublishAsync(cancel); // V2.0.A
+
+            await file.CheckOutAsync(cancel); // V2.1.L
+            file.Description = "2.1";
+            await file.SaveAsync(cancel);
+            await file.CheckInAsync(cancel); // V2.1.D
+
+            await file.CheckOutAsync(cancel); // V2.2.L
+            file.Description = "3.0";
+            await file.SaveAsync(cancel);
+            await file.CheckInAsync(cancel); // V2.2.D
+
+            await file.PublishAsync(cancel); // V3.0.A
+
+            await file.CheckOutAsync(cancel); // V3.1.L
+            file.Description = "3.1";
+            await file.SaveAsync(cancel);
+            await file.CheckInAsync(cancel); // V3.1.D
+
+            return file;
+        }
+
+        [TestMethod]
+        public async System.Threading.Tasks.Task GC_RestoreVersion_MajorAndMinor_ChangedVersioningMode()
+        {
+            await Test(async () =>
+            {
+                var cancel = new CancellationToken();
+                Assert.AreEqual(Identifiers.SystemUserId, User.Current.Id);
+
+                var file = CreateTestFile(save: false);
+                var parent = (Folder)file.Parent;
+                parent.InheritableVersioningMode = InheritableVersioningType.MajorAndMinor;
+                await parent.SaveAsync(cancel);
+                file.Description = "1.0";
+                await file.SaveAsync(cancel); // V0.1.D
+                await file.PublishAsync(cancel); // V1.0.A
+
+                await file.CheckOutAsync(cancel); // V1.1.L
+                file.Description = "1.1";
+                await file.SaveAsync(cancel);
+                await file.CheckInAsync(cancel); // V1.1.D
+
+                await file.CheckOutAsync(cancel); // V1.2.L
+                file.Description = "2.0";
+                await file.SaveAsync(cancel);
+                await file.CheckInAsync(cancel); // V1.2.D
+
+                await file.PublishAsync(cancel); // V2.0.A
+
+                await file.CheckOutAsync(cancel); // V2.1.L
+                file.Description = "2.1";
+                await file.SaveAsync(cancel);
+                await file.CheckInAsync(cancel); // V2.1.D
+
+                await file.CheckOutAsync(cancel); // V2.2.L
+                // Change versioning modes
+                parent.InheritableVersioningMode = InheritableVersioningType.Inherited;
+                await parent.SaveAsync(cancel);
+                file.VersioningMode = VersioningType.MajorAndMinor;
+                file.Description = "3.0";
+                await file.SaveAsync(cancel);
+                await file.CheckInAsync(cancel); // V2.2.D
+
+                await file.PublishAsync(cancel); // V3.0.A
+
+                await file.CheckOutAsync(cancel); // V3.1.L
+                file.Description = "3.1";
+                await file.SaveAsync(cancel);
+                await file.CheckInAsync(cancel); // V3.1.D
+
+                // ACT
+                file = (File)await file.RestoreVersionAsync(new VersionNumber(1, 1), cancel);
+                // versions before: V1.0.A, V1.1.D, V2.0.A, V2.1.D, V3.0.A, V3.1.D
+                // versions after:  V1.0.A, V1.1.D, V2.0.A, V2.1.D, V3.0.A, V3.1.D, V3.2.D
+
+                // ASSERT
+                Assert.IsTrue(file.IsLatestVersion, "File version is not correct after restore.");
+                Assert.AreEqual("V3.2.D", file.Version.ToString());
+                Assert.AreEqual("1.1", file.Description);
             });
         }
 

@@ -656,5 +656,21 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
                     await Task.Delay(_waitBetweenCleanupFilesMilliseconds, cancellationToken).ConfigureAwait(false);
             }
         }
+
+        public async Task<int> GetFirstFileIdAsync(CancellationToken cancel)
+        {
+            int result;
+            var sql = GetFirstFileId;
+            cancel.ThrowIfCancellationRequested();
+            using var op = SnTrace.Database.StartOperation("MsSqlBlobMetaDataProvider: GetFirstFileIdAsync()");
+            using var ctx = new MsSqlDataContext(ConnectionStrings.Repository, DataOptions, _retrier, cancel);
+            var scalar = await ctx.ExecuteScalarAsync(sql).ConfigureAwait(false);
+            if (scalar is int intValue)
+                result = intValue;
+            else
+                result = 0;
+            op.Successful = true;
+            return result;
+        }
     }
 }

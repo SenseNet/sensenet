@@ -7,7 +7,9 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Security;
+using SenseNet.ContentRepository.Security.ApiKeys;
 using SenseNet.Extensions.DependencyInjection;
+using SenseNet.Storage.Security;
 
 namespace SnWebApplication.Api.InMem.Admin
 {
@@ -27,6 +29,9 @@ namespace SnWebApplication.Api.InMem.Admin
 
             // [sensenet]: Authentication: switched off below
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme);
+
+            // [sensenet]: Set options for ApiKeys
+            services.Configure<ApiKeysOptions>(Configuration.GetSection("sensenet:ApiKeys"));
 
             // [sensenet]: add sensenet services
             services.AddSenseNet(Configuration, (repositoryBuilder, provider) =>
@@ -71,7 +76,8 @@ namespace SnWebApplication.Api.InMem.Admin
             // is an administrator!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
             app.Use(async (context, next) =>
             {
-                User.Current = User.Administrator;
+                if(User.Current != HealthCheckerUser.Instance)
+                    User.Current = User.Administrator;
                 if (next != null)
                     await next();
             });
@@ -84,6 +90,8 @@ namespace SnWebApplication.Api.InMem.Admin
             // [sensenet] Add the sensenet binary handler
             app.UseSenseNetFiles();
 
+            // [sensenet]: Health middleware
+            app.UseSenseNetHealth();
             // [sensenet]: OData middleware
             app.UseSenseNetOdata();
             // [sensenet]: WOPI middleware

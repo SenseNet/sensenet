@@ -39,6 +39,7 @@ using SenseNet.ContentRepository.Storage.AppModel;
 using SenseNet.ContentRepository.Storage.Caching;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Data.MsSqlClient;
+using SenseNet.ContentRepository.Storage.Events;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
 using SenseNet.Events;
@@ -430,6 +431,8 @@ namespace WebAppTests
                 {typeof(ISecurityMessageFormatter), typeof(SnSecurityMessageFormatter)},
                 {typeof(DistributedMessageType), typeof(DistributedMessageType)},
                 {typeof(IMultiFactorAuthenticationProvider), typeof(DefaultMultiFactorProvider)},
+                {typeof(IHealthHandler), typeof(HealthHandler)},
+                {typeof(ISenseNetStatus), typeof(SenseNetStatus)},
             };
         }
         private IDictionary<Type, Type> GetInMemoryPlatform()
@@ -575,14 +578,14 @@ namespace WebAppTests
 
         private readonly Type[] _defaultIncludedProvidersByType = new[]
         {
-            typeof(IStatisticalDataProvider),
+            //typeof(IStatisticalDataProvider),
             //typeof(ISnTracer[]),
             typeof(ILogger<SnILogger>),
             typeof(ICryptoServiceProvider),
         };
         private readonly Type[] _includedProvidersByTypeWithTests = new[]
         {
-            typeof(IStatisticalDataProvider),
+            //typeof(IStatisticalDataProvider),
             //typeof(ISnTracer[]),
             typeof(ILogger<SnILogger>),
             typeof(ICryptoServiceProvider),
@@ -635,6 +638,14 @@ namespace WebAppTests
                     {typeof(IContentTypeGenerator ), typeof(ContentTypeGenerator)},
                     {typeof(IContentManager), typeof(ContentManager)},
                     {typeof(IImageGenerator), typeof(ImageGenerator)},
+                    {typeof(NodeObserver), new[] {
+                        typeof(AppCacheInvalidator),
+                        typeof(AppStorageInvalidator),
+                        typeof(GroupMembershipObserver),
+                        typeof(RepositoryEventRouter),
+                        typeof(SettingsCache),
+                        typeof(SharingNodeObserver),
+                    }},
                 },
                 includedProvidersByType: _defaultIncludedProvidersByType,
                 includedProvidersByName: _defaultIncludedProvidersByName
@@ -684,6 +695,14 @@ namespace WebAppTests
                     {typeof(IContentTypeGenerator ), typeof(ContentTypeGenerator)},
                     {typeof(IContentManager), typeof(ContentManager)},
                     {typeof(IImageGenerator), typeof(ImageGenerator)},
+                    {typeof(NodeObserver), new[] {
+                        typeof(AppCacheInvalidator),
+                        typeof(AppStorageInvalidator),
+                        typeof(GroupMembershipObserver),
+                        typeof(RepositoryEventRouter),
+                        typeof(SettingsCache),
+                        typeof(SharingNodeObserver),
+                    }},
                 },
                 includedProvidersByType: _defaultIncludedProvidersByType,
                 includedProvidersByName: _defaultIncludedProvidersByName
@@ -733,6 +752,14 @@ namespace WebAppTests
                     {typeof(IContentTypeGenerator ), typeof(ContentTypeGenerator)},
                     {typeof(IContentManager), typeof(ContentManager)},
                     {typeof(IImageGenerator), typeof(ImageGenerator)},
+                    {typeof(NodeObserver), new[] {
+                        typeof(AppCacheInvalidator),
+                        typeof(AppStorageInvalidator),
+                        typeof(GroupMembershipObserver),
+                        typeof(RepositoryEventRouter),
+                        typeof(SettingsCache),
+                        typeof(SharingNodeObserver),
+                    }},
                 },
                 includedProvidersByType: _defaultIncludedProvidersByType,
                 includedProvidersByName: _defaultIncludedProvidersByName,
@@ -783,6 +810,14 @@ namespace WebAppTests
                     {typeof(IContentTypeGenerator ), typeof(ContentTypeGenerator)},
                     {typeof(IContentManager), typeof(ContentManager)},
                     {typeof(IImageGenerator), typeof(ImageGenerator)},
+                    {typeof(NodeObserver), new[] {
+                        typeof(AppCacheInvalidator),
+                        typeof(AppStorageInvalidator),
+                        typeof(GroupMembershipObserver),
+                        typeof(RepositoryEventRouter),
+                        typeof(SettingsCache),
+                        typeof(SharingNodeObserver),
+                    }},
                 },
                 includedProvidersByType: _defaultIncludedProvidersByType,
                 includedProvidersByName: _defaultIncludedProvidersByName,
@@ -842,6 +877,14 @@ namespace WebAppTests
                     {typeof(IContentTypeGenerator ), typeof(ContentTypeGenerator)},
                     {typeof(IContentManager), typeof(ContentManager)},
                     {typeof(IImageGenerator), typeof(ImageGenerator)},
+                    {typeof(NodeObserver), new[] {
+                        typeof(AppCacheInvalidator),
+                        typeof(AppStorageInvalidator),
+                        typeof(GroupMembershipObserver),
+                        typeof(RepositoryEventRouter),
+                        typeof(SettingsCache),
+                        typeof(SharingNodeObserver),
+                    }},
                 },
                 includedProvidersByType: _defaultIncludedProvidersByType,
                 includedProvidersByName: _defaultIncludedProvidersByName,
@@ -900,6 +943,14 @@ namespace WebAppTests
                     {typeof(IContentTypeGenerator ), typeof(ContentTypeGenerator)},
                     {typeof(IContentManager), typeof(ContentManager)},
                     {typeof(IImageGenerator), typeof(ImageGenerator)},
+                    {typeof(NodeObserver), new[] {
+                        typeof(AppCacheInvalidator),
+                        typeof(AppStorageInvalidator),
+                        typeof(GroupMembershipObserver),
+                        typeof(RepositoryEventRouter),
+                        typeof(SettingsCache),
+                        typeof(SharingNodeObserver),
+                    }},
                 },
                 includedProvidersByType: _defaultIncludedProvidersByType,
                 includedProvidersByName: _defaultIncludedProvidersByName,
@@ -941,6 +992,10 @@ namespace WebAppTests
                     {typeof(ISnService), new[] {typeof(WopiService) }},
 
                     {typeof(ISnTracer), typeof(SnDebugViewTracer)},
+
+                    {typeof(NodeObserver), new[] {
+                        typeof(SettingsCache),
+                    }},
                 },
                 includedProvidersByType: _includedProvidersByTypeWithTests,
                 includedProvidersByName: _defaultIncludedProvidersByName
@@ -985,6 +1040,10 @@ namespace WebAppTests
                     {typeof(ISnService), new[] {typeof(WopiService) }},
 
                     {typeof(ISnTracer), typeof(SnDebugViewTracer)},
+
+                    {typeof(NodeObserver), new[] {
+                        typeof(SettingsCache),
+                    }},
                 },
                 includedProvidersByType: _includedProvidersByTypeWithTests,
                 includedProvidersByName: _defaultIncludedProvidersByName
@@ -1019,6 +1078,14 @@ namespace WebAppTests
                     }},
 
                     {typeof(ISnTracer), typeof(SnDebugViewTracer)},
+                    {typeof(NodeObserver), new[] {
+                        typeof(AppCacheInvalidator),
+                        typeof(AppStorageInvalidator),
+                        typeof(GroupMembershipObserver),
+                        typeof(RepositoryEventRouter),
+                        typeof(SettingsCache),
+                        typeof(SharingNodeObserver),
+                    }},
                 },
                 includedProvidersByType: _defaultIncludedProvidersByType,
                 includedProvidersByName: _defaultIncludedProvidersByName
@@ -1054,6 +1121,14 @@ namespace WebAppTests
                         typeof(MsSqlClientStoreComponent),
                     }},
                     {typeof(ISnTracer), typeof(SnDebugViewTracer)},
+                    {typeof(NodeObserver), new[] {
+                        typeof(AppCacheInvalidator),
+                        typeof(AppStorageInvalidator),
+                        typeof(GroupMembershipObserver),
+                        typeof(RepositoryEventRouter),
+                        typeof(SettingsCache),
+                        typeof(SharingNodeObserver),
+                    }},
                 },
                 includedProvidersByType: _defaultIncludedProvidersByType,
                 includedProvidersByName: _defaultIncludedProvidersByName,
@@ -1086,6 +1161,10 @@ namespace WebAppTests
                     }},
 
                     {typeof(ISnTracer), typeof(SnFileSystemTracer)},
+
+                    {typeof(NodeObserver), new[] {
+                        typeof(SettingsCache),
+                    }},
                 },
                 includedProvidersByType: _defaultIncludedProvidersByType,
                 includedProvidersByName: _defaultIncludedProvidersByName

@@ -1,9 +1,11 @@
 ﻿using System;
+using System.Linq;
 using Microsoft.Extensions.DependencyInjection;
 using SenseNet.Communication.Messaging;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Data.MsSqlClient;
+using SenseNet.ContentRepository.Storage.Events;
 using SenseNet.Storage.DistributedApplication.Messaging;
 
 // ReSharper disable once CheckNamespace
@@ -95,14 +97,71 @@ namespace SenseNet.Extensions.DependencyInjection
 
             return services;
         }
-        
+
         /// <summary>
-        /// Adds an ISnService implementation to the service collection. These services
+        /// Adds an <c>ISnService</c> implementation to the service collection. These services
         /// will be started and stopped during repository startup and shutdown.
         /// </summary>
         public static IServiceCollection AddSenseNetBackgroundService<T>(this IServiceCollection services) where T : class, ISnService
         {
             return services.AddSingleton<ISnService, T>();
+        }
+
+        /// <summary>
+        /// Adds a <c>NodeObserver</c> implementation type to the service collection.
+        /// </summary>
+        /// <example>
+        /// For example create your <c>NodeObserver</c> class
+        /// <code>
+        /// <![CDATA[internal static List<string> _forbiddenUserNames;
+        /// 
+        /// internal class MyNodeObserver : NodeObserver
+        /// {
+        ///     protected internal override void OnNodeModifying(object sender, CancellableNodeEventArgs e)
+        ///     {
+        ///         if (sender is IUser user && forbiddenUserNames.Contains(user.Username))
+        ///         {
+        ///             e.CancelMessage = "User cannot be created because of forbidden user name.";
+        ///             e.Cancel = true;
+        ///         }
+        ///         base.OnNodeModifying(sender, e);
+        ///     }
+        /// }]]>
+        /// </code>
+        /// And register it in the given <c>IServiceCollection</c> after calling <c>AddDefaultNodeObservers()</c>
+        /// <code>
+        /// <![CDATA[services
+        ///     .AddDefaultNodeObservers()
+        ///     .AddNodeObserver<MyNodeObserver>();]]>
+        /// </code>
+        /// </example>
+        public static IServiceCollection AddNodeObserver<T>(this IServiceCollection services) where T : NodeObserver
+        {
+            services.AddSingleton<NodeObserver, T>();
+            return services;
+        }
+
+        /// <summary>
+        /// Removes an existing <c>NodeObserver</c> implementation type from the service collection.
+        /// Used to disable items in the base set, so it is effective only after calling the <c>AddSenseNet</c> method.
+        /// </summary>
+        public static IServiceCollection RemoveNodeObserver<T>(this IServiceCollection services) where T : NodeObserver
+        {
+            var existing = services.Where(x => x.ImplementationType == typeof(T)).ToArray();
+            foreach (var item in existing)
+                services.Remove(item);
+            return services;
+        }
+        /// <summary>
+        /// Removes all existing <c>NodeObserver</c> implementation types from the service collection.
+        /// Used to disable all items of the base set, so it is effective only after calling the <c>AddSenseNet</c> method.
+        /// </summary>
+        public static IServiceCollection RemoveAllNodeObservers(this IServiceCollection services)
+        {
+            var existing = services.Where(x => x.ServiceType == typeof(NodeObserver)).ToArray();
+            foreach (var item in existing)
+                services.Remove(item);
+            return services;
         }
     }
 }

@@ -183,6 +183,8 @@ namespace SenseNet.Tools.SnInitialDataGenerator
                     .AddSenseNetInMemoryProviders()
                     .AddSenseNetTracer<SnFileSystemTracer>()
                     .AddSenseNetSearchEngine<SearchEngineForInitialDataGenerator>()
+                    .RemoveAllNodeObservers()
+                    .AddNodeObserver<SettingsCache>()
                 ;
             return services.BuildServiceProvider();
         }
@@ -203,11 +205,7 @@ namespace SenseNet.Tools.SnInitialDataGenerator
                 .UseBlobMetaDataProvider(services.GetRequiredService<IBlobStorageMetaDataProvider>())
                 .UseBlobProviderSelector(services.GetRequiredService<IBlobProviderSelector>())
                 //.AddBlobProvider(new InMemoryBlobProvider())
-                .UseStatisticalDataProvider(services.GetRequiredService<IStatisticalDataProvider>())
                 .UseSearchEngine(services.GetRequiredService<ISearchEngine>())
-                .StartWorkflowEngine(false)
-                .DisableNodeObservers()
-                .EnableNodeObservers(typeof(SettingsCache))
                 .UseTraceCategories("System", "Test", "Event", "Custom") as RepositoryBuilder;
 
             return builder;

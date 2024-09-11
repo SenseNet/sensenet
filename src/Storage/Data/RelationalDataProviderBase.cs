@@ -31,8 +31,6 @@ namespace SenseNet.ContentRepository.Storage.Data
     {
         protected int IndexBlockSize = 100;
 
-        public virtual IDataPlatform<DbConnection, DbCommand, DbParameter> GetPlatform() { return null; } //TODO:~ UNDELETABLE
-
         //TODO: [DIBLOB] get this instance through the constructor later
         private IBlobStorage BlobStorage => Providers.Instance.BlobStorage;
         private StorageSchema StorageSchema => Providers.Instance.StorageSchema;
@@ -1515,7 +1513,7 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         /* =============================================================================================== Tree */
 
-        public override async Task<IEnumerable<NodeType>> LoadChildTypesToAllowAsync(int nodeId, CancellationToken cancellationToken)
+        public override async Task<IEnumerable<NodeType>> LoadChildTypesToAllowAsync(int nodeId, int[] transitiveNodeTypeIds, CancellationToken cancellationToken)
         {
             using var op = SnTrace.Database.StartOperation("RelationalDataProviderBase: " +
                 "LoadChildTypesToAllow(nodeId: {0})", nodeId);
@@ -1524,6 +1522,8 @@ namespace SenseNet.ContentRepository.Storage.Data
             var result = await ctx.ExecuteReaderAsync(LoadChildTypesToAllowScript, cmd =>
             {
                 cmd.Parameters.Add(ctx.CreateParameter("@NodeId", DbType.Int32, nodeId));
+                var ids = string.Join(",", transitiveNodeTypeIds.Select(x => x.ToString()));
+                cmd.Parameters.Add(ctx.CreateParameter("@TransparentTypeIds", DbType.String, ids.Length, ids));
             }, async (reader, cancel) =>
             {
                 cancel.ThrowIfCancellationRequested();
@@ -2454,7 +2454,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                 "GetTreeSize(path: {0}, includeChildren: {1})", path, includeChildren);
 
             using var ctx = CreateDataContext(cancellationToken);
-            var result = (long)await ctx.ExecuteScalarAsync(GetTreeSizeScript, cmd =>
+            var result = await ctx.ExecuteScalarAsync(GetTreeSizeScript, cmd =>
             {
                 cmd.Parameters.AddRange(new[]
                 {
@@ -2462,9 +2462,13 @@ namespace SenseNet.ContentRepository.Storage.Data
                     ctx.CreateParameter("@NodePath", DbType.String, PathMaxLength, path),
                 });
             }).ConfigureAwait(false);
-            op.Successful = true;
 
-            return result;
+
+            op.Successful = true;
+            if (result == DBNull.Value)
+                return 0L;
+
+            return (long)result;
         }
         protected abstract string GetTreeSizeScript { get; }
 

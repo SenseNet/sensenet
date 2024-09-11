@@ -16,7 +16,7 @@ namespace SenseNet.Services.Core.Operations;
 
 public static class ContentGenerationOperations
 {
-    [ODataAction(OperationName = "Replicate")]
+    [ODataAction(OperationName = "Replicate", Category = "Tools")]
     [AllowedRoles(N.R.Administrators, N.R.Developers)]
     [ContentTypes(N.CT.GenericContent)]
     public static async STT.Task ReplicateAsync(Content content, HttpContext httpContext, string target, ReplicationDescriptor options)
@@ -41,7 +41,7 @@ public static class ContentGenerationOperations
 #pragma warning restore CS4014
     }
 
-    [ODataFunction]
+    [ODataFunction(Category = "Tools")]
     [AllowedRoles(N.R.Administrators, N.R.Developers)]
     [ContentTypes(N.CT.GenericContent)]
     public static object GetReplicationTemplate(Content content)

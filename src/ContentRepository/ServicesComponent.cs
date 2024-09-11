@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -11,6 +12,7 @@ using SenseNet.Configuration;
 using SenseNet.ContentRepository.Fields;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage;
+using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Packaging;
 using SenseNet.Packaging.Tools;
@@ -1572,6 +1574,9 @@ namespace SenseNet.ContentRepository
 
             builder.Patch("7.7.31", "7.7.32", "2024-01-17", "Upgrades sensenet content repository.")
                 .Action(Patch_7_7_32);
+
+            builder.Patch("7.7.32", "7.7.41", "2024-05-27", "Upgrades sensenet content repository.")
+                .Action(Patch_7_7_41);
         }
 
         private void Patch_7_7_29(PatchExecutionContext context)
@@ -2091,7 +2096,119 @@ namespace SenseNet.ContentRepository
 
             #endregion
         }
-        
+
+        private void Patch_7_7_41(PatchExecutionContext context)
+        {
+            var logger = context.GetService<ILogger<ServicesComponent>>();
+
+            #region CTD changes
+
+            var richTextFieldNames = ContentType.GetContentTypes()
+                .SelectMany(ct => ct.FieldSettings)
+                .Where(fs => fs is RichTextFieldSetting)
+                .Select(fs => fs.Name)
+                .Distinct()
+                .ToArray();
+
+            try
+            {
+                Patch_7_7_41_UpdateLongTextProperties(richTextFieldNames);
+            }
+            catch (Exception ex)
+            {
+                logger.LogWarning(ex, "Error during updating LongTextProperties table.");
+            }
+
+            try
+            {
+                var cb = new ContentTypeBuilder(context.GetService<ILogger<ContentTypeBuilder>>());
+                foreach (var richTextFieldName in richTextFieldNames)
+                    cb.ChangeFieldType(richTextFieldName, "LongText");
+                cb.Apply();
+            }
+            catch (Exception ex)
+            {
+                logger.LogWarning(ex, "Error during CTD changes.");
+            }
+
+            #endregion
+        }
+        private void Patch_7_7_41_UpdateLongTextProperties(string[] richTextFieldNames)
+        {
+            if (!(Providers.Instance.DataProvider is RelationalDataProviderBase dataProvider))
+                throw new PackagingException(
+                    "This patch can run only with RelationalDataProviderBase (e.g. MsSqlDataProvider)");
+
+            var joinedRichTextFieldNames = string.Join(", ", richTextFieldNames.Select(x => $"'{x}'"));
+            var script = $@"SELECT LongTextProperties.LongTextPropertyId, LongTextProperties.Value
+FROM LongTextProperties
+	INNER JOIN PropertyTypes ON LongTextProperties.PropertyTypeId = PropertyTypes.PropertyTypeId
+WHERE PropertyTypes.Name in ({joinedRichTextFieldNames})
+";
+
+            Dictionary<int, string> queryResult = null;
+            using (var context = dataProvider.CreateDataContext(CancellationToken.None))
+            {
+                queryResult = context.ExecuteReaderAsync(script, async (reader, cancel) =>
+                {
+                    cancel.ThrowIfCancellationRequested();
+                    var result = new Dictionary<int, string>();
+                    while (await reader.ReadAsync(cancel).ConfigureAwait(false))
+                        result.Add(DataReaderExtension.GetInt32(reader, "LongTextPropertyId"), reader.GetSafeString("Value"));
+                    return result;
+                }).GetAwaiter().GetResult();
+            }
+
+            var updates = new Dictionary<int, string>();
+            var deletion = new List<int>();
+            foreach (var item in queryResult)
+            {
+                var id = item.Key;
+                var value = item.Value;
+                RichTextFieldValue rtfValue = null;
+                try
+                {
+                    rtfValue = JsonConvert.DeserializeObject<RichTextFieldValue>(value);
+                }
+                catch
+                {
+                    /* do nothing */
+                }
+
+                if (rtfValue == null)
+                    continue;
+
+                if (string.IsNullOrEmpty(rtfValue.Text))
+                    deletion.Add(id);
+                else
+                    updates.Add(id, rtfValue.Text);
+            }
+
+            // Play deletion if there is any
+            if (deletion.Count > 0)
+            {
+                var joinedIdsToDelete = string.Join(", ", deletion.Select(x => x.ToString()));
+                var deletionSql = $@"DELETE FROM LongTextProperties WHERE LongTextPropertyId IN ({joinedIdsToDelete})";
+                using var context = dataProvider.CreateDataContext(CancellationToken.None);
+                var _ = context.ExecuteNonQueryAsync(deletionSql).GetAwaiter().GetResult();
+            }
+
+            // Play updates
+            foreach (var item in updates)
+            {
+                var sql = "UPDATE LongTextProperties SET Value = @Value WHERE LongTextPropertyId = @Id";
+                using var ctx = dataProvider.CreateDataContext(CancellationToken.None);
+                var unused = ctx.ExecuteNonQueryAsync(sql, cmd =>
+                {
+                    cmd.Parameters.AddRange(new[]
+                    {
+                        ctx.CreateParameter("@Id", DbType.Int32, item.Key),
+                        ctx.CreateParameter("@Value", DbType.String, item.Value),
+                    });
+                }).GetAwaiter().GetResult();
+            }
+        }
+
         #region Patch template
 
         // =================================================================================================

@@ -920,7 +920,7 @@ Id:<42 .QUICK";
                     Content.All.Where(c => c.Name != "A" && c.Name != "B" && c.Name != "C" && c.TypeIs("Folder"))
                         .Expression;
                 var actual = SnExpression.BuildQuery(expr, typeof(Content), "/Root/FakePath", childrenDef).ToString();
-                var expected = "+(+TypeIs:folder -Name:c -Name:b -Name:a) +InFolder:/root/fakepath";
+                var expected = "+TypeIs:folder -Name:c -Name:b -Name:a +InFolder:/root/fakepath";
                 Assert.AreEqual(expected, actual);
             });
         }

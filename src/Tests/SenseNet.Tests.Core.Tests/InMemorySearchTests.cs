@@ -1346,6 +1346,16 @@ namespace SenseNet.Tests.Core.Tests
             {
                 _perFieldIndexingInfos = indexingInfo;
             }
+
+            public object GetConfigurationForHealthDashboard()
+            {
+                throw new NotImplementedException();
+            }
+
+            public Task<object> GetHealthAsync(CancellationToken cancel)
+            {
+                throw new NotImplementedException();
+            }
         }
     }
 }

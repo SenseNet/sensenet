@@ -536,6 +536,16 @@ namespace SenseNet.ODataTests
             {
                 _wrapped.SetIndexingInfo(indexingInfo);
             }
+
+            public object GetConfigurationForHealthDashboard()
+            {
+                throw new NotImplementedException();
+            }
+
+            public Task<object> GetHealthAsync(CancellationToken cancel)
+            {
+                throw new NotImplementedException();
+            }
         }
         #endregion
 

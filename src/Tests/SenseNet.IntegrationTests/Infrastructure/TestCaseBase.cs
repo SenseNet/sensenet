@@ -299,7 +299,7 @@ namespace SenseNet.IntegrationTests.Infrastructure
     <Field name='EngineSize' type='ShortText'/>
     <Field name='Power' type='ShortText'/>
     <Field name='Price' type='Number'/>
-    <Field name='Description' type='RichText'/>
+    <Field name='Description' type='LongText'/>
   </Fields>
 </ContentType>
 ";

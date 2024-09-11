@@ -48,27 +48,58 @@ namespace SenseNet.ContentRepository.Linq
                     }
                     occur = clause.Occur;
 
-                    if (mustnot == 0 && should == 0) // MUST
+                    if (mustnot == 0 && should == 0) // Only MUST subclauses
                     {
-                        if (occur == Occurence.Must)
+                        if (occur == Occurence.Must) // +(+T1 +T2) --> +T1 +T2
+                        {
                             AddClause(newClauses, subClauses, Occurence.Must);
-                        else if (occur == Occurence.MustNot)
+                            changed = true;
+                        }
+                        else if (occur == Occurence.MustNot) // -(+T1 +T2) --> no change
+                            newClauses.Add(clause);
+                        else // _(+T1 +T2) --> no change
+                            newClauses.Add(clause);
+                    }
+                    else if (must == 0 && should == 0) // Only MUST_NOT subclauses
+                    {
+                        if (occur == Occurence.Must) // +(-T1 -T2) --> -T1 -T2
+                        {
                             AddClause(newClauses, subClauses, Occurence.MustNot);
+                            changed = true;
+                        }
+                        else if (occur == Occurence.MustNot) // +(-T1 -T2) --> no change
+                            newClauses.Add(clause);
+                        else // _(-T1 -T2) --> no change
+                            newClauses.Add(clause);
+                    }
+                    else if (must == 0 && mustnot == 0) // Only SHOULD subclauses
+                    {
+                        if (occur == Occurence.Should) // _(T1 T2) --> T1 T2
+                        {
+                            AddClause(newClauses, subClauses, Occurence.Should);
+                            changed = true;
+                        }
+                        else if (occur == Occurence.MustNot) // -(T1 T2) --> -T1 -T2 (deMorgan)
+                        {
+                            AddClause(newClauses, subClauses, Occurence.MustNot);
+                            changed = true;
+                        }
                         else
                             newClauses.Add(clause);
-                        changed = true;
                     }
-                    else if (must == 0 && should == 0) // MUST_NOT
+                    else if (should == 0) // Only MUST and MUST_NOT subclauses
                     {
-                        if (occur == Occurence.Must)
-                            AddClause(newClauses, subClauses, Occurence.MustNot);
-                        else if (occur == Occurence.MustNot)
-                            AddClause(newClauses, subClauses, Occurence.Must);
-                        else
+                        if (occur == Occurence.Must) // +(+T1 -T2) --> +T1 -T2
+                        {
+                            AddClause(newClauses, subClauses);
+                            changed = true;
+                        }
+                        else if (occur == Occurence.MustNot) // -(+T1 -T2) --> no change
                             newClauses.Add(clause);
-                        changed = true;
+                        else // _(+T1 -T2) --> no change
+                            newClauses.Add(clause);
                     }
-                    else // not changed
+                    else
                     {
                         newClauses.Add(clause);
                     }
@@ -83,11 +114,12 @@ namespace SenseNet.ContentRepository.Linq
             return newQuery ?? logic;
         }
 
-        private void AddClause(ICollection<LogicalClause> newClauses, IEnumerable<LogicalClause> oldClauses, Occurence newOccur)
+        private void AddClause(ICollection<LogicalClause> newClauses, IEnumerable<LogicalClause> oldClauses, Occurence newOccur = Occurence.Default)
         {
             foreach (var oldClause in oldClauses)
             {
-                oldClause.Occur = newOccur;
+                if(newOccur != Occurence.Default)
+                    oldClause.Occur = newOccur;
                 newClauses.Add(oldClause);
             }
         }

@@ -17,11 +17,10 @@ namespace SenseNet.Services.Core.Operations
         /// <summary>
         /// Gets the type of the repository. This is 'standalone' by default.
         /// </summary>
-        /// <snCategory>Other</snCategory>
         /// <param name="content"></param>
         /// <param name="context"></param>
         /// <returns>The type of the repository.</returns>
-        [ODataFunction]
+        [ODataFunction(Category = "Other")]
         [ContentTypes(N.CT.PortalRoot)]
         [AllowedRoles(N.R.All)]
         public static object GetRepositoryType(Content content, HttpContext context)

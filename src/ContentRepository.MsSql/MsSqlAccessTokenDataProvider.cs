@@ -128,7 +128,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
                       (feature != null ? $"Feature = '{feature}'" : "Feature IS NULL");
 
             using var op = SnTrace.Database.StartOperation("MsSqlAccessTokenDataProvider: " +
-                "LoadAccessToken(tokenValue: {0}, contentId: {1}, feature: {2})", tokenValue, contentId, feature);
+                "LoadAccessToken(tokenValue: {0}, contentId: {1}, feature: {2})", GetAccessTokenForLog(tokenValue), contentId, feature);
 
             using var ctx = _mainProvider.CreateDataContext(cancellationToken);
             var result = await ctx.ExecuteReaderAsync(sql,
@@ -143,6 +143,10 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             op.Successful = true;
 
             return result;
+        }
+        private string GetAccessTokenForLog(string tokenValue)
+        {
+            return tokenValue.Substring(0, 3) + "...";
         }
 
         public async STT.Task<AccessToken[]> LoadAccessTokensAsync(int userId, CancellationToken cancellationToken)
@@ -180,7 +184,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
                       $" COLLATE {await GetAccessTokenValueCollationNameAsync(cancellationToken).ConfigureAwait(false)} AND [ExpirationDate] > GETUTCDATE()";
 
             using var op = SnTrace.Database.StartOperation("MsSqlAccessTokenDataProvider: " +
-                "UpdateAccessToken(tokenValue: {0}, newExpirationDate: {1:yyyy-MM-dd HH:mm:ss.fffff})", tokenValue, newExpirationDate);
+                "UpdateAccessToken(tokenValue: {0}, newExpirationDate: {1:yyyy-MM-dd HH:mm:ss.fffff})", GetAccessTokenForLog(tokenValue), newExpirationDate);
 
             using var ctx = _mainProvider.CreateDataContext(cancellationToken);
             var result = await ctx.ExecuteScalarAsync(sql, cmd =>
@@ -203,7 +207,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
                       $"WHERE [Value] = @Value COLLATE {await GetAccessTokenValueCollationNameAsync(cancellationToken).ConfigureAwait(false)}";
 
             using var op = SnTrace.Database.StartOperation("MsSqlAccessTokenDataProvider: " +
-                "DeleteAccessToken(tokenValue: {0})", tokenValue);
+                "DeleteAccessToken(tokenValue: {0})", GetAccessTokenForLog(tokenValue));
             using var ctx = _mainProvider.CreateDataContext(cancellationToken);
             await ctx.ExecuteNonQueryAsync(sql,
                 cmd => { cmd.Parameters.Add(ctx.CreateParameter("@Value", DbType.String, tokenValue)); }).ConfigureAwait(false);

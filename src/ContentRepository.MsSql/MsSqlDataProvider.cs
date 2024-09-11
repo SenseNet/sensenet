@@ -16,6 +16,9 @@ using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.Storage.Data.MsSqlClient;
 using SenseNet.Diagnostics;
 using SenseNet.Tools;
+using System.Threading.Tasks;
+using System.Diagnostics;
+using System.Timers;
 
 // ReSharper disable once CheckNamespace
 namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
@@ -29,8 +32,6 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
         private IDataInstaller DataInstaller { get; }
         private readonly ILogger _logger;
         private readonly IRetrier _retrier;
-
-        public override IDataPlatform<DbConnection, DbCommand, DbParameter> GetPlatform() { return null; } //TODO:~ UNDELETABLE
 
         public MsSqlDataProvider(IOptions<DataOptions> dataOptions, IOptions<ConnectionStringOptions> connectionOptions,
             IOptions<MsSqlDatabaseInstallationOptions> dbInstallerOptions, MsSqlDatabaseInstaller databaseInstaller,
@@ -374,6 +375,76 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
                 .ConfigureAwait(false);
 
             op.Successful = true;
+        }
+
+        /* =============================================================================================== Usage */
+        /* =============================================================================================== Health */
+
+        public override object GetConfigurationForHealthDashboard()
+        {
+            var connectionStrings = this.ConnectionStrings.Value;
+            var dataOptions = this.DataOptions;
+            return new
+            {
+                connectionStrings.Repository,
+                connectionStrings.Security,
+                connectionStrings.SignalR,
+                dataOptions.DbCommandTimeout,
+                dataOptions.TransactionTimeout,
+                dataOptions.LongTransactionTimeout
+            };
+        }
+
+        public override async Task<HealthResult> GetHealthAsync(CancellationToken cancel)
+        {
+            object data = null;
+            string error = null;
+            TimeSpan? elapsed = null;
+
+            try
+            {
+                var timer = Stopwatch.StartNew();
+                var sql = "SELECT Path FROM Nodes WHERE NodeId = 1";
+                using var ctx = CreateDataContext(cancel);
+                data = await ctx.ExecuteScalarAsync(sql).ConfigureAwait(false);
+                timer.Stop();
+                elapsed = timer.Elapsed;
+            }
+            catch(Exception e)
+            {
+                error = e.Message;
+            }
+
+            HealthResult result;
+            if (error != null)
+            {
+                result = new HealthResult
+                {
+                    Color = HealthColor.Red,
+                    Reason = $"ERROR: {error}",
+                    Method = "Trying to load first Node's Path."
+                };
+            }
+            else if (data == null || data == DBNull.Value)
+            {
+                result = new HealthResult
+                {
+                    Color = HealthColor.Yellow,
+                    Reason = "Invalid data",
+                    Method = "Trying to interpret the loaded first Node's Path."
+                };
+            }
+            else
+            {
+                result = new HealthResult
+                {
+                    Color = HealthColor.Green,
+                    ResponseTime = elapsed,
+                    Method = "Measure time of loading first Node's Path in secs."
+                };
+            }
+
+            return result;
         }
 
         /* =============================================================================================== Tools */

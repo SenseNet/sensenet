@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -8,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage.Data.MsSqlClient;
+using SenseNet.Diagnostics;
 
 // ReSharper disable once CheckNamespace
 namespace SenseNet.ContentRepository.Storage.Data
@@ -431,7 +433,75 @@ namespace SenseNet.ContentRepository.Storage.Data
             return DataProvider.CleanupAllFilesAsync(cancellationToken);
         }
 
-        /*==================================================================== Provider */
+        /* ==================================================================== Health */
+
+        public object GetConfigurationForHealthDashboard()
+        {
+            var options = this.BlobStorageConfig;
+            return new
+            {
+                options.BinaryCacheSize,
+                options.BinaryBufferSize,
+                options.BinaryChunkSize,
+                options.MinimumSizeForBlobProviderInBytes,
+                options.MinimumSizeForBlobProviderKb,
+                options.BlobDeletionPolicy
+            };
+        }
+
+        public async Task<HealthResult> GetHealthAsync(CancellationToken cancel)
+        {
+            object data = null;
+            string error = null;
+            TimeSpan? elapsed = null;
+
+            try
+            {
+                var timer = Stopwatch.StartNew();
+                var fileId = await this.DataProvider.GetFirstFileIdAsync(cancel);
+                data  = await this.GetBlobStorageContextAsync(fileId, cancel);
+                timer.Stop();
+                elapsed = timer.Elapsed;
+            }
+            catch(Exception e)
+            {
+                error = e.Message;
+            }
+
+            HealthResult result;
+            if (error != null)
+            {
+                result = new HealthResult
+                {
+                    Color = HealthColor.Red,
+                    Reason = $"ERROR: {error}",
+                    Method = "Trying to load BlobStorageContext of the first blob."
+                };
+            }
+            else if (data == null)
+            {
+                result = new HealthResult
+                {
+                    Color = HealthColor.Yellow,
+                    Reason = "No result",
+                    Method = "Trying to load BlobStorageContext of the first blob."
+                };
+            }
+            else
+            {
+                result = new HealthResult
+                {
+                    Color = HealthColor.Green,
+                    ResponseTime = elapsed,
+                    Method = "Measure time of loading first BlobStorageContext of the first blob in secs."
+                };
+            }
+
+            return result;
+        }
+
+
+        /* ==================================================================== Provider */
         
         /// <summary>
         /// Gets a provider based on the binary size and the available blob providers in the system.

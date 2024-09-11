@@ -46,7 +46,7 @@
     <xs:complexContent>
       <xs:extension base="BaseDecl">
         <xs:sequence>
-		  <xs:element minOccurs="0" name="AllowedChildTypes" type="xs:string">
+		  <xs:element minOccurs="0" name="AllowedChildTypes" type="AllowedChildTypesDecl">
 			<xs:annotation>
 			  <xs:documentation>
 				Contains a comma, semicolon or space separated list of content type names.
@@ -54,13 +54,13 @@
 			</xs:annotation>
 		  </xs:element>
 		  <xs:element minOccurs="0" name="Categories" type="xs:string">
-			  <xs:annotation>
-				  <xs:documentation>
-					  Contains a comma, semicolon or space separated list of categories.
-				  </xs:documentation>
-			  </xs:annotation>
+			<xs:annotation>
+			  <xs:documentation>
+				Contains a comma, semicolon or space separated list of categories.
+			  </xs:documentation>
+			</xs:annotation>
 		  </xs:element>
-          <xs:element minOccurs="0" name="SystemType" type="xs:boolean" />
+		  <xs:element minOccurs="0" name="SystemType" type="xs:boolean" />
           <xs:element minOccurs="0" name="AllowIndexing" type="xs:boolean" />
           <xs:element minOccurs="0" name="Fields">
             <xs:complexType>
@@ -104,6 +104,13 @@
         <xs:sequence>
           <xs:element name="Bind" type="BindDecl" minOccurs="0" maxOccurs="unbounded" />
           <xs:element name="Indexing" type ="IndexingDecl" minOccurs="0" />
+          <xs:element minOccurs="0" name="Categories" type="xs:string">
+	          <xs:annotation>
+		          <xs:documentation>
+			          Contains a comma, semicolon or space separated list of categories.
+		          </xs:documentation>
+	          </xs:annotation>
+          </xs:element>
           <xs:element name="Configuration" minOccurs="0">
             <xs:complexType mixed="true">
               <xs:sequence minOccurs="0" maxOccurs="unbounded">
@@ -136,6 +143,10 @@
         </xs:attribute>
       </xs:extension>
     </xs:complexContent>
+  </xs:complexType>
+  <!-- -->
+  <xs:complexType name="AllowedChildTypesDecl" mixed="true">
+	<xs:attribute name="transitive" type="xs:boolean" use="optional" />
   </xs:complexType>
   <!-- -->
   <xs:complexType name="BindDecl">
@@ -221,4 +232,5 @@
       <xs:enumeration value="Yes"/>
     </xs:restriction>
   </xs:simpleType>
+
 </xs:schema>

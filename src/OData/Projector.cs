@@ -198,7 +198,7 @@ namespace SenseNet.OData
                 return GetRichTextOutput(field.Name, rtfValue, oDataRequest);
             return data;
         }
-        protected string GetRichTextOutput(string fieldName, RichTextFieldValue rtfValue, ODataRequest oDataRequest)
+        protected virtual object GetRichTextOutput(string fieldName, RichTextFieldValue rtfValue, ODataRequest oDataRequest)
         {
             if (!oDataRequest.HasExpandedRichTextField)
                 return rtfValue.Text;

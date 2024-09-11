@@ -195,23 +195,24 @@ namespace SenseNet.ContentRepository.Schema
                 return;
             var m = Instance;
         }
+
+        private static ILogger<ContentTypeManager> GetLogger()
+            => Providers.Instance.Services.GetRequiredService<ILogger<ContentTypeManager>>();
+
         internal static void Reset()
         {
-            SnLog.WriteInformation("ContentTypeManager.Reset called.", EventId.RepositoryRuntime,
-                properties: new Dictionary<string, object> { { "AppDomain", AppDomain.CurrentDomain.FriendlyName } });
-
+            GetLogger().LogTrace("ContentTypeManager.Reset called.");
             new ContentTypeManagerResetDistributedAction().ExecuteAsync(CancellationToken.None).GetAwaiter().GetResult();
         }
         private static void ResetPrivate()
         {
             lock (_syncRoot)
             {
-                SnLog.WriteInformation("ContentTypeManager.Reset executed.", EventId.RepositoryRuntime,
-                   properties: new Dictionary<string, object> { { "AppDomain", AppDomain.CurrentDomain.FriendlyName } });
-
                 Providers.Instance.SetProvider(ContentTypeManagerProviderKey, null);
                 _indexingInfoTable = new Dictionary<string, IPerFieldIndexingInfo>();
                 ContentType.OnTypeSystemRestarted();
+
+                GetLogger().LogInformation("ContentTypeManager.Reset executed.");
             }
         }
 
