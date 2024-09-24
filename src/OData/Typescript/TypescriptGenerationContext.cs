@@ -18,7 +18,7 @@ namespace SenseNet.OData.Typescript
         public List<Enumeration> Enumerations = new List<Enumeration>();
         public List<ComplexType> ComplexTypes = new List<ComplexType>();
 
-        public static readonly string[] DisabledContentTypeNames = { "Application", "ApplicationCacheFile", "FieldSettingContent", "JournalNode" };
+        public static readonly string[] DisabledContentTypeNames = { "ApplicationCacheFile", "FieldSettingContent", "JournalNode" };
         public static readonly string[] PropertyBlacklist = { "Type", "TypeIs", "InTree", "InFolder", "AllFieldSettingContents" };
 
         public string GetEnumerationFullName(Enumeration enumeration)

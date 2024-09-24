@@ -22,6 +22,7 @@ using SenseNet.Search;
 using SenseNet.Search.Querying;
 using SenseNet.Tools;
 using SenseNet.OData.Metadata.Model;
+using SenseNet.Portal.ApplicationModel;
 using SenseNet.Services.Core;
 using SenseNet.Services.Core.Operations;
 using Task = System.Threading.Tasks.Task;
@@ -491,6 +492,14 @@ namespace SenseNet.OData.Writers
                                      !action.GetApplication().Security.HasPermission(PermissionType.RunApplication)))
                 throw new InvalidContentActionException("Forbidden action: " + odataReq.PropertyName);
 
+            if (action is GenericODataOperation genericODataOperation)
+            {
+                var methodName = ((GenericODataApplication) genericODataOperation.GetApplication()).MethodName;
+                var operationCallingContext =
+                    OperationCenter.GetMethodByRequest(content, methodName, await GetRequestBodyAsync(httpContext));
+                action = new ODataOperationMethodExecutor(operationCallingContext);
+            }
+
             var odataAction = action as ODataOperationMethodExecutor;
             var response = odataAction != null
                 ? (odataAction.IsAsync
@@ -876,6 +885,15 @@ namespace SenseNet.OData.Writers
                 }
             }
             return result.ToArray();
+        }
+
+        private async Task<string> GetRequestBodyAsync(HttpContext httpContext)
+        {
+            var inputStream = httpContext?.Request?.Body;
+            if (inputStream == null)
+                return null;
+            using var reader = new StreamReader(inputStream);
+            return await reader.ReadToEndAsync();
         }
         private async Task<object[]> GetOperationParametersAsync(ActionBase action,
             HttpContext httpContext, ODataRequest odataRequest)
