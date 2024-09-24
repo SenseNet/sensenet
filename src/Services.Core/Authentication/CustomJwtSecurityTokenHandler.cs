@@ -13,16 +13,14 @@ namespace SnWebApplication.Api.Sql.TokenAuth.TokenValidator
     public class CustomJwtSecurityTokenHandler : ISecurityTokenValidator
     {
         private readonly string _validateTokenUrl;
-        private readonly string _validatorToken;
         private readonly JwtSecurityTokenHandler _defaultHandler;
 
         public bool CanValidateToken => true;
         public int MaximumTokenSizeInBytes { get; set; } = TokenValidationParameters.DefaultMaximumTokenSizeInBytes;
 
-        public CustomJwtSecurityTokenHandler(string validateTokenUrl, string validatorToken)
+        public CustomJwtSecurityTokenHandler(string validateTokenUrl)
         {
             _validateTokenUrl = validateTokenUrl ?? throw new ArgumentNullException(nameof(validateTokenUrl));
-            _validatorToken = validatorToken ?? throw new ArgumentNullException(nameof(validatorToken));
             _defaultHandler = new JwtSecurityTokenHandler();
         }
 
@@ -38,12 +36,11 @@ namespace SnWebApplication.Api.Sql.TokenAuth.TokenValidator
             using var httpClient = new HttpClient();
 
             httpClient.DefaultRequestHeaders.Clear();
-            httpClient.DefaultRequestHeaders.Add("x-token-validator-key", _validatorToken);
             httpClient.DefaultRequestHeaders
                 .Accept
                 .Add(new MediaTypeWithQualityHeaderValue("application/json"));
-            var json = new StringContent(JsonConvert.SerializeObject(requestBody), Encoding.UTF8, "application/json");
-            var response = await httpClient.PostAsync(_validateTokenUrl, json);
+            httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            var response = await httpClient.GetAsync(_validateTokenUrl);
             if (!response.IsSuccessStatusCode)
                 throw new SecurityTokenValidationException("Invalid token.");
 

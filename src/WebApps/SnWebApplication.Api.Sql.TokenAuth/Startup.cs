@@ -57,8 +57,7 @@ namespace SnWebApplication.Api.Sql.TokenAuth
 
                         options.SecurityTokenValidators.Clear();
                         options.SecurityTokenValidators.Add(new CustomJwtSecurityTokenHandler(
-                            $"{authOptions.Authority}/api/auth/validate-token",
-                            authOptions.TokenValidatorKey));
+                            $"{authOptions.Authority}/api/auth/validate-token"));
                     }
                     else
                     {
