@@ -10,6 +10,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Security.ApiKeys;
@@ -17,6 +18,7 @@ using SenseNet.Diagnostics;
 using SenseNet.Extensions.DependencyInjection;
 using SenseNet.Search.Lucene29;
 using SenseNet.Services.Core.Authentication;
+using SnWebApplication.Api.Sql.TokenAuth.TokenValidator;
 
 namespace SnWebApplication.Api.Sql.TokenAuth.Preview
 {
@@ -43,15 +45,29 @@ namespace SnWebApplication.Api.Sql.TokenAuth.Preview
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 .AddJwtBearer(options =>
                 {
-                    options.Authority = authOptions.Authority;
                     options.RequireHttpsMetadata = false;
                     options.SaveToken = true;
 
-                    options.Audience = "sensenet";
+                    if (authOptions.AuthServerType == AuthenticationServerType.SNAuth)
+                    {
+                        options.TokenValidationParameters = new TokenValidationParameters
+                        {
+                            ValidateIssuerSigningKey = false
+                        };
 
-                    if (!string.IsNullOrWhiteSpace(authOptions.MetadataHost))
-                        options.MetadataAddress =
-                            $"{authOptions.MetadataHost.AddUrlSchema().TrimEnd('/')}/.well-known/openid-configuration";
+                        options.SecurityTokenValidators.Clear();
+                        options.SecurityTokenValidators.Add(new SenseNetJwtSecurityTokenHandler(
+                            $"{authOptions.Authority}/api/auth/validate-token"));
+                    }
+                    else
+                    {
+                        options.Audience = "sensenet";
+
+                        options.Authority = authOptions.Authority;
+                        if (!string.IsNullOrWhiteSpace(authOptions.MetadataHost))
+                            options.MetadataAddress =
+                        $"{authOptions.MetadataHost.AddUrlSchema().TrimEnd('/')}/.well-known/openid-configuration";
+                    }
                 });
 
             // [sensenet]: Set options for ApiKeys
