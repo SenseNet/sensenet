@@ -55,7 +55,7 @@ namespace SnWebApplication.Api.Sql.SearchService.TokenAuth.Preview
                         };
 
                         options.SecurityTokenValidators.Clear();
-                        options.SecurityTokenValidators.Add(new CustomJwtSecurityTokenHandler(
+                        options.SecurityTokenValidators.Add(new SenseNetJwtSecurityTokenHandler(
                             $"{authOptions.Authority}/api/auth/validate-token"));
                     }
                     else
