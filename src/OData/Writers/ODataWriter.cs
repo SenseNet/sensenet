@@ -449,6 +449,8 @@ namespace SenseNet.OData.Writers
             if (action.Forbidden || (action.GetApplication() != null && !action.GetApplication().Security.HasPermission(PermissionType.RunApplication)))
                 throw new InvalidContentActionException("Forbidden action: " + odataReq.PropertyName);
 
+            httpContext.Items.Add("SenseNet.ApplicationModel.ActionBase", action);
+
             var response = action is ODataOperationMethodExecutor odataAction
                 ? (odataAction.IsAsync ? await odataAction.ExecuteAsync(content) : action.Execute(content))
                 : action.Execute(content, GetOperationParameters(action, httpContext.Request));
@@ -499,6 +501,8 @@ namespace SenseNet.OData.Writers
                     OperationCenter.GetMethodByRequest(content, methodName, await GetRequestBodyAsync(httpContext));
                 action = new ODataOperationMethodExecutor(operationCallingContext);
             }
+
+            httpContext.Items.Add("SenseNet.ApplicationModel.ActionBase", action);
 
             var odataAction = action as ODataOperationMethodExecutor;
             var response = odataAction != null
@@ -803,7 +807,11 @@ namespace SenseNet.OData.Writers
                     var name = parameter.Name;
                     var type = parameter.Type;
                     var val = request.Query[name];
-                    if (val == StringValues.Empty)
+                    if (type == typeof(HttpContext))
+                    {
+                        values[i] = request.HttpContext;
+                    }
+                    else if (val == StringValues.Empty)
                     {
                         if (parameter.Required)
                             throw new ArgumentNullException(parameter.Name);

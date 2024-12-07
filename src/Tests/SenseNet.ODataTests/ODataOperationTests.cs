@@ -54,11 +54,26 @@ namespace SenseNet.ODataTests
                    $" Param1: {param1}.";
         }
         [ODataFunction]
+        // Cannot be called from ActionFramework because of the parameter ODataRequest request
         public static string Function2(Content content, HttpContext httpContext, ODataRequest request, string param1)
         {
             return "## Function2 called." +
                    $" Query: {httpContext.Request.QueryString}." +
                    $" Format: {request.Format}." +
+                   $" Path: {(content?.Path ?? "[null]")}." +
+                   $" Param1: {param1}.";
+        }
+        // Can be called from ActionFramework
+        [ODataFunction]
+        public static string Function21(Content content, HttpContext httpContext, string param1)
+        {
+            var request = httpContext.Items["SenseNet.OData.ODataRequest"] as ODataRequest;
+            var action = httpContext.Items["SenseNet.ApplicationModel.ActionBase"] as ActionBase;
+            var app = action?.GetApplication();
+            return "## Function21 called." +
+                   $" Query: {httpContext.Request.QueryString}." +
+                   $" Action: {app?.Path ?? "[null]"}." +
+                   $" Top: {request?.Top.ToString() ?? "[null]"}." + // property for check ODataRequest existence
                    $" Path: {(content?.Path ?? "[null]")}." +
                    $" Param1: {param1}.";
         }
@@ -431,26 +446,39 @@ namespace SenseNet.ODataTests
 
                 var app = new GenericODataApplication(appRoot)
                 {
-                    Name = "Function2",
+                    Name = "Function21",
                     ActionTypeName = typeof(GenericODataOperation).FullName,
                     ClassName = this.GetType().FullName,
-                    MethodName = "Function2",
-                    Parameters = "string param1, string param2"
+                    MethodName = "Function21",
+                    Parameters = "HttpContext httpContext, string param1"
                 };
                 app.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
-                // ACTION
-                var response = await ODataPostAsync(
+                // ACTION-1
+                var response1 = await ODataGetAsync(
+                    "/OData.svc/Root('IMS')/Function21",
+                    "?$top=67&param1=value1").ConfigureAwait(false);
+
+                // ASSERT-1
+                var expected1 = "## Function21 called. Query: ?$top=67&param1=value1. Action: /Root/(apps)/GenericContent/Function21. Top: 67. Path: /Root/IMS. Param1: value1.";
+                var actual1 = response1.Result;
+                var raw1 = actual1.Replace("\n", "").Replace("\r", "").Replace("\t", "").Replace(" ", "");
+                var exp1 = expected1.Replace("\n", "").Replace("\r", "").Replace("\t", "").Replace(" ", "");
+                Assert.AreEqual(exp1, raw1);
+
+
+                // ACTION-2
+                var response2 = await ODataPostAsync(
                     "/OData.svc/Root('IMS')/Function3",
                     "?param2=value2",
                     "{param1:\"asdf\",param2:\"qwer\"}").ConfigureAwait(false);
 
-                // ASSERT
-                var expected = "## Function3 called. Path: /Root/IMS, Param1: asdf, Param2: value2, Param3:[null]";
-                var actual = response.Result;
-                var raw = actual.Replace("\n", "").Replace("\r", "").Replace("\t", "").Replace(" ", "");
-                var exp = expected.Replace("\n", "").Replace("\r", "").Replace("\t", "").Replace(" ", "");
-                Assert.AreEqual(exp, raw);
+                // ASSERT-2
+                var expected2 = "## Function3 called. Path: /Root/IMS, Param1: asdf, Param2: value2, Param3:[null]";
+                var actual2 = response2.Result;
+                var raw2 = actual2.Replace("\n", "").Replace("\r", "").Replace("\t", "").Replace(" ", "");
+                var exp2 = expected2.Replace("\n", "").Replace("\r", "").Replace("\t", "").Replace(" ", "");
+                Assert.AreEqual(exp2, raw2);
             }).ConfigureAwait(false);
         }
 

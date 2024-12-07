@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using SenseNet.ContentRepository;
+using Microsoft.AspNetCore.Http;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.Tools;
+using Content = SenseNet.ContentRepository.Content;
 
 namespace SenseNet.ApplicationModel
 {
@@ -87,6 +88,9 @@ namespace SenseNet.ApplicationModel
 
                     case "Node": type = typeof(Node); break;
                     case "Content": type = typeof(Content); break;
+
+                    case "HttpContext": type = typeof(HttpContext); break;
+
                     default: type = TypeResolver.GetType(typeName); break;
                 }
                 if (type == null)
