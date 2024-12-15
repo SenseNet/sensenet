@@ -453,6 +453,7 @@ namespace SenseNet.ODataTests
                     Parameters = "HttpContext httpContext, string param1"
                 };
                 app.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
+                ApplicationStorage.Invalidate();
 
                 // ACTION-1
                 var response1 = await ODataGetAsync(
