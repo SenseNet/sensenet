@@ -10,7 +10,7 @@ using System.Collections.Generic;
 using System.Threading;
 using SenseNet.ContentRepository.Storage.Events;
 using SkiaSharp;
-
+using BinaryData = SenseNet.ContentRepository.Storage.BinaryData;
 
 namespace SenseNet.ContentRepository
 {

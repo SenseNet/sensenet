@@ -2,13 +2,13 @@
 using System.Collections.Generic;
 using System.Linq;
 using SenseNet.Configuration;
-using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
 using SenseNet.Search.Indexing;
 using SenseNet.Search.Querying.Parser.Predicates;
 using SenseNet.Security;
+using BinaryData = SenseNet.ContentRepository.Storage.BinaryData;
 
 // ReSharper disable once CheckNamespace
 namespace SenseNet.Search.Querying

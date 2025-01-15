@@ -24,8 +24,9 @@ using SenseNet.ContentRepository.Sharing;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Storage;
 using SenseNet.Tools;
+using BinaryData = SenseNet.ContentRepository.Storage.BinaryData;
 
-namespace  SenseNet.ContentRepository.Schema
+namespace SenseNet.ContentRepository.Schema
 {
     /// <summary>
     /// Defines a class that can handle a Content type in the sensenet Content Repository.

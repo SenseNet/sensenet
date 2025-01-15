@@ -1,13 +1,9 @@
 using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Xml;
 using System.IO;
 using System.Web;
-using IO = System.IO;
-using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Schema;
-using SenseNet.Configuration;
+using BinaryData = SenseNet.ContentRepository.Storage.BinaryData;
 
 namespace SenseNet.ContentRepository.Fields
 {

@@ -8,8 +8,8 @@ using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Caching;
 using SenseNet.ContentRepository.Storage.Caching.Dependency;
 using SenseNet.ContentRepository.Storage.Schema;
-using SenseNet.Extensions.DependencyInjection;
 using SenseNet.Tests.Core;
+using BinaryData = SenseNet.ContentRepository.Storage.BinaryData;
 // ReSharper disable UnusedVariable
 
 namespace SenseNet.ContentRepository.Tests

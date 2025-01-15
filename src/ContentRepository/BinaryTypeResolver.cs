@@ -1,8 +1,7 @@
 using System;
-using System.IO;
 using SenseNet.Configuration;
-using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Schema;
+using BinaryData = SenseNet.ContentRepository.Storage.BinaryData;
 
 namespace SenseNet.ContentRepository
 {
@@ -11,10 +10,6 @@ namespace SenseNet.ContentRepository
         private string _fileNameExtension;
         private string _contentType;
         private NodeType _nodeType;
-
-        public BinaryTypeResolver()
-        {
-        }
 
         public bool ParseBinary(BinaryData binaryData)
         {

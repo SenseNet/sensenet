@@ -1,5 +1,5 @@
 using System;
-using SenseNet.ContentRepository.Storage;
+using BinaryData = SenseNet.ContentRepository.Storage.BinaryData;
 
 namespace SenseNet.ContentRepository
 {

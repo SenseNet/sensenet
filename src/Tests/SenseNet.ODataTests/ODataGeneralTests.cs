@@ -18,6 +18,7 @@ using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.OData;
 using SenseNet.ODataTests.Responses;
 using SenseNet.Tests.Core;
+using BinaryData = SenseNet.ContentRepository.Storage.BinaryData;
 using Task = System.Threading.Tasks.Task;
 // ReSharper disable IdentifierTypo
 // ReSharper disable StringLiteralTypo

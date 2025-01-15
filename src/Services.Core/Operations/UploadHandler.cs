@@ -14,6 +14,7 @@ using Newtonsoft.Json;
 using System.Threading.Tasks;
 using System.Threading;
 using System.Xml.XPath;
+using BinaryData = SenseNet.ContentRepository.Storage.BinaryData;
 
 namespace SenseNet.Services.Core.Operations
 {
