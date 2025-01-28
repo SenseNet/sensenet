@@ -519,6 +519,8 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
         {
             if (timestamp == null)
                 return 0L;
+            if (timestamp == DBNull.Value)
+                return 0L;
             var bytes = (byte[]) timestamp;
             var @long = 0L;
             for (int i = 0; i < bytes.Length; i++)

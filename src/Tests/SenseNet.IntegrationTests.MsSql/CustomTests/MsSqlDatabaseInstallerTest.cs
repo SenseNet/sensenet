@@ -577,7 +577,7 @@ namespace SenseNet.IntegrationTests.MsSql.CustomTests
         /* ===================================================================================== */
 
         private static readonly string SystemConnectionString =
-            $"Data Source={LocalServer};Initial Catalog=master;Integrated Security=True";
+            $"Data Source={LocalServer};Initial Catalog=master;Integrated Security=SSPI;Persist Security Info=False;TrustServerCertificate=True";
 
         private string GetConnectionStringFor(string databaseName)
         {

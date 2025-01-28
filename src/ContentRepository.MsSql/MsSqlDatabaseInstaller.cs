@@ -125,6 +125,7 @@ namespace SenseNet.Storage.Data.MsSqlClient
                 builder.Password = options.DbCreatorPassword;
             }
 
+            builder.TrustServerCertificate = true;
             return builder.ConnectionString;
         }
 
