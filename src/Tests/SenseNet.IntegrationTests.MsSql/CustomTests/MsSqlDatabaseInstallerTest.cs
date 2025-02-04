@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Data.SqlClient;
+using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
@@ -577,7 +577,7 @@ namespace SenseNet.IntegrationTests.MsSql.CustomTests
         /* ===================================================================================== */
 
         private static readonly string SystemConnectionString =
-            $"Data Source={LocalServer};Initial Catalog=master;Integrated Security=True";
+            $"Data Source={LocalServer};Initial Catalog=master;Integrated Security=SSPI;Persist Security Info=False;TrustServerCertificate=True";
 
         private string GetConnectionStringFor(string databaseName)
         {

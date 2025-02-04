@@ -11,11 +11,10 @@ using SenseNet.Diagnostics;
 using SenseNet.Search;
 using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.ContentRepository.Fields;
-using SenseNet.ContentRepository.Search;
-using SenseNet.ContentRepository.Search.Querying;
 using SenseNet.ContentRepository.Storage.Events;
 using SenseNet.Security;
 using SenseNet.Tools;
+using BinaryData = SenseNet.ContentRepository.Storage.BinaryData;
 
 namespace SenseNet.ContentRepository
 {

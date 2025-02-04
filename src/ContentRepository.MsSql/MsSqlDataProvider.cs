@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
-using System.Data.SqlClient;
+using Microsoft.Data.SqlClient;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -518,6 +518,8 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
         protected override long ConvertTimestampToInt64(object timestamp)
         {
             if (timestamp == null)
+                return 0L;
+            if (timestamp == DBNull.Value)
                 return 0L;
             var bytes = (byte[]) timestamp;
             var @long = 0L;
