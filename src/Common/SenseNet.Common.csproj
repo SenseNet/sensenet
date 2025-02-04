@@ -30,7 +30,7 @@
 		<PackageReference Include="Microsoft.Data.SqlClient" Version="5.2.2" />
 		<PackageReference Include="Microsoft.Extensions.Options" Version="9.0.0" />
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-		<PackageReference Include="SenseNet.Tools" Version="3.2.13.1" />
+		<PackageReference Include="SenseNet.Tools" Version="3.3.0" />
 	</ItemGroup>
 
 </Project>

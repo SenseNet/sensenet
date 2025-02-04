@@ -21,8 +21,8 @@
     <PackageReference Include="SenseNet.Preview.Aspose" Version="7.3.7.2" />
     <PackageReference Include="SenseNet.Messaging.RabbitMQ" Version="1.1.3.2" />
     <PackageReference Include="SenseNet.Search.Lucene29.Centralized.GrpcClient" Version="1.0.2.1" />
-    <PackageReference Include="SenseNet.Security.EFCSecurityStore" Version="3.1.2.2" />
-    <PackageReference Include="SenseNet.Security.Messaging.RabbitMQ" Version="1.2.6.2" />
+    <PackageReference Include="SenseNet.Security.EFCSecurityStore" Version="3.2.0" />
+    <PackageReference Include="SenseNet.Security.Messaging.RabbitMQ" Version="1.3.0" />
     <PackageReference Include="Serilog.AspNetCore" Version="9.0.0" />
     <PackageReference Include="Serilog.Sinks.Graylog" Version="3.1.1" />
   </ItemGroup>

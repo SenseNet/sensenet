@@ -31,7 +31,7 @@
 		<PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="9.0.0" />
 		<PackageReference Include="SenseNet.AI.Text" Version="0.0.3" />
 		<PackageReference Include="SenseNet.AI.Vision" Version="0.0.1-beta1" />
-		<PackageReference Include="SenseNet.Tools" Version="3.2.13.1" />
+		<PackageReference Include="SenseNet.Tools" Version="3.3.0" />
 	</ItemGroup>
 
 	<ItemGroup>
