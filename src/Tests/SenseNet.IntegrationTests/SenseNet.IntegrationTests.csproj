@@ -30,7 +30,7 @@
     </PackageReference>
     <PackageReference Include="SenseNet.Client" Version="4.1.0" />
     <PackageReference Include="SenseNet.Security.EFCSecurityStore" Version="3.2.0" />
-    <PackageReference Include="SenseNet.Search.Lucene29.Local" Version="7.4.14.2" />
+    <PackageReference Include="SenseNet.Search.Lucene29.Local" Version="7.5.0" />
   </ItemGroup>
 
   <ItemGroup>
