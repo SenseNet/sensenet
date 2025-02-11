@@ -23,10 +23,6 @@
 		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
 	</PropertyGroup>
 
-	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-		<DocumentationFile>bin\Release\netstandard2.0\SenseNet.BlobStorage.xml</DocumentationFile>
-	</PropertyGroup>
-
 	<ItemGroup>
 		<PackageReference Include="SenseNet.Tools" Version="3.3.0" />
 	</ItemGroup>
