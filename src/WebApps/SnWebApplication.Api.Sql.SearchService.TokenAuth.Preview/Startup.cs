@@ -55,9 +55,13 @@ namespace SnWebApplication.Api.Sql.SearchService.TokenAuth.Preview
                             ValidateIssuerSigningKey = false
                         };
 
+                        var snAuthUrl = !string.IsNullOrEmpty(authOptions.MetadataHost)
+                            ? authOptions.MetadataHost
+                            : authOptions.Authority;
+
                         options.SecurityTokenValidators.Clear();
                         options.SecurityTokenValidators.Add(new SenseNetJwtSecurityTokenHandler(
-                            $"{authOptions.Authority}/api/auth/validate-token"));
+                            $"{snAuthUrl}/api/auth/validate-token"));
                     }
                     else
                     {
