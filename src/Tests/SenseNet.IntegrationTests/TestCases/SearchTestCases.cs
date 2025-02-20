@@ -61,16 +61,47 @@ xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefini
             });
         }
 
+        private const string Key0 = "key0";
+        private const string Key1 = "key1";
+        private const string Value0 = @"abc\def";
+        private const string Value1 = "VALUE1";
+
+
+        #region <ContentType name='ChoiceFieldIndexingTestContentType' ...
+        private readonly string _searchBug2184 = $@"<?xml version='1.0' encoding='utf-8'?>
+<ContentType name='SearchBug2184' parentType='GenericContent' handler='SenseNet.ContentRepository.GenericContent' xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition'>
+  <AllowIncrementalNaming>true</AllowIncrementalNaming>
+  <Fields>
+    <Field name='Choice1' type='Choice'>
+      <Configuration>
+        <AllowMultiple>false</AllowMultiple>
+        <AllowExtraValue>false</AllowExtraValue>
+        <Options>
+          <Option value='{Key0}'>{Value0}</Option>
+          <Option value='{Key1}'>{Value1}</Option>
+        </Options>
+      </Configuration>
+    </Field>
+  </Fields>
+</ContentType>
+";
+        #endregion
+
         public async Task Search_Bug2184_IndexDocumentDeserialization_InvalidEscapeSequence()
         {
             await IntegrationTestAsync(async () =>
             {
-                var node = new SystemFolder(Repository.Root)
-                    {Name = nameof(Search_Bug2184_IndexDocumentDeserialization_InvalidEscapeSequence)};
-                node.DisplayName = "abc\\defg";
-                await node.SaveAsync(_cancel);
+                ContentTypeInstaller.InstallContentType(_searchBug2184);
 
-                Assert.Fail("Not implemented well.");
+                var testRoot = new SystemFolder(Repository.Root) {Name = "TestRoot"};
+                await testRoot.SaveAsync(_cancel);
+
+                var content = Content.CreateNew("SearchBug2184", testRoot, "content1");
+                content.DisplayName = Value0;
+                content["Description"] = Value0;
+                content["Choice1"] = Key0;
+                await content.SaveAsync(_cancel);
+
             });
         }
     }
