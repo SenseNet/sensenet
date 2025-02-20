@@ -13,5 +13,11 @@ namespace SenseNet.IntegrationTests.MsSql.MsSqlTests
         {
             TestCase.Search_ReferenceField();
         }
+
+        [TestMethod, TestCategory("Services")]
+        public void IntT_MsSql_Search_Bug2184_IndexDocumentDeserialization_InvalidEscapeSequence()
+        {
+            TestCase.Search_Bug2184_IndexDocumentDeserialization_InvalidEscapeSequence().GetAwaiter().GetResult();
+        }
     }
 }

@@ -5,11 +5,14 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.IntegrationTests.Infrastructure;
+using Task = System.Threading.Tasks.Task;
 
 namespace SenseNet.IntegrationTests.TestCases
 {
     public class SearchTestCases : TestCaseBase
     {
+        private readonly CancellationToken _cancel = new();
+
         private const string CtdSearchTestReference = @"<ContentType name=""GenericContentWithReferenceTest"" 
 parentType=""GenericContent"" handler=""SenseNet.ContentRepository.GenericContent"" 
 xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
@@ -55,6 +58,19 @@ xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefini
                 Assert.AreEqual(content1.Id, result1.Id);
                 Assert.AreEqual(content1.Id, result2.Id);
                 Assert.AreEqual(content1.Id, result3.Id);
+            });
+        }
+
+        public async Task Search_Bug2184_IndexDocumentDeserialization_InvalidEscapeSequence()
+        {
+            await IntegrationTestAsync(async () =>
+            {
+                var node = new SystemFolder(Repository.Root)
+                    {Name = nameof(Search_Bug2184_IndexDocumentDeserialization_InvalidEscapeSequence)};
+                node.DisplayName = "abc\\defg";
+                await node.SaveAsync(_cancel);
+
+                Assert.Fail("Not implemented well.");
             });
         }
     }
