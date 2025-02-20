@@ -56,7 +56,9 @@ namespace SenseNet.Search.Indexing
                     break;
                 case IndexValueType.StringArray:
                     writer.WriteStartArray();
-                    writer.WriteRaw("\"" + string.Join("\",\"", value.StringArrayValue) + "\"");
+                    //writer.WriteRaw("\"" + string.Join("\",\"", value.StringArrayValue) + "\"");
+                    foreach(var item in value.StringArrayValue)
+                        writer.WriteValue(item);
                     writer.WriteEndArray();
                     break;
                 case IndexValueType.IntArray:
