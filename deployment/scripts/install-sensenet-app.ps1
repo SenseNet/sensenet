@@ -2,7 +2,7 @@ Param (
     [Parameter(Mandatory=$False)]
 	[string]$ProjectName="docker",
 	[Parameter(Mandatory=$False)]
-	[string]$NetworkName="snnetwork",
+	[string]$NetworkName="sensenet",
 
 	# Hosting environment
 	[Parameter(Mandatory=$False)]
