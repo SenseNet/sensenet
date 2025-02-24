@@ -50,7 +50,7 @@ Param (
 	[Parameter(Mandatory=$False)]
 	[bool]$UseAuth,
 	[Parameter(Mandatory=$False)]
-	[string]$ApiKey = "pr3Gen3R4Tedpr3Gen3R4Tedpr3Gen3R4Tedpr3Gen3R4Tedpr3Gen3R4Tedpr3Gen3R4Tedpr3Gen3R4Ted"
+	[string]$ApiKey = "pr3Gen3R4Tedpr3Gen3R4Tedpr3Gen3R4Tedpr3Gen3R4Tedpr3Gen3R4Tedpr3Gen3R4Tedpr3Gen3R4Ted",
 
 	# Sensenet Repository Database
 	[Parameter(Mandatory=$False)]
