@@ -30,7 +30,7 @@ Param (
 	[Parameter(Mandatory=$False)]
 	[string]$SensenetPublicHost="https://$($ProjectName)-sn.$($Domain)",
 	
-	# Identity server
+	# SnAuth server
 	[Parameter(Mandatory=$False)]
 	[string]$IdentityDockerImage="sensenetcsp/sn-auth:latest",
 	[Parameter(Mandatory=$False)]
@@ -85,9 +85,9 @@ $date = Get-Date -Format "yyyy-MM-dd HH:mm K"
 
 Write-Output " "
 Write-Output "#################################"
-Write-Output "#   identity server container   #"
+Write-Output "#   snauth server container   #"
 Write-Output "#################################"
-Write-Output "[$($date) INFO] Start identity server"
+Write-Output "[$($date) INFO] Start snauth server"
 
 if ($IdentityDockerImage -Match "/") {
 	Write-Output "pull $IdentityDockerImage image from the registry"
@@ -178,8 +178,8 @@ if (-not $DryRun) {
 		# workaround for "failed to get console mode for stdout: The handle is invalid."
 		$ISIP = $ISIP[1]
 	}
-	Write-Output "`n[$($date) INFO] Identity server Ip: $ISIP"
+	Write-Output "`n[$($date) INFO] SnAuth server Ip: $ISIP"
 	if ($OpenPort) {
-		Write-Output "[$($date) INFO] Identity Server url: https://localhost:$IsHostPort"
+		Write-Output "[$($date) INFO] SnAuth Server url: https://localhost:$IsHostPort"
 	}
 }
