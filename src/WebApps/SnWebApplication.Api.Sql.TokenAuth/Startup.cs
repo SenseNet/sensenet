@@ -60,6 +60,8 @@ namespace SnWebApplication.Api.Sql.TokenAuth
                             ? authOptions.MetadataHost
                             : authOptions.Authority;
 
+
+                        options.UseSecurityTokenValidators = true;
                         options.SecurityTokenValidators.Clear();
                         options.SecurityTokenValidators.Add(new SenseNetJwtSecurityTokenHandler(
                             $"{snAuthUrl}/api/auth/validate-token"));

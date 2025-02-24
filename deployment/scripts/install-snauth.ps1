@@ -44,7 +44,7 @@ Param (
 	[Parameter(Mandatory=$False)]
 	[string]$ApiKey = "pr3Gen3R4Tedpr3Gen3R4Tedpr3Gen3R4Tedpr3Gen3R4Tedpr3Gen3R4Tedpr3Gen3R4Tedpr3Gen3R4Ted",
 	[Parameter(Mandatory=$False)]
-	[string]$SecretKey = "pr3Gen3R4Tedpr3Gen3R4Ted",
+	[string]$SecretKey = "pr3Gen3R4Tedpr3Gen3R4Tedpr3Gen3R4Ted",
 	[Parameter(Mandatory=$False)]
 	[string]$RecaptchaSiteKey = "--to-be-set--",
 	[Parameter(Mandatory=$False)]
@@ -121,8 +121,7 @@ $params = "run", "-it", "-d", "eol",
 "-e", "Application__Url=$($IdentityPublicHost)", "eol",
 "-e", "Application__AllowedHosts__0=https://adminui.test.sensenet.com", "eol",
 "-e", "Application__AllowedHosts__1=$($SensenetPublicHost)", "eol",
-"-e", "Application__AllowedHosts__2=https://localhost:8080", "eol",
-"-e", "Application__AllowedHosts__3=http://localhost:8080", "eol"
+"-e", "Application__AllowedHosts__2=$($SensenetContainerHost)", "eol"
 
 switch($Routing) {
 	"cnt" {
