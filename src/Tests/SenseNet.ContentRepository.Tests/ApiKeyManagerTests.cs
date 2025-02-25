@@ -4,6 +4,7 @@ using System.Linq;
 using STT = System.Threading.Tasks;
 using SenseNet.Tests.Core;
 using System.Threading;
+using Microsoft.Extensions.DependencyInjection;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Security.ApiKeys;
 using SenseNet.ContentRepository.Storage;
@@ -16,6 +17,19 @@ namespace SenseNet.ContentRepository.Tests
     public class ApiKeyManagerTests : TestBase
     {
         [TestMethod, TestCategory("ApiKey")]
+        public async STT.Task ApiKey_GetApiKeys_AdminGeneratedDuringInstall()
+        {
+            await Test(async () =>
+            {
+                var akm = Providers.Instance.Services.GetRequiredService<IApiKeyManager>();
+                var apiKeys = await akm.GetApiKeysByUserAsync(Identifiers.AdministratorUserId, CancellationToken.None);
+                var adminApiKey = apiKeys.FirstOrDefault()?.Value;
+                
+                Assert.IsNotNull(adminApiKey);
+            });
+        }
+
+        [TestMethod, TestCategory("ApiKey")]
         public STT.Task ApiKey_GetApiKeys_Admin()
         {
             return ApiKeyManagerTest(async akm =>
@@ -23,7 +37,7 @@ namespace SenseNet.ContentRepository.Tests
                 var apiKeys = await akm.GetApiKeysByUserAsync(Identifiers.AdministratorUserId, CancellationToken.None);
                 var adminApiKey = apiKeys.First().Value;
 
-                Assert.AreEqual(1, apiKeys.Length);
+                Assert.AreEqual(2, apiKeys.Length);
 
                 // load other users' api keys as an admin
                 var user1 = User.Load("public\\user1");
