@@ -458,9 +458,9 @@ namespace SenseNet.OData.Writers
             // Execute action by its type
             var parameters = GetOperationParameters(action, httpContext.Request);
             object response = null;
-            if (action is UiAction action2025)
+            if (action is UiAction uiAction)
             {
-                response = await action2025.ExecuteGetAsync(content, httpContext.RequestAborted, parameters);
+                response = await uiAction.ExecuteGetAsync(content, httpContext.RequestAborted, parameters);
             }
             else if (action is ODataOperationMethodExecutor odataAction)
             {
@@ -527,9 +527,9 @@ namespace SenseNet.OData.Writers
             var odataAction = action as ODataOperationMethodExecutor;
             var parameters = await GetOperationParametersAsync(action, httpContext, odataReq);
             object response = null;
-            if (action is UiAction action2025)
+            if (action is UiAction uiAction)
             {
-                response = await action2025.ExecutePostAsync(content, httpContext.RequestAborted, parameters);
+                response = await uiAction.ExecutePostAsync(content, httpContext.RequestAborted, parameters);
             }
             else if (odataAction != null)
             {
