@@ -2222,7 +2222,7 @@ WHERE PropertyTypes.Name in ({joinedRichTextFieldNames})
 
             var rb = new ResourceBuilder();
 
-            rb.Content("CtdResourcesEF.xml")
+            rb.Content("CtdResourcesNOP.xml")
                 .Class("Ctd-Operation")
                 .Culture("en")
                 .AddResource("DisplayName", "Operation")
