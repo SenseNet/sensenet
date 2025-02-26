@@ -1,0 +1,12 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ContentType name="Operation" parentType="ClientApplication" handler="SenseNet.ApplicationModel.Operation" xmlns="http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition">
+	<DisplayName>$Ctd-Operation,DisplayName</DisplayName>
+	<Description>$Ctd-Operation,Description</Description>
+	<Icon>Operation</Icon>
+	<Fields>
+		<Field name="UIDescriptor" type="LongText">
+			<DisplayName>$Ctd-Operation,UIDescriptor-DisplayName</DisplayName>
+			<Description>$Ctd-Operation,UIDescriptor-Description</Description>
+		</Field>
+	</Fields>
+</ContentType>
