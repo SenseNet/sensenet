@@ -442,7 +442,7 @@ namespace SenseNet.OData.Writers
                 throw new InvalidContentActionException(InvalidContentActionReason.UnknownAction, content.Path, null, odataReq.PropertyName);
             }
 
-            if (!(action is Action2025))
+            if (!(action is UiAction))
             {
                 if (!action.IsODataOperation)
                     throw new ODataException("Not an OData operation.", ODataExceptionCode.IllegalInvoke);
@@ -458,7 +458,7 @@ namespace SenseNet.OData.Writers
             // Execute action by its type
             var parameters = GetOperationParameters(action, httpContext.Request);
             object response = null;
-            if (action is Action2025 action2025)
+            if (action is UiAction action2025)
             {
                 response = await action2025.ExecuteGetAsync(content, httpContext.RequestAborted, parameters);
             }
@@ -527,7 +527,7 @@ namespace SenseNet.OData.Writers
             var odataAction = action as ODataOperationMethodExecutor;
             var parameters = await GetOperationParametersAsync(action, httpContext, odataReq);
             object response = null;
-            if (action is Action2025 action2025)
+            if (action is UiAction action2025)
             {
                 response = await action2025.ExecutePostAsync(content, httpContext.RequestAborted, parameters);
             }

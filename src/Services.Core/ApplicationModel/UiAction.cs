@@ -7,11 +7,11 @@ using Task = System.Threading.Tasks.Task;
 // ReSharper disable once CheckNamespace
 namespace SenseNet.ApplicationModel;
 
-public class Action2025 : ClientAction
+public class UiAction : ClientAction
 {
     public Task<object> ExecuteGetAsync(Content content, CancellationToken cancel, params object[] parameters)
     {
-        var app = (Application2025) this.GetApplication();
+        var app = (Operation) this.GetApplication();
         return Task.FromResult((object)app.UIDescriptor);
     }
     public Task<object> ExecutePostAsync(Content content, CancellationToken cancel, params object[] parameters)

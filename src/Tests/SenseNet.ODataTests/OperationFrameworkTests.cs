@@ -8,16 +8,16 @@ using SenseNet.ContentRepository.Storage;
 namespace SenseNet.ODataTests;
 
 [TestClass]
-public class ActionFrameworkTests : ODataTestBase
+public class OperationFrameworkTests : ODataTestBase
 {
     readonly CancellationToken _cancel = new CancellationToken();
 
     [TestMethod]
-    public async Task ActionFramework_()
+    public async Task OperationFramework_()
     {
         await ODataTestAsync(async () =>
         {
-            ContentTypeInstaller.InstallContentType(@"<ContentType name=""Application2025"" parentType=""ClientApplication"" handler=""SenseNet.ApplicationModel.Application2025"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
+            ContentTypeInstaller.InstallContentType(@"<ContentType name=""Operation"" parentType=""ClientApplication"" handler=""SenseNet.ApplicationModel.Operation"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <Fields>
     <Field name=""UIDescriptor"" type=""LongText"" />
   </Fields>
@@ -25,7 +25,7 @@ public class ActionFrameworkTests : ODataTestBase
 ");
 
             var actionRoot = await Node.LoadNodeAsync("/Root/(apps)/GenericContent", _cancel);
-            var action = new Application2025(actionRoot) {Name = "Action1"};
+            var action = new Operation(actionRoot) {Name = "Action1"};
             action.Parameters = "string p1, int p2";
             action.UIDescriptor = @"{
     controls: [

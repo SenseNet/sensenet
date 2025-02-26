@@ -4,11 +4,11 @@ using SenseNet.ContentRepository.Storage;
 namespace SenseNet.ApplicationModel;
 
 [ContentHandler]
-public class Application2025 : ClientApplication
+public class Operation : ClientApplication
 {
-    public Application2025(Node parent) : base(parent) { }
-    public Application2025(Node parent, string nodeTypeName) : base(parent, nodeTypeName) { }
-    protected Application2025(NodeToken nt) : base(nt) { }
+    public Operation(Node parent) : base(parent) { }
+    public Operation(Node parent, string nodeTypeName) : base(parent, nodeTypeName) { }
+    protected Operation(NodeToken nt) : base(nt) { }
 
     // ReSharper disable once InconsistentNaming
     [RepositoryProperty(nameof(UIDescriptor), RepositoryDataType.Text)]
@@ -20,7 +20,7 @@ public class Application2025 : ClientApplication
 
     public override string ActionTypeName
     {
-        get => nameof(Action2025);
+        get => nameof(UiAction);
         set { /* do not store the value */ }
     }
 
