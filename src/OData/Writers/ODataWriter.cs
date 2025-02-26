@@ -430,6 +430,7 @@ namespace SenseNet.OData.Writers
             var action = ODataMiddleware.ActionResolver.GetAction(content, odataReq.Scenario, odataReq.PropertyName,
                 null, null, httpContext, appConfig);
 
+            // Check action
             if (action == null)
             {
                 // check if this is a versioning action (e.g. a checkout)
@@ -441,20 +442,38 @@ namespace SenseNet.OData.Writers
                 throw new InvalidContentActionException(InvalidContentActionReason.UnknownAction, content.Path, null, odataReq.PropertyName);
             }
 
-            if (!action.IsODataOperation)
-                throw new ODataException("Not an OData operation.", ODataExceptionCode.IllegalInvoke);
-            if (action.CausesStateChange)
-                throw new ODataException("OData action cannot be invoked with HTTP GET.", ODataExceptionCode.IllegalInvoke);
+            if (!(action is UiAction))
+            {
+                if (!action.IsODataOperation)
+                    throw new ODataException("Not an OData operation.", ODataExceptionCode.IllegalInvoke);
+                if (action.CausesStateChange)
+                    throw new ODataException("OData action cannot be invoked with HTTP GET.", ODataExceptionCode.IllegalInvoke);
 
-            if (action.Forbidden || (action.GetApplication() != null && !action.GetApplication().Security.HasPermission(PermissionType.RunApplication)))
-                throw new InvalidContentActionException("Forbidden action: " + odataReq.PropertyName);
+                if (action.Forbidden || (action.GetApplication() != null && !action.GetApplication().Security.HasPermission(PermissionType.RunApplication)))
+                    throw new InvalidContentActionException("Forbidden action: " + odataReq.PropertyName);
+            }
 
             httpContext.Items.Add("SenseNet.ApplicationModel.ActionBase", action);
 
-            var response = action is ODataOperationMethodExecutor odataAction
-                ? (odataAction.IsAsync ? await odataAction.ExecuteAsync(content) : action.Execute(content))
-                : action.Execute(content, GetOperationParameters(action, httpContext.Request));
+            // Execute action by its type
+            var parameters = GetOperationParameters(action, httpContext.Request);
+            object response = null;
+            if (action is UiAction uiAction)
+            {
+                response = await uiAction.ExecuteGetAsync(content, httpContext.RequestAborted, parameters);
+            }
+            else if (action is ODataOperationMethodExecutor odataAction)
+            {
+                response = odataAction.IsAsync
+                    ? await odataAction.ExecuteAsync(content, parameters)
+                    : action.Execute(content, parameters);
+            }
+            else
+            {
+                response = action.Execute(content, parameters);
+            }
 
+            // Process response
             if (response is Content responseAsContent)
             {
                 await WriteSingleContentAsync(responseAsContent, httpContext, odataReq)
@@ -504,13 +523,26 @@ namespace SenseNet.OData.Writers
 
             httpContext.Items.Add("SenseNet.ApplicationModel.ActionBase", action);
 
+            // Execute action by its type
             var odataAction = action as ODataOperationMethodExecutor;
-            var response = odataAction != null
-                ? (odataAction.IsAsync
+            var parameters = await GetOperationParametersAsync(action, httpContext, odataReq);
+            object response = null;
+            if (action is UiAction uiAction)
+            {
+                response = await uiAction.ExecutePostAsync(content, httpContext.RequestAborted, parameters);
+            }
+            else if (odataAction != null)
+            {
+                response = odataAction.IsAsync
                     ? await odataAction.ExecuteAsync(content)
-                    : action.Execute(content))
-                : action.Execute(content, await GetOperationParametersAsync(action, httpContext, odataReq));
+                    : action.Execute(content);
+            }
+            else
+            {
+                response = action.Execute(content, parameters);
+            }
 
+            // Process response
             if (response is Content responseAsContent)
             {
                 await WriteSingleContentAsync(responseAsContent, httpContext, odataReq)

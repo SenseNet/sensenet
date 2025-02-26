@@ -28,6 +28,38 @@
       </Language>
     </Languages>
   </ResourceClass>
+  <ResourceClass name="Ctd-Operation">
+    <Languages>
+      <Language cultureName="en">
+        <data name="DisplayName" xml:space="preserve">
+          <value>Operation</value>
+        </data>
+        <data name="Description" xml:space="preserve">
+          <value>Describes the details of an operation associated with a location and content type.</value>
+        </data>
+        <data name="UIDescriptor-DisplayName" xml:space="preserve">
+          <value>UI Descriptor</value>
+        </data>
+        <data name="UIDescriptor-Description" xml:space="preserve">
+          <value>Definition of the user interface required for the operation.</value>
+        </data>
+      </Language>
+      <Language cultureName="hu">
+        <data name="DisplayName" xml:space="preserve">
+          <value>Művelet</value>
+        </data>
+        <data name="Description" xml:space="preserve">
+          <value>Leírja egy helyhez és tartalomtípushoz köthető művelet részleteit.</value>
+        </data>
+        <data name="UIDescriptor-DisplayName" xml:space="preserve">
+          <value>UI Leíró</value>
+        </data>
+        <data name="UIDescriptor-Description" xml:space="preserve">
+          <value>A művelethez szükséges felhasználói felület definíciója.</value>
+        </data>
+      </Language>
+    </Languages>
+  </ResourceClass>
   <ResourceClass name="Ctd-OrganizationalUnit">
     <Languages>
       <Language cultureName="en">

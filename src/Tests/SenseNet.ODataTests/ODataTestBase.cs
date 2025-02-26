@@ -263,6 +263,8 @@ namespace SenseNet.ODataTests
 
             Cache.Reset();
             ResetContentTypeManager();
+            new TypeAccessor(typeof(ActionFactory)).SetStaticField("_actionCache", null);
+            ApplicationStorage.Invalidate();
 
             using (var repo = Repository.Start(builder))
             {
@@ -541,7 +543,7 @@ namespace SenseNet.ODataTests
         {
             var error = GetError(response, false);
             if (error != null)
-                Assert.Fail(error.Message);
+                Assert.Fail(error.Message + " " + error.StackTrace);
         }
 
         protected static JContainer Deserialize(string text)
