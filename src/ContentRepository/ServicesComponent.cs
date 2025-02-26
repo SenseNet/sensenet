@@ -1577,6 +1577,9 @@ namespace SenseNet.ContentRepository
 
             builder.Patch("7.7.32", "7.7.41", "2024-05-27", "Upgrades sensenet content repository.")
                 .Action(Patch_7_7_41);
+
+            builder.Patch("7.7.41", "7.8.0", "2025-02-26", "Upgrades sensenet content repository.")
+                .Action(Patch_7_8_0);
         }
 
         private void Patch_7_7_29(PatchExecutionContext context)
@@ -2208,6 +2211,54 @@ WHERE PropertyTypes.Name in ({joinedRichTextFieldNames})
                 }).GetAwaiter().GetResult();
             }
         }
+
+        private void Patch_7_8_0(PatchExecutionContext context)
+        {
+            var logger = context.GetService<ILogger<ServicesComponent>>();
+
+            #region String resource changes
+
+            logger.LogTrace("Adding string resources...");
+
+            var rb = new ResourceBuilder();
+
+            rb.Content("CtdResourcesEF.xml")
+                .Class("Ctd-Operation")
+                .Culture("en")
+                .AddResource("DisplayName", "Operation")
+                .AddResource("Description", "Describes the details of an operation associated with a location and content type.")
+                .AddResource("UIDescriptor-DisplayName", "UI Descriptor")
+                .AddResource("UIDescriptor-Description", "Definition of the user interface required for the operation.")
+                .Culture("hu")
+                .AddResource("DisplayName", "Művelet")
+                .AddResource("Description", "Leírja egy helyhez és tartalomtípushoz köthető művelet részleteit.")
+                .AddResource("UIDescriptor-DisplayName", "UI Leíró")
+                .AddResource("UIDescriptor-Description", "A művelethez szükséges felhasználói felület definíciója.");
+
+            rb.Apply();
+
+            #endregion
+
+            #region CTD changes
+
+            const string emailTemplateCtd = @"<ContentType name=""Operation"" parentType=""ClientApplication"" handler=""SenseNet.ApplicationModel.Operation"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
+  <DisplayName>$Ctd-Operation,DisplayName</DisplayName>
+  <Description>$Ctd-Operation,Description</Description>
+  <Icon>Operation</Icon>
+  <Fields>
+    <Field name=""UIDescriptor"" type=""LongText"">
+      <DisplayName>$Ctd-Operation,UIDescriptor-DisplayName</DisplayName>
+      <Description>$Ctd-Operation,UIDescriptor-Description</Description>
+    </Field>
+  </Fields>
+</ContentType>";
+
+            logger.LogTrace("Installing Operation content type...");
+            ContentTypeInstaller.InstallContentType(emailTemplateCtd);
+
+            #endregion
+        }
+
 
         #region Patch template
 
