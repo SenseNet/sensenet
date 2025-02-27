@@ -17,13 +17,6 @@ public class OperationFrameworkTests : ODataTestBase
     {
         await ODataTestAsync(async () =>
         {
-            ContentTypeInstaller.InstallContentType(@"<ContentType name=""Operation"" parentType=""ClientApplication"" handler=""SenseNet.ApplicationModel.Operation"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
-  <Fields>
-    <Field name=""UIDescriptor"" type=""LongText"" />
-  </Fields>
-</ContentType>
-");
-
             var actionRoot = await Node.LoadNodeAsync("/Root/(apps)/GenericContent", _cancel);
             var action = new Operation(actionRoot) {Name = "Action1"};
             action.Parameters = "string p1, int p2";
