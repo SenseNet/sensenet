@@ -29,7 +29,7 @@ namespace SenseNet.ContentRepository
         // This value has to change if there were database, content
         // or configuration changes since the last release that
         // should be enforced using an upgrade patch.
-        public override Version SupportedVersion => new Version(7, 7, 0);
+        public override Version SupportedVersion => new Version(7, 8, 0);
 
         public override void AddPatches(PatchBuilder builder)
         {
@@ -2241,7 +2241,7 @@ WHERE PropertyTypes.Name in ({joinedRichTextFieldNames})
 
             #region CTD changes
 
-            const string emailTemplateCtd = @"<ContentType name=""Operation"" parentType=""ClientApplication"" handler=""SenseNet.ApplicationModel.Operation"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
+            const string operationCtd = @"<ContentType name=""Operation"" parentType=""ClientApplication"" handler=""SenseNet.ApplicationModel.Operation"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-Operation,DisplayName</DisplayName>
   <Description>$Ctd-Operation,Description</Description>
   <Icon>Operation</Icon>
@@ -2250,11 +2250,23 @@ WHERE PropertyTypes.Name in ({joinedRichTextFieldNames})
       <DisplayName>$Ctd-Operation,UIDescriptor-DisplayName</DisplayName>
       <Description>$Ctd-Operation,UIDescriptor-Description</Description>
     </Field>
+    <Field name=""ClassName"" type=""ShortText"">
+      <DisplayName>$Ctd-Operation,ClassName-DisplayName</DisplayName>
+      <Description>$Ctd-Operation,ClassName-Description</Description>
+    </Field>
+    <Field name=""MethodName"" type=""ShortText"">
+      <DisplayName>$Ctd-Operation,MethodName-DisplayName</DisplayName>
+      <Description>$Ctd-Operation,MethodName-Description</Description>
+    </Field>
+    <Field name=""ActionTypeName"" type=""ShortText"">
+      <DisplayName>$Ctd-Operation,ActionTypeName-DisplayName</DisplayName>
+      <Description>$Ctd-Operation,ActionTypeName-Description</Description>
+    </Field>
   </Fields>
 </ContentType>";
 
             logger.LogTrace("Installing Operation content type...");
-            ContentTypeInstaller.InstallContentType(emailTemplateCtd);
+            ContentTypeInstaller.InstallContentType(operationCtd);
 
             #endregion
         }
