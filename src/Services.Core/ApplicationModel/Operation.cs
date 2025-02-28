@@ -40,10 +40,10 @@ public class Operation : ClientApplication
         {
             var result = base.GetProperty<string>(nameof(ActionTypeName));
             if (string.IsNullOrEmpty(result))
-                result = nameof(UiAction);
+                result = nameof(UIAction);
             return result;
         }
-        set => base.SetProperty(nameof(ActionTypeName), value);
+        set => this[ACTIONTYPENAME] = value;
     }
 
 

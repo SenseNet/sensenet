@@ -442,7 +442,7 @@ namespace SenseNet.OData.Writers
                 throw new InvalidContentActionException(InvalidContentActionReason.UnknownAction, content.Path, null, odataReq.PropertyName);
             }
 
-            if (!(action is UiAction))
+            if (!(action is UIAction))
             {
                 if (!action.IsODataOperation)
                     throw new ODataException("Not an OData operation.", ODataExceptionCode.IllegalInvoke);
@@ -458,9 +458,9 @@ namespace SenseNet.OData.Writers
             // Execute action by its type
             var parameters = GetOperationParameters(action, httpContext.Request);
             object response = null;
-            if (action is UiAction uiAction)
+            if (action is UIAction uiAction)
             {
-                response = await uiAction.ExecuteGetAsync(content, httpContext.RequestAborted, parameters);
+                response = await uiAction.ExecuteGetAsync(content, httpContext, parameters);
             }
             else if (action is ODataOperationMethodExecutor odataAction)
             {
@@ -527,9 +527,9 @@ namespace SenseNet.OData.Writers
             var odataAction = action as ODataOperationMethodExecutor;
             var parameters = await GetOperationParametersAsync(action, httpContext, odataReq);
             object response = null;
-            if (action is UiAction uiAction)
+            if (action is UIAction uiAction)
             {
-                response = await uiAction.ExecutePostAsync(content, httpContext.RequestAborted, parameters);
+                response = await uiAction.ExecutePostAsync(content, httpContext, parameters);
             }
             else if (odataAction != null)
             {
