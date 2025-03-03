@@ -2241,7 +2241,7 @@ WHERE PropertyTypes.Name in ({joinedRichTextFieldNames})
 
             #region CTD changes
 
-            const string operationCtd = @"<ContentType name=""Operation"" parentType=""ClientApplication"" handler=""SenseNet.ApplicationModel.Operation"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
+            const string operationCtd = @"<ContentType name=""Operation"" parentType=""ClientApplication"" handler=""SenseNet.OperationFramework.Operation"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-Operation,DisplayName</DisplayName>
   <Description>$Ctd-Operation,Description</Description>
   <Icon>Operation</Icon>

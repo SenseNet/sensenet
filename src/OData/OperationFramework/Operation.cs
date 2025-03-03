@@ -1,8 +1,9 @@
-﻿using SenseNet.ContentRepository.Schema;
+﻿using SenseNet.ApplicationModel;
+using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage;
 
 // ReSharper disable once CheckNamespace
-namespace SenseNet.ApplicationModel;
+namespace SenseNet.OperationFramework;
 
 [ContentHandler]
 public class Operation : ClientApplication
@@ -40,10 +41,10 @@ public class Operation : ClientApplication
         {
             var result = base.GetProperty<string>(nameof(ActionTypeName));
             if (string.IsNullOrEmpty(result))
-                result = nameof(UiAction);
+                result = nameof(UIAction);
             return result;
         }
-        set => base.SetProperty(nameof(ActionTypeName), value);
+        set => this[ACTIONTYPENAME] = value;
     }
 
 
