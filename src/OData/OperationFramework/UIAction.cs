@@ -15,7 +15,7 @@ namespace SenseNet.OperationFramework;
 // ReSharper disable once InconsistentNaming
 public class UIAction : ClientAction
 {
-    public Task<object> ExecuteGetAsync(Content content, HttpContext httpContext, params object[] parameters)
+    public virtual Task<object> ExecuteGetAsync(Content content, HttpContext httpContext, params object[] parameters)
     {
         var app = (Operation) this.GetApplication();
         return Task.FromResult((object)app.UIDescriptor);
@@ -45,6 +45,21 @@ public class UIAction : ClientAction
     }
 
 
+    public virtual Task<object> ExecuteAsync(Content content, HttpContext httpContext, object[] parameters)
+    {
+        var message = $"{this.GetType().FullName}.ExecuteAsync called. Parameters: ";
+        for (int i = 0; i < this.ParamNames.Length; i++)
+        {
+            if (i > 0)
+                message += ", ";
+            message += $"{ParamNames[i]} = {parameters[i]}";
+        }
+
+        var result = new { message = message };
+        return Task.FromResult((object)result);
+    }
+
+
     private async Task<object> ExecuteControllerMethodAsync(ODataController controller, Operation app, Content content, HttpContext httpContext, object[] parameters)
     {
         var type = controller.GetType();
@@ -61,9 +76,6 @@ public class UIAction : ClientAction
 
         return result;
     }
-
-
-
     private async Task<object> ExecuteClassMethodAsync(Operation app, Content content, HttpContext httpContext, object[] parameters)
     {
         var type = TypeResolver.GetType(app.ClassName, false);
@@ -94,6 +106,8 @@ public class UIAction : ClientAction
 
         return result;
     }
+
+
     private async Task<object> InvokeAsync(object target, MethodInfo method, object[] parameters)
     {
         var invokeResult = method.Invoke(target, parameters);
@@ -123,20 +137,5 @@ public class UIAction : ClientAction
         isAsyncVoid = method.ReturnType == typeof(Task);
 
         return isAsyncVoid || method.ReturnType.BaseType == typeof(Task);
-    }
-    
-
-    public virtual Task<object> ExecuteAsync(Content content, HttpContext httpContext, object[] parameters)
-    {
-        var message = $"{this.GetType().FullName}.ExecuteAsync called. Parameters: ";
-        for (int i = 0; i < this.ParamNames.Length; i++)
-        {
-            if (i > 0)
-                message += ", ";
-            message += $"{ParamNames[i]} = {parameters[i]}";
-        }
-
-        var result = new { message = message };
-        return Task.FromResult((object)result);
     }
 }
