@@ -1,8 +1,9 @@
-﻿using SenseNet.ContentRepository.Schema;
+﻿using SenseNet.ApplicationModel;
+using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage;
 
 // ReSharper disable once CheckNamespace
-namespace SenseNet.ApplicationModel;
+namespace SenseNet.OperationFramework;
 
 [ContentHandler]
 public class Operation : ClientApplication

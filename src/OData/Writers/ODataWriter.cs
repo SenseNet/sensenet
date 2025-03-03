@@ -22,6 +22,7 @@ using SenseNet.Search;
 using SenseNet.Search.Querying;
 using SenseNet.Tools;
 using SenseNet.OData.Metadata.Model;
+using SenseNet.OperationFramework;
 using SenseNet.Portal.ApplicationModel;
 using SenseNet.Services.Core;
 using SenseNet.Services.Core.Operations;

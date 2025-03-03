@@ -1,17 +1,16 @@
 ﻿using System;
 using System.Reflection;
-using System.Threading;
 using System.Threading.Tasks;
-using IdentityModel.Client;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
+using SenseNet.ApplicationModel;
 using SenseNet.ContentRepository;
+using SenseNet.OData;
 using SenseNet.Tools;
-using static QRCoder.PayloadGenerator.ShadowSocksConfig;
 using Task = System.Threading.Tasks.Task;
 
 // ReSharper disable once CheckNamespace
-namespace SenseNet.ApplicationModel;
+namespace SenseNet.OperationFramework;
 
 // ReSharper disable once InconsistentNaming
 public class UIAction : ClientAction
@@ -23,15 +22,50 @@ public class UIAction : ClientAction
     }
     public async Task<object> ExecutePostAsync(Content content, HttpContext httpContext, params object[] parameters)
     {
-        var app = (Operation)this.GetApplication();
-        if (app.ClassName == null && app.MethodName == null)
+        var operation = (Operation)this.GetApplication();
+        if (operation.ClassName == null || operation.MethodName == null)
             return await ExecuteAsync(content, httpContext, parameters);
-        return await ExecuteClassAndMethodAsync(content, httpContext, parameters);
+
+        var controllerName = operation.ClassName;
+        if (controllerName == null)
+            return null;
+
+        var resolver = httpContext.RequestServices.GetRequiredService<IODataControllerFactory>();
+        var controllerType = resolver.GetControllerType(controllerName);
+        if (controllerType != null)
+        {
+            var controller = resolver.CreateController(controllerName); 
+            controller.Content = Content;
+            controller.HttpContext = httpContext;
+            controller.ODataRequest = httpContext.GetODataRequest();
+            return await ExecuteControllerMethodAsync(controller, operation, content, httpContext, parameters);
+        }
+
+        return await ExecuteClassMethodAsync(operation, content, httpContext, parameters);
     }
 
-    private async Task<object> ExecuteClassAndMethodAsync(Content content, HttpContext httpContext, object[] parameters)
+
+    private async Task<object> ExecuteControllerMethodAsync(ODataController controller, Operation app, Content content, HttpContext httpContext, object[] parameters)
     {
-        var app = (Operation)GetApplication();
+        var type = controller.GetType();
+
+        var method = type.GetMethod(app.MethodName, ParamTypes);
+        if (method == null)
+            throw new InvalidOperationException("Unknown method: " + app.MethodName);
+
+        var isAsync = ParseSynchronicity(method);
+
+        var result = isAsync
+            ? await InvokeAsync(controller, method, parameters)
+            : method.Invoke(controller, parameters);
+
+        return result;
+    }
+
+
+
+    private async Task<object> ExecuteClassMethodAsync(Operation app, Content content, HttpContext httpContext, object[] parameters)
+    {
         var type = TypeResolver.GetType(app.ClassName, false);
         if (type == null)
             throw new InvalidOperationException("Unknown type: " + app.ClassName);
@@ -55,14 +89,14 @@ public class UIAction : ClientAction
         var isAsync = ParseSynchronicity(method);
 
         var result = isAsync
-            ? await InvokeAsync(method, prmValues)
+            ? await InvokeAsync(null, method, prmValues)
             : method.Invoke(null, prmValues);
 
         return result;
     }
-    private async Task<object> InvokeAsync(MethodInfo method, object[] parameters)
+    private async Task<object> InvokeAsync(object target, MethodInfo method, object[] parameters)
     {
-        var invokeResult = method.Invoke(null, parameters);
+        var invokeResult = method.Invoke(target, parameters);
         var invokeResultType = invokeResult.GetType();
 
         var awaitable = (Task)invokeResult;
@@ -90,10 +124,7 @@ public class UIAction : ClientAction
 
         return isAsyncVoid || method.ReturnType.BaseType == typeof(Task);
     }
-
-
-
-
+    
 
     public virtual Task<object> ExecuteAsync(Content content, HttpContext httpContext, object[] parameters)
     {

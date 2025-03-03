@@ -1,16 +1,14 @@
-﻿using System.Linq;
-using System.Threading;
+﻿using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.VisualStudio.TestPlatform.CommunicationUtilities;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.ApplicationModel;
 using SenseNet.ContentRepository;
-using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.Extensions.DependencyInjection;
 using SenseNet.OData;
+using SenseNet.OperationFramework;
 using Task = System.Threading.Tasks.Task;
 
 namespace SenseNet.ODataTests;
@@ -165,7 +163,7 @@ public class OperationFrameworkTests : ODataTestBase
                 @"{""s"": ""Value"", ""p"": 123}");
 
             // ASSERT-1
-            Assert.AreEqual($@"{{""Message"":""Value=123""}}", response.Result.Replace(" ", "").Replace("\r", "").Replace("\n", ""));
+            Assert.AreEqual($@"{{""Message"":""controller,Value=123""}}", response.Result.Replace(" ", "").Replace("\r", "").Replace("\n", ""));
 
 
             // ASSIGN-2
@@ -178,7 +176,7 @@ public class OperationFrameworkTests : ODataTestBase
                 @"{""s"": ""Value"", ""p"": 987}");
 
             // ASSERT-2
-            Assert.AreEqual($@"{{""Message"":""asyncValue=987""}}", response.Result.Replace(" ", "").Replace("\r", "").Replace("\n", ""));
+            Assert.AreEqual($@"{{""Message"":""controller,async,Value=987""}}", response.Result.Replace(" ", "").Replace("\r", "").Replace("\n", ""));
         });
     }
 }
