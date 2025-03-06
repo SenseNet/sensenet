@@ -27,6 +27,16 @@ public class OperationFrameworkTests : ODataTestBase
         }
     }
 
+    private class MyInstantAction: UIAction
+    {
+        public override Task<object> ExecuteGetAsync(Content content, HttpContext httpContext, params object[] parameters)
+        {
+            return Task.FromResult((object)"QWEERAsfbswera");
+        }
+    }
+
+
+
     private static class CustomTools
     {
         public static object StaticMethod(Content content, HttpContext httpContext, string s, int p)
@@ -51,6 +61,31 @@ public class OperationFrameworkTests : ODataTestBase
             return Task.FromResult(result);
         }
     }
+
+
+
+    [TestMethod]
+    public async Task OperationFramework______()
+    {
+        await ODataTestAsync(async () =>
+        {
+            var actionRoot = await Node.LoadNodeAsync("/Root/(apps)/GenericContent", _cancel);
+            var action = new Operation(actionRoot) { Name = "Action1" };
+            action.Parameters = "string p1, int p2";
+            action.ActionTypeName = "MyInstantAction";
+            await action.SaveAsync(_cancel);
+
+            // ACT-1
+            var resource = $"/OData.svc/Root/('Content')/{action.Name}";
+            var response = await ODataGetAsync(resource, "?p1=qwer&p2=98");
+
+            Assert.AreEqual("QWEERAsfbswera", response.Result);
+        });
+    }
+
+
+
+
 
     [TestMethod]
     public async Task OperationFramework_EmptyUIAction_GetPost()
