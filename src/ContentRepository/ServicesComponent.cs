@@ -1580,6 +1580,9 @@ namespace SenseNet.ContentRepository
 
             builder.Patch("7.7.41", "7.8.0", "2025-02-26", "Upgrades sensenet content repository.")
                 .Action(Patch_7_8_0);
+
+            builder.Patch("7.8.0", "7.8.1", "2025-03-07", "Upgrades sensenet content repository.")
+                .Action(Patch_7_8_1);
         }
 
         private void Patch_7_7_29(PatchExecutionContext context)
@@ -2271,6 +2274,37 @@ WHERE PropertyTypes.Name in ({joinedRichTextFieldNames})
             #endregion
         }
 
+        private void Patch_7_8_1(PatchExecutionContext context)
+        {
+            var logger = context.GetService<ILogger<ServicesComponent>>();
+
+            #region String resource changes
+
+            logger.LogTrace("Adding string resources...");
+
+            var rb = new ResourceBuilder();
+
+            rb.Content("CtdResourcesNOP.xml")
+                .Class("Ctd-Operation")
+                .Culture("en")
+                .AddResource("ClassName-DisplayName", "Class/Controller name")
+                .AddResource("ClassName-Description", "Fully qualified class name or simple ODataController name that contains the executable method.")
+                .AddResource("MethodName-DisplayName", "Method name")
+                .AddResource("MethodName-Description", "Name of the method to be executed, in case of ODataController: name of the corresponding operation name.")
+                .AddResource("ActionTypeName-DisplayName", "Custom action type name")
+                .AddResource("ActionTypeName-Description", "Type name of the custom action if there is")
+                .Culture("hu")
+                .AddResource("ClassName-DisplayName", "Osztály/Controller neve")
+                .AddResource("ClassName-Description", "Teljes osztálynév vagy egyszerű ODataController név, amely tartalmazza a végrehajtandó metódust.")
+                .AddResource("MethodName-DisplayName", "Metódusnév")
+                .AddResource("MethodName-Description", "A végrehajtandó metódus neve vagy ODataController esetén a metódusnak megfelelő operáció neve.")
+                .AddResource("ActionTypeName-DisplayName", "Egyéni művelet típusneve")
+                .AddResource("ActionTypeName-Description", "Egyéni művelet típusneve, ha van ilyen");
+
+            rb.Apply();
+
+            #endregion
+        }
 
         #region Patch template
 
