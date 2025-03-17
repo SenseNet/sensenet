@@ -386,13 +386,28 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             var dataOptions = this.DataOptions;
             return new
             {
-                connectionStrings.Repository,
-                connectionStrings.Security,
-                connectionStrings.SignalR,
+                Repository = GetConnectionInfo(connectionStrings.Repository),
+                Security = GetConnectionInfo(connectionStrings.Security),
+                SignalR = GetConnectionInfo(connectionStrings.SignalR),
                 dataOptions.DbCommandTimeout,
                 dataOptions.TransactionTimeout,
                 dataOptions.LongTransactionTimeout
             };
+        }
+        private object GetConnectionInfo(string connectionString)
+        {
+            void EncryptValue(string key, DbConnectionStringBuilder b)
+            {
+                if(b.ContainsKey(key))
+                    if (b[key] != null)
+                        b[key] = "***";
+            }
+
+            var builder = new DbConnectionStringBuilder {ConnectionString = connectionString};
+            EncryptValue("User ID", builder);
+            EncryptValue("Password", builder);
+            EncryptValue("Pwd", builder);
+            return builder.ConnectionString;
         }
 
         public override async Task<HealthResult> GetHealthAsync(CancellationToken cancel)
