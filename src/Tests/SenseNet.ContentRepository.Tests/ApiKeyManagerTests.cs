@@ -10,6 +10,7 @@ using SenseNet.ContentRepository.Security.ApiKeys;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Security;
+using System.Threading.Channels;
 
 namespace SenseNet.ContentRepository.Tests
 {
@@ -118,6 +119,39 @@ namespace SenseNet.ContentRepository.Tests
                 {
                     AccessProvider.Current.SetCurrentUser(originalUser);
                 }
+            });
+        }
+
+        [TestMethod, TestCategory("ApiKey")]
+        public STT.Task ApiKey_DeleteApiKey()
+        {
+            var cancel = new CancellationToken();
+            return ApiKeyManagerTest(async apiKeyManager =>
+            {
+                var testUser = await Node.LoadAsync<User>("/Root/IMS/domain2/user2", cancel);
+                // Create another apikey
+                await apiKeyManager.CreateApiKeyAsync(testUser.Id, DateTime.UtcNow.AddMonths(2), cancel);
+                var apiKeys = await apiKeyManager.GetApiKeysByUserAsync(testUser.Id, cancel);
+                Assert.AreEqual(2, apiKeys.Length);
+                // Memorize values nd ensure they are cached.
+                var apiKeyValues = apiKeys.Select(x => x.Value).ToArray();
+                var user0 = await apiKeyManager.GetUserByApiKeyAsync(apiKeyValues[0], cancel);
+                var user1 = await apiKeyManager.GetUserByApiKeyAsync(apiKeyValues[1], cancel);
+                Assert.IsNotNull(user0);
+                Assert.IsNotNull(user1);
+
+                // ACT
+                await apiKeyManager.DeleteApiKeysByUserAsync(testUser.Id, cancel);
+
+                // ASSERT-1 Storage deleted
+                apiKeys = await apiKeyManager.GetApiKeysByUserAsync(testUser.Id, cancel);
+                Assert.AreEqual(0, apiKeys.Length);
+
+                // ASSERT-2 Cache deleted
+                user0 = await apiKeyManager.GetUserByApiKeyAsync(apiKeyValues[0], cancel);
+                user1 = await apiKeyManager.GetUserByApiKeyAsync(apiKeyValues[1], cancel);
+                Assert.IsNull(user0);
+                Assert.IsNull(user1);
             });
         }
 
