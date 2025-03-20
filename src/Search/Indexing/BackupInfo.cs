@@ -19,6 +19,11 @@ namespace SenseNet.Search.Indexing
         /// </summary>
         public DateTime FinishedAt { get; set; }
         /// <summary>
+        /// Gets or sets the path of directory that contains the backed-up files.
+        /// Can be relative or absolute.
+        /// </summary>
+        public string TargetPath { get; set; }
+        /// <summary>
         /// Gets or sets the total length of the files to be copied.
         /// </summary>
         public long TotalBytes { get; set; }
