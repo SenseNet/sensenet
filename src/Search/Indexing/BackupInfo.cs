@@ -58,6 +58,7 @@ namespace SenseNet.Search.Indexing
             {
                 StartedAt = StartedAt,
                 FinishedAt = FinishedAt,
+                TargetPath = TargetPath,
                 TotalBytes = TotalBytes,
                 CopiedBytes = CopiedBytes,
                 CountOfFiles = CountOfFiles,
