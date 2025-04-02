@@ -585,7 +585,7 @@ namespace SenseNet.ContentRepository
         [ODataAction(Category = "Indexing")]
         [ContentTypes(N.CT.PortalRoot)]
         [AllowedRoles(N.R.Administrators, N.R.Developers)]
-        public static async STT.Task<BackupResponse> BackupIndex(Content content, string target)
+        public static async STT.Task<BackupResponse> BackupIndex(Content content, string target = null)
         {
             var engine = Providers.Instance.SearchEngine.IndexingEngine;
             var response = await engine.BackupAsync(target, CancellationToken.None)

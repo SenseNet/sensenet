@@ -855,7 +855,13 @@ namespace SenseNet.ContentRepository
                 if (contentHandler.Name == typeof(ContentType).Name)
                     contentType = contentHandler as ContentType;
                 if (contentType == null)
-                    throw new ApplicationException(String.Concat(SR.Exceptions.Content.Msg_UnknownContentType, ": ", contentHandler.NodeType.Name));
+                {
+                    var nodeTypeName = contentHandler.NodeType?.Name ?? "null";
+                    throw new ApplicationException($"{SR.Exceptions.Content.Msg_UnknownContentType}: " +
+                                                   $"nodeTypeName: {nodeTypeName}, " +
+                                                   $"contentHandlerType: {contentHandler.GetType().FullName}, " +
+                                                   $"path: {contentHandler.Path}");
+                }
             }
             if (contentHandler is ISupportsDynamicFields extendedHandler)
                 contentType = ExtendContentType(extendedHandler, contentType);

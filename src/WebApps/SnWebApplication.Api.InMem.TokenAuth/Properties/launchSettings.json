@@ -15,7 +15,29 @@
       "launchUrl": "odata.svc/Root?metadata=no&$select=Id,Name,Type",
       "applicationUrl": "https://localhost:44362",
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "sensenet__apikeys__healthcheckeruser": "supaS3CUp4ss",
+        "sensenet__authentication__repositoryUrl": "https://localhost:44362",
+        "sensenet__authentication__authority": "https://localhost:44311",
+        "sensenet__authentication__authServerType": "IdentityServer",
+        "sensenet__authentication__AddJwtCookie": "true",
+        "sensenet__identityManagement__UserProfilesEnabled": "false"
+      }
+    },
+    "SnWebApplication.Api.InMem.SnAuth": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "launchUrl": "odata.svc/Root?metadata=no&$select=Id,Name,Type",
+      "applicationUrl": "https://localhost:44362",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "sensenet__apikeys__healthcheckeruser": "supaS3CUp4ss",
+        "sensenet__authentication__repositoryUrl": "https://localhost:44362",
+        "sensenet__authentication__authority": "https://localhost:44311",
+        "sensenet__authentication__authServerType": "SNAuth",
+        "sensenet__authentication__AddJwtCookie": "false",
+        "sensenet__identityManagement__UserProfilesEnabled": "false",
+        "sensenet__repository__Authentication__ApiKey": "???"
       }
     },
     "Docker": {

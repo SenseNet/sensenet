@@ -89,14 +89,14 @@ namespace SenseNet.IntegrationTests.MsSql.CustomTests
             var connectionString = installer.GetConnectionString(parameters);
 
             // ASSERT
-            Assert.AreEqual($"Data Source={LocalServer};Initial Catalog=DB1;Integrated Security=True",
+            Assert.AreEqual($"Data Source={LocalServer};Initial Catalog=DB1;Integrated Security=True;Trust Server Certificate=True",
                 connectionString);
         }
 
-        [DataRow(null, null, null, "Data Source=(local);Initial Catalog=DB1;Integrated Security=True")]
-        [DataRow(".\\Instance", null, null, "Data Source=.\\Instance;Initial Catalog=DB1;Integrated Security=True")]
-        [DataRow(null, "U1", "P1", "Data Source=(local);Initial Catalog=DB1;User ID=U1;Password=P1")]
-        [DataRow(null, null, "P1", "Data Source=(local);Initial Catalog=DB1;Integrated Security=True")]
+        [DataRow(null, null, null, "Data Source=(local);Initial Catalog=DB1;Integrated Security=True;Trust Server Certificate=True")]
+        [DataRow(".\\Instance", null, null, "Data Source=.\\Instance;Initial Catalog=DB1;Integrated Security=True;Trust Server Certificate=True")]
+        [DataRow(null, "U1", "P1", "Data Source=(local);Initial Catalog=DB1;User ID=U1;Password=P1;Trust Server Certificate=True")]
+        [DataRow(null, null, "P1", "Data Source=(local);Initial Catalog=DB1;Integrated Security=True;Trust Server Certificate=True")]
         [DataTestMethod]
         public void MsSqlDbInstaller_ConnectionStrings(string server, string user, string password, string result)
         {

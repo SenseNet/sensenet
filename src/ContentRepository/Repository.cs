@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Threading;
 using Microsoft.Extensions.DependencyInjection;
@@ -15,6 +16,8 @@ using SenseNet.Tools;
 using SenseNet.Packaging;
 using SenseNet.Search;
 using SenseNet.Storage.Diagnostics;
+using SenseNet.ContentRepository.Security.ApiKeys;
+using Exception = System.Exception;
 
 namespace SenseNet.ContentRepository
 {
@@ -132,11 +135,42 @@ namespace SenseNet.ContentRepository
             clientStore?.EnsureClientsAsync(clientOptions?.Authority, clientOptions?.RepositoryUrl?.RemoveUrlSchema())
                 .GetAwaiter().GetResult();
 
+            EnsureApiKeyForAdmin(builder.Services, logger);
+
             if(repositoryStatus != null)
                 repositoryStatus.IsRunning = true;
 
             return repositoryInstance;
         }
+
+        private static void EnsureApiKeyForAdmin(IServiceProvider services, ILogger logger)
+        {
+            using (new SystemAccount())
+            {
+                try
+                {
+                    logger?.LogInformation("Check apikey for admin...");
+                    var akm = services.GetRequiredService<IApiKeyManager>();
+                    var apiKey = akm.GetApiKeysByUserAsync(Identifiers.AdministratorUserId, CancellationToken.None)
+                        .GetAwaiter().GetResult()
+                        .Where(a => a.ExpirationDate > DateTime.UtcNow)
+                        .OrderByDescending(a => a.ExpirationDate)
+                        .FirstOrDefault();
+                    if (apiKey == null)
+                    {
+                        apiKey = akm.CreateApiKeyAsync(Identifiers.AdministratorUserId, DateTime.UtcNow.AddYears(1),
+                                CancellationToken.None)
+                            .GetAwaiter().GetResult();
+                        logger?.LogInformation("Apikey generated for admin");
+                    }
+                }
+                catch (Exception e)
+                {
+                    logger?.LogError(e, "Error during checking / generating apikey for admin.");
+                }
+            }
+        }
+
         internal static RepositoryInstance Start(IRepositoryBuilder builder)
         {
             // the RepositoryBuilder class should be the only implementation of this interface

@@ -114,7 +114,7 @@ namespace SenseNet.Search.Tests
                         value = $"\"{indexField.StringValue}\"";
                         break;
                     case IndexValueType.StringArray:
-                        value = "[" + string.Join(",", indexField.StringArrayValue.Select(s => $"\"{s}\"")) + "]";
+                        value = "[\r\n" + string.Join(",\r\n", indexField.StringArrayValue.Select(s => $"    \"{s}\"")) + "\r\n  ]";
                         break;
                     case IndexValueType.Bool:
                         value = indexField.BooleanValue.ToString().ToLowerInvariant();
