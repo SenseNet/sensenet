@@ -3,9 +3,10 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Newtonsoft.Json.Linq;
+using SenseNet.Communication.Messaging;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Security;
@@ -21,13 +22,13 @@ namespace SenseNet.ContentRepository.Security.ApiKeys
     {
         private const string FeatureName = "apikey";
         private readonly ILogger _logger;
+        // ReSharper disable once PrivateFieldCanBeConvertedToLocalVariable
         private readonly ApiKeysOptions _apiKeys;
-        private readonly MemoryCache _apiKeyCache = new(new MemoryCacheOptions { SizeLimit = 1024 });
 
         public ApiKeyManager(ILogger<ApiKeyManager> logger, IOptions<ApiKeysOptions> apiKeys)
         {
             _logger = logger;
-            _apiKeys = apiKeys.Value ?? new ApiKeysOptions();
+            _apiKeys = apiKeys?.Value ?? new ApiKeysOptions();
 
             var now = DateTime.UtcNow;
             var apiKey = _apiKeys.HealthCheckerUser;
@@ -53,7 +54,11 @@ namespace SenseNet.ContentRepository.Security.ApiKeys
             if (string.IsNullOrEmpty(apiKey))
                 return null;
 
-            if (!_apiKeyCache.TryGetValue<AccessToken>(apiKey, out var token))
+            MemoryCache cache;
+            lock (_cacheLock)
+                cache = _apiKeyCache;
+
+            if (!cache.TryGetValue<AccessToken>(apiKey, out var token))
             {
                 token = await AccessTokenVault.GetTokenAsync(apiKey, 0, FeatureName, cancel).ConfigureAwait(false);
                 
@@ -63,7 +68,7 @@ namespace SenseNet.ContentRepository.Security.ApiKeys
 
                 // cache for 2 minutes
                 if (token != null)
-                    _apiKeyCache.Set(apiKey, token, new MemoryCacheEntryOptions
+                    cache.Set(apiKey, token, new MemoryCacheEntryOptions
                     {
                         AbsoluteExpiration = new DateTimeOffset(DateTime.UtcNow.AddMinutes(2)),
                         Size = 1
@@ -126,25 +131,28 @@ namespace SenseNet.ContentRepository.Security.ApiKeys
             AssertPermissions(token.UserId);
 
             await AccessTokenVault.DeleteTokenAsync(apiKey, cancel).ConfigureAwait(false);
+            ResetCache();
         }
 
-        public System.Threading.Tasks.Task DeleteApiKeysByUserAsync(int userId, CancellationToken cancel)
+        public async System.Threading.Tasks.Task DeleteApiKeysByUserAsync(int userId, CancellationToken cancel)
         {
             if (userId < 1)
-                return System.Threading.Tasks.Task.CompletedTask;
+                return;
 
             AssertPermissions(userId);
             
-            return AccessTokenVault.DeleteTokensAsync(userId, 0, FeatureName, cancel);
+            await AccessTokenVault.DeleteTokensAsync(userId, 0, FeatureName, cancel);
+            ResetCache();
         }
 
-        public System.Threading.Tasks.Task DeleteApiKeysAsync(CancellationToken cancel)
+        public async System.Threading.Tasks.Task DeleteApiKeysAsync(CancellationToken cancel)
         {
             // user id: -1 or 1
             if (Math.Abs(User.Current.Id) != 1)
                 throw new SenseNetSecurityException("Only administrators may delete all api keys.");
 
-            return AccessTokenVault.DeleteTokensByFeatureAsync(FeatureName, cancel);
+            await AccessTokenVault.DeleteTokensByFeatureAsync(FeatureName, cancel);
+            ResetCache();
         }
 
         private void AssertPermissions(int userId)
@@ -164,5 +172,44 @@ namespace SenseNet.ContentRepository.Security.ApiKeys
             return currentUser.Id == userId ||
                    Providers.Instance.SecurityHandler.HasPermission(userId, PermissionType.Save);
         }
+
+        /* ==================================================================================== CACHE */
+
+        private readonly object _cacheLock = new();
+        private MemoryCache _apiKeyCache = CreateCache();
+
+        private static MemoryCache CreateCache() => new(new MemoryCacheOptions { SizeLimit = 1024 });
+
+        private void ResetCache()
+        {
+            new ApiKeyManagerCacheResetDistributedAction().ExecuteAsync(CancellationToken.None).GetAwaiter().GetResult();
+        }
+        private void ResetCachePrivate()
+        {
+            MemoryCache oldCache;
+            lock (_cacheLock)
+            {
+                oldCache = _apiKeyCache;
+                _apiKeyCache = CreateCache();
+            }
+            oldCache.Dispose();
+        }
+
+        [Serializable]
+        internal sealed class ApiKeyManagerCacheResetDistributedAction : DistributedAction
+        {
+            public override string TraceMessage => null;
+
+            public override System.Threading.Tasks.Task DoActionAsync(bool onRemote, bool isFromMe, CancellationToken cancellationToken)
+            {
+                // Local echo of my action: Return without doing anything
+                if (onRemote && isFromMe)
+                    return System.Threading.Tasks.Task.CompletedTask;
+                var instance = Providers.Instance.Services.GetService<IApiKeyManager>() as ApiKeyManager;
+                instance?.ResetCachePrivate();
+                return System.Threading.Tasks.Task.CompletedTask;
+            }
+        }
+
     }
 }
