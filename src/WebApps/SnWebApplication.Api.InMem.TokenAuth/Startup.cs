@@ -12,7 +12,6 @@ using SenseNet.ContentRepository.Security;
 using SenseNet.ContentRepository.Security.ApiKeys;
 using SenseNet.Extensions.DependencyInjection;
 using SenseNet.Services.Core.Authentication;
-using SnWebApplication.Api.Sql.TokenAuth.TokenValidator;
 
 namespace SnWebApplication.Api.InMem.TokenAuth
 {
