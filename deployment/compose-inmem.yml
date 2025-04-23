@@ -1,0 +1,57 @@
+# docker compose -f .\compose-inmem.yml -p sensenet-repo-inmem-is up -d --build
+
+services:
+# Kell a certificate
+# dotnet dev-certs https -ep ./snapp.pfx -p SuP3rS3CuR3P4sSw0Rd 
+  sensenet-inmem-snis:
+    image: sensenetcsp/sn-identityserver:latest
+    container_name: sensenet-inmem-snis
+    networks:
+      - snnetwork
+    environment:
+      - ASPNETCORE_URLS=https://+:443;http://+:80
+      - ASPNETCORE_ENVIRONMENT=Development
+      - sensenet__LoginPage__DisplayOtherRepositoryButton=true
+      - sensenet__authentication__setDefaultClients=true
+      - IdentityServer__IssuerUri=https://localhost:51012
+      - sensenet__Clients__adminui__RepositoryHosts__0__PublicHost=https://localhost:51011
+      - sensenet__Clients__spa__RepositoryHosts__0__PublicHost=https://localhost:51011
+      - sensenet__Clients__client__RepositoryHosts__0__PublicHost=https://localhost:51011
+      - sensenet__Clients__adminui__RepositoryHosts__0__InternalHost=http://sensenet-inmem-snapp
+      - sensenet__Clients__spa__RepositoryHosts__0__InternalHost=http://sensenet-inmem-snapp
+      - sensenet__Clients__client__RepositoryHosts__0__InternalHost=http://sensenet-inmem-snapp
+      - Kestrel__Certificates__Default__Path=/root/.aspnet/https/snapp.pfx
+      - Kestrel__Certificates__Default__Password=SuP3rS3CuR3P4sSw0Rd
+    volumes:
+      - ./temp/certificates:/root/.aspnet/https:ro
+    ports:
+      - "51012:443"
+    restart: always
+
+  sensenet-inmem-snapp:
+    image: sensenetcsp/sn-api-inmem:latest
+    container_name: sensenet-inmem-snapp
+    networks:
+      - snnetwork
+    environment:
+      - ASPNETCORE_URLS=https://+:443;http://+:80
+      - ASPNETCORE_ENVIRONMENT=Development
+      - sensenet__Container__Name=sensenet-inmem-snapp
+      - sensenet__apikeys__healthcheckeruser=s3Cur3P4Ss
+      - sensenet__authentication__authority=https://localhost:51012
+      - sensenet__authentication__repositoryUrl=https://localhost:51011
+      - sensenet__authentication__authServerType=IdentityServer
+      - sensenet__authentication__AddJwtCookie=true
+      - sensenet__identityManagement__UserProfilesEnabled=false
+      - sensenet__authentication__metadatahost=http://sensenet-inmem-snis
+      - Kestrel__Certificates__Default__Path=/root/.aspnet/https/snapp.pfx
+      - Kestrel__Certificates__Default__Password=SuP3rS3CuR3P4sSw0Rd
+    volumes:
+      - ./temp/certificates:/root/.aspnet/https:ro
+    ports:
+      - "51011:443"
+    restart: always
+
+networks:
+  snnetwork:
+    driver: bridge
