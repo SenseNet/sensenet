@@ -1,0 +1,107 @@
+# docker compose -f .\compose-insql-cdb-wv.yml -p sensenet-repo-insql-is up -d --build
+services:
+  sensenet-insql-cdb-wv-snsql:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: sensenet-insql-cdb-wv-snsql
+    networks:
+      - snnetwork
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=SuP3rS3CuR3P4sSw0Rd
+      - MSSQL_PID=Developer
+      - MSSQL_AGENT_ENABLED=True
+    healthcheck:
+      test: >
+        /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "$$MSSQL_SA_PASSWORD" -C -Q "
+        IF NOT EXISTS (SELECT name FROM master.sys.databases WHERE name = 'sensenet-insql-cdb-wv-sndb')
+          RAISERROR('Database missing', 16, 1)
+        " || exit 1
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    # volumes:
+      # - ./volumes/sensenet-insql-cdb-wv-snapp/mssql:/var/opt/mssql/data
+      # - sensenet-insql-cdb-wv-mssql:/var/opt/mssql/data
+    ports:
+      - "51039:1433"
+    restart: unless-stopped
+
+  db-init:
+    image: mcr.microsoft.com/mssql-tools
+    networks:
+      - snnetwork
+    depends_on:
+      - sensenet-insql-cdb-wv-snsql
+    command: >
+      bash -c "
+      echo 'Waiting for SQL Server to be ready...';
+      until /opt/mssql-tools/bin/sqlcmd -S sensenet-insql-cdb-wv-snsql -U SA -P 'SuP3rS3CuR3P4sSw0Rd' -Q 'SELECT 1'; do
+        sleep 1;
+      done;
+      echo 'Creating database...';
+      /opt/mssql-tools/bin/sqlcmd -S sensenet-insql-cdb-wv-snsql -U SA -P 'SuP3rS3CuR3P4sSw0Rd' -Q 'CREATE DATABASE [sensenet-insql-cdb-wv-sndb]';
+      echo 'Database created successfully';
+      "
+
+  sensenet-insql-cdb-wv-snis:
+    image: sensenetcsp/sn-identityserver:latest
+    container_name: sensenet-insql-cdb-wv-snis
+    networks:
+      - snnetwork
+    environment:
+      - ASPNETCORE_URLS=https://+:443;http://+:80
+      - ASPNETCORE_ENVIRONMENT=Development
+      - sensenet__LoginPage__DisplayOtherRepositoryButton=true
+      - sensenet__authentication__setDefaultClients=true
+      - IdentityServer__IssuerUri=https://localhost:51037
+      - sensenet__Clients__adminui__RepositoryHosts__0__PublicHost=https://localhost:51036
+      - sensenet__Clients__spa__RepositoryHosts__0__PublicHost=https://localhost:51036
+      - sensenet__Clients__client__RepositoryHosts__0__PublicHost=https://localhost:51036
+      - sensenet__Clients__adminui__RepositoryHosts__0__InternalHost=http://sensenet-insql-cdb-wv-snapp
+      - sensenet__Clients__spa__RepositoryHosts__0__InternalHost=http://sensenet-insql-cdb-wv-snapp
+      - sensenet__Clients__client__RepositoryHosts__0__InternalHost=http://sensenet-insql-cdb-wv-snapp
+      - Kestrel__Certificates__Default__Path=/root/.aspnet/https/snapp.pfx
+      - Kestrel__Certificates__Default__Password=SuP3rS3CuR3P4sSw0Rd
+    volumes:
+      - ./temp/certificates:/root/.aspnet/https:ro
+    ports:
+      - "51037:443"
+    restart: always
+
+  sensenet-insql-cdb-wv-snapp:
+    image: sensenetcsp/sn-api-sql
+    container_name: sensenet-insql-cdb-wv-snapp
+    networks:
+      - snnetwork
+    depends_on:
+      sensenet-insql-cdb-wv-snsql:
+        condition: service_healthy
+    environment:
+      - ASPNETCORE_URLS=https://+:443;http://+:80
+      - ASPNETCORE_ENVIRONMENT=Development
+      - sensenet__Container__Name=sensenet-insql-cdb-wv-snapp
+      - sensenet__apikeys__healthcheckeruser=s3Cur3P4Ss
+      - sensenet__authentication__authority=https://localhost:51037
+      - sensenet__authentication__repositoryUrl=https://localhost:51036
+      - sensenet__authentication__authServerType=IdentityServer
+      - sensenet__authentication__AddJwtCookie=true
+      - sensenet__identityManagement__UserProfilesEnabled=false
+      - ConnectionStrings__SnCrMsSql=Persist Security Info=False;Initial Catalog=sensenet-insql-cdb-wv-sndb;Data Source=sensenet-insql-cdb-wv-snsql;User ID=sa;Password=SuP3rS3CuR3P4sSw0Rd;TrustServerCertificate=true
+      - sensenet__authentication__metadatahost=http://sensenet-insql-cdb-wv-snis
+      - Kestrel__Certificates__Default__Path=/root/.aspnet/https/snapp.pfx
+      - Kestrel__Certificates__Default__Password=SuP3rS3CuR3P4sSw0Rd
+    volumes:
+      - ./temp/certificates:/root/.aspnet/https:ro
+      # - ./volumes/sensenet-insql-cdb-wv-snapp/appdata:/app/App_Data
+      - sensenet-insql-cdb-wv-appdata:/app/App_Data
+    ports:
+      - "51036:443"
+    restart: always
+
+networks:
+  snnetwork:
+    driver: bridge
+
+volumes:
+  sensenet-insql-cdb-wv-appdata:
+  # sensenet-insql-cdb-wv-mssql:
