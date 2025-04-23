@@ -1,0 +1,158 @@
+# docker compose -f .\compose-insql-cdb-ws-wv.yml -p sensenet-repo-insql-search-is up -d --build
+
+services:
+  sensenet-insql-cdb-wv-ws-snsql:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: sensenet-insql-cdb-wv-ws-snsql
+    networks:
+      - snnetwork
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=SuP3rS3CuR3P4sSw0Rd
+      - MSSQL_PID=Developer
+      - MSSQL_AGENT_ENABLED=True
+    healthcheck:
+      test: >
+        /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "$$MSSQL_SA_PASSWORD" -C -Q "
+        IF NOT EXISTS (SELECT name FROM master.sys.databases WHERE name = 'sensenet-insql-cdb-wv-ws-sndb')
+          RAISERROR('Database missing', 16, 1)
+        " || exit 1
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    ports:
+      - "51079:1433"
+    restart: unless-stopped
+
+  db-init:
+    image: mcr.microsoft.com/mssql-tools
+    networks:
+      - snnetwork
+    depends_on:
+      - sensenet-insql-cdb-wv-ws-snsql
+    command: >
+      bash -c "
+      echo 'Waiting for SQL Server to be ready...';
+      until /opt/mssql-tools/bin/sqlcmd -S sensenet-insql-cdb-wv-ws-snsql -U SA -P 'SuP3rS3CuR3P4sSw0Rd' -Q 'SELECT 1'; do
+        sleep 1;
+      done;
+      echo 'Creating database...';
+      /opt/mssql-tools/bin/sqlcmd -S sensenet-insql-cdb-wv-ws-snsql -U SA -P 'SuP3rS3CuR3P4sSw0Rd' -Q 'CREATE DATABASE [sensenet-insql-cdb-wv-ws-sndb]';
+      echo 'Database created successfully';
+      "
+
+  sensenet-insql-cdb-wv-ws-rabbitmq:
+    image: rabbitmq:3-management
+    container_name: sensenet-insql-cdb-wv-ws-rabbitmq
+    networks:
+      - snnetwork
+    environment:
+      - RABBITMQ_DEFAULT_USER=admin
+      - RABBITMQ_DEFAULT_PASS=SuP3rS3CuR3P4sSw0Rd
+      - RABBITMQ_DEFAULT_VHOST=/
+    ports:
+      - "51072:15672"
+      # - "5672:5672"
+    restart: always
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+# Kell a certificate
+# dotnet dev-certs https -ep ./snapp.pfx -p SuP3rS3CuR3P4sSw0Rd 
+  sensenet-insql-cdb-wv-ws-snis:
+    image: sensenetcsp/sn-identityserver:latest
+    container_name: sensenet-insql-cdb-wv-ws-snis
+    networks:
+      - snnetwork
+    depends_on:
+      - db-init
+    environment:
+      - ASPNETCORE_URLS=https://+:443;http://+:80
+      - ASPNETCORE_ENVIRONMENT=Development
+      - sensenet__LoginPage__DisplayOtherRepositoryButton=true
+      - sensenet__authentication__setDefaultClients=true
+      - IdentityServer__IssuerUri=https://localhost:51077
+      - sensenet__Clients__adminui__RepositoryHosts__0__PublicHost=https://localhost:51076
+      - sensenet__Clients__spa__RepositoryHosts__0__PublicHost=https://localhost:51076
+      - sensenet__Clients__client__RepositoryHosts__0__PublicHost=https://localhost:51076
+      - sensenet__Clients__adminui__RepositoryHosts__0__InternalHost=http://sensenet-insql-cdb-wv-ws-snapp
+      - sensenet__Clients__spa__RepositoryHosts__0__InternalHost=http://sensenet-insql-cdb-wv-ws-snapp
+      - sensenet__Clients__client__RepositoryHosts__0__InternalHost=http://sensenet-insql-cdb-wv-ws-snapp
+      - Kestrel__Certificates__Default__Path=/root/.aspnet/https/snapp.pfx
+      - Kestrel__Certificates__Default__Password=SuP3rS3CuR3P4sSw0Rd
+    volumes:
+      - ./temp/certificates:/root/.aspnet/https:ro
+    ports:
+      - "51077:443"
+    restart: always
+
+  sensenet-insql-cdb-wv-ws-snsearch:
+    image: sensenetcsp/sn-searchservice:latest
+    container_name: sensenet-insql-cdb-wv-ws-snsearch
+    networks:
+      - snnetwork
+    depends_on:
+      sensenet-insql-cdb-wv-ws-rabbitmq:
+        condition: service_healthy
+      sensenet-insql-cdb-wv-ws-snsql:
+        condition: service_healthy
+      db-init:
+        condition: service_completed_successfully
+    environment:
+      - ASPNETCORE_URLS=https://+:443;http://+:80
+      - ASPNETCORE_ENVIRONMENT=Development
+      - sensenet__Container__Name=sensenet-insql-cdb-wv-ws-snsearch
+      - ConnectionStrings__SecurityStorage=Persist Security Info=False;Initial Catalog=sensenet-insql-cdb-wv-ws-sndb;Data Source=sensenet-insql-cdb-wv-ws-snsql;User ID=sa;Password=SuP3rS3CuR3P4sSw0Rd;TrustServerCertificate=true
+      - sensenet__security__rabbitmq__ServiceUrl=amqp://admin:SuP3rS3CuR3P4sSw0Rd@sensenet-insql-cdb-wv-ws-rabbitmq
+      - sensenet__security__rabbitmq__MessageExchange=local-nlb-security
+      - Kestrel__Certificates__Default__Path=/root/.aspnet/https/snapp.pfx
+      - Kestrel__Certificates__Default__Password=SuP3rS3CuR3P4sSw0Rd
+    volumes:
+      - ./temp/certificates:/root/.aspnet/https:ro
+      - sensenet-insql-cdb-wv-ws-appdata:/app/App_Data
+    ports:
+      - "9038:443"
+    restart: always
+
+  sensenet-insql-cdb-wv-ws-snapp:
+    image: sensenetcsp/sn-api-nlb:latest
+    container_name: sensenet-insql-cdb-wv-ws-snapp
+    networks:
+      - snnetwork
+    depends_on:
+      sensenet-insql-cdb-wv-ws-snsql:
+        condition: service_healthy
+    environment:
+      - ASPNETCORE_URLS=https://+:443;http://+:80
+      - ASPNETCORE_ENVIRONMENT=Development
+      - sensenet__Container__Name=sensenet-insql-cdb-wv-ws-snapp
+      - sensenet__apikeys__healthcheckeruser=s3Cur3P4Ss
+      - sensenet__authentication__authority=https://localhost:51077
+      - sensenet__authentication__repositoryUrl=https://localhost:51076
+      - sensenet__authentication__authServerType=IdentityServer
+      - sensenet__authentication__AddJwtCookie=true
+      - sensenet__identityManagement__UserProfilesEnabled=false
+      - ConnectionStrings__SnCrMsSql=Persist Security Info=False;Initial Catalog=sensenet-insql-cdb-wv-ws-sndb;Data Source=sensenet-insql-cdb-wv-ws-snsql;User ID=sa;Password=SuP3rS3CuR3P4sSw0Rd;TrustServerCertificate=true
+      - sensenet__search__service__ServiceAddress=http://sensenet-insql-cdb-wv-ws-snsearch
+      - sensenet__security__rabbitmq__ServiceUrl=amqp://admin:SuP3rS3CuR3P4sSw0Rd@sensenet-insql-cdb-wv-ws-rabbitmq
+      - sensenet__security__rabbitmq__MessageExchange=local-nlb-security
+      - sensenet__rabbitmq__ServiceUrl=amqp://admin:SuP3rS3CuR3P4sSw0Rd@sensenet-insql-cdb-wv-ws-rabbitmq
+      - sensenet__rabbitmq__MessageExchange=local-nlb-messages
+      - sensenet__authentication__metadatahost=http://sensenet-insql-cdb-wv-ws-snis
+      - Kestrel__Certificates__Default__Path=/root/.aspnet/https/snapp.pfx
+      - Kestrel__Certificates__Default__Password=SuP3rS3CuR3P4sSw0Rd
+    volumes:
+      - ./temp/certificates:/root/.aspnet/https:ro
+    ports:
+      - "51076:443"
+    restart: always
+
+networks:
+  snnetwork:
+    driver: bridge
+
+volumes:
+  sensenet-insql-cdb-wv-ws-appdata:
