@@ -1,0 +1,69 @@
+# docker compose -f .\compose-inmem-snauth.yml -p sensenet-repo-inmem-snauth up -d --build
+
+services:
+# Kell a certificate
+# dotnet dev-certs https -ep ./snapp.pfx -p SuP3rS3CuR3P4sSw0Rd 
+  sensenet-inmem-snauth:
+    image: sensenetcsp/sn-auth:feat-docker-compatibility.2025.03.17
+    container_name: sensenet-inmem-snauth
+    networks:
+      - snnetwork
+    environment:
+      - ASPNETCORE_URLS=https://+:443;http://+:80
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_HTTPS_PORTS=443
+      - ASPNETCORE_HTTP_PORTS=80
+      - Sensenet__Repository__Url=https://localhost:51111
+      - Sensenet__Repository__InnerUrl=http://sensenet-inmem-snapp
+      # - Sensenet__Repository__Authentication__ApiKey=
+      - JwtSettings__Issuer=https://localhost:51111
+      - JwtSettings__Audience=sensenet
+      - JwtSettings__SecretKey=SuP3rS3CuR3P4sSw0Rd
+      - JwtSettings__AuthTokenExpiryMinutes=300
+      - JwtSettings__MultiFactorAuthExpiryMinutes=300
+      - JwtSettings__TokenExpiryMinutes=300
+      - JwtSettings__RefreshTokenExpiryDays=15
+      - PasswordRecovery__TokenExpiryMinutes=60
+      - Registration__IsEnabled=false
+      - Recaptcha__SiteKey=--to be set--
+      - Recaptcha__SecretKey=--to be set--
+      - Application__Url=https://localhost:51112
+      - Application__AllowedHosts__0=https://adminui.test.sensenet.com
+      - Application__AllowedHosts__1=http://sensenet-inmem-snapp
+      - Application__AllowedHosts__2=https://localhost:51111
+      - Kestrel__Certificates__Default__Path=/root/.aspnet/https/snapp.pfx
+      - Kestrel__Certificates__Default__Password=SuP3rS3CuR3P4sSw0Rd
+    volumes:
+      - ./temp/certificates:/root/.aspnet/https:ro
+    ports:
+      - "51112:443"
+    restart: always
+
+  sensenet-inmem-snapp:
+    # image: sensenetcsp/sn-api-inmem:latest
+    image: sn-api-inmem
+    container_name: sensenet-inmem-snapp
+    networks:
+      - snnetwork
+    environment:
+      - ASPNETCORE_URLS=https://+:443;http://+:80
+      - ASPNETCORE_ENVIRONMENT=Development
+      - sensenet__Container__Name=sensenet-inmem-snapp
+      - sensenet__apikeys__healthcheckeruser=s3Cur3P4Ss
+      - sensenet__authentication__authority=https://localhost:51112
+      - sensenet__authentication__repositoryUrl=https://localhost:51111
+      - sensenet__authentication__authServerType=SnAuth
+      - sensenet__authentication__AddJwtCookie=false
+      - sensenet__identityManagement__UserProfilesEnabled=false
+      - sensenet__authentication__metadatahost=http://sensenet-inmem-snauth
+      - Kestrel__Certificates__Default__Path=/root/.aspnet/https/snapp.pfx
+      - Kestrel__Certificates__Default__Password=SuP3rS3CuR3P4sSw0Rd
+    volumes:
+      - ./temp/certificates:/root/.aspnet/https:ro
+    ports:
+      - "51111:443"
+    restart: always
+
+networks:
+  snnetwork:
+    driver: bridge
