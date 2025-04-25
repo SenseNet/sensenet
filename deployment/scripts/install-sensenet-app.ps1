@@ -179,8 +179,7 @@ $params = "run", "-it", "-d", "eol",
 
 if ($UseAuth) {
 	$params += "-e", "sensenet__authentication__authServerType=SNAuth", "eol",
-	"-e", "sensenet__authentication__AddJwtCookie=false", "eol",
-	"-e", "sensenet__repository__Authentication__ApiKey=$($ApiKey)", "eol"
+	"-e", "sensenet__authentication__AddJwtCookie=false", "eol"
 } else {
 	$params += "-e", "sensenet__authentication__authServerType=IdentityServer", "eol",
 	"-e", "sensenet__authentication__AddJwtCookie=true", "eol",
