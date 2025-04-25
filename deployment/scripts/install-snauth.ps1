@@ -32,7 +32,7 @@ Param (
 	
 	# SnAuth server
 	[Parameter(Mandatory=$False)]
-	[string]$IdentityDockerImage="sensenetcsp/sn-auth:latest",
+	[string]$IdentityDockerImage="sensenetcsp/sn-auth:feat-docker-compatibility.2025.04.24",
 	[Parameter(Mandatory=$False)]
 	[string]$IdentityContainerName="$($ProjectName)-snis",
 	[Parameter(Mandatory=$False)]
