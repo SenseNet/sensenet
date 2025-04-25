@@ -73,7 +73,6 @@
         "sensenet__authentication__AddJwtCookie": "false",
         "sensenet__identityManagement__UserProfilesEnabled": "false",
         "sensenet__authentication__metadatahost": "http://SnAuth",
-        "sensenet__repository__Authentication__ApiKey": "--to-be-set--"
       },
       "launchBrowser": true,
       "launchUrl": "{Scheme}://{ServiceHost}:{ServicePort}",

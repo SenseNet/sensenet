@@ -37,7 +37,6 @@
         "sensenet__authentication__authServerType": "SNAuth",
         "sensenet__authentication__AddJwtCookie": "false",
         "sensenet__identityManagement__UserProfilesEnabled": "false",
-        "sensenet__repository__Authentication__ApiKey": "???"
       }
     },
     "Docker": {
