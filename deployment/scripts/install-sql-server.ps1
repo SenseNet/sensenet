@@ -12,7 +12,7 @@ Param (
 
 	# Common app settings
 	[Parameter(Mandatory=$False)]
-	[bool]$OpenPort=$False,
+	[bool]$OpenPort=$True,
 
     # Sensenet App
     [Parameter(Mandatory=$False)]
