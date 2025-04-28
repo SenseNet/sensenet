@@ -38,7 +38,7 @@ Param (
 
 	# Search service parameters
     [Parameter(Mandatory=$False)]
-	[string]$SearchDockerImage="sensenetcsp/sn-searchservice:latest",
+	[string]$SearchDockerImage="sensenetcsp/sn-searchservice:preview",
 	[Parameter(Mandatory=$False)]
 	[string]$SearchContainerName="$($ProjectName)-snsearch",
     [Parameter(Mandatory=$False)]

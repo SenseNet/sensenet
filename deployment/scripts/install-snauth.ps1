@@ -32,7 +32,7 @@ Param (
 	
 	# SnAuth server
 	[Parameter(Mandatory=$False)]
-	[string]$IdentityDockerImage="sensenetcsp/sn-auth:feat-docker-compatibility.2025.04.24",
+	[string]$IdentityDockerImage="sensenetcsp/sn-auth:preview",
 	[Parameter(Mandatory=$False)]
 	[string]$IdentityContainerName="$($ProjectName)-snis",
 	[Parameter(Mandatory=$False)]
@@ -46,9 +46,9 @@ Param (
 	[Parameter(Mandatory=$False)]
 	[string]$SecretKey = "pr3Gen3R4Tedpr3Gen3R4Tedpr3Gen3R4Ted",
 	[Parameter(Mandatory=$False)]
-	[string]$RecaptchaSiteKey = "--to-be-set--",
+	[string]$RecaptchaSiteKey = "",
 	[Parameter(Mandatory=$False)]
-	[string]$RecaptchaSecretKey = "--to-be-set--",
+	[string]$RecaptchaSecretKey = "",
 
 	# Certificate
 	[Parameter(Mandatory=$False)]
