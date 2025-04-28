@@ -35,7 +35,11 @@ if ($Uninstall) {
 ##    Variables section     #
 #############################
 $dummyContainerName = -join ((65..90) + (97..122) | Get-Random -Count 10 | % {[char]$_})
-$tempCertPath = "./temp/certificates/$($CertName)"
+$tempCertFolder = "./temp/certificates"
+if (-not (Test-Path $tempCertFolder)) {
+	New-Item -ItemType Directory -Path $tempCertFolder
+}
+$tempCertPath = "$($tempCertFolder)/$($CertName)"
 
 Write-Output " "
 Write-Output "###############################"
