@@ -30,9 +30,9 @@ Param (
 	[Parameter(Mandatory=$False)]
 	[string]$SensenetPublicHost="https://$($ProjectName)-sn.$($Domain)",
 	
-	# Identity server
+	# SnAuth server
 	[Parameter(Mandatory=$False)]
-	[string]$IdentityDockerImage="sensenetcsp/sn-identityserver:preview",
+	[string]$IdentityDockerImage="sensenetcsp/sn-auth:preview",
 	[Parameter(Mandatory=$False)]
 	[string]$IdentityContainerName="$($ProjectName)-snis",
 	[Parameter(Mandatory=$False)]
@@ -41,6 +41,14 @@ Param (
 	[int]$IsHostPort=8082,
     [Parameter(Mandatory=$False)]
 	[int]$IsAppPort=443,
+	[Parameter(Mandatory=$False)]
+	[string]$ApiKey = "pr3Gen3R4Tedpr3Gen3R4Tedpr3Gen3R4Tedpr3Gen3R4Tedpr3Gen3R4Tedpr3Gen3R4Tedpr3Gen3R4Ted",
+	[Parameter(Mandatory=$False)]
+	[string]$SecretKey = "pr3Gen3R4Tedpr3Gen3R4Tedpr3Gen3R4Ted",
+	[Parameter(Mandatory=$False)]
+	[string]$RecaptchaSiteKey = "",
+	[Parameter(Mandatory=$False)]
+	[string]$RecaptchaSecretKey = "",
 
 	# Certificate
 	[Parameter(Mandatory=$False)]
@@ -77,9 +85,9 @@ $date = Get-Date -Format "yyyy-MM-dd HH:mm K"
 
 Write-Output " "
 Write-Output "#################################"
-Write-Output "#   identity server container   #"
+Write-Output "#   snauth server container   #"
 Write-Output "#################################"
-Write-Output "[$($date) INFO] Start identity server"
+Write-Output "[$($date) INFO] Start snauth server"
 
 if ($IdentityDockerImage -Match "/") {
 	Write-Output "pull $IdentityDockerImage image from the registry"
@@ -97,18 +105,27 @@ $params = "run", "-it", "-d", "eol",
 "--name", $IdentityContainerName, "eol",
 "-e", "ASPNETCORE_URLS=$aspnetUrls", "eol",
 "-e", "ASPNETCORE_ENVIRONMENT=$AppEnvironment", "eol",
-"-e", "sensenet__LoginPage__DisplayOtherRepositoryButton=true", "eol",
-"-e", "sensenet__authentication__setDefaultClients=true", "eol",
-"-e", "IdentityServer__IssuerUri=$($IdentityPublicHost)", "eol",
-"-e", "sensenet__Clients__adminui__RepositoryHosts__0__PublicHost=$($SensenetPublicHost)", "eol",
-"-e", "sensenet__Clients__spa__RepositoryHosts__0__PublicHost=$($SensenetPublicHost)", "eol",
-"-e", "sensenet__Clients__client__RepositoryHosts__0__PublicHost=$($SensenetPublicHost)", "eol"
+"-e", "Sensenet__Repository__Url=$($SensenetPublicHost)", "eol",
+"-e", "Sensenet__Repository__Authentication__ApiKey=$($ApiKey)", "eol",
+"-e", "JwtSettings__Issuer=$($IdentityPublicHost)", "eol",
+"-e", "JwtSettings__Audience=sensenet", "eol",
+"-e", "JwtSettings__SecretKey=$($SecretKey)", "eol",
+"-e", "JwtSettings__AuthTokenExpiryMinutes=300", "eol",
+"-e", "JwtSettings__MultiFactorAuthExpiryMinutes=300", "eol",
+"-e", "JwtSettings__TokenExpiryMinutes=300", "eol",
+"-e", "JwtSettings__RefreshTokenExpiryDays=15", "eol",
+"-e", "PasswordRecovery__TokenExpiryMinutes=60", "eol",
+"-e", "Registration__IsEnabled=false", "eol",
+"-e", "Recaptcha__SiteKey=$($RecaptchaSiteKey)", "eol",
+"-e", "Recaptcha__SecretKey=$($RecaptchaSecretKey)", "eol",
+"-e", "Application__Url=$($IdentityPublicHost)", "eol",
+"-e", "Application__AllowedHosts__0=https://adminui.test.sensenet.com", "eol",
+"-e", "Application__AllowedHosts__1=$($SensenetPublicHost)", "eol",
+"-e", "Application__AllowedHosts__2=$($SensenetContainerHost)", "eol"
 
 switch($Routing) {
 	"cnt" {
-		$params += "-e", "sensenet__Clients__adminui__RepositoryHosts__0__InternalHost=$($SensenetContainerHost)", "eol"
-		$params += "-e", "sensenet__Clients__spa__RepositoryHosts__0__InternalHost=$($SensenetContainerHost)", "eol"
-		$params += "-e", "sensenet__Clients__client__RepositoryHosts__0__InternalHost=$($SensenetContainerHost)", "eol"
+		$params += "-e", "Sensenet__Repository__InnerUrl=$($SensenetContainerHost)", "eol"
 	}
 	"hst" {
 		$SensenetPublicHost_HOST=([System.Uri]$SensenetPublicHost).Host
@@ -161,8 +178,8 @@ if (-not $DryRun) {
 		# workaround for "failed to get console mode for stdout: The handle is invalid."
 		$ISIP = $ISIP[1]
 	}
-	Write-Output "`n[$($date) INFO] Identity server Ip: $ISIP"
+	Write-Output "`n[$($date) INFO] SnAuth server Ip: $ISIP"
 	if ($OpenPort) {
-		Write-Output "[$($date) INFO] Identity Server url: https://localhost:$IsHostPort"
+		Write-Output "[$($date) INFO] SnAuth Server url: https://localhost:$IsHostPort"
 	}
 }

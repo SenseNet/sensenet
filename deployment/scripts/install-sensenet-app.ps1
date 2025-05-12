@@ -2,7 +2,7 @@ Param (
     [Parameter(Mandatory=$False)]
 	[string]$ProjectName="docker",
 	[Parameter(Mandatory=$False)]
-	[string]$NetworkName="snnetwork",
+	[string]$NetworkName="sensenet",
 
 	# Hosting environment
 	[Parameter(Mandatory=$False)]
@@ -26,13 +26,15 @@ Param (
 	[Parameter(Mandatory=$False)]
 	[string]$SnType="InSql",
 	[Parameter(Mandatory=$False)]
-	[string]$SensenetDockerImage="sensenetcsp/sn-api-sql:latest",
+	[string]$SensenetDockerImage="sensenetcsp/sn-api-sql:preview",
 	[Parameter(Mandatory=$False)]
 	[string]$SensenetContainerName="$($ProjectName)-snapp",
 	[Parameter(Mandatory=$False)]
 	[string]$SensenetAppdataVolume="$($VolumeBasePath)/$($SensenetContainerName)/appdata",
 	[Parameter(Mandatory=$False)]
 	[string]$SensenetPublicHost="https://$($ProjectName)-sn.$($Domain)",
+	[Parameter(Mandatory=$False)]
+	[string]$HealthCheckUser="s3Cur3P4Ss",
 	[Parameter(Mandatory=$False)]
 	[int]$SnHostPort=8081,
 	[Parameter(Mandatory=$False)]
@@ -45,6 +47,10 @@ Param (
 	[string]$IdentityPublicHost="https://$($ProjectName)-is.$($Domain)",	
 	[Parameter(Mandatory=$False)]
 	[string]$IdentityContainerHost="http://$($IdentityContainerName)",
+	[Parameter(Mandatory=$False)]
+	[bool]$UseAuth,
+	[Parameter(Mandatory=$False)]
+	[string]$ApiKey = "pr3Gen3R4Tedpr3Gen3R4Tedpr3Gen3R4Tedpr3Gen3R4Tedpr3Gen3R4Tedpr3Gen3R4Tedpr3Gen3R4Ted",
 
 	# Sensenet Repository Database
 	[Parameter(Mandatory=$False)]
@@ -120,14 +126,14 @@ $date = Get-Date -Format "yyyy-MM-dd HH:mm K"
 
 switch ($SnType) {
 	"InMem" { 
-		$SensenetDockerImage="sensenetcsp/sn-api-inmem:latest"
+		$SensenetDockerImage="sensenetcsp/sn-api-inmem:preview"
 	}
 	"InSql" { 
 		if ($SearchService) { 			
-			$SensenetDockerImage="sensenetcsp/sn-api-nlb:latest"
+			$SensenetDockerImage="sensenetcsp/sn-api-nlb:preview"
 		}
 		else {
-			$SensenetDockerImage="sensenetcsp/sn-api-sql:latest"
+			$SensenetDockerImage="sensenetcsp/sn-api-sql:preview"
 		}		
 	}
 	Default {
@@ -167,9 +173,18 @@ $params = "run", "-it", "-d", "eol",
 "-e", "ASPNETCORE_URLS=$aspnetUrls", "eol",
 "-e", "ASPNETCORE_ENVIRONMENT=$AppEnvironment", "eol",
 "-e", "sensenet__Container__Name=$($SensenetContainerName)", "eol",
-"-e", "sensenet__identityManagement__UserProfilesEnabled=false", "eol",
+"-e", "sensenet__apikeys__healthcheckeruser=$($HealthCheckUser)", "eol",
 "-e", "sensenet__authentication__authority=$($IdentityPublicHost)", "eol",
 "-e", "sensenet__authentication__repositoryUrl=$($SensenetPublicHost)", "eol"
+
+if ($UseAuth) {
+	$params += "-e", "sensenet__authentication__authServerType=SNAuth", "eol",
+	"-e", "sensenet__authentication__AddJwtCookie=false", "eol"
+} else {
+	$params += "-e", "sensenet__authentication__authServerType=IdentityServer", "eol",
+	"-e", "sensenet__authentication__AddJwtCookie=true", "eol",
+	"-e", "sensenet__identityManagement__UserProfilesEnabled=false", "eol"
+}
 
 if ($SnType -eq "InSql") {
 	$params += "-e", "ConnectionStrings__SnCrMsSql=Persist Security Info=False;Initial Catalog=$($SqlDbName);Data Source=$($DataSource);User ID=$($SqlUser);Password=$($SqlPsw);TrustServerCertificate=true", "eol"

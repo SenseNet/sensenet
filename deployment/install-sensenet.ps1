@@ -24,7 +24,9 @@ Param (
 	[Parameter(Mandatory=$False)]
 	[switch]$LocalSn,
 	[Parameter(Mandatory=$False)]
-	[switch]$UseVolume,	
+	[switch]$UseVolume,
+	[Parameter(Mandatory=$False)]
+	[switch]$UseAuth,
 
 	# Hosting environment
 	[Parameter(Mandatory=$False, DontShow=$True)]
@@ -263,19 +265,35 @@ if ($SnType -eq "InSql") {
 		-ErrorAction stop
 }
 
-& $PSScriptRoot/scripts/install-identity-server.ps1 `
-	-ProjectName $ProjectName `
-	-VolumeBasePath $VolumeBasePath `
-	-Routing cnt `
-	-AppEnvironment $AppEnvironment `
-	-OpenPort $True `
-	-SensenetPublicHost https://localhost:$SnHostPort `
-	-IdentityPublicHost https://localhost:$IsHostPort `
-	-IsHostPort $IsHostPort `
-	-CertPass $CertPsw `
-	-UseVolume $UseVolume `
-	-DryRun $DryRun `
-	-ErrorAction stop
+if ($UseAuth) {
+		& $PSScriptRoot/scripts/install-snauth.ps1 `
+		-ProjectName $ProjectName `
+		-VolumeBasePath $VolumeBasePath `
+		-Routing cnt `
+		-AppEnvironment $AppEnvironment `
+		-OpenPort $True `
+		-SensenetPublicHost https://localhost:$SnHostPort `
+		-IdentityPublicHost https://localhost:$IsHostPort `
+		-IsHostPort $IsHostPort `
+		-CertPass $CertPsw `
+		-UseVolume $UseVolume `
+		-DryRun $DryRun `
+		-ErrorAction stop
+} else {
+	& $PSScriptRoot/scripts/install-identity-server.ps1 `
+		-ProjectName $ProjectName `
+		-VolumeBasePath $VolumeBasePath `
+		-Routing cnt `
+		-AppEnvironment $AppEnvironment `
+		-OpenPort $True `
+		-SensenetPublicHost https://localhost:$SnHostPort `
+		-IdentityPublicHost https://localhost:$IsHostPort `
+		-IsHostPort $IsHostPort `
+		-CertPass $CertPsw `
+		-UseVolume $UseVolume `
+		-DryRun $DryRun `
+		-ErrorAction stop
+}
 
 if ($SearchService) {
 	& $PSScriptRoot/scripts/install-search-service.ps1 `
@@ -315,6 +333,7 @@ if ($SearchService) {
 	-SearchService $SearchService `
 	-RabbitServiceHost $RabbitServiceHost `
 	-CertPass $CertPsw `
+	-UseAuth $UseAuth `
 	-UseVolume $UseVolume `
 	-DryRun $DryRun `
 	-ErrorAction stop
@@ -342,6 +361,8 @@ if ($SearchService) {
 	# wait for sensenet to be ready (restart only)
 	Wait-SnApp -SnHostPort $SnHostPort -MaxTryNumber 2 -DryRun $DryRun -ErrorAction stop
 }
+
+# & $PSScriptRoot/scripts/insert-apikey.ps1 
 
 if (-not $DryRun -and $OpenInBrowser) {
 	Start-Process "https://admin.sensenet.com/?repoUrl=https%3A%2F%2Flocalhost%3A$SnHostPort"
