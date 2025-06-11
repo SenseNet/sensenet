@@ -167,6 +167,7 @@ namespace SenseNet.Extensions.DependencyInjection
 
                 .AddSingleton(ClusterMemberInfo.Current)
                 .AddDefaultClusterMessageTypes()
+                .AddDefaultJsonConverters()
                 .AddSingleton<IClusterMessageFormatter, SnMessageFormatter>()
                 .AddSingleton<IClusterChannel, VoidChannel>()
 
