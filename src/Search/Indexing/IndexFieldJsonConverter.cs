@@ -5,7 +5,7 @@ using Newtonsoft.Json;
 
 namespace SenseNet.Search.Indexing
 {
-    internal class IndexFieldJsonConverter : JsonConverter<IndexField>
+    public class IndexFieldJsonConverter : JsonConverter<IndexField>
     {
         public override void WriteJson(JsonWriter writer, IndexField value, JsonSerializer serializer)
         {

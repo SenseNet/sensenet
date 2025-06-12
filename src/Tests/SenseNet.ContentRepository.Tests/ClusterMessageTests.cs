@@ -84,9 +84,9 @@ namespace SenseNet.ContentRepository.Tests
         private async STT.Task SerializationTest<T>(T message, Action<T> assertion) where T : ClusterMessage
         {
             var services = new ServiceCollection()
-                .AddSingleton<IEnumerable<JsonConverter>>(new JsonConverter[] {new IndexFieldJsonConverter()})
                 .AddSingleton(ClusterMemberInfo.Current)
                 .AddDefaultClusterMessageTypes()
+                .AddDefaultJsonConverters()
                 .AddSingleton<IClusterMessageFormatter, SnMessageFormatter>()
                 .AddSingleton<IClusterChannel, TestClusterChannel>()
                 .AddSingleton<IIndexManager, TestIndexManager>()
