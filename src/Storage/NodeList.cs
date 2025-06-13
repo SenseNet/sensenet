@@ -563,10 +563,11 @@ namespace SenseNet.ContentRepository.Storage
 
             using var systemAccount = new SystemAccount();
 
-            var user = AccessProvider.Current.GetCurrentUser();
+            var user = AccessProvider.Current.GetOriginalUser();
 
             var singleNode = RawData
-                .Select(id => Node.Load<T>(id))
+                .Select(Node.Load<T>)
+                .Where(node => node != null)
                 .OfType<Q>()
                 .FirstOrDefault(node => 
                     node.Security.HasPermission(user, PermissionType.See));
