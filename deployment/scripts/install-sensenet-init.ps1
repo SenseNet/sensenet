@@ -1,6 +1,6 @@
 Param (
     [Parameter(Mandatory=$False)]
-	[string]$NetworkName="snnetwork",
+	[string]$NetworkName="sensenet",
     
 	# Docker
 	[Parameter(Mandatory=$False)]
