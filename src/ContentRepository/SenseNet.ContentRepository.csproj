@@ -2,7 +2,7 @@
 
 	<PropertyGroup>
 		<TargetFramework>net8.0</TargetFramework>
-		<Version>7.8.2-alpha.4</Version>
+		<Version>7.8.2-alpha.5</Version>
 		<Authors>kavics,joe,tusmester,hashtagnulla</Authors>
 		<Company>Sense/Net Inc.</Company>
 		<Copyright>Copyright © Sense/Net Inc.</Copyright>
