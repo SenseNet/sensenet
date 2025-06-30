@@ -1,11 +1,13 @@
-using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Linq;
+using SenseNet.Client;
+using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.ContentRepository.Storage.Security;
+using SenseNet.Storage.DataModel.Usage;
+using System;
+using System.Collections.Generic;
 using System.Diagnostics;
-using SenseNet.Configuration;
+using System.Linq;
+using System.Text;
 
 namespace SenseNet.ContentRepository.Storage
 {
@@ -561,16 +563,16 @@ namespace SenseNet.ContentRepository.Storage
             if (RawData.Count < 1)
                 return null;
 
-            using var systemAccount = new SystemAccount();
-
-            var user = AccessProvider.Current.GetOriginalUser();
-
             var singleNode = RawData
-                .Select(Node.Load<T>)
+                .Select(nodeId =>
+                {
+                    using var _ = new SystemAccount();
+                    return Node.Load<T>(nodeId);
+                })
                 .Where(node => node != null)
                 .OfType<Q>()
-                .FirstOrDefault(node => 
-                    node.Security.HasPermission(user, PermissionType.See));
+                .FirstOrDefault(node =>
+                    node.Security.HasPermission(PermissionType.See));
 
             return singleNode;
         }
