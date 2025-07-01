@@ -193,6 +193,40 @@ namespace SenseNet.ContentRepository.Tests
                 Assert.AreEqual(reloaded.Link.Id, target1.Id);
             });
         }
+        [TestMethod, TestCategory("NODE, REFERENCE")] //Fix2202 SystemUser can see always even if the original user not.
+        public void Node_Reference_SetReference_Simple_Invisible_ButSystemUser()
+        {
+            Test(() =>
+            {
+                var root = CreateTestRoot();
+                var u1 = CreateUser("U1");
+                var target0 = new Folder(root) { Name = "folder1" };
+                target0.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
+                var link = new ContentLink(root) { Name = "Link1", Link = target0 };
+                link.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
+
+                Providers.Instance.SecurityHandler.CreateAclEditor()
+                    .Allow(link.Id, u1.Id, false, PermissionType.Save)
+                    .ApplyAsync(CancellationToken.None).GetAwaiter().GetResult();
+
+                Assert.IsFalse(target0.Security.HasPermission(u1, PermissionType.See));
+                Assert.IsTrue(link.Security.HasPermission(u1, PermissionType.Save));
+
+                // ACTION
+                Node? loadedLinkForUser;
+                Node? loadedLinkForSystemUser;
+                using (new CurrentUserBlock(u1))
+                {
+                    loadedLinkForUser = link.Link;
+                    using(new SystemAccount())
+                        loadedLinkForSystemUser = link.Link;
+                }
+
+                // ASSERT
+                Assert.IsNull(loadedLinkForUser);
+                Assert.IsNotNull(loadedLinkForSystemUser);
+            });
+        }
 
         [TestMethod, TestCategory("NODE, REFERENCE")] //Fix2202 Deleted reference target can cause nullrefex in the nodelist
         public async STT.Task Node_Reference_GetReference_Single_Deleted()
