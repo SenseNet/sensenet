@@ -9,6 +9,7 @@ using System.Xml;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.Diagnostics;
 using SenseNet.Search;
+using BinaryData = SenseNet.ContentRepository.Storage.BinaryData;
 
 namespace SenseNet.ContentRepository.Search.Indexing
 {

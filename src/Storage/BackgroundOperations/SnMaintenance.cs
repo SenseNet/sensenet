@@ -48,7 +48,7 @@ _logger?.LogDebug("STARTUP: SnMaintenance starting");
             _logger?.LogDebug("STARTUP: SnMaintenance started");
             while (!stoppingToken.IsCancellationRequested)
             {
-                if(_senseNetStatus.IsRunning)
+                if(_senseNetStatus.IsRunning && !_senseNetStatus.IsInstallerRunning)
                 {
                     _healthStatus = SenseNetStatus.Running;
                     // start tasks, but do not wait for them to finish

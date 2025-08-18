@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Data.SqlClient;
+using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
@@ -89,14 +89,14 @@ namespace SenseNet.IntegrationTests.MsSql.CustomTests
             var connectionString = installer.GetConnectionString(parameters);
 
             // ASSERT
-            Assert.AreEqual($"Data Source={LocalServer};Initial Catalog=DB1;Integrated Security=True",
+            Assert.AreEqual($"Data Source={LocalServer};Initial Catalog=DB1;Integrated Security=True;Trust Server Certificate=True",
                 connectionString);
         }
 
-        [DataRow(null, null, null, "Data Source=(local);Initial Catalog=DB1;Integrated Security=True")]
-        [DataRow(".\\Instance", null, null, "Data Source=.\\Instance;Initial Catalog=DB1;Integrated Security=True")]
-        [DataRow(null, "U1", "P1", "Data Source=(local);Initial Catalog=DB1;User ID=U1;Password=P1")]
-        [DataRow(null, null, "P1", "Data Source=(local);Initial Catalog=DB1;Integrated Security=True")]
+        [DataRow(null, null, null, "Data Source=(local);Initial Catalog=DB1;Integrated Security=True;Trust Server Certificate=True")]
+        [DataRow(".\\Instance", null, null, "Data Source=.\\Instance;Initial Catalog=DB1;Integrated Security=True;Trust Server Certificate=True")]
+        [DataRow(null, "U1", "P1", "Data Source=(local);Initial Catalog=DB1;User ID=U1;Password=P1;Trust Server Certificate=True")]
+        [DataRow(null, null, "P1", "Data Source=(local);Initial Catalog=DB1;Integrated Security=True;Trust Server Certificate=True")]
         [DataTestMethod]
         public void MsSqlDbInstaller_ConnectionStrings(string server, string user, string password, string result)
         {
@@ -577,7 +577,7 @@ namespace SenseNet.IntegrationTests.MsSql.CustomTests
         /* ===================================================================================== */
 
         private static readonly string SystemConnectionString =
-            $"Data Source={LocalServer};Initial Catalog=master;Integrated Security=True";
+            $"Data Source={LocalServer};Initial Catalog=master;Integrated Security=SSPI;Persist Security Info=False;TrustServerCertificate=True";
 
         private string GetConnectionStringFor(string databaseName)
         {

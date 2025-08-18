@@ -18,7 +18,6 @@ using SenseNet.Diagnostics;
 using SenseNet.Extensions.DependencyInjection;
 using SenseNet.Search.Lucene29;
 using SenseNet.Services.Core.Authentication;
-using SnWebApplication.Api.Sql.TokenAuth.TokenValidator;
 
 namespace SnWebApplication.Api.Sql.TokenAuth.Preview
 {
@@ -55,8 +54,8 @@ namespace SnWebApplication.Api.Sql.TokenAuth.Preview
                             ValidateIssuerSigningKey = false
                         };
 
-                        options.SecurityTokenValidators.Clear();
-                        options.SecurityTokenValidators.Add(new SenseNetJwtSecurityTokenHandler(
+                        options.TokenHandlers.Clear();
+                        options.TokenHandlers.Add(new SenseNetJwtSecurityTokenHandler(
                             $"{authOptions.Authority}/api/auth/validate-token"));
                     }
                     else

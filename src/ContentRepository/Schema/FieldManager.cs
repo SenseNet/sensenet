@@ -1,13 +1,10 @@
 using System;
 using System.Collections.Generic;
-using System.Text;
-using SenseNet.ContentRepository.Schema;
-using System.Reflection;
-using System.Diagnostics;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Fields;
 using System.Linq;
 using SenseNet.Tools;
+using BinaryData = SenseNet.ContentRepository.Storage.BinaryData;
 
 namespace SenseNet.ContentRepository.Schema
 {

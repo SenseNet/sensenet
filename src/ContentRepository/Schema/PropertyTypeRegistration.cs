@@ -1,8 +1,6 @@
 using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Reflection;
-using SenseNet.ContentRepository.Storage;
+using BinaryData = SenseNet.ContentRepository.Storage.BinaryData;
 
 namespace SenseNet.ContentRepository.Schema
 {

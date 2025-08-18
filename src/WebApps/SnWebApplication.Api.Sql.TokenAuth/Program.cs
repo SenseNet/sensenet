@@ -18,10 +18,10 @@ namespace SnWebApplication.Api.Sql.TokenAuth
                 {
                     webBuilder.UseStartup<Startup>()
                         .ConfigureLogging(loggingConfiguration =>
-                            loggingConfiguration.ClearProviders())
-                        .UseSerilog((hostingContext, loggerConfiguration) =>
-                            loggerConfiguration.ReadFrom
-                                .Configuration(hostingContext.Configuration));
-                });
+                            loggingConfiguration.ClearProviders());
+                })
+                .UseSerilog((hostingContext, loggerConfiguration) =>
+                    loggerConfiguration.ReadFrom
+                        .Configuration(hostingContext.Configuration));
     }
 }

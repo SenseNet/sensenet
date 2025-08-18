@@ -9,6 +9,7 @@ using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.Tests.Core.Implementations;
 using IO = System.IO;
+using BinaryData = SenseNet.ContentRepository.Storage.BinaryData;
 using File = SenseNet.ContentRepository.File;
 
 namespace SenseNet.Tests.Core.Tests

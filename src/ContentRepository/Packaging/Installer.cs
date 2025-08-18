@@ -49,6 +49,13 @@ namespace SenseNet.Packaging
         /// <param name="packageName">Name of the package, including folder prefixes inside the assembly.</param>
         public Installer InstallSenseNet(Assembly assembly, string packageName)
         {
+            var repoStatus = Providers.Instance.RepositoryStatus;
+
+            // signal to the system that the installation is running
+            Logger.LogMessage("Installation start.");
+            if (repoStatus != null)
+                repoStatus.IsInstallerRunning = true;
+
             // switch off indexing so that the first repo start does not require a working index
             var origIndexingValue = RepositoryBuilder.StartIndexingEngine;
             RepositoryBuilder.StartIndexingEngine(false);
@@ -107,6 +114,13 @@ namespace SenseNet.Packaging
             // Reset the original indexing setting so that subsequent packages use the 
             // same value as intended by the caller. 
             RepositoryBuilder.StartIndexingEngine(origIndexingValue);
+
+            // signal to the system that the installation is finished (reload the status)
+            repoStatus = Providers.Instance.RepositoryStatus;
+            if (repoStatus != null)
+                repoStatus.IsInstallerRunning = false;
+
+            Logger.LogMessage("Installation end.");
 
             return this;
         }

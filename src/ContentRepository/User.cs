@@ -24,9 +24,8 @@ using SenseNet.Search.Querying;
 using SenseNet.Security;
 using SenseNet.Tools;
 using Retrier = SenseNet.ContentRepository.Storage.Retrier;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using SenseNet.ContentRepository.Security.MultiFactor;
+using BinaryData = SenseNet.ContentRepository.Storage.BinaryData;
 
 namespace SenseNet.ContentRepository
 {

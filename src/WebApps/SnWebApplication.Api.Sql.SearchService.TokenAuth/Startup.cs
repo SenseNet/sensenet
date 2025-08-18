@@ -18,7 +18,6 @@ using SenseNet.Search.Lucene29.Centralized;
 using SenseNet.Search.Lucene29.Centralized.GrpcClient;
 using SenseNet.Security.Messaging.RabbitMQ;
 using SenseNet.Services.Core.Authentication;
-using SnWebApplication.Api.Sql.TokenAuth.TokenValidator;
 
 namespace SnWebApplication.Api.Sql.SearchService.TokenAuth
 {
@@ -55,8 +54,8 @@ namespace SnWebApplication.Api.Sql.SearchService.TokenAuth
                             ValidateIssuerSigningKey = false
                         };
 
-                        options.SecurityTokenValidators.Clear();
-                        options.SecurityTokenValidators.Add(new SenseNetJwtSecurityTokenHandler(
+                        options.TokenHandlers.Clear();
+                        options.TokenHandlers.Add(new SenseNetJwtSecurityTokenHandler(
                             $"{authOptions.Authority}/api/auth/validate-token"));
                     }
                     else

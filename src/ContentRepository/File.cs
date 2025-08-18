@@ -4,9 +4,9 @@ using System.Text.RegularExpressions;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Versioning;
-using SenseNet.BackgroundOperations;
 using SenseNet.TaskManagement.Core;
 using SenseNet.Tools;
+using BinaryData = SenseNet.ContentRepository.Storage.BinaryData;
 
 namespace SenseNet.ContentRepository
 {

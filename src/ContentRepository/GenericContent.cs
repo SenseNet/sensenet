@@ -12,7 +12,6 @@ using System.Text;
 using SenseNet.Search;
 using SenseNet.Search.Indexing;
 using SenseNet.ContentRepository.Linq;
-using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.Preview;
 using SenseNet.ContentRepository.Storage.Events;
@@ -24,7 +23,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Sharing;
-using System.Net.Http;
+using BinaryData = SenseNet.ContentRepository.Storage.BinaryData;
 
 // ReSharper disable ArrangeThisQualifier
 // ReSharper disable VirtualMemberCallInConstructor

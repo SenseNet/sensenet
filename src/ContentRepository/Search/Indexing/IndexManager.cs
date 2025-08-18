@@ -263,10 +263,19 @@ namespace SenseNet.ContentRepository.Search.Indexing
         {
             var delTerms = versioning.Delete.Select(i => new SnTerm(IndexFieldName.VersionId, i)).ToArray();
             var updates = GetUpdates(versioning);
+            var additions = Array.Empty<IndexDocument>();
             if (document != null)
+            {
                 SetDocumentFlags(document, versioning);
+                additions = new[] { document };
+            }
 
-            await IndexingEngine.WriteIndexAsync(delTerms, updates, new[] { document }, cancellationToken).ConfigureAwait(false);
+            // Write index if needed
+            if (0 < delTerms.Length + updates.Count + additions.Length)
+                await IndexingEngine.WriteIndexAsync(delTerms, updates, additions, cancellationToken)
+                    .ConfigureAwait(false);
+            else
+                SnTrace.Index.Write($"IndexManager: IndexingEngine.WriteIndex is skipped: there is no any action.");
 
             return true;
         }
@@ -286,7 +295,11 @@ namespace SenseNet.ContentRepository.Search.Indexing
                 });
             }
 
-            await IndexingEngine.WriteIndexAsync(delTerms, updates, null, cancellationToken).ConfigureAwait(false);
+            // Write index if needed
+            if (0 < delTerms.Length + updates.Count)
+                await IndexingEngine.WriteIndexAsync(delTerms, updates, null, cancellationToken).ConfigureAwait(false);
+            else
+                SnTrace.Index.Write($"IndexManager: IndexingEngine.WriteIndex is skipped: there is no any action.");
 
             return true;
         }
@@ -302,7 +315,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
             return true;
         }
 
-        private IEnumerable<DocumentUpdate> GetUpdates(VersioningInfo versioning)
+        private List<DocumentUpdate> GetUpdates(VersioningInfo versioning)
         {
             var result = new List<DocumentUpdate>(versioning.Reindex.Length);
 

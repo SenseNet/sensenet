@@ -5,6 +5,7 @@ using SenseNet.ContentRepository.Storage;
 using  SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage.Events;
 using SenseNet.ContentRepository.Storage.Security;
+using BinaryData = SenseNet.ContentRepository.Storage.BinaryData;
 // ReSharper disable PublicConstructorInAbstractClass
 
 namespace SenseNet.ContentRepository

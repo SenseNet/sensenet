@@ -14,16 +14,13 @@ using SenseNet.Diagnostics;
 using Microsoft.Extensions.Options;
 using SenseNet.Configuration;
 using SenseNet.Search;
-using SenseNet.Storage.Diagnostics;
 using System.Diagnostics;
 using System.Net.Http;
 using SenseNet.Services.Core.Authentication;
-using AngleSharp.Io;
-using System.Drawing;
 using System.Net;
-using Org.BouncyCastle.Tls;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage.Security;
+using SenseNet.Search.Indexing;
 using SenseNet.Storage.Security;
 using Task = System.Threading.Tasks.Task;
 
@@ -216,7 +213,7 @@ internal class HealthHandler : IHealthHandler
     private Task<HealthResult> GetSearchHealthAsync(
         ISearchEngine searchEngine, CancellationToken cancel)
     {
-        IDictionary<string, string> data = null;
+        IndexingActivityStatus data = null;
         string error = null;
 
         var result = new HealthResult();
@@ -224,7 +221,7 @@ internal class HealthHandler : IHealthHandler
         try
         {
             var timer = Stopwatch.StartNew();
-            data = searchEngine.IndexingEngine.GetIndexDocumentByVersionId(1);
+            data = searchEngine.IndexingEngine.ReadActivityStatusFromIndexAsync(cancel).GetAwaiter().GetResult();
             timer.Stop();
             result.ResponseTime = timer.Elapsed;
         }
@@ -237,19 +234,18 @@ internal class HealthHandler : IHealthHandler
         {
             result.Color = HealthColor.Red;
             result.Reason = $"ERROR: {error}";
-            result.Method = "SearchManager (InProc) tries to get index document by VersionId 1.";
+            result.Method = "SearchManager (InProc) tries to get indexing activity status.";
         }
         else if (data == null)
         {
             result.Color = HealthColor.Yellow;
             result.Reason = "No data result.";
-            result.Method = "SearchManager (InProc) tries to get index document by VersionId 1.";
+            result.Method = "SearchManager (InProc) tries to get indexing activity status.";
         }
         else
         {
             result.Color = HealthColor.Green;
-            result.Method =
-                "Measure the time of getting the index document by VersionId 1 in secs from SearchManager (InProc).";
+            result.Method = "Measure the time of getting the indexing activity status (InProc): " + data;
         }
 
         return System.Threading.Tasks.Task.FromResult(result);

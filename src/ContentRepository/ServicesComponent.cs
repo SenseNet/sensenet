@@ -29,7 +29,7 @@ namespace SenseNet.ContentRepository
         // This value has to change if there were database, content
         // or configuration changes since the last release that
         // should be enforced using an upgrade patch.
-        public override Version SupportedVersion => new Version(7, 7, 0);
+        public override Version SupportedVersion => new Version(7, 8, 0);
 
         public override void AddPatches(PatchBuilder builder)
         {
@@ -1577,6 +1577,12 @@ namespace SenseNet.ContentRepository
 
             builder.Patch("7.7.32", "7.7.41", "2024-05-27", "Upgrades sensenet content repository.")
                 .Action(Patch_7_7_41);
+
+            builder.Patch("7.7.41", "7.8.0", "2025-02-26", "Upgrades sensenet content repository.")
+                .Action(Patch_7_8_0);
+
+            builder.Patch("7.8.0", "7.8.1", "2025-03-07", "Upgrades sensenet content repository.")
+                .Action(Patch_7_8_1);
         }
 
         private void Patch_7_7_29(PatchExecutionContext context)
@@ -2207,6 +2213,97 @@ WHERE PropertyTypes.Name in ({joinedRichTextFieldNames})
                     });
                 }).GetAwaiter().GetResult();
             }
+        }
+
+        private void Patch_7_8_0(PatchExecutionContext context)
+        {
+            var logger = context.GetService<ILogger<ServicesComponent>>();
+
+            #region String resource changes
+
+            logger.LogTrace("Adding string resources...");
+
+            var rb = new ResourceBuilder();
+
+            rb.Content("CtdResourcesNOP.xml")
+                .Class("Ctd-Operation")
+                .Culture("en")
+                .AddResource("DisplayName", "Operation")
+                .AddResource("Description", "Describes the details of an operation associated with a location and content type.")
+                .AddResource("UIDescriptor-DisplayName", "UI Descriptor")
+                .AddResource("UIDescriptor-Description", "Definition of the user interface required for the operation.")
+                .Culture("hu")
+                .AddResource("DisplayName", "Művelet")
+                .AddResource("Description", "Leírja egy helyhez és tartalomtípushoz köthető művelet részleteit.")
+                .AddResource("UIDescriptor-DisplayName", "UI Leíró")
+                .AddResource("UIDescriptor-Description", "A művelethez szükséges felhasználói felület definíciója.");
+
+            rb.Apply();
+
+            #endregion
+
+            #region CTD changes
+
+            const string operationCtd = @"<ContentType name=""Operation"" parentType=""ClientApplication"" handler=""SenseNet.OperationFramework.Operation"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
+  <DisplayName>$Ctd-Operation,DisplayName</DisplayName>
+  <Description>$Ctd-Operation,Description</Description>
+  <Icon>Operation</Icon>
+  <Fields>
+    <Field name=""UIDescriptor"" type=""LongText"">
+      <DisplayName>$Ctd-Operation,UIDescriptor-DisplayName</DisplayName>
+      <Description>$Ctd-Operation,UIDescriptor-Description</Description>
+    </Field>
+    <Field name=""ClassName"" type=""ShortText"">
+      <DisplayName>$Ctd-Operation,ClassName-DisplayName</DisplayName>
+      <Description>$Ctd-Operation,ClassName-Description</Description>
+    </Field>
+    <Field name=""MethodName"" type=""ShortText"">
+      <DisplayName>$Ctd-Operation,MethodName-DisplayName</DisplayName>
+      <Description>$Ctd-Operation,MethodName-Description</Description>
+    </Field>
+    <Field name=""ActionTypeName"" type=""ShortText"">
+      <DisplayName>$Ctd-Operation,ActionTypeName-DisplayName</DisplayName>
+      <Description>$Ctd-Operation,ActionTypeName-Description</Description>
+    </Field>
+  </Fields>
+</ContentType>";
+
+            logger.LogTrace("Installing Operation content type...");
+            ContentTypeInstaller.InstallContentType(operationCtd);
+
+            #endregion
+        }
+
+        private void Patch_7_8_1(PatchExecutionContext context)
+        {
+            var logger = context.GetService<ILogger<ServicesComponent>>();
+
+            #region String resource changes
+
+            logger.LogTrace("Adding string resources...");
+
+            var rb = new ResourceBuilder();
+
+            rb.Content("CtdResourcesNOP.xml")
+                .Class("Ctd-Operation")
+                .Culture("en")
+                .AddResource("ClassName-DisplayName", "Class/Controller name")
+                .AddResource("ClassName-Description", "Fully qualified class name or simple ODataController name that contains the executable method.")
+                .AddResource("MethodName-DisplayName", "Method name")
+                .AddResource("MethodName-Description", "Name of the method to be executed, in case of ODataController: name of the corresponding operation name.")
+                .AddResource("ActionTypeName-DisplayName", "Custom action type name")
+                .AddResource("ActionTypeName-Description", "Type name of the custom action if there is")
+                .Culture("hu")
+                .AddResource("ClassName-DisplayName", "Osztály/Controller neve")
+                .AddResource("ClassName-Description", "Teljes osztálynév vagy egyszerű ODataController név, amely tartalmazza a végrehajtandó metódust.")
+                .AddResource("MethodName-DisplayName", "Metódusnév")
+                .AddResource("MethodName-Description", "A végrehajtandó metódus neve vagy ODataController esetén a metódusnak megfelelő operáció neve.")
+                .AddResource("ActionTypeName-DisplayName", "Egyéni művelet típusneve")
+                .AddResource("ActionTypeName-Description", "Egyéni művelet típusneve, ha van ilyen");
+
+            rb.Apply();
+
+            #endregion
         }
 
         #region Patch template

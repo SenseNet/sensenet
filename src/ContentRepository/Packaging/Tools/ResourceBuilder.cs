@@ -7,6 +7,7 @@ using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.i18n;
 using SenseNet.ContentRepository.Storage;
+using BinaryData = SenseNet.ContentRepository.Storage.BinaryData;
 
 // ReSharper disable once CheckNamespace
 namespace SenseNet.Packaging.Tools

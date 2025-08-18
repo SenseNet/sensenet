@@ -8,6 +8,7 @@ public interface ISenseNetStatus
 {
     string Current { get; }
     bool IsRunning { get; set; }
+    bool IsInstallerRunning { get; set; }
     void SetStatus(string status);
     string[] GetLog();
 }
@@ -24,6 +25,7 @@ public class SenseNetStatus : ISenseNetStatus
 
     public string Current { get; private set; }
     public bool IsRunning { get; set; }
+    public bool IsInstallerRunning { get; set; }
 
     public SenseNetStatus()
     {

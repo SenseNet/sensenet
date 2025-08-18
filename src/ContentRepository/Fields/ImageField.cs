@@ -5,6 +5,7 @@ using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage;
 using System.Xml;
 using Newtonsoft.Json;
+using BinaryData = SenseNet.ContentRepository.Storage.BinaryData;
 
 namespace SenseNet.ContentRepository.Fields
 {

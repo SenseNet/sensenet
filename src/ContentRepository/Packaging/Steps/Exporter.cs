@@ -10,6 +10,7 @@ using System.Xml;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.Search;
 using SenseNet.Search.Querying;
+using BinaryData = SenseNet.ContentRepository.Storage.BinaryData;
 
 namespace SenseNet.Packaging.Steps
 {

@@ -7,9 +7,8 @@ using System;
 using System.Linq;
 using System.Threading;
 using SenseNet.Configuration;
-using SenseNet.Security;
-using System.Threading.Channels;
 using System.Threading.Tasks;
+using BinaryData = SenseNet.ContentRepository.Storage.BinaryData;
 
 namespace SenseNet.ContentRepository.Tests
 {

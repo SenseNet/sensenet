@@ -9,6 +9,7 @@ using SenseNet.ContentRepository.Security.ADSync;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.ContentRepository.Storage.Security;
+using BinaryData = SenseNet.ContentRepository.Storage.BinaryData;
 
 // ReSharper disable once CheckNamespace
 namespace SenseNet.Portal.Virtualization

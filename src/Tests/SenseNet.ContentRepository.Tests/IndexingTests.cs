@@ -6,14 +6,11 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging.Abstractions;
 using STT=System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.i18n;
 using SenseNet.ContentRepository.Schema;
-using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
@@ -22,12 +19,9 @@ using SenseNet.Diagnostics;
 using SenseNet.Extensions.DependencyInjection;
 using SenseNet.Search;
 using SenseNet.Search.Indexing;
-using SenseNet.Security;
-using SenseNet.Security.Data;
-using SenseNet.Security.Messaging;
 using SenseNet.Testing;
 using SenseNet.Tests.Core;
-using SenseNet.Tests.Core.Implementations;
+using BinaryData = SenseNet.ContentRepository.Storage.BinaryData;
 // ReSharper disable UnusedVariable
 // ReSharper disable UnusedMember.Local
 

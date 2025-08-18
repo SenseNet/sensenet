@@ -1,5 +1,4 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using NuGet.Frameworks;
 using SenseNet.ContentRepository.Linq;
 using SenseNet.Search.Querying.Parser.Predicates;
 using SenseNet.Tests.Core;

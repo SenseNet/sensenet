@@ -27,6 +27,7 @@ using SenseNet.Extensions.DependencyInjection;
 using SenseNet.TaskManagement.Core;
 using SenseNet.Tools;
 using SkiaSharp;
+using BinaryData = SenseNet.ContentRepository.Storage.BinaryData;
 using Retrier = SenseNet.ContentRepository.Storage.Retrier;
 using Task = System.Threading.Tasks.Task;
 // ReSharper disable InconsistentNaming

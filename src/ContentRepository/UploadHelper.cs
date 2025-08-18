@@ -4,6 +4,7 @@ using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage;
 using System.IO;
 using System.Threading;
+using BinaryData = SenseNet.ContentRepository.Storage.BinaryData;
 
 namespace SenseNet.Portal.Handlers
 {

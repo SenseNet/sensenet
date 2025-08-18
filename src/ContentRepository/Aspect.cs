@@ -1,11 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage;
-using SenseNet.ContentRepository.Storage.Schema;
 using System.Xml.XPath;
 using System.IO;
 using System.Xml;
@@ -13,16 +10,13 @@ using SenseNet.ContentRepository.Storage.Events;
 using System.Reflection;
 using System.Threading;
 using SenseNet.Configuration;
-using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Search.Indexing;
-using SenseNet.ContentRepository.Search.Querying;
 using SenseNet.Diagnostics;
-using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.Search;
-using SenseNet.Search.Indexing;
 using SenseNet.ContentRepository.Storage.Search;
 using SenseNet.ContentRepository.Storage.Caching.Dependency;
 using SenseNet.ContentRepository.Storage.Security;
+using BinaryData = SenseNet.ContentRepository.Storage.BinaryData;
 
 namespace SenseNet.ContentRepository
 {

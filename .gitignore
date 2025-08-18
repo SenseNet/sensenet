@@ -260,5 +260,6 @@ paket-files/
 /src/Services.Core.Install/*.zip
 **/App_Data/LuceneIndex
 **/App_Data/LocalIndex
+**/App_Data/IndexBackup
 **/App_Data/Logs
 /src/WebApps/**/install-services-core

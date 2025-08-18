@@ -10,19 +10,17 @@ using System.Threading;
 using System.Xml.XPath;
 using SenseNet.Communication.Messaging;
 using SenseNet.Configuration;
-using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.ContentRepository.Storage.Search;
-using SenseNet.Diagnostics;
 using SnCS = SenseNet.ContentRepository.Storage;
 using SenseNet.Search.Indexing;
 using SenseNet.Tools;
 using STT=System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using EventId = SenseNet.Diagnostics.EventId;
+using BinaryData = SenseNet.ContentRepository.Storage.BinaryData;
 
 namespace SenseNet.ContentRepository.Schema
 {

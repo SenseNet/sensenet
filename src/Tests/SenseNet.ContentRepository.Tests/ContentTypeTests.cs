@@ -6,15 +6,11 @@ using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Schema;
-using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.InMemory;
-using SenseNet.ContentRepository.Storage;
-using SenseNet.ContentRepository.Storage.Data;
-using SenseNet.OData.Metadata;
 using SenseNet.Search.Indexing;
 using SenseNet.Testing;
 using SenseNet.Tests.Core;
-using SenseNet.Tests.Core.Implementations;
+using BinaryData = SenseNet.ContentRepository.Storage.BinaryData;
 
 namespace SenseNet.ContentRepository.Tests
 {

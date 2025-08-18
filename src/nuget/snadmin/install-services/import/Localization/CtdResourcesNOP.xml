@@ -28,6 +28,74 @@
       </Language>
     </Languages>
   </ResourceClass>
+  <ResourceClass name="Ctd-Operation">
+    <Languages>
+      <Language cultureName="en">
+        <data name="DisplayName" xml:space="preserve">
+          <value>Operation</value>
+        </data>
+        <data name="Description" xml:space="preserve">
+          <value>Describes the details of an operation associated with a location and content type.</value>
+        </data>
+		<data name="UIDescriptor-DisplayName" xml:space="preserve">
+          <value>UI Descriptor</value>
+        </data>
+		<data name="UIDescriptor-Description" xml:space="preserve">
+          <value>Definition of the user interface required for the operation.</value>
+        </data>
+		<data name="ClassName-DisplayName" xml:space="preserve">
+          <value>Class/Controller name</value>
+        </data>
+	    <data name="ClassName-Description" xml:space="preserve">
+          <value>Fully qualified class name or simple ODataController name that contains the executable method.</value>
+        </data>
+		<data name="MethodName-DisplayName" xml:space="preserve">
+          <value>Method name</value>
+        </data>
+	    <data name="MethodName-Description" xml:space="preserve">
+          <value>Name of the method to be executed, in case of ODataController: name of the corresponding operation name.</value>
+        </data>
+		<data name="ActionTypeName-DisplayName" xml:space="preserve">
+          <value>Custom action type name</value>
+        </data>
+	    <data name="ActionTypeName-Description" xml:space="preserve">
+          <value>Type name of the custom action if there is</value>
+        </data>
+      </Language>
+      <Language cultureName="hu">
+        <data name="DisplayName" xml:space="preserve">
+          <value>Művelet</value>
+        </data>
+        <data name="Description" xml:space="preserve">
+          <value>Leírja egy helyhez és tartalomtípushoz köthető művelet részleteit.</value>
+        </data>
+        <data name="UIDescriptor-DisplayName" xml:space="preserve">
+          <value>UI Leíró</value>
+        </data>
+        <data name="UIDescriptor-Description" xml:space="preserve">
+          <value>A művelethez szükséges felhasználói felület definíciója.</value>
+        </data>
+		<data name="ClassName-DisplayName" xml:space="preserve">
+          <value>Osztály/Controller neve</value>
+        </data>
+	    <data name="ClassName-Description" xml:space="preserve">
+          <value>Teljes osztálynév vagy egyszerű ODataController név, amely tartalmazza a végrehajtandó metódust.</value>
+        </data>
+		<data name="MethodName-DisplayName" xml:space="preserve">
+          <value>Metódusnév</value>
+        </data>
+	    <data name="MethodName-Description" xml:space="preserve">
+          <value>A végrehajtandó metódus neve vagy ODataController esetén a metódusnak megfelelő operáció neve.</value>
+        </data>
+		<data name="ActionTypeName-DisplayName" xml:space="preserve">
+          <value>Egyéni művelet típusneve</value>
+        </data>
+	    <data name="ActionTypeName-Description" xml:space="preserve">
+          <value>Egyéni művelet típusneve, ha van ilyen</value>
+        </data>
+      </Language>
+    </Languages>
+  </ResourceClass>
   <ResourceClass name="Ctd-OrganizationalUnit">
     <Languages>
       <Language cultureName="en">

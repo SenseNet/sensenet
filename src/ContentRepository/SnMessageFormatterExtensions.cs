@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using Newtonsoft.Json;
 using SenseNet.ApplicationModel;
 using SenseNet.Communication.Messaging;
 using SenseNet.ContentRepository;
@@ -8,12 +9,19 @@ using SenseNet.ContentRepository.Search.Indexing.Activities;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Caching.Dependency;
 using SenseNet.ContentRepository.Storage.Caching.DistributedActions;
+using SenseNet.Search.Indexing;
 
 // ReSharper disable once CheckNamespace
 namespace SenseNet.Extensions.DependencyInjection
 {
     public static class SnMessageFormatterExtensions
     {
+        public static IServiceCollection AddDefaultJsonConverters(this IServiceCollection services)
+        {
+            return services
+                    .AddSingleton<JsonConverter, IndexFieldJsonConverter>()
+                ;
+        }
         public static IServiceCollection AddDefaultClusterMessageTypes(this IServiceCollection services)
         {
             return services

@@ -19,10 +19,9 @@ using System.Diagnostics;
 using System.Threading;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Fields;
-using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Search.Querying;
 using SenseNet.Search;
-using SenseNet.Tools;
+using BinaryData = SenseNet.ContentRepository.Storage.BinaryData;
 
 namespace SenseNet.ContentRepository
 {
