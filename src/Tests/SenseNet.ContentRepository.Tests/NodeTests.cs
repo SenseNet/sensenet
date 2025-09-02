@@ -14,6 +14,7 @@ namespace SenseNet.ContentRepository.Tests
     public class NodeTests : TestBase
     {
         private const string ManagerPropertyName = "Manager";
+        readonly CancellationToken _cancel = new CancellationTokenSource().Token;
 
         [TestMethod, TestCategory("NODE, REFERENCE")]
         public void Node_Reference_SetReference()
@@ -192,8 +193,151 @@ namespace SenseNet.ContentRepository.Tests
                 Assert.AreEqual(reloaded.Link.Id, target1.Id);
             });
         }
+        [TestMethod, TestCategory("NODE, REFERENCE")] //Fix2202 SystemUser can see always even if the original user not.
+        public void Node_Reference_SetReference_Simple_Invisible_ButSystemUser()
+        {
+            Test(() =>
+            {
+                var root = CreateTestRoot();
+                var u1 = CreateUser("U1");
+                var target0 = new Folder(root) { Name = "folder1" };
+                target0.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
+                var link = new ContentLink(root) { Name = "Link1", Link = target0 };
+                link.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
+                Providers.Instance.SecurityHandler.CreateAclEditor()
+                    .Allow(link.Id, u1.Id, false, PermissionType.Save)
+                    .ApplyAsync(CancellationToken.None).GetAwaiter().GetResult();
 
+                Assert.IsFalse(target0.Security.HasPermission(u1, PermissionType.See));
+                Assert.IsTrue(link.Security.HasPermission(u1, PermissionType.Save));
+
+                // ACTION
+                Node? loadedLinkForUser;
+                Node? loadedLinkForSystemUser;
+                using (new CurrentUserBlock(u1))
+                {
+                    loadedLinkForUser = link.Link;
+                    using(new SystemAccount())
+                        loadedLinkForSystemUser = link.Link;
+                }
+
+                // ASSERT
+                Assert.IsNull(loadedLinkForUser);
+                Assert.IsNotNull(loadedLinkForSystemUser);
+            });
+        }
+
+        [TestMethod, TestCategory("NODE, REFERENCE")] //Fix2202 Deleted reference target can cause nullrefex in the nodelist
+        public async STT.Task Node_Reference_GetReference_Single_Deleted()
+        {
+            await Test(async () =>
+            {
+                var u1 = CreateUser("U1");
+                var u2 = CreateUser("U2");
+
+                u1.SetReference(ManagerPropertyName, u2);
+                await u1.SaveAsync(_cancel);
+
+                u1 = await Node.LoadAsync<User>(u1.Id, _cancel);
+
+                Assert.AreEqual(u2.Id, u1.GetReference<User>(ManagerPropertyName)?.Id ?? 0);
+
+                // ACT
+                await Node.ForceDeleteAsync(u2.Id, _cancel);
+
+                // ASSERT
+                var loaded = await Node.LoadAsync<User>(u1.Id, _cancel);
+                var manager = loaded.GetReference<User>(ManagerPropertyName);
+                Assert.IsNull(manager);
+
+            }).ConfigureAwait(false);
+        }
+        [TestMethod, TestCategory("NODE, REFERENCE")] //Fix2202 Deleted reference target can cause nullrefex in the nodelist
+        public async STT.Task Node_Reference_GetReference_Single_FromMultiple_Deleted()
+        {
+            await Test(async () =>
+            {
+                //var root = CreateTestRoot();
+                var u1 = CreateUser("U1");
+                var u2 = CreateUser("U2");
+                var u3 = CreateUser("U3");
+                var u4 = CreateUser("U4");
+                var u5 = CreateUser("U5");
+                var group = new Group(await Node.LoadNodeAsync("/Root/IMS/Public", _cancel)) { Name = "G1" };
+                group.AddReferences("Members", new[] { u1, u2, u3, u4, u5 });
+                await group.SaveAsync(_cancel);
+
+                group = await Node.LoadAsync<Group>(group.Id, _cancel);
+
+                var memberIds = group.GetReferences("Members").Select(x => x.Id).ToArray();
+                Assert.AreEqual($"{u1.Id}, {u2.Id}, {u3.Id}, {u4.Id}, {u5.Id}", string.Join(", ", memberIds));
+
+                // ACT
+                await Node.ForceDeleteAsync(u1.Id, _cancel);
+                await Node.ForceDeleteAsync(u2.Id, _cancel);
+                await Node.ForceDeleteAsync(u3.Id, _cancel);
+                var singleMember = group.GetReference<User>("Members");
+
+                // ASSERT
+                Assert.AreEqual(u4.Id, singleMember.Id);
+
+            }).ConfigureAwait(false);
+        }
+
+        [TestMethod, TestCategory("NODE, REFERENCE")] //Fix2202 Deleted reference target can cause nullrefex in the nodelist
+        public async STT.Task Node_Reference_GetReference_Multiple_Deleted()
+        {
+            await Test(async () =>
+            {
+                //var root = CreateTestRoot();
+                var u1 = CreateUser("U1");
+                var u2 = CreateUser("U2");
+                var u3 = CreateUser("U3");
+                var group = new Group(Node.LoadNode("/Root/IMS/Public")) { Name = "G1" };
+                group.AddReferences("Members", new[] { u1, u2, u3 });
+                await group.SaveAsync(_cancel);
+
+                group = await Node.LoadAsync<Group>(group.Id, _cancel);
+
+                var memberIds = group.GetReferences("Members").Select(x => x.Id).ToArray();
+                Assert.AreEqual($"{u1.Id}, {u2.Id}, {u3.Id}", string.Join(", ", memberIds));
+
+                // ACT
+                await Node.ForceDeleteAsync(u2.Id, _cancel);
+
+                // ASSERT
+                var loaded = await Node.LoadAsync<Group>(group.Id, _cancel);
+                memberIds = loaded.GetReferences("Members").Select(x => x.Id).ToArray();
+                Assert.AreEqual($"{u1.Id}, {u3.Id}", string.Join(", ", memberIds));
+
+            }).ConfigureAwait(false);
+        }
+        [TestMethod, TestCategory("NODE, REFERENCE")] //Fix2202 Deleted reference target can cause nullrefex in the nodelist
+        public async STT.Task Node_Reference_GetReference_Multiple_Deleted_WithoutReload()
+        {
+            await Test(async () =>
+            {
+                //var root = CreateTestRoot();
+                var u1 = CreateUser("U1");
+                var u2 = CreateUser("U2");
+                var u3 = CreateUser("U3");
+                var group = new Group(Node.LoadNode("/Root/IMS/Public")) { Name = "G1" };
+                group.AddReferences("Members", new[] { u1, u2, u3 });
+                await group.SaveAsync(_cancel);
+
+                var memberIds = group.GetReferences("Members").Select(x => x.Id).ToArray();
+                Assert.AreEqual($"{u1.Id}, {u2.Id}, {u3.Id}", string.Join(", ", memberIds));
+
+                // ACT
+                await Node.ForceDeleteAsync(u2.Id, _cancel);
+
+                // ASSERT
+                memberIds = group.GetReferences("Members").Select(x => x.Id).ToArray();
+                Assert.AreEqual($"{u1.Id}, {u3.Id}", string.Join(", ", memberIds));
+
+            }).ConfigureAwait(false);
+        }
 
         [TestMethod, TestCategory("NODE, LOAD")]
         public async STT.Task Node_Load()

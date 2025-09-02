@@ -1,11 +1,13 @@
-using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Linq;
+using SenseNet.Client;
+using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.ContentRepository.Storage.Security;
+using SenseNet.Storage.DataModel.Usage;
+using System;
+using System.Collections.Generic;
 using System.Diagnostics;
-using SenseNet.Configuration;
+using System.Linq;
+using System.Text;
 
 namespace SenseNet.ContentRepository.Storage
 {
@@ -560,12 +562,19 @@ namespace SenseNet.ContentRepository.Storage
         {
             if (RawData.Count < 1)
                 return null;
-            Node singleNode;
-            using(new SystemAccount())
-                singleNode = Node.Load<T>(RawData[0]);
-            if(!singleNode.Security.HasPermission(AccessProvider.Current.GetCurrentUser(), PermissionType.See))
-                return null;
-            return singleNode as Q;
+
+            var singleNode = RawData
+                .Select(nodeId =>
+                {
+                    using var _ = new SystemAccount();
+                    return Node.Load<T>(nodeId);
+                })
+                .Where(node => node != null)
+                .OfType<Q>()
+                .FirstOrDefault(node =>
+                    node.Security.HasPermission(PermissionType.See));
+
+            return singleNode;
         }
         internal void SetSingleValue<Q>(Q value) where Q : Node
         {
@@ -580,7 +589,7 @@ namespace SenseNet.ContentRepository.Storage
                     Modified();
                 }
             }
-            // Insert or change if value is notn ull.
+            // Insert or change if value is not null.
             else
             {
                 CheckId(value);

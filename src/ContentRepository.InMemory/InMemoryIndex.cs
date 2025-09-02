@@ -197,7 +197,10 @@ namespace SenseNet.ContentRepository.InMemory
                 deletableVersionIds.AddRange(versionIds);
             }
 
-            // delete all version ids in any depth
+            // Delete all version ids in any depth
+            // The class is not thread safe. Sometimes there is an
+            //   InvalidOperationException in the following "foreach" cycle:
+            //   "Collection was modified; enumeration operation may not execute."
             var indexesToDelete = new List<string>();
             foreach (var item in IndexData)
             {

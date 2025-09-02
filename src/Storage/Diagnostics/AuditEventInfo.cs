@@ -1,4 +1,5 @@
-﻿using System;
+﻿using SenseNet.Configuration;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -49,6 +50,7 @@ namespace SenseNet.Diagnostics
 
             var process = Process.GetCurrentProcess();
             var thread = Thread.CurrentThread;
+            var props = Providers.Instance.PropertyCollector.Collect(properties);
 
             _auditEvent = auditEvent;
             Timestamp = DateTime.UtcNow;
@@ -78,23 +80,23 @@ namespace SenseNet.Diagnostics
             sb.AppendFormat("  <Win32ThreadId>{0}</Win32ThreadId>", ThreadId).AppendLine();
             sb.AppendFormat("  <ThreadName>{0}</ThreadName>", ThreadName).AppendLine();
             sb.AppendFormat("  <ExtendedProperties>").AppendLine();
-            foreach (var prop in properties)
+            foreach (var prop in props)
                 sb.AppendFormat("    <{0}>{1}</{0}>", prop.Key, formatValue(prop.Value)).AppendLine();
             sb.AppendFormat("  </ExtendedProperties>").AppendLine();
             sb.AppendFormat("</LogEntry>").AppendLine();
 
             FormattedMessage = sb.ToString();
 
-            properties.TryGetValue("Category", out var category);
+            props.TryGetValue("Category", out var category);
             Category = (string)category;
 
-            properties.TryGetValue("Id", out var id);
+            props.TryGetValue("Id", out var id);
             ContentId = (int?)id ?? 0;
 
-            properties.TryGetValue("Path", out var path);
+            props.TryGetValue("Path", out var path);
             ContentPath = (string)path;
 
-            properties.TryGetValue("UserName", out var userName);
+            props.TryGetValue("UserName", out var userName);
             UserName = (string)userName;
         }
     }

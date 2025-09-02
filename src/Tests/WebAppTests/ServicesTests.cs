@@ -11,6 +11,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Newtonsoft.Json;
 using SenseNet.AI.Text;
 using SenseNet.AI.Text.SemanticKernel;
 using SenseNet.AI.Vision;
@@ -423,6 +424,7 @@ namespace WebAppTests
                 }},
                 {typeof(TextExtractorRegistration), typeof(TextExtractorRegistration) },
 
+                {typeof(JsonConverter), typeof(IndexFieldJsonConverter)},
                 {typeof(IClusterMessageFormatter), typeof(SnMessageFormatter)},
                 {typeof(ClusterMemberInfo), typeof(ClusterMemberInfo)},
                 {typeof(IClusterChannel), typeof(VoidChannel)},

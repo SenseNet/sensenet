@@ -42,6 +42,10 @@ Param (
 
 	# Identity server
 	[Parameter(Mandatory=$False)]
+	[string]$AuthServerType="IdentityServer",
+	[Parameter(Mandatory=$False)]
+	[string]$JwtCookie="true",
+	[Parameter(Mandatory=$False)]
 	[string]$IdentityContainerName="$($ProjectName)-snis",
 	[Parameter(Mandatory=$False)]
 	[string]$IdentityPublicHost="https://$($ProjectName)-is.$($Domain)",	
@@ -65,6 +69,8 @@ Param (
     [string]$SqlUser="",
     [Parameter(Mandatory=$False)]
     [string]$SqlPsw="",
+	[Parameter(Mandatory=$False)]
+    [string]$HealthCheckUser="qwerty",
 
 	# Search service parameters
 	[Parameter(Mandatory=$False)]
@@ -174,8 +180,12 @@ $params = "run", "-it", "-d", "eol",
 "-e", "ASPNETCORE_ENVIRONMENT=$AppEnvironment", "eol",
 "-e", "sensenet__Container__Name=$($SensenetContainerName)", "eol",
 "-e", "sensenet__apikeys__healthcheckeruser=$($HealthCheckUser)", "eol",
+"-e", "sensenet__identityManagement__UserProfilesEnabled=false", "eol",
+"-e", "sensenet__authentication__authServerType=$($AuthServerType)", "eol",
 "-e", "sensenet__authentication__authority=$($IdentityPublicHost)", "eol",
-"-e", "sensenet__authentication__repositoryUrl=$($SensenetPublicHost)", "eol"
+"-e", "sensenet__authentication__repositoryUrl=$($SensenetPublicHost)", "eol",
+"-e", "sensenet__authentication__AddJwtCookie=$($JwtCookie)", "eol",
+"-e", "sensenet__apikeys__healthcheckeruser=$($HealthCheckUser)", "eol"
 
 if ($UseAuth) {
 	$params += "-e", "sensenet__authentication__authServerType=SNAuth", "eol",

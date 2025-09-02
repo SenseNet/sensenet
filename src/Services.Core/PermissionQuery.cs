@@ -27,7 +27,7 @@ namespace SenseNet.Services.Core
                         return "deniedandallowed";
                     if (AllowedFrom.Count > 0)
                         return "allowed";
-                    if (AllowedFrom.Count > 0)
+                    if (DeniedFrom.Count > 0)
                         return "denied";
                     return null;
                 }
@@ -81,6 +81,8 @@ namespace SenseNet.Services.Core
         /// ]
         /// </code>
         /// </example>
+        [AllowedRoles(N.R.Everyone)]
+        [RequiredPermissions(N.P.SeePermissions)]
         [ODataFunction(Category = "Permissions")]
         public static object GetPermissionOverview(Content content, string identity)
         {
