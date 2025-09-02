@@ -1,6 +1,6 @@
 Param (
 	[Parameter(Mandatory=$False)]
-	[string]$NetworkName="snnetwork",
+	[string]$NetworkName="sensenet",
 
 	# RabbitMq
     [Parameter(Mandatory=$False)]

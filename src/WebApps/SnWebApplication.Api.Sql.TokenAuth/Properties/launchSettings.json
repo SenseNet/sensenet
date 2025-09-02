@@ -13,14 +13,66 @@
       "commandName": "Project",
       "launchBrowser": true,
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "ConnectionStrings__SnCrMsSql": "Data Source=localhost,9998;Initial Catalog=sensenet-insql-cdb-vs-sndb;User ID=sa;Password=SuP3rS3CuR3P4sSw0Rd;TrustServerCertificate=True",
+        "sensenet__apikeys__healthcheckeruser": "supaS3CUp4ss",
+        "sensenet__authentication__repositoryUrl": "https://localhost:44362",
+        "sensenet__authentication__authority": "https://localhost:44311",
+        "sensenet__authentication__authServerType": "IdentityServer",
+        "sensenet__authentication__AddJwtCookie": "true",
+        "sensenet__identityManagement__UserProfilesEnabled": "false"
       },
       "applicationUrl": "https://localhost:44362"
+    },
+    "SnWebApplication.Api.Sql.SnAuth": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "launchUrl": "https://localhost:44362",
+      "applicationUrl": "https://localhost:44362",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "ConnectionStrings__SnCrMsSql": "Data Source=localhost,9998;Initial Catalog=sensenet-insql-cdb-vs-sndb;User ID=sa;Password=SuP3rS3CuR3P4sSw0Rd;TrustServerCertificate=True",
+        "sensenet__apikeys__healthcheckeruser": "supaS3CUp4ss",
+        "sensenet__authentication__repositoryUrl": "https://localhost:44362",
+        "sensenet__authentication__authority": "https://localhost:44311",
+        "sensenet__authentication__authServerType": "SNAuth",
+        "sensenet__authentication__AddJwtCookie": "false",
+        "sensenet__identityManagement__UserProfilesEnabled": "false",
+        "sensenet__repository__Authentication__ApiKey": "--to-be-set--"
+      }
     },
     "Docker": {
       "commandName": "Docker",
       "environmentVariables": {
-        "sensenet:Authentication:metadatahost": "http://SnIdentityServer"
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "ConnectionStrings__SnCrMsSql": "Data Source=sensenet-insql-cdb-snsql;Initial Catalog=sensenet-insql-cdb-vs-sndb;User ID=sa;Password=SuP3rS3CuR3P4sSw0Rd;TrustServerCertificate=True",
+        "sensenet__apikeys__healthcheckeruser": "supaS3CUp4ss",
+        "sensenet__authentication__repositoryUrl": "https://localhost:44362",
+        "sensenet__authentication__authority": "https://localhost:44311",
+        "sensenet__authentication__authServerType": "IdentityServer",
+        "sensenet__authentication__AddJwtCookie": "true",
+        "sensenet__identityManagement__UserProfilesEnabled": "false",
+        "sensenet__authentication__metadatahost": "http://SnAuth",
+        "sensenet__repository__Authentication__ApiKey": "--to-be-set--"
+      },
+      "launchBrowser": true,
+      "launchUrl": "{Scheme}://{ServiceHost}:{ServicePort}",
+      "publishAllPorts": true,
+      "useSSL": true,
+      "sslPort": 44362
+    },
+    "DockerSnAuth": {
+      "commandName": "Docker",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "ConnectionStrings__SnCrMsSql": "Data Source=sensenet-insql-cdb-snsql;Initial Catalog=sensenet-insql-cdb-vs-sndb;User ID=sa;Password=SuP3rS3CuR3P4sSw0Rd;TrustServerCertificate=True",
+        "sensenet__apikeys__healthcheckeruser": "supaS3CUp4ss",
+        "sensenet__authentication__repositoryUrl": "https://localhost:44362",
+        "sensenet__authentication__authority": "https://localhost:44311",
+        "sensenet__authentication__authServerType": "SNAuth",
+        "sensenet__authentication__AddJwtCookie": "false",
+        "sensenet__identityManagement__UserProfilesEnabled": "false",
+        "sensenet__authentication__metadatahost": "http://SnAuth",
       },
       "launchBrowser": true,
       "launchUrl": "{Scheme}://{ServiceHost}:{ServicePort}",

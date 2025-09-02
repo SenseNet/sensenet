@@ -2,7 +2,7 @@ Param (
     [Parameter(Mandatory=$False)]
 	[string]$ProjectName="docker",
 	[Parameter(Mandatory=$False)]
-	[string]$NetworkName="snnetwork",
+	[string]$NetworkName="sensenet",
 
     # Hosting environment
     [Parameter(Mandatory=$False)]
@@ -12,7 +12,7 @@ Param (
 
 	# Common app settings
 	[Parameter(Mandatory=$False)]
-	[bool]$OpenPort=$False,
+	[bool]$OpenPort=$True,
 
     # Sensenet App
     [Parameter(Mandatory=$False)]
@@ -78,40 +78,52 @@ Write-Output "############################"
 if ($UseDbContainer) {
     Test-Docker 
 
-    if ($UseVolume) {
-        # add permission to volume folder
-        Write-Output "[$($date) INFO] Permit mssql server volume"
-        Invoke-Cli -execFile "docker" -params "run", "--rm", "-v", "$($SqlVolume):/var/opt/mssql", "alpine", "chmod", "777", "/var/opt/mssql" -DryRun $DryRun -ErrorAction stop
+	$sqlContainerExists = (docker ps -a -q -f name=$SqlContainerName)
+	$sqlContainerRunning = (docker ps -q -f name=$SqlContainerName)
+
+	if ($sqlContainerRunning) {
+		Write-Host "Container $SqlContainerName is already running."	
+	} elseif (-not $Uninstall) {
+		if ($sqlContainerExists) {
+			Write-Host "Container $SqlContainerName exists but is stopped. Starting it now."
+			Invoke-Cli -command "docker container start $($SqlContainerName)" -ErrorAction Stop
+		} else {
+            if ($UseVolume) {
+                # add permission to volume folder
+                Write-Output "[$($date) INFO] Permit mssql server volume"
+                Invoke-Cli -execFile "docker" -params "run", "--rm", "-v", "$($SqlVolume):/var/opt/mssql", "alpine", "chmod", "777", "/var/opt/mssql" -DryRun $DryRun -ErrorAction stop
+            }
+
+            Write-Output "[$($date) INFO] Install mssql server"
+            $execFile = "docker"
+            $params = "run", "-d", "eol",
+                "--net", $NetworkName, "eol",
+                "--name", $SqlContainerName, "eol",
+                "-e", "ACCEPT_EULA=Y", "eol",
+                "-e", "MSSQL_SA_PASSWORD=$($SqlPsw)", "eol",
+                "-e", "MSSQL_PID=Express", "eol"
+            
+            if ($UseVolume) {
+                $params += "-v", "$($SqlVolume):/var/opt/mssql/data", "eol"
+            }
+
+            if ($OpenPort) {
+                $params += "-p", "$($SqlHostPort):$($SqlAppPort)", "eol"
+            }
+
+            $params += $SqlDockerImage
+            Invoke-Cli -execFile $execFile -params $params -DryRun $DryRun -ErrorAction stop
+                
+            # wait for docker container to be started
+            Wait-Container -ContainerName $SqlContainerName -DryRun $DryRun -ErrorAction stop
+
+            # wait for sql server to be available
+            Wait-CntDbServer -ContainerName $SqlContainerName -UserName $($SqlUser) -UserPsw $($SqlPsw) -DryRun $DryRun -ErrorAction stop
+
+            # create empyt database
+            Invoke-Cli -execFile "docker" -params "exec", $SqlContainerName, "/opt/mssql-tools/bin/sqlcmd", "-U", "$($SqlUser)", "-P", "$($SqlPsw)", "-Q", "CREATE DATABASE [$($SqlDbName)]" -DryRun $DryRun -ErrorAction stop
+        }
     }
-
-    Write-Output "[$($date) INFO] Install mssql server"
-    $execFile = "docker"
-    $params = "run", "-d", "eol",
-        "--net", $NetworkName, "eol",
-        "--name", $SqlContainerName, "eol",
-        "-e", "ACCEPT_EULA=Y", "eol",
-        "-e", "MSSQL_SA_PASSWORD=$($SqlPsw)", "eol",
-        "-e", "MSSQL_PID=Express", "eol"
-    
-    if ($UseVolume) {
-        $params += "-v", "$($SqlVolume):/var/opt/mssql/data", "eol"
-    }
-
-    if ($OpenPort) {
-        $params += "-p", "$($SqlHostPort):$($SqlAppPort)", "eol"
-    }
-
-    $params += $SqlDockerImage
-    Invoke-Cli -execFile $execFile -params $params -DryRun $DryRun -ErrorAction stop
-        
-    # wait for docker container to be started
-    Wait-Container -ContainerName $SqlContainerName -DryRun $DryRun -ErrorAction stop
-
-    # wait for sql server to be available
-    Wait-CntDbServer -ContainerName $SqlContainerName -UserName $($SqlUser) -UserPsw $($SqlPsw) -DryRun $DryRun -ErrorAction stop
-
-    # create empyt database
-    Invoke-Cli -execFile "docker" -params "exec", $SqlContainerName, "/opt/mssql-tools/bin/sqlcmd", "-U", "$($SqlUser)", "-P", "$($SqlPsw)", "-Q", "CREATE DATABASE [$($SqlDbName)]" -DryRun $DryRun -ErrorAction stop
 
     $msSqlIp = docker inspect -f "{{ .NetworkSettings.Networks.$($NetworkName).IPAddress }}" $SqlContainerName
 	Write-Output "`n[$($date) INFO] MsSql Server Ip: $msSqlIp"
