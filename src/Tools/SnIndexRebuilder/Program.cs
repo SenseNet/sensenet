@@ -191,12 +191,9 @@ namespace SnIndexRebuilder
                         await ClearIndexingActivitiesAsync(msLogger);
                         await ClearIndexDirectoryAsync(msLogger);
                         
-                        Console.WriteLine("Starting indexing engine...");
-                        repositoryInstance.StartIndexingEngine();
-                        
-                        Console.WriteLine("Clearing existing index...");
-                        var indexingEngine = Providers.Instance.SearchManager.SearchEngine.IndexingEngine;
-                        await indexingEngine.ClearIndexAsync(CancellationToken.None);
+                        // Note: For Lucene29, we skip the explicit indexing engine startup
+                        // as ClearAndPopulateAllAsync() will handle it internally
+                        Console.WriteLine("Pre-rebuild clearing completed successfully.");
                     }
                     
                     // Common rebuild operation (refactored to eliminate duplication)
