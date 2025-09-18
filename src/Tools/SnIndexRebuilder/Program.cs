@@ -1,6 +1,8 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
@@ -25,9 +27,13 @@ namespace SnIndexRebuilder
         private readonly int _totalNodes;
         private readonly Stopwatch _stopwatch;
         private readonly Microsoft.Extensions.Logging.ILogger _logger;
+        private readonly Queue<double> _recentTimes = new();
         private int _indexedCount;
         private DateTime _lastUpdate;
-        private double _maxTimePerNodeMs;
+        private DateTime _lastNodeTime;
+        
+        private const int RECENT_WINDOW_SIZE = 1000; // Track last 1000 nodes for recent performance
+        private const double SAFETY_MULTIPLIER = 1.8; // 80% safety margin for conservative estimate
 
         public IndexingProgressTracker(int totalNodes, Microsoft.Extensions.Logging.ILogger logger)
         {
@@ -35,7 +41,7 @@ namespace SnIndexRebuilder
             _logger = logger;
             _stopwatch = Stopwatch.StartNew();
             _lastUpdate = DateTime.Now;
-            _maxTimePerNodeMs = 0.0;
+            _lastNodeTime = DateTime.Now;
         }
 
         public void UpdateProgress(int indexedCount)
@@ -43,35 +49,63 @@ namespace SnIndexRebuilder
             _indexedCount = indexedCount;
             var now = DateTime.Now;
             
-            // Only update every 100 nodes or every 5 seconds
+            // Track time for recent nodes (for better performance tracking)
+            if (_indexedCount > 1)
+            {
+                var timeSinceLastNode = (now - _lastNodeTime).TotalMilliseconds;
+                _recentTimes.Enqueue(timeSinceLastNode);
+                
+                // Keep only recent performance data
+                if (_recentTimes.Count > RECENT_WINDOW_SIZE)
+                    _recentTimes.Dequeue();
+            }
+            _lastNodeTime = now;
+            
+            // Only update display every 100 nodes or every 5 seconds
             if (indexedCount % 100 == 0 || (now - _lastUpdate).TotalSeconds >= 5)
             {
                 var percentage = (_indexedCount * 100.0) / _totalNodes;
                 var elapsed = _stopwatch.Elapsed;
                 
-                // Calculate average and max time per node
-                var avgTimePerNodeMs = elapsed.TotalMilliseconds / _indexedCount;
-                
-                // Update max time per node (this captures the worst case we've seen so far)
-                if (avgTimePerNodeMs > _maxTimePerNodeMs)
-                {
-                    _maxTimePerNodeMs = avgTimePerNodeMs;
-                }
-                
-                // Calculate ETAs
-                var remainingNodes = _totalNodes - _indexedCount;
-                var avgEta = TimeSpan.FromMilliseconds(avgTimePerNodeMs * remainingNodes);
-                var worstEta = TimeSpan.FromMilliseconds(_maxTimePerNodeMs * remainingNodes);
+                // Calculate conservative ETA based on recent performance
+                var eta = CalculateConservativeETA();
 
                 var progressMessage = $"Indexed {_indexedCount:N0} / {_totalNodes:N0} nodes ({percentage:F1}%) - " +
                                     $"Elapsed: {elapsed:hh\\:mm\\:ss} - " +
-                                    $"ETA: {avgEta:hh\\:mm\\:ss} (avg) / {worstEta:hh\\:mm\\:ss} (worst)";
+                                    $"ETA: ~{eta:hh\\:mm\\:ss} (estimate)";
                 
                 Console.WriteLine(progressMessage);
                 _logger.LogInformation(progressMessage);
                 
                 _lastUpdate = now;
             }
+        }
+
+        private TimeSpan CalculateConservativeETA()
+        {
+            if (_indexedCount <= 0) return TimeSpan.Zero;
+            
+            var remainingNodes = _totalNodes - _indexedCount;
+            if (remainingNodes <= 0) return TimeSpan.Zero;
+
+            double timePerNodeMs;
+
+            // Use recent performance if we have enough data, otherwise fall back to overall average
+            if (_recentTimes.Count >= Math.Min(100, RECENT_WINDOW_SIZE / 10))
+            {
+                // Use recent performance (more accurate for current conditions)
+                timePerNodeMs = _recentTimes.Average();
+            }
+            else
+            {
+                // Fall back to overall average for early estimates
+                timePerNodeMs = _stopwatch.Elapsed.TotalMilliseconds / _indexedCount;
+            }
+
+            // Apply safety multiplier for conservative estimate
+            var conservativeTimePerNodeMs = timePerNodeMs * SAFETY_MULTIPLIER;
+            
+            return TimeSpan.FromMilliseconds(conservativeTimePerNodeMs * remainingNodes);
         }
 
         public void Complete()
