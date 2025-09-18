@@ -185,82 +185,11 @@ namespace SnIndexRebuilder
                     Console.WriteLine($"Total nodes to index: {totalNodes:N0}");
                     msLogger.LogInformation("Total nodes to index: {TotalNodes}", totalNodes);
                     
+                    // Perform pre-rebuild operations based on mode
                     if (clearActivities)
                     {
-                        // APPROACH 1: Clear old indexing activities table for a truly clean rebuild
-                        Console.WriteLine("Clearing old indexing activities...");
-                        msLogger.LogInformation("Starting to clear old indexing activities");
-                        try
-                        {
-                            if (Providers.Instance.DataProvider is SenseNet.ContentRepository.Storage.Data.RelationalDataProviderBase relationalProvider)
-                            {
-                                using (var ctx = relationalProvider.CreateDataContext(CancellationToken.None))
-                                {
-                                    // Use your proven approach: TRUNCATE + DBCC CHECKIDENT to fully reset identity
-                                    await ctx.ExecuteNonQueryAsync("TRUNCATE TABLE IndexingActivities");
-                                    await ctx.ExecuteNonQueryAsync("DBCC CHECKIDENT ('IndexingActivities', RESEED, 1)");
-                                    Console.WriteLine("Truncated IndexingActivities table and reset identity seed to 1.");
-                                    msLogger.LogInformation("Truncated IndexingActivities table and reset identity seed to 1");
-                                }
-                            }
-                            else
-                            {
-                                Console.WriteLine("Warning: Cannot clear indexing activities - DataProvider is not relational");
-                                msLogger.LogWarning("Cannot clear indexing activities - DataProvider is not relational");
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            Console.WriteLine($"Warning: Could not clear indexing activities: {ex.Message}");
-                            msLogger.LogWarning(ex, "Could not clear indexing activities");
-                            Console.WriteLine("Continuing with rebuild anyway...");
-                        }
-                        
-                        // ALSO CLEAR INDEX DIRECTORY to remove cached LastActivityId from Lucene index
-                        Console.WriteLine("Clearing existing index directory...");
-                        msLogger.LogInformation("Starting to clear index directory");
-                        try
-                        {
-                            // Try both the working directory and the app domain base directory
-                            var indexDirectories = new[]
-                            {
-                                Path.Combine(Directory.GetCurrentDirectory(), "App_Data", "LocalIndex"),
-                                Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "App_Data", "LocalIndex")
-                            };
-
-                            var clearedAny = false;
-                            foreach (var indexDirectory in indexDirectories)
-                            {
-                                if (Directory.Exists(indexDirectory))
-                                {
-                                    var subDirectories = Directory.GetDirectories(indexDirectory);
-                                    foreach (var subDir in subDirectories)
-                                    {
-                                        Directory.Delete(subDir, true);
-                                        Console.WriteLine($"Deleted index subdirectory: {Path.GetFileName(subDir)} from {indexDirectory}");
-                                        clearedAny = true;
-                                    }
-                                    msLogger.LogInformation("Cleared {DirectoryCount} index subdirectories from {IndexDirectory}", subDirectories.Length, indexDirectory);
-                                }
-                            }
-                            
-                            if (!clearedAny)
-                            {
-                                Console.WriteLine("No existing index directories found to clear.");
-                                msLogger.LogInformation("No existing index directories found to clear");
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            Console.WriteLine($"Warning: Could not clear index directory: {ex.Message}");
-                            msLogger.LogWarning(ex, "Could not clear index directory");
-                            Console.WriteLine("Continuing with rebuild anyway...");
-                        }
-                        
-                        Console.WriteLine("Enabling indexing for clean rebuild...");
-                        // Now enable indexing for the rebuild operation
-                        Indexing.IsOuterSearchEngineEnabled = true;
-                        Providers.Instance.SearchManager.IsOuterEngineEnabled = true;
+                        await ClearIndexingActivitiesAsync(msLogger);
+                        await ClearIndexDirectoryAsync(msLogger);
                         
                         Console.WriteLine("Starting indexing engine...");
                         repositoryInstance.StartIndexingEngine();
@@ -268,76 +197,10 @@ namespace SnIndexRebuilder
                         Console.WriteLine("Clearing existing index...");
                         var indexingEngine = Providers.Instance.SearchManager.SearchEngine.IndexingEngine;
                         await indexingEngine.ClearIndexAsync(CancellationToken.None);
-                        
-                        Console.WriteLine("Rebuilding index from scratch...");
-                        msLogger.LogInformation("Starting index rebuild with clearing activities approach");
-                        
-                        // Get the index populator to perform a clean rebuild
-                        var populator = Providers.Instance.SearchManager.GetIndexPopulator();
-                        
-                        // Create progress tracker
-                        var progressTracker = new IndexingProgressTracker(totalNodes, msLogger);
-                        
-                        // Set up error handling
-                        populator.IndexingError += (sender, eventArgs) =>
-                        {
-                            var errorMessage = $"Indexing error for {eventArgs.Path}: {eventArgs.Exception?.Message}";
-                            Console.WriteLine(errorMessage);
-                            msLogger.LogError(eventArgs.Exception, "Indexing error for {Path}", eventArgs.Path);
-                        };
-                        
-                        var indexCount = 0;
-                        populator.NodeIndexed += (sender, eventArgs) =>
-                        {
-                            progressTracker.UpdateProgress(++indexCount);
-                        };
-                        
-                        // Since we cleared the index, now rebuild it from the database
-                        await populator.ClearAndPopulateAllAsync(CancellationToken.None, Console.Out);
-                        
-                        progressTracker.Complete();
                     }
-                    else
-                    {
-                        // APPROACH 2: Clean rebuild without clearing activities table
-                        // ClearAndPopulateAllAsync handles indexing engine startup internally
-                        Console.WriteLine("Enabling indexing for clean rebuild...");
-                        Indexing.IsOuterSearchEngineEnabled = true;
-                        Providers.Instance.SearchManager.IsOuterEngineEnabled = true;
-                        
-                        Console.WriteLine("Rebuilding index from scratch (without clearing activities)...");
-                        msLogger.LogInformation("Starting index rebuild without clearing activities approach");
-                        
-                        // Get the index populator
-                        var populator = Providers.Instance.SearchManager.GetIndexPopulator();
-                        
-                        // Create progress tracker
-                        var progressTracker = new IndexingProgressTracker(totalNodes, msLogger);
-                        
-                        // Set up progress monitoring
-                        var indexCount = 0;
-                        populator.NodeIndexed += (sender, eventArgs) =>
-                        {
-                            progressTracker.UpdateProgress(++indexCount);
-                        };
-                        
-                        // Set up error handling
-                        populator.IndexingError += (sender, eventArgs) =>
-                        {
-                            var errorMessage = $"Indexing error for {eventArgs.Path}: {eventArgs.Exception?.Message}";
-                            Console.WriteLine(errorMessage);
-                            msLogger.LogError(eventArgs.Exception, "Indexing error for {Path}", eventArgs.Path);
-                        };
-                        
-                        // ClearAndPopulateAllAsync will:
-                        // 1. Start indexing engine if not running (without processing old activities because IsOuterSearchEngineEnabled was false during startup)
-                        // 2. Clear the existing index
-                        // 3. Rebuild index from current database state
-                        // 4. Commit the changes
-                        await populator.ClearAndPopulateAllAsync(CancellationToken.None, Console.Out);
-                        
-                        progressTracker.Complete();
-                    }
+                    
+                    // Common rebuild operation (refactored to eliminate duplication)
+                    await PerformIndexRebuildAsync(totalNodes, msLogger, clearActivities);
                 }
 
                 Console.WriteLine("Operation completed successfully!");
@@ -349,6 +212,117 @@ namespace SnIndexRebuilder
                 Console.WriteLine($"Stack trace: {ex.StackTrace}");
                 return 1;
             }
+        }
+
+        private static async System.Threading.Tasks.Task ClearIndexingActivitiesAsync(Microsoft.Extensions.Logging.ILogger logger)
+        {
+            Console.WriteLine("Clearing old indexing activities...");
+            logger.LogInformation("Starting to clear old indexing activities");
+            try
+            {
+                if (Providers.Instance.DataProvider is SenseNet.ContentRepository.Storage.Data.RelationalDataProviderBase relationalProvider)
+                {
+                    using (var ctx = relationalProvider.CreateDataContext(CancellationToken.None))
+                    {
+                        // Use proven approach: TRUNCATE + DBCC CHECKIDENT to fully reset identity
+                        await ctx.ExecuteNonQueryAsync("TRUNCATE TABLE IndexingActivities");
+                        await ctx.ExecuteNonQueryAsync("DBCC CHECKIDENT ('IndexingActivities', RESEED, 1)");
+                        Console.WriteLine("Truncated IndexingActivities table and reset identity seed to 1.");
+                        logger.LogInformation("Truncated IndexingActivities table and reset identity seed to 1");
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("Warning: Cannot clear indexing activities - DataProvider is not relational");
+                    logger.LogWarning("Cannot clear indexing activities - DataProvider is not relational");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Warning: Could not clear indexing activities: {ex.Message}");
+                logger.LogWarning(ex, "Could not clear indexing activities");
+                Console.WriteLine("Continuing with rebuild anyway...");
+            }
+        }
+
+        private static async System.Threading.Tasks.Task ClearIndexDirectoryAsync(Microsoft.Extensions.Logging.ILogger logger)
+        {
+            Console.WriteLine("Clearing existing index directory...");
+            logger.LogInformation("Starting to clear index directory");
+            try
+            {
+                // Try both the working directory and the app domain base directory
+                var indexDirectories = new[]
+                {
+                    Path.Combine(Directory.GetCurrentDirectory(), "App_Data", "LocalIndex"),
+                    Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "App_Data", "LocalIndex")
+                };
+
+                var clearedAny = false;
+                foreach (var indexDirectory in indexDirectories)
+                {
+                    if (Directory.Exists(indexDirectory))
+                    {
+                        var subDirectories = Directory.GetDirectories(indexDirectory);
+                        foreach (var subDir in subDirectories)
+                        {
+                            Directory.Delete(subDir, true);
+                            Console.WriteLine($"Deleted index subdirectory: {Path.GetFileName(subDir)} from {indexDirectory}");
+                            clearedAny = true;
+                        }
+                        logger.LogInformation("Cleared {DirectoryCount} index subdirectories from {IndexDirectory}", subDirectories.Length, indexDirectory);
+                    }
+                }
+                
+                if (!clearedAny)
+                {
+                    Console.WriteLine("No existing index directories found to clear.");
+                    logger.LogInformation("No existing index directories found to clear");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Warning: Could not clear index directory: {ex.Message}");
+                logger.LogWarning(ex, "Could not clear index directory");
+                Console.WriteLine("Continuing with rebuild anyway...");
+            }
+        }
+
+        private static async System.Threading.Tasks.Task PerformIndexRebuildAsync(int totalNodes, Microsoft.Extensions.Logging.ILogger logger, bool clearActivities)
+        {
+            Console.WriteLine("Enabling indexing for clean rebuild...");
+            Indexing.IsOuterSearchEngineEnabled = true;
+            Providers.Instance.SearchManager.IsOuterEngineEnabled = true;
+            
+            var modeDescription = clearActivities ? "with clearing activities approach" : "without clearing activities approach";
+            Console.WriteLine($"Rebuilding index from scratch ({(clearActivities ? "" : "without clearing activities")})...");
+            logger.LogInformation("Starting index rebuild {Mode}", modeDescription);
+            
+            // Get the index populator
+            var populator = Providers.Instance.SearchManager.GetIndexPopulator();
+            
+            // Create progress tracker
+            var progressTracker = new IndexingProgressTracker(totalNodes, logger);
+            
+            // Set up progress monitoring
+            var indexCount = 0;
+            populator.NodeIndexed += (sender, eventArgs) =>
+            {
+                progressTracker.UpdateProgress(++indexCount);
+            };
+            
+            // Set up error handling
+            populator.IndexingError += (sender, eventArgs) =>
+            {
+                var errorMessage = $"Indexing error for {eventArgs.Path}: {eventArgs.Exception?.Message}";
+                Console.WriteLine(errorMessage);
+                logger.LogError(eventArgs.Exception, "Indexing error for {Path}", eventArgs.Path);
+            };
+            
+            // Rebuild index from current database state
+            await populator.ClearAndPopulateAllAsync(CancellationToken.None, Console.Out);
+            
+            progressTracker.Complete();
         }
 
         static IServiceProvider CreateServices(string[] args)
