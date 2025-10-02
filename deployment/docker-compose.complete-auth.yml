@@ -1,0 +1,196 @@
+# Complete SenseNet setup with Search Service, RabbitMQ, Volumes, and SNAuth
+# Equivalent to: .\install-sensenet.ps1 -SearchService -UseVolume -UseAuth
+
+networks:
+  sensenet:
+    name: sensenet-complete-auth
+    driver: bridge
+
+volumes:
+  sensenet-sql-data:
+    name: sensenet-sql-data
+  sensenet-app-data:
+    name: sensenet-app-data
+  sensenet-search-data:
+    name: sensenet-search-data
+  sensenet-rabbit-data:
+    name: sensenet-rabbit-data
+
+services:
+  # SQL Server Database with persistent volume
+  sensenet-insql-cdb-wv-ws-snsql:
+    image: mcr.microsoft.com/mssql/server:2019-CU12-ubuntu-20.04
+    container_name: sensenet-insql-cdb-wv-ws-snsql
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=SuP3rS3CuR3P4sSw0Rd
+      - MSSQL_PID=Express
+    networks:
+      - sensenet
+    restart: unless-stopped
+    volumes:
+      - sensenet-sql-data:/var/opt/mssql
+    healthcheck:
+      test: /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P "SuP3rS3CuR3P4sSw0Rd" -Q "SELECT 1"
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # Database Initialization
+  sensenet-db-init:
+    image: mcr.microsoft.com/mssql/server:2019-CU12-ubuntu-20.04
+    container_name: sensenet-db-init
+    networks:
+      - sensenet
+    volumes:
+      - ./scripts:/scripts:ro
+    command: >
+      bash -c "
+        echo 'Waiting for SQL Server to be ready...';
+        until /opt/mssql-tools/bin/sqlcmd -S sensenet-insql-cdb-wv-ws-snsql -U sa -P 'SuP3rS3CuR3P4sSw0Rd' -Q 'SELECT 1' > /dev/null 2>&1; do
+          echo 'SQL Server is not ready yet... waiting';
+          sleep 2;
+        done;
+        echo 'SQL Server is ready! Creating database...';
+        /opt/mssql-tools/bin/sqlcmd -S sensenet-insql-cdb-wv-ws-snsql -U sa -P 'SuP3rS3CuR3P4sSw0Rd' -Q \"IF NOT EXISTS (SELECT * FROM sys.databases WHERE name = 'sensenet-insql-cdb-wv-ws-sndb') CREATE DATABASE [sensenet-insql-cdb-wv-ws-sndb]\";
+        echo 'Database created successfully!';
+      "
+    depends_on:
+      sensenet-insql-cdb-wv-ws-snsql:
+        condition: service_healthy
+    restart: "no"
+
+  # RabbitMQ for Search Service messaging with persistent volume
+  sensenet-rabbit:
+    image: rabbitmq:3-management
+    container_name: sensenet-rabbit
+    environment:
+      - RABBITMQ_DEFAULT_USER=admin
+      - RABBITMQ_DEFAULT_PASS=SuP3rS3CuR3P4sSw0Rd
+    ports:
+      - "51005:15672"  # Management UI
+      - "5672:5672"    # AMQP port
+    networks:
+      - sensenet
+    restart: unless-stopped
+    volumes:
+      - sensenet-rabbit-data:/var/lib/rabbitmq
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # Custom Authentication Service (SenseNet Auth) with volume
+  sensenet-insql-cdb-wv-ws-snauth:
+    image: sensenetcsp/sn-auth:preview
+    container_name: sensenet-insql-cdb-wv-ws-snauth
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=https://+:443;http://+:80
+      - ASPNETCORE_Kestrel__Certificates__Default__Password=SuP3rS3CuR3P4sSw0Rd
+      - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/snapp.pfx
+      - Authority__Domain=cnt
+      - Authority__PublicHost=https://localhost:51077
+      - Repository__Url=https://localhost:51076
+      - Repository__PublicHost=https://localhost:51076
+      - Sensenet__Repository__Authentication__ApiKey=pr3Gen3R4Tedpr3Gen3R4Tedpr3Gen3R4Tedpr3Gen3R4Tedpr3Gen3R4Tedpr3Gen3R4Tedpr3Gen3R4Ted
+      - JwtSettings__Issuer=https://localhost:51077
+      - JwtSettings__Audience=sensenet
+      - JwtSettings__SecretKey=pr3Gen3R4Tedpr3Gen3R4Tedpr3Gen3R4Ted
+      - JwtSettings__AuthTokenExpiryMinutes=300
+      - JwtSettings__MultiFactorAuthExpiryMinutes=300
+      - JwtSettings__TokenExpiryMinutes=300
+      - JwtSettings__RefreshTokenExpiryDays=15
+      - PasswordRecovery__TokenExpiryMinutes=60
+      - Registration__IsEnabled=false
+      - Recaptcha__SiteKey=
+      - Recaptcha__SecretKey=
+      - Application__Url=https://localhost:51077
+      - Application__AllowedHosts__0=https://adminui.test.sensenet.com
+      - Application__AllowedHosts__1=https://localhost:51076
+      - Application__AllowedHosts__2=http://sensenet-insql-cdb-wv-ws-snapp
+      - Sensenet__Repository__InnerUrl=http://sensenet-insql-cdb-wv-ws-snapp
+    ports:
+      - "51077:443"
+    networks:
+      - sensenet
+    restart: unless-stopped
+    volumes:
+      - ./temp/certificates:/https:ro
+    depends_on:
+      - sensenet-db-init
+      - sensenet-insql-cdb-wv-ws-snsql
+      - sensenet-rabbit
+
+  # Search Service with persistent volume
+  sensenet-insql-cdb-wv-ws-snsearch:
+    image: sensenetcsp/sn-searchservice:preview
+    container_name: sensenet-insql-cdb-wv-ws-snsearch
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=https://+:443
+      - ASPNETCORE_Kestrel__Certificates__Default__Password=SuP3rS3CuR3P4sSw0Rd
+      - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/snapp.pfx
+      - ConnectionStrings__SnCrMsSql=Persist Security Info=False;Initial Catalog=sensenet-insql-cdb-wv-ws-sndb;Data Source=sensenet-insql-cdb-wv-ws-snsql;User ID=sa;Password=SuP3rS3CuR3P4sSw0Rd;TrustServerCertificate=true
+      - RabbitMQ__ServiceUrl=amqp://admin:SuP3rS3CuR3P4sSw0Rd@sensenet-rabbit/
+    networks:
+      - sensenet
+    restart: unless-stopped
+    volumes:
+      - ./temp/certificates:/https:ro
+      - sensenet-search-data:/app/App_Data
+    depends_on:
+      sensenet-db-init:
+        condition: service_completed_successfully
+      sensenet-insql-cdb-wv-ws-snsql:
+        condition: service_healthy
+      sensenet-rabbit:
+        condition: service_healthy
+
+  # SenseNet Application with Search Service, persistent volumes, and SNAuth
+  sensenet-insql-cdb-wv-ws-snapp:
+    image: sensenetcsp/sn-api-sql:preview
+    container_name: sensenet-insql-cdb-wv-ws-snapp
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=https://+:443;http://+:80
+      - ASPNETCORE_Kestrel__Certificates__Default__Password=SuP3rS3CuR3P4sSw0Rd
+      - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/snapp.pfx
+      - sensenet__Container__Name=sensenet-insql-cdb-wv-ws-snapp
+      - sensenet__apikeys__healthcheckeruser=s3Cur3P4Ss
+      - sensenet__identityManagement__UserProfilesEnabled=false
+      - sensenet__authentication__authServerType=SNAuth
+      - sensenet__authentication__authority=https://localhost:51077
+      - sensenet__authentication__repositoryUrl=https://localhost:51076
+      - sensenet__authentication__AddJwtCookie=false
+      - ConnectionStrings__SnCrMsSql=Persist Security Info=False;Initial Catalog=sensenet-insql-cdb-wv-ws-sndb;Data Source=sensenet-insql-cdb-wv-ws-snsql;User ID=sa;Password=SuP3rS3CuR3P4sSw0Rd;TrustServerCertificate=true
+      - sensenet__authentication__metadatahost=http://sensenet-insql-cdb-wv-ws-snauth
+      - Authentication__Authority=https://sensenet-insql-cdb-wv-ws-snauth
+      - Authentication__PublicAuthority=https://localhost:51077
+      - sensenet__security__HealthCheckUser=s3Cur3P4Ss
+      - sensenet__authentication__RepositoryAuthenticationEnabled=true
+    ports:
+      - "51076:443"
+    networks:
+      - sensenet
+    restart: unless-stopped
+    volumes:
+      - ./temp/certificates:/https:ro
+      - sensenet-app-data:/app/App_Data
+    depends_on:
+      sensenet-db-init:
+        condition: service_completed_successfully
+      sensenet-insql-cdb-wv-ws-snsql:
+        condition: service_healthy
+      sensenet-insql-cdb-wv-ws-snauth:
+        condition: service_started
+      sensenet-rabbit:
+        condition: service_healthy
+      sensenet-insql-cdb-wv-ws-snsearch:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "curl", "-f", "-k", "https://localhost:443"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
