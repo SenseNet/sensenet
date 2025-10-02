@@ -138,8 +138,15 @@ if ($OpenPort) {
 
 $params += "$IdentityDockerImage"
 
-Invoke-Cli -execFile $execFile -params $params -DryRun $DryRun -ErrorAction stop
-if (-not $UseVolume) {
+# Use the new container management function
+$containerResult = Manage-Container -ContainerName $IdentityContainerName -DockerRunParams $params -DryRun $DryRun
+
+if ($containerResult -eq "error") {
+	Write-Error "Failed to manage container $IdentityContainerName"
+	return
+}
+
+if (-not $UseVolume -and ($containerResult -eq "created" -or $containerResult -eq "started")) {
 	if (-not (Test-Path "./temp/certificates/$($CertName)")) {
 		Write-Error "Certificate file missing!"
 	}

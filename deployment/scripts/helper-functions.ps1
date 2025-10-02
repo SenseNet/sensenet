@@ -474,3 +474,72 @@ Function Wait-SnApp {
 		} Until ($isSnAppAvailable)
 	}
 }
+
+Function Manage-Container {
+	Param (
+		[Parameter(Mandatory=$True)]
+		[string]$ContainerName,
+		[Parameter(Mandatory=$True)]
+		[string[]]$DockerRunParams,
+		[Parameter(Mandatory=$False)]
+		[bool]$DryRun=$False
+	)
+
+	if ($DryRun) {
+		Write-Output "DryRun: Would manage container $ContainerName"
+		return "created"
+	}
+
+	# Check if container exists
+	$containerExists = $false
+	$containerStatus = ""
+	
+	try {
+		$containerStatus = $(docker container inspect -f "{{.State.Status}}" $ContainerName 2>$null)
+		if ($LASTEXITCODE -eq 0) {
+			$containerExists = $true
+		}
+	} catch {
+		$containerExists = $false
+	}
+
+	if ($containerExists) {
+		Write-Output "Container $ContainerName already exists with status: $containerStatus"
+		
+		if ($containerStatus -eq "running") {
+			Write-Output "Container $ContainerName is already running. Skipping creation."
+			return "running"
+		} elseif ($containerStatus -eq "exited") {
+			Write-Output "Container $ContainerName exists but is stopped. Starting container..."
+			Invoke-Cli -execFile "docker" -params "start", $ContainerName -DryRun $DryRun
+			if ($LASTEXITCODE -eq 0) {
+				Write-Output "Container $ContainerName started successfully."
+				return "started"
+			} else {
+				Write-Error "Failed to start existing container $ContainerName"
+				return "error"
+			}
+		} else {
+			Write-Output "Container $ContainerName is in state: $containerStatus. Removing and recreating..."
+			Invoke-Cli -execFile "docker" -params "rm", "-f", $ContainerName -DryRun $DryRun
+			if ($LASTEXITCODE -ne 0) {
+				Write-Error "Failed to remove container $ContainerName"
+				return "error"
+			}
+		}
+	}
+
+	# Create new container
+	Write-Output "Creating new container $ContainerName..."
+	
+	# Use Invoke-Cli for proper verbose output and error handling
+	Invoke-Cli -execFile "docker" -params $DockerRunParams -DryRun $DryRun
+	
+	if ($LASTEXITCODE -eq 0) {
+		Write-Output "Container $ContainerName created successfully."
+		return "created"
+	} else {
+		Write-Error "Failed to create container $ContainerName"
+		return "error"
+	}
+}

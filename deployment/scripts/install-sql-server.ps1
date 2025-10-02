@@ -112,7 +112,14 @@ if ($UseDbContainer) {
             }
 
             $params += $SqlDockerImage
-            Invoke-Cli -execFile $execFile -params $params -DryRun $DryRun -ErrorAction stop
+            
+            # Use the new container management function
+            $containerResult = Manage-Container -ContainerName $SqlContainerName -DockerRunParams $params -DryRun $DryRun
+
+            if ($containerResult -eq "error") {
+                Write-Error "Failed to manage container $SqlContainerName"
+                return
+            }
                 
             # wait for docker container to be started
             Wait-Container -ContainerName $SqlContainerName -DryRun $DryRun -ErrorAction stop
@@ -120,8 +127,10 @@ if ($UseDbContainer) {
             # wait for sql server to be available
             Wait-CntDbServer -ContainerName $SqlContainerName -UserName $($SqlUser) -UserPsw $($SqlPsw) -DryRun $DryRun -ErrorAction stop
 
-            # create empyt database
-            Invoke-Cli -execFile "docker" -params "exec", $SqlContainerName, "/opt/mssql-tools/bin/sqlcmd", "-U", "$($SqlUser)", "-P", "$($SqlPsw)", "-Q", "CREATE DATABASE [$($SqlDbName)]" -DryRun $DryRun -ErrorAction stop
+            # create empty database (only if container was newly created)
+            if ($containerResult -eq "created") {
+                Invoke-Cli -execFile "docker" -params "exec", $SqlContainerName, "/opt/mssql-tools/bin/sqlcmd", "-U", "$($SqlUser)", "-P", "$($SqlPsw)", "-Q", "IF NOT EXISTS (SELECT * FROM sys.databases WHERE name = '$($SqlDbName)') CREATE DATABASE [$($SqlDbName)]" -DryRun $DryRun -ErrorAction stop
+            }
         }
     }
 
