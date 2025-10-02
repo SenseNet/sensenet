@@ -1,0 +1,129 @@
+# SenseNet with custom authentication service instead of basic IdentityServer
+# Equivalent to: .\install-sensenet.ps1 -UseAuth
+
+networks:
+  sensenet:
+    name: sensenet-auth
+    driver: bridge
+
+services:
+  # SQL Server Database
+  sensenet-insql-cdb-snsql:
+    image: mcr.microsoft.com/mssql/server:2019-CU12-ubuntu-20.04
+    container_name: sensenet-insql-cdb-snsql
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=SuP3rS3CuR3P4sSw0Rd
+      - MSSQL_PID=Express
+    networks:
+      - sensenet
+    restart: unless-stopped
+    healthcheck:
+      test: /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P "SuP3rS3CuR3P4sSw0Rd" -Q "SELECT 1"
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # Database Initialization
+  sensenet-db-init:
+    image: mcr.microsoft.com/mssql/server:2019-CU12-ubuntu-20.04
+    container_name: sensenet-db-init
+    networks:
+      - sensenet
+    volumes:
+      - ./scripts:/scripts:ro
+    command: >
+      bash -c "
+        echo 'Waiting for SQL Server to be ready...';
+        until /opt/mssql-tools/bin/sqlcmd -S sensenet-insql-cdb-snsql -U sa -P 'SuP3rS3CuR3P4sSw0Rd' -Q 'SELECT 1' > /dev/null 2>&1; do
+          echo 'SQL Server is not ready yet... waiting';
+          sleep 2;
+        done;
+        echo 'SQL Server is ready! Creating database...';
+        /opt/mssql-tools/bin/sqlcmd -S sensenet-insql-cdb-snsql -U sa -P 'SuP3rS3CuR3P4sSw0Rd' -Q \"IF NOT EXISTS (SELECT * FROM sys.databases WHERE name = 'sensenet-insql-cdb-sndb') CREATE DATABASE [sensenet-insql-cdb-sndb]\";
+        echo 'Database created successfully!';
+      "
+    depends_on:
+      sensenet-insql-cdb-snsql:
+        condition: service_healthy
+    restart: "no"
+
+  # Custom Authentication Service (SenseNet Auth)
+  sensenet-insql-cdb-snauth:
+    image: sensenetcsp/sn-auth:preview
+    container_name: sensenet-insql-cdb-snauth
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=https://+:443;http://+:80
+      - ASPNETCORE_Kestrel__Certificates__Default__Password=SuP3rS3CuR3P4sSw0Rd
+      - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/snapp.pfx
+      - Authority__Domain=cnt
+      - Authority__PublicHost=https://localhost:51017
+      - Repository__Url=https://localhost:51016
+      - Repository__PublicHost=https://localhost:51016
+      - Sensenet__Repository__Authentication__ApiKey=pr3Gen3R4Tedpr3Gen3R4Tedpr3Gen3R4Tedpr3Gen3R4Tedpr3Gen3R4Tedpr3Gen3R4Tedpr3Gen3R4Ted
+      - JwtSettings__Issuer=https://localhost:51017
+      - JwtSettings__Audience=sensenet
+      - JwtSettings__SecretKey=pr3Gen3R4Tedpr3Gen3R4Tedpr3Gen3R4Ted
+      - JwtSettings__AuthTokenExpiryMinutes=300
+      - JwtSettings__MultiFactorAuthExpiryMinutes=300
+      - JwtSettings__TokenExpiryMinutes=300
+      - JwtSettings__RefreshTokenExpiryDays=15
+      - PasswordRecovery__TokenExpiryMinutes=60
+      - Registration__IsEnabled=false
+      - Recaptcha__SiteKey=
+      - Recaptcha__SecretKey=
+      - Application__Url=https://localhost:51017
+      - Application__AllowedHosts__0=https://adminui.test.sensenet.com
+      - Application__AllowedHosts__1=https://localhost:51016
+      - Application__AllowedHosts__2=http://sensenet-insql-cdb-snapp
+      - Sensenet__Repository__InnerUrl=http://sensenet-insql-cdb-snapp
+    ports:
+      - "51017:443"
+    networks:
+      - sensenet
+    restart: unless-stopped
+    volumes:
+      - ./temp/certificates:/https:ro
+    depends_on:
+      - sensenet-db-init
+      - sensenet-insql-cdb-snsql
+
+  # SenseNet Application with Custom Auth
+  sensenet-insql-cdb-snapp:
+    image: sensenetcsp/sn-api-sql:preview
+    container_name: sensenet-insql-cdb-snapp
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=https://+:443;http://+:80
+      - ASPNETCORE_Kestrel__Certificates__Default__Password=SuP3rS3CuR3P4sSw0Rd
+      - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/snapp.pfx
+      - sensenet__Container__Name=sensenet-insql-cdb-snapp
+      - sensenet__apikeys__healthcheckeruser=s3Cur3P4Ss
+      - sensenet__identityManagement__UserProfilesEnabled=false
+      - sensenet__authentication__authServerType=SNAuth
+      - sensenet__authentication__authority=https://localhost:51017
+      - sensenet__authentication__repositoryUrl=https://localhost:51016
+      - sensenet__authentication__AddJwtCookie=false
+      - ConnectionStrings__SnCrMsSql=Persist Security Info=False;Initial Catalog=sensenet-insql-cdb-sndb;Data Source=sensenet-insql-cdb-snsql;User ID=sa;Password=SuP3rS3CuR3P4sSw0Rd;TrustServerCertificate=true
+      - sensenet__authentication__metadatahost=http://sensenet-insql-cdb-snauth
+      - Authentication__Authority=https://sensenet-insql-cdb-snauth
+      - Authentication__PublicAuthority=https://localhost:51017
+      - sensenet__security__HealthCheckUser=s3Cur3P4Ss
+      - sensenet__authentication__RepositoryAuthenticationEnabled=true
+    ports:
+      - "51016:443"
+    networks:
+      - sensenet
+    restart: unless-stopped
+    volumes:
+      - ./temp/certificates:/https:ro
+    depends_on:
+      - sensenet-db-init
+      - sensenet-insql-cdb-snsql
+      - sensenet-insql-cdb-snauth
+    healthcheck:
+      test: ["CMD", "curl", "-f", "-k", "https://localhost:443"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
