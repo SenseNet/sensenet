@@ -263,3 +263,4 @@ paket-files/
 **/App_Data/IndexBackup
 **/App_Data/Logs
 /src/WebApps/**/install-services-core
+deployment/.env

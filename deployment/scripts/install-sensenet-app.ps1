@@ -69,8 +69,6 @@ Param (
     [string]$SqlUser="",
     [Parameter(Mandatory=$False)]
     [string]$SqlPsw="",
-	[Parameter(Mandatory=$False)]
-    [string]$HealthCheckUser="qwerty",
 
 	# Search service parameters
 	[Parameter(Mandatory=$False)]
@@ -251,9 +249,15 @@ if ($OpenPort) {
 
 $params += "$SensenetDockerImage"
 
-Invoke-Cli -execFile $execFile -params $params -DryRun $DryRun -ErrorAction stop 
+# Use the new container management function
+$containerResult = Manage-Container -ContainerName $SensenetContainerName -DockerRunParams $params -DryRun $DryRun
 
-if (-not $UseVolume) {
+if ($containerResult -eq "error") {
+	Write-Error "Failed to manage container $SensenetContainerName"
+	return
+}
+
+if (-not $UseVolume -and ($containerResult -eq "created" -or $containerResult -eq "started")) {
 	if (-not (Test-Path "./temp/certificates/$($CertName)")) {
 		Write-Error "Certificate file missing!"
 	}
