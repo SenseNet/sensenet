@@ -1,0 +1,18 @@
+{
+  "profiles": {
+    "SnIndexRebuilder": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "DOTNET_ENVIRONMENT": "Development",
+        "ConnectionStrings__SnCrMsSql": "Data Source=localhost,9999;Initial Catalog=sensenet-insql-cdb-vs-sndb;User ID=sa;Password=SuP3rS3CuR3P4sSw0Rd;TrustServerCertificate=True"
+      }
+    },
+    "SnIndexRebuilder (LocalDB)": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "DOTNET_ENVIRONMENT": "Development",
+        "ConnectionStrings__SnCrMsSql": "Server=(localdb)\\MSSQLLocalDB;Database=sensenet;Integrated Security=true;MultipleActiveResultSets=true"
+      }
+    }
+  }
+}
