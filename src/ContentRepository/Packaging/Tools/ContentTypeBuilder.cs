@@ -596,7 +596,7 @@ namespace SenseNet.Packaging.Tools
 
             // Iterate through the types again in reverse order (root --> leaves) and register 
             // the field with the new type.
-            foreach (var contentTypeName in contentTypeNames.Reverse())
+            foreach (var contentTypeName in ((IEnumerable<string>)contentTypeNames).Reverse())
             {
                 var contentType = ContentType.GetByName(contentTypeName);
                 var ctdXml = LoadContentTypeXmlDocument(contentType);
