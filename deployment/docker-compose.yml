@@ -147,7 +147,7 @@ services:
 
       # ── Egyéb ─────────────────────────────────────────────
       sensenet__apikeys__healthcheckeruser: "supaS3CUp4ss"
-      sensenet__install__EnableFirstInstallDB: "true"
+      sensenet__install__mssql__EnableFirstInstallDB: "true"
 
       # ── Dev cert (mount-olt) ──────────────────────────────
       Kestrel__Certificates__Default__Path: "/root/.aspnet/https/snapp.pfx"
