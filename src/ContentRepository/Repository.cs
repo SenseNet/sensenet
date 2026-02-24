@@ -80,14 +80,19 @@ namespace SenseNet.ContentRepository
             }
 
             RepositoryInstance repositoryInstance = null;
-            var exclusiveLockOptions = builder.Services?.GetService<IOptions<ExclusiveLockOptions>>()?.Value;
 
-            ExclusiveBlock.RunAsync("SenseNet.PatchManager", Guid.NewGuid().ToString(),
-                ExclusiveBlockType.WaitAndAcquire, exclusiveLockOptions, CancellationToken.None, () =>
+            // For first-run installs with an empty database, trying to acquire the distributed lock
+            // from TreeLocks table would fail or hang because the table is empty/not ready yet.
+            // On first run, we're a single instance, so we can safely run patches without the lock.
+            var isFirstInstall = !Providers.Instance.DataStore
+                .IsDatabaseReadyAsync(CancellationToken.None).GetAwaiter().GetResult();
+
+            if (isFirstInstall)
             {
+                // First run: skip the exclusive lock and run patches directly
                 var logger = Providers.Instance.GetProvider<ILogger<SnILogger>>();
                 var patchManager = new PatchManager(builder, logRecord => { logRecord.WriteTo(logger); });
-                repositoryStatus?.SetStatus("Executing patches before start");
+                repositoryStatus?.SetStatus("Executing patches before start (first run)");
                 patchManager.ExecutePatchesOnBeforeStart();
 
                 repositoryStatus?.SetStatus("Calling Repository.Start");
@@ -120,22 +125,35 @@ namespace SenseNet.ContentRepository
                 repositoryStatus?.SetStatus("Executing patches after start");
                 patchManager.ExecutePatchesOnAfterStart();
                 RepositoryVersionInfo.Reset();
+            }
+            else
+            {
+                // Normal start: run patches with existing database
+                repositoryStatus?.SetStatus("Executing patches before start (normal)");
+                var normalLogger = Providers.Instance.GetProvider<ILogger<SnILogger>>();
+                var normalPatchManager = new PatchManager(builder, logRecord => { logRecord.WriteTo(normalLogger); });
+                normalPatchManager.ExecutePatchesOnBeforeStart();
 
-                return System.Threading.Tasks.Task.CompletedTask;
-            }).GetAwaiter().GetResult();
+                repositoryStatus?.SetStatus("Calling Repository.Start (normal)");
+                repositoryInstance = Start((RepositoryStartSettings)builder);
+
+                repositoryStatus?.SetStatus("Executing patches after start (normal)");
+                normalPatchManager.ExecutePatchesOnAfterStart();
+                RepositoryVersionInfo.Reset();
+            }
 
             // generate default clients and secrets
             repositoryStatus?.SetStatus("Checking default items in ClientStore");
             var clientStore = builder.Services?.GetService<ClientStore>();
             var clientOptions = builder.Services?.GetService<IOptions<ClientStoreOptions>>()?.Value;
-            var logger = builder.Services?.GetService<ILogger<RepositoryInstance>>();
+            var clientLogger = builder.Services?.GetService<ILogger<RepositoryInstance>>();
 
-            logger?.LogInformation("Ensuring default clients and secrets...");
+            clientLogger?.LogInformation("Ensuring default clients and secrets...");
 
             clientStore?.EnsureClientsAsync(clientOptions?.Authority, clientOptions?.RepositoryUrl?.RemoveUrlSchema())
                 .GetAwaiter().GetResult();
 
-            EnsureApiKeyForAdmin(builder.Services, logger);
+            EnsureApiKeyForAdmin(builder.Services, clientLogger);
 
             if(repositoryStatus != null)
                 repositoryStatus.IsRunning = true;

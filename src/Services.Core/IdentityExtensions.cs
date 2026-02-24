@@ -8,6 +8,7 @@ using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Security.ApiKeys;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Security;
+using SenseNet.Diagnostics;
 using SenseNet.Services.Core.Authentication;
 
 // ReSharper disable once CheckNamespace
@@ -78,6 +79,17 @@ namespace SenseNet.Extensions.DependencyInjection
         {
             app.Use(async (context, next) =>
             {
+                // Guard against requests arriving before the repository has finished starting
+                // (e.g. during first-run database installation). Loading users from an empty
+                // database would return null and crash with ArgumentNullException.
+                var senseNetStatus = context.RequestServices.GetService<ISenseNetStatus>();
+                if (senseNetStatus != null && !senseNetStatus.IsRunning)
+                {
+                    context.Response.StatusCode = StatusCodes.Status503ServiceUnavailable;
+                    await context.Response.WriteAsync("Repository is starting up, please retry shortly.");
+                    return;
+                }
+
                 var identity = context?.User?.Identity;
                 IUser user = null;
 

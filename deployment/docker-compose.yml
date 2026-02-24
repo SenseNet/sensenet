@@ -147,7 +147,14 @@ services:
 
       # ── Egyéb ─────────────────────────────────────────────
       sensenet__apikeys__healthcheckeruser: "supaS3CUp4ss"
-      sensenet__install__mssql__EnableFirstInstallDB: "true"
+      sensenet__install__mssql__EnableFirstInstallDB: "false"
+
+      # ── First-run install settings (used by SenseNet installer on startup)
+      # These tell the installer how to reach and create the initial database.
+      # sensenet__install__mssql__Server: "sensenet-snsql"
+      # sensenet__install__mssql__DatabaseName: "sensenet-sndb"
+      # sensenet__install__mssql__DbCreatorUserName: "sa"
+      # sensenet__install__mssql__DbCreatorPassword: "SuP3rS3CuR3P4sSw0Rd"
 
       # ── Dev cert (mount-olt) ──────────────────────────────
       Kestrel__Certificates__Default__Path: "/root/.aspnet/https/snapp.pfx"
