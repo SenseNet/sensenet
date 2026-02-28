@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
-using Microsoft.Data.SqlClient;
 using System.Globalization;
 using System.Linq;
 using System.Text;
@@ -1418,11 +1417,11 @@ namespace SenseNet.ContentRepository.Storage.Data
                 string.Join(", ", Enumerable.Range(0, nodeTypeIds.Length).Select(i => "@Id" + i)));
 
             using var ctx = CreateDataContext(cancellationToken);
-            var result = (int)await ctx.ExecuteScalarAsync(sql, cmd =>
+            var result = Convert.ToInt32(await ctx.ExecuteScalarAsync(sql, cmd =>
             {
                 var index = 0;
                 cmd.Parameters.AddRange(nodeTypeIds.Select(i => ctx.CreateParameter("@Id" + index++, DbType.Int32, i)).ToArray());
-            }).ConfigureAwait(false);
+            }).ConfigureAwait(false));
             op.Successful = true;
 
             return result;
@@ -2366,10 +2365,10 @@ namespace SenseNet.ContentRepository.Storage.Data
                     ctx.CreateParameter("@LogDate", DbType.DateTime, auditEvent.Timestamp),
                     ctx.CreateParameter("@MachineName", DbType.AnsiString, 32, (object)auditEvent.MachineName ?? DBNull.Value),
                     ctx.CreateParameter("@AppDomainName", DbType.AnsiString, 512, (object)auditEvent.AppDomainName ?? DBNull.Value),
-                    ctx.CreateParameter("@ProcessID", DbType.AnsiString, 256, auditEvent.ProcessId),
+                    ctx.CreateParameter("@ProcessID", DbType.AnsiString, 256, auditEvent.ProcessId.ToString()),
                     ctx.CreateParameter("@ProcessName", DbType.AnsiString, 512, (object)auditEvent.ProcessName ?? DBNull.Value),
                     ctx.CreateParameter("@ThreadName", DbType.AnsiString, 512, (object)auditEvent.ThreadName ?? DBNull.Value),
-                    ctx.CreateParameter("@Win32ThreadId", DbType.AnsiString, 128, auditEvent.ThreadId),
+                    ctx.CreateParameter("@Win32ThreadId", DbType.AnsiString, 128, auditEvent.ThreadId.ToString()),
                     ctx.CreateParameter("@Message", DbType.String, 1500, (object)auditEvent.Message ?? DBNull.Value),
                     ctx.CreateParameter("@Formattedmessage", DbType.String, int.MaxValue, (object)auditEvent.FormattedMessage ?? DBNull.Value),
                 });
@@ -2478,13 +2477,13 @@ namespace SenseNet.ContentRepository.Storage.Data
                 "GetNodeCount(path: {0})", path);
 
             using var ctx = CreateDataContext(cancellationToken);
-            var result = (int)await ctx.ExecuteScalarAsync(
+            var result = Convert.ToInt32(await ctx.ExecuteScalarAsync(
                 path == null ? GetNodeCountScript : GetNodeCountInSubtreeScript,
                 cmd =>
                 {
                     if (path != null)
                         cmd.Parameters.Add(ctx.CreateParameter("@Path", DbType.String, path));
-                }).ConfigureAwait(false);
+                }).ConfigureAwait(false));
             op.Successful = true;
 
             return result;
@@ -2498,13 +2497,13 @@ namespace SenseNet.ContentRepository.Storage.Data
                 "GetVersionCount(path: {0})", path);
 
             using var ctx = CreateDataContext(cancellationToken);
-            var result = (int)await ctx.ExecuteScalarAsync(
+            var result = Convert.ToInt32(await ctx.ExecuteScalarAsync(
                 path == null ? GetVersionCountScript : GetVersionCountInSubtreeScript,
                 cmd =>
                 {
                     if (path != null)
                         cmd.Parameters.Add(ctx.CreateParameter("@Path", DbType.String, path));
-                }).ConfigureAwait(false);
+                }).ConfigureAwait(false));
             op.Successful = true;
 
             return result;
@@ -2562,11 +2561,17 @@ ELSE CAST(0 AS BIT) END";
                 var dbResult = await ctx.ExecuteScalarAsync(schemaCheckSql).ConfigureAwait(false);
                 result = Convert.ToBoolean(dbResult);
             }
-            catch (SqlException ex)
+            catch (DbException ex)
             {
                 // Cannot open database requested by the login. The login failed.
                 // This is possibly a sign that the db does not exist yet.
-                if (ex.Number is 4060 or 233)
+                // MSSQL error numbers: 4060 (cannot open database), 233 (connection error)
+                // PostgreSQL SqlState: 3D000 (invalid_catalog_name), 08006 (connection_failure), 08001 (sqlclient_unable_to_establish)
+                var numberProp = ex.GetType().GetProperty("Number");
+                if (numberProp?.GetValue(ex) is int number && number is 4060 or 233)
+                    result = false;
+                else if (ex.GetType().GetProperty("SqlState")?.GetValue(ex) is string sqlState 
+                         && sqlState is "3D000" or "08006" or "08001")
                     result = false;
                 else
                     throw;
@@ -2750,9 +2755,22 @@ ELSE CAST(0 AS BIT) END";
 
         protected virtual bool ShouldRetryOnError(Exception ex)
         {
-            //TODO: generalize the expression by relying on error codes instead of hardcoded message texts
-            return (ex is InvalidOperationException && ex.Message.Contains("connection from the pool")) ||
-                   (ex is SqlException && ex.Message.Contains("A network-related or instance-specific error occurred"));
+            if (ex is InvalidOperationException && ex.Message.Contains("connection from the pool"))
+                return true;
+
+            if (ex is DbException dbEx)
+            {
+                // Check for the IsTransient property (available on NpgsqlException and newer SqlException)
+                var isTransientProp = dbEx.GetType().GetProperty("IsTransient");
+                if (isTransientProp?.GetValue(dbEx) is bool isTransient && isTransient)
+                    return true;
+
+                // Fallback for SQL Server specific network error message
+                if (dbEx.Message.Contains("A network-related or instance-specific error occurred"))
+                    return true;
+            }
+
+            return false;
         }
     }
 }
