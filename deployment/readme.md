@@ -120,3 +120,268 @@ This switch can be used to see what processes would be executed but without actu
 ### Verbose
 
 The output is reduced by default to decrease the amount of install information. With the `-Verbose` switch all the additional technical information will be shown. For example the actual Docker command is shown that can be useful if you need to customize the installation.
+
+---
+
+## Docker Compose Setup (Linux / macOS)
+
+In addition to the PowerShell installer above, there are two **docker-compose** files for running sensenet locally with either **PostgreSQL** or **MSSQL**. These are self-contained and don't require the PowerShell scripts.
+
+### Prerequisites
+
+- Docker & Docker Compose v2+
+- A dev certificate at `./volumes/certificates/snapp.pfx` (generated once):
+
+```bash
+mkdir -p ./volumes/certificates
+dotnet dev-certs https -ep ./volumes/certificates/snapp.pfx -p SuP3rS3CuR3P4sSw0Rd
+dotnet dev-certs https --trust   # Linux: may need manual trust
+```
+
+---
+
+### PostgreSQL Stack
+
+**File:** `docker-compose.postgres.yml`
+
+| Service | Description | Host Port |
+|---------|-------------|-----------|
+| `postgres` | PostgreSQL 16 | `localhost:5532` |
+| `pgadmin` | pgAdmin 4 web UI | `http://localhost:5433` |
+| `snauth` | SnAuth identity / JWT server | `https://localhost:44311` |
+| `snapp` | sensenet API (built from local source) | `https://localhost:44362` |
+
+#### Start
+
+```bash
+docker compose -f docker-compose.postgres.yml up -d
+```
+
+The first start builds the `snapp` image from `../src` and runs the sensenet installer automatically (schema + initial content). This takes 1–3 minutes.
+
+#### Stop
+
+```bash
+docker compose -f docker-compose.postgres.yml down
+```
+
+#### Get Admin API Key
+
+```bash
+docker compose -f docker-compose.postgres.yml run --rm apikey
+```
+
+This starts a one-shot container that queries the database and prints the current admin API key:
+
+```
+══════════════════════════════════════════════════
+  🔑  Admin API Key (PostgreSQL)
+══════════════════════════════════════════════════
+  NJ1AFRTz8L1FbsJ0qyq1hToTfUiPYFh65CVIcd5kb4L...
+══════════════════════════════════════════════════
+```
+
+> **Note:** The admin API key is regenerated on every `snapp` restart.
+
+---
+
+### MSSQL Stack
+
+**File:** `docker-compose.mssql.yml`
+
+| Service | Description | Host Port |
+|---------|-------------|-----------|
+| `mssql` | SQL Server 2022 Express | `localhost:9999` |
+| `mssql-init` | Creates the `sensenet-sndb` database (runs once) | — |
+| `snauth` | SnAuth identity / JWT server | `https://localhost:44311` |
+| `snapp` | sensenet API (built from local source) | `https://localhost:44362` |
+
+#### Start
+
+```bash
+docker compose -f docker-compose.mssql.yml up -d
+```
+
+#### Stop
+
+```bash
+docker compose -f docker-compose.mssql.yml down
+```
+
+#### Get Admin API Key
+
+```bash
+docker compose -f docker-compose.mssql.yml run --rm apikey
+```
+
+---
+
+### Full Reset (DB + Index)
+
+Both compose files include a `db-reset` service under the `reset` Docker Compose profile. Running it drops the database, recreates it empty, and clears the Lucene index so that the next `snapp` start performs a fresh install.
+
+#### Manual reset (PostgreSQL)
+
+```bash
+# 1. Stop everything
+docker compose -f docker-compose.postgres.yml down
+
+# 2. Run the reset profile (drops + recreates DB, clears index)
+docker compose -f docker-compose.postgres.yml --profile reset up db-reset --abort-on-container-exit
+
+# 3. Stop reset containers
+docker compose -f docker-compose.postgres.yml --profile reset down
+
+# 4. Start fresh
+docker compose -f docker-compose.postgres.yml up -d
+```
+
+#### Manual reset (MSSQL)
+
+```bash
+docker compose -f docker-compose.mssql.yml down
+docker compose -f docker-compose.mssql.yml --profile reset up db-reset --abort-on-container-exit
+docker compose -f docker-compose.mssql.yml --profile reset down
+docker compose -f docker-compose.mssql.yml up -d
+```
+
+---
+
+## Shell Scripts (Linux / macOS)
+
+All bash scripts are in the `deployment/scripts-linux/` directory. You can run
+them from anywhere — they resolve paths relative to their own location.
+
+```bash
+cd deployment/scripts-linux
+```
+
+### Start
+
+| Script | Description |
+|--------|-------------|
+| `./start-postgres.sh` | Start the PostgreSQL stack |
+| `./start-mssql.sh` | Start the MSSQL stack |
+
+```bash
+./start-postgres.sh              # start (rebuild if image doesn't exist)
+./start-postgres.sh --build      # force rebuild snapp image
+./start-postgres.sh --no-build   # skip building, use existing image
+```
+
+Both start scripts wait up to 3 minutes for sensenet to respond with HTTP 200,
+then print all service URLs and how to get the API key.
+
+### Stop
+
+| Script | Description |
+|--------|-------------|
+| `./stop-postgres.sh` | Stop the PostgreSQL stack (data preserved) |
+| `./stop-mssql.sh` | Stop the MSSQL stack (data preserved) |
+
+```bash
+./stop-postgres.sh               # stop containers, keep database data
+./stop-postgres.sh --clean       # stop + remove Docker volumes (⚠ deletes DB!)
+```
+
+### Reset (full reinstall)
+
+| Script | Description |
+|--------|-------------|
+| `./reset-postgres.sh` | Stop → drop DB → clear index → rebuild → start |
+| `./reset-mssql.sh` | Stop → drop DB → clear index → rebuild → start |
+
+```bash
+./reset-postgres.sh              # full reset + rebuild snapp image
+./reset-postgres.sh --no-build   # reset without rebuilding the image
+```
+
+The reset scripts perform these steps:
+
+1. **Stop** all containers (including the `reset` profile)
+2. **Drop & recreate** the database via the `db-reset` container
+3. **Clear** the Lucene index (`App_Data/LocalIndex`)
+4. **Rebuild** the `snapp` Docker image from source (skip with `--no-build`)
+5. **Start** the full stack
+6. **Wait** up to 3 minutes for sensenet to respond with HTTP 200 on `/odata.svc/Root`
+
+### API Key
+
+The admin API key is **regenerated on every `snapp` restart**. Use these scripts
+to read the current key from the database:
+
+| Script | Description |
+|--------|-------------|
+| `./apikey-postgres.sh` | Read the admin API key from PostgreSQL |
+| `./apikey-mssql.sh` | Read the admin API key from MSSQL |
+
+```bash
+./apikey-postgres.sh             # print the key
+./apikey-postgres.sh --copy      # print + copy to clipboard
+./apikey-postgres.sh --bench     # print + update SnBenchmark appsettings.json
+```
+
+The `--bench` flag automatically writes the key into
+`tools/SnBenchmark/appsettings.json` so you can run the benchmark tool right
+away without manual copy-paste.
+
+> You can also use the docker-compose one-shot container:
+> `docker compose -f docker-compose.postgres.yml run --rm apikey`
+
+### Quick Reference
+
+```bash
+cd deployment/scripts-linux
+
+# ── PostgreSQL ──────────────────────────────────
+./start-postgres.sh          # start
+./stop-postgres.sh           # stop
+./reset-postgres.sh          # full reset
+./apikey-postgres.sh         # get API key
+./apikey-postgres.sh --bench # get API key + update benchmark config
+
+# ── MSSQL ───────────────────────────────────────
+./start-mssql.sh             # start
+./stop-mssql.sh              # stop
+./reset-mssql.sh             # full reset
+./apikey-mssql.sh            # get API key
+./apikey-mssql.sh --bench    # get API key + update benchmark config
+```
+
+---
+
+## Default Credentials
+
+| Service | User | Password |
+|---------|------|----------|
+| sensenet admin UI | `admin` | `admin` |
+| PostgreSQL | `postgres` | `SuP3rS3CuR3P4sSw0Rd` |
+| pgAdmin | `admin@sensenet.com` | `admin` |
+| MSSQL SA | `sa` | `SuP3rS3CuR3P4sSw0Rd` |
+
+---
+
+## File Overview
+
+```
+deployment/
+├── docker-compose.postgres.yml   PostgreSQL stack (postgres, pgadmin, snauth, snapp)
+├── docker-compose.mssql.yml      MSSQL stack (mssql, snauth, snapp)
+├── install-sensenet.ps1          Legacy PowerShell installer
+├── readme.md                     This file
+├── App_Data/                     Mounted into snapp (Lucene index, logs)
+├── scripts-linux/                Bash scripts for Linux / macOS
+│   ├── start-postgres.sh         Start the PostgreSQL stack
+│   ├── stop-postgres.sh          Stop the PostgreSQL stack
+│   ├── reset-postgres.sh         Full reset (drop DB + clear index + restart)
+│   ├── apikey-postgres.sh        Read admin API key from PostgreSQL
+│   ├── start-mssql.sh            Start the MSSQL stack
+│   ├── stop-mssql.sh             Stop the MSSQL stack
+│   ├── reset-mssql.sh            Full reset (drop DB + clear index + restart)
+│   └── apikey-mssql.sh           Read admin API key from MSSQL
+├── scripts/                      PowerShell helper scripts
+├── volumes/
+│   ├── certificates/             Dev TLS certificate (snapp.pfx)
+│   └── pgadmin/                  pgAdmin server config
+└── ...
+```

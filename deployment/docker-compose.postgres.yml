@@ -190,6 +190,40 @@ services:
       postgres:
         condition: service_healthy
 
+  # ──────────────────────────────────────────────────────────
+  #  API Key helper – kiírja az admin API key-t a konzolra
+  #  Használat:
+  #    docker compose -f docker-compose.postgres.yml run --rm apikey
+  # ──────────────────────────────────────────────────────────
+  apikey:
+    image: postgres:16
+    container_name: sensenet-apikey
+    profiles: ["tools"]
+    environment:
+      PGPASSWORD: "SuP3rS3CuR3P4sSw0Rd"
+    entrypoint: ["/bin/bash", "-c"]
+    command:
+      - |
+        KEY=$$(psql -h sensenet-postgres -U postgres -d sensenet-sndb -t -A -c \
+          "SELECT \"Value\" FROM \"AccessTokens\" WHERE \"UserId\" = 1 AND \"ExpirationDate\" > NOW() ORDER BY \"CreationDate\" DESC LIMIT 1;" 2>/dev/null)
+        if [ -n "$$KEY" ]; then
+          echo ""
+          echo "══════════════════════════════════════════════════"
+          echo "  🔑  Admin API Key (PostgreSQL)"
+          echo "══════════════════════════════════════════════════"
+          echo "  $$KEY"
+          echo "══════════════════════════════════════════════════"
+          echo ""
+        else
+          echo "❌  No API key found. Is sensenet running?"
+          exit 1
+        fi
+    networks:
+      - sensenet
+    depends_on:
+      postgres:
+        condition: service_healthy
+
 # ── Named volumes ──────────────────────────────────────────────
 volumes:
   postgres-data:

@@ -66,6 +66,42 @@ services:
           "IF NOT EXISTS (SELECT name FROM sys.databases WHERE name = 'sensenet-sndb') CREATE DATABASE [sensenet-sndb]"
 
   # ──────────────────────────────────────────────────────────
+  #  DB Reset – csak --profile reset esetén fut
+  #  Törli és újra létrehozza a sensenet-sndb adatbázist,
+  #  valamint a Lucene indexet.
+  # ──────────────────────────────────────────────────────────
+  db-reset:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: sensenet-db-reset
+    profiles: ["reset"]
+    networks:
+      - sensenet
+    depends_on:
+      mssql:
+        condition: service_healthy
+    restart: "no"
+    entrypoint: ["/bin/bash", "-c"]
+    command:
+      - |
+        echo '🗑️  Dropping database sensenet-sndb...'
+        /opt/mssql-tools18/bin/sqlcmd -S sensenet-snsql -U sa -P 'SuP3rS3CuR3P4sSw0Rd' -No -Q \
+          "IF EXISTS (SELECT name FROM sys.databases WHERE name = 'sensenet-sndb')
+           BEGIN
+             ALTER DATABASE [sensenet-sndb] SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
+             DROP DATABASE [sensenet-sndb];
+           END"
+        echo '✅  Database dropped.'
+        echo '🆕  Creating empty database sensenet-sndb...'
+        /opt/mssql-tools18/bin/sqlcmd -S sensenet-snsql -U sa -P 'SuP3rS3CuR3P4sSw0Rd' -No -Q \
+          "CREATE DATABASE [sensenet-sndb]"
+        echo '✅  Database created.'
+        echo '🗑️  Clearing Lucene index...'
+        rm -rf /app-data/LocalIndex/*
+        echo '✅  Index cleared. Fresh install will run on next snapp start.'
+    volumes:
+      - ./App_Data:/app-data
+
+  # ──────────────────────────────────────────────────────────
   #  SnAuth – identity / JWT server
   #  DockerHub: sensenetcsp/sn-auth:preview
   #  HTTPS elérhető a hoston: https://localhost:44311
@@ -166,6 +202,39 @@ services:
     depends_on:
       mssql-init:
         condition: service_completed_successfully
+
+  # ──────────────────────────────────────────────────────────
+  #  API Key helper – kiírja az admin API key-t a konzolra
+  #  Használat:
+  #    docker compose -f docker-compose.mssql.yml run --rm apikey
+  # ──────────────────────────────────────────────────────────
+  apikey:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: sensenet-apikey
+    profiles: ["tools"]
+    networks:
+      - sensenet
+    depends_on:
+      mssql:
+        condition: service_healthy
+    restart: "no"
+    entrypoint: ["/bin/bash", "-c"]
+    command:
+      - |
+        KEY=$$(/opt/mssql-tools18/bin/sqlcmd -S sensenet-snsql -U sa -P 'SuP3rS3CuR3P4sSw0Rd' -d sensenet-sndb -No -h -1 -W -Q \
+          "SET NOCOUNT ON; SELECT TOP 1 Value FROM AccessTokens WHERE UserId = 1 AND ExpirationDate > GETDATE() ORDER BY CreationDate DESC" 2>/dev/null | head -1 | tr -d '[:space:]')
+        if [ -n "$$KEY" ]; then
+          echo ""
+          echo "══════════════════════════════════════════════════"
+          echo "  🔑  Admin API Key (MSSQL)"
+          echo "══════════════════════════════════════════════════"
+          echo "  $$KEY"
+          echo "══════════════════════════════════════════════════"
+          echo ""
+        else
+          echo "❌  No API key found. Is sensenet running?"
+          exit 1
+        fi
 
 # ── Named volumes ──────────────────────────────────────────────
 volumes:
