@@ -136,7 +136,7 @@ services:
       PGPASSWORD: "SuP3rS3CuR3P4sSw0Rd"
     entrypoint: ["/bin/bash", "-c", "echo '⏳  Terminating active connections...' && psql -h sensenet-postgres -U postgres -d postgres -c \"SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = 'sensenet-sndb' AND pid <> pg_backend_pid();\" && echo '🗑️  Dropping database sensenet-sndb...' && dropdb -h sensenet-postgres -U postgres --if-exists sensenet-sndb && echo '✅  Database dropped.' && echo '🆕  Creating empty database sensenet-sndb...' && createdb -h sensenet-postgres -U postgres sensenet-sndb && echo '✅  Database created.' && echo '🗑️  Clearing Lucene index...' && rm -rf /app-data/LocalIndex/* && echo '✅  Index cleared. Fresh install will run on next snapp start.'"]
     volumes:
-      - ./App_Data:/app-data
+      - dotnet-data:/app-data
     networks:
       - sensenet
     depends_on:
@@ -183,7 +183,7 @@ services:
       - "44362:443"
     volumes:
       - ./volumes/certificates:/root/.aspnet/https:ro
-      - ./App_Data:/app/App_Data
+      - dotnet-data:/app/App_Data
     networks:
       - sensenet
     depends_on:
@@ -227,6 +227,8 @@ services:
 # ── Named volumes ──────────────────────────────────────────────
 volumes:
   postgres-data:
+    driver: local
+  dotnet-data:
     driver: local
 
 # ── Hálózat ────────────────────────────────────────────────────
