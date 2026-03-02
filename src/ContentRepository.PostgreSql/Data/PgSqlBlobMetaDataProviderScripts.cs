@@ -17,7 +17,7 @@ UPDATE ""Files"" SET ""Stream"" = NULL WHERE ""FileId"" = @FileId;
 
         #region DeleteBinaryPropertyScript
         internal const string DeleteBinaryPropertyScript = @"-- PgSqlBlobMetaDataProvider.DeleteBinaryProperty
-DELETE FROM ""BinaryProperties"" WHERE ""VersionId"" = @VersionId AND ""PropertyTypeId"" = @PropertyTypeId
+DELETE FROM ""BinaryProperties"" WHERE ""VersionId"" = @VersionId AND ""PropertyTypeId"" = @PropertyTypeId;
 ";
         #endregion
         #region InsertBinaryPropertyScript
