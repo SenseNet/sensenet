@@ -216,21 +216,16 @@ INSERT INTO ""LongTextProperties""
 -- Set older locked versions to Draft
 UPDATE ""Versions"" SET ""Status"" = 4 WHERE ""NodeId"" = @NodeId AND ""Status"" = 2;
 
--- Insert or update version
-WITH target_version AS (
-    -- Insert new version if @DestinationVersionId is NULL
-    INSERT INTO ""Versions""
-        (""NodeId"", ""MajorNumber"", ""MinorNumber"", ""CreationDate"", ""CreatedById"",
-         ""ModificationDate"", ""ModifiedById"", ""Status"", ""ChangedData"",
-         ""DynamicProperties"", ""ContentListProperties"")
-    SELECT
-        @NodeId, @MajorNumber, @MinorNumber, @CreationDate, @CreatedById,
-        @ModificationDate, @ModifiedById, @Status, @ChangedData,
-        @DynamicProperties, @ContentListProperties
-    WHERE @DestinationVersionId IS NULL
-    RETURNING ""VersionId"", ""Timestamp""
-)
-SELECT ""VersionId"", ""Timestamp"" FROM target_version;
+-- Insert new version if @DestinationVersionId is NULL
+INSERT INTO ""Versions""
+    (""NodeId"", ""MajorNumber"", ""MinorNumber"", ""CreationDate"", ""CreatedById"",
+     ""ModificationDate"", ""ModifiedById"", ""Status"", ""ChangedData"",
+     ""DynamicProperties"", ""ContentListProperties"")
+SELECT
+    @NodeId, @MajorNumber, @MinorNumber, @CreationDate, @CreatedById,
+    @ModificationDate, @ModifiedById, @Status, @ChangedData,
+    @DynamicProperties, @ContentListProperties
+WHERE @DestinationVersionId IS NULL;
 
 -- If @DestinationVersionId is not NULL, update existing version
 UPDATE ""Versions"" SET
@@ -246,7 +241,11 @@ UPDATE ""Versions"" SET
     ""DynamicProperties"" = @DynamicProperties,
     ""ContentListProperties"" = @ContentListProperties
 WHERE ""VersionId"" = @DestinationVersionId AND @DestinationVersionId IS NOT NULL
-RETURNING ""VersionId"", ""Timestamp"";
+;
+
+-- Return version info (result set 1)
+SELECT ""VersionId"", ""Timestamp"" FROM ""Versions""
+WHERE ""VersionId"" = COALESCE(@DestinationVersionId, currval('""Versions_VersionId_seq""'));
 
 -- Copy properties from previous version
 INSERT INTO ""BinaryProperties"" (""VersionId"", ""PropertyTypeId"", ""FileId"")
