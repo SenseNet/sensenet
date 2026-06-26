@@ -71,6 +71,7 @@ namespace SenseNet.ContentRepository.Storage
                     if (lockIds[i] == 0)
                     {
                         var msg = "Cannot acquire a tree lock for " + paths[i];
+                        await WriteBlockingLocksAsync(paths[i]).ConfigureAwait(false);
                         SnTrace.ContentOperation.Write("TreeLock: " + msg);
                         throw new LockedTreeException(msg);
                     }
@@ -107,6 +108,37 @@ namespace SenseNet.ContentRepository.Storage
 
             await _dataStore.ReleaseTreeLockAsync(existingLockIds, CancellationToken.None).ConfigureAwait(false);
         }
+
+        private async Task WriteBlockingLocksAsync(string path)
+        {
+            try
+            {
+                var locks = await _dataStore.LoadAllTreeLocksAsync(CancellationToken.None).ConfigureAwait(false);
+                var blockingLocks = locks
+                    .Where(x => IsBlocking(path, x.Value))
+                    .Select(x => $"{x.Key}:{x.Value}")
+                    .ToArray();
+
+                SnTrace.ContentOperation.Write("TreeLock: Blocking locks for {0}: {1}",
+                    path, blockingLocks.Length == 0 ? "[none]" : string.Join(", ", blockingLocks));
+            }
+            catch (System.Exception e)
+            {
+                _logger.LogWarning(e, "Could not load blocking tree locks for {Path}.", path);
+            }
+        }
+
+        private static bool IsBlocking(string requestedPath, string lockedPath)
+        {
+            return IsSameOrAncestor(requestedPath, lockedPath) || IsSameOrAncestor(lockedPath, requestedPath);
+        }
+
+        private static bool IsSameOrAncestor(string path, string ancestorPath)
+        {
+            return path.Equals(ancestorPath, System.StringComparison.OrdinalIgnoreCase) ||
+                   path.StartsWith(ancestorPath + "/", System.StringComparison.OrdinalIgnoreCase);
+        }
+
         public async Task AssertFreeAsync(CancellationToken cancellationToken, params string[] paths)
         {
             SnTrace.ContentOperation.Write("TreeLock: Checking {0}", string.Join(", ", paths));
