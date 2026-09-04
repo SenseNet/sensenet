@@ -9,36 +9,37 @@ repositories must be built by workflows in those repositories.
 | Workflow | Responsibility |
 | --- | --- |
 | `_docker-build-image.yml` | Reusable checkout, validation, metadata, Buildx build, Docker Hub login, and optional push |
-| `docker-sensenet-images.yml` | Five images whose source and Dockerfile are in this repository |
-| `docker-postgres-image.yml` | Branch-bound PostgreSQL API image |
+| `docker-sensenet-images.yml` | Builds every image whose source and Dockerfile are available in the selected revision |
 
 All Dockerfiles in the audited definitions expect the repository's `src`
 directory as their Docker build context.
 
 ## Image inventory
 
-| Image | Source | Dockerfile | Trigger in this draft |
+| Image | Source | Dockerfile | Build condition |
 | --- | --- | --- | --- |
-| `sensenetcsp/sn-api-inmem` | `SenseNet/sensenet` | `src/WebApps/SnWebApplication.Api.InMem.TokenAuth/Dockerfile` | push/PR on `develop` or `master`; manual |
-| `sensenetcsp/sn-api-sql` | `SenseNet/sensenet` | `src/WebApps/SnWebApplication.Api.Sql.TokenAuth/Dockerfile` | push/PR on `develop` or `master`; manual |
-| `sensenetcsp/sn-api-nlb` | `SenseNet/sensenet` | `src/WebApps/SnWebApplication.Api.Sql.SearchService.TokenAuth/Dockerfile` | push/PR on `develop` or `master`; manual |
-| `sensenetcsp/sn-api-sql-prv` | `SenseNet/sensenet` | `src/WebApps/SnWebApplication.Api.Sql.TokenAuth.Preview/Dockerfile` | push/PR on `develop` or `master`; manual |
-| `sensenetcsp/sn-api-nlb-prv` | `SenseNet/sensenet` | `src/WebApps/SnWebApplication.Api.Sql.SearchService.TokenAuth.Preview/Dockerfile` | push/PR on `develop` or `master`; manual |
-| `sensenetcsp/sn-api-postgre` | `SenseNet/sensenet@postgres-provider` | `src/WebApps/SnWebApplication.Api.PostgreSql.TokenAuth/Dockerfile` | push on `postgres-provider`; matching PR; manual |
+| `sensenetcsp/sn-api-inmem` | `SenseNet/sensenet` | `src/WebApps/SnWebApplication.Api.InMem.TokenAuth/Dockerfile` | when available in the workflow revision |
+| `sensenetcsp/sn-api-sql` | `SenseNet/sensenet` | `src/WebApps/SnWebApplication.Api.Sql.TokenAuth/Dockerfile` | when available in the workflow revision |
+| `sensenetcsp/sn-api-nlb` | `SenseNet/sensenet` | `src/WebApps/SnWebApplication.Api.Sql.SearchService.TokenAuth/Dockerfile` | when available in the workflow revision |
+| `sensenetcsp/sn-api-sql-prv` | `SenseNet/sensenet` | `src/WebApps/SnWebApplication.Api.Sql.TokenAuth.Preview/Dockerfile` | when available in the workflow revision |
+| `sensenetcsp/sn-api-nlb-prv` | `SenseNet/sensenet` | `src/WebApps/SnWebApplication.Api.Sql.SearchService.TokenAuth.Preview/Dockerfile` | when available in the workflow revision |
+| `sensenetcsp/sn-api-postgre` | `SenseNet/sensenet` | `src/WebApps/SnWebApplication.Api.PostgreSql.TokenAuth/Dockerfile` | when available in the workflow revision |
 
 ## Publication rules
 
+- Pushes to `develop`, `master`, and `postgres-provider` run the workflow;
+  pull requests targeting `develop` or `master` run build-only validation.
 - Pull requests build but never log in or push.
 - Manual runs do not push unless `push_image` is explicitly enabled.
 - Manual runs build the branch selected in GitHub's **Run workflow** dialog.
+- By default, a run builds every listed image whose Dockerfile exists in the
+  selected revision. Manual runs may select one available image instead.
 - Publishing runs retain the legacy TFS build-date tag: `develop.YYYY.MM.DD`
   on `develop`, `YYYY.MM.DD` on `master`/`main`, and
   `<branch>.YYYY.MM.DD` on other branches. They also publish a source-branch
   tag and the immutable `YYYYMMDD-shortSHA` tag.
 - Pushes to `develop` also publish `preview`.
 - Pushes to `master` also publish `latest`.
-- PostgreSQL publishes its branch tag, branch/date compatibility tag, and
-  source version tag. It does not overwrite `preview` or `latest`.
 
 Repository secrets expected by publishing jobs:
 

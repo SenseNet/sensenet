@@ -5,6 +5,7 @@ on:
     branches:
       - develop
       - master
+      - postgres-provider
     paths:
       - src/**
       - .github/workflows/_docker-build-image.yml
@@ -21,7 +22,7 @@ on:
   workflow_dispatch:
     inputs:
       image:
-        description: Image to build.
+        description: Image to build, if available on the selected branch.
         required: true
         default: all
         type: choice
@@ -32,6 +33,7 @@ on:
           - nlb
           - sql-preview
           - nlb-preview
+          - postgres
       push_image:
         description: Push built images to Docker Hub.
         required: false
@@ -58,6 +60,11 @@ jobs:
       matrix: ${{ steps.matrix.outputs.matrix }}
 
     steps:
+      - name: Check out source
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
       - name: Create build matrix
         id: matrix
         shell: bash
@@ -67,30 +74,46 @@ jobs:
           set -euo pipefail
 
           case "${SELECTED_IMAGE}" in
-            all)
-              MATRIX='{"include":[{"id":"inmem","image":"sensenetcsp/sn-api-inmem","dockerfile":"./src/WebApps/SnWebApplication.Api.InMem.TokenAuth/Dockerfile"},{"id":"sql","image":"sensenetcsp/sn-api-sql","dockerfile":"./src/WebApps/SnWebApplication.Api.Sql.TokenAuth/Dockerfile"},{"id":"nlb","image":"sensenetcsp/sn-api-nlb","dockerfile":"./src/WebApps/SnWebApplication.Api.Sql.SearchService.TokenAuth/Dockerfile"},{"id":"sql-preview","image":"sensenetcsp/sn-api-sql-prv","dockerfile":"./src/WebApps/SnWebApplication.Api.Sql.TokenAuth.Preview/Dockerfile"},{"id":"nlb-preview","image":"sensenetcsp/sn-api-nlb-prv","dockerfile":"./src/WebApps/SnWebApplication.Api.Sql.SearchService.TokenAuth.Preview/Dockerfile"}]}'
-              ;;
-            inmem)
-              MATRIX='{"include":[{"id":"inmem","image":"sensenetcsp/sn-api-inmem","dockerfile":"./src/WebApps/SnWebApplication.Api.InMem.TokenAuth/Dockerfile"}]}'
-              ;;
-            sql)
-              MATRIX='{"include":[{"id":"sql","image":"sensenetcsp/sn-api-sql","dockerfile":"./src/WebApps/SnWebApplication.Api.Sql.TokenAuth/Dockerfile"}]}'
-              ;;
-            nlb)
-              MATRIX='{"include":[{"id":"nlb","image":"sensenetcsp/sn-api-nlb","dockerfile":"./src/WebApps/SnWebApplication.Api.Sql.SearchService.TokenAuth/Dockerfile"}]}'
-              ;;
-            sql-preview)
-              MATRIX='{"include":[{"id":"sql-preview","image":"sensenetcsp/sn-api-sql-prv","dockerfile":"./src/WebApps/SnWebApplication.Api.Sql.TokenAuth.Preview/Dockerfile"}]}'
-              ;;
-            nlb-preview)
-              MATRIX='{"include":[{"id":"nlb-preview","image":"sensenetcsp/sn-api-nlb-prv","dockerfile":"./src/WebApps/SnWebApplication.Api.Sql.SearchService.TokenAuth.Preview/Dockerfile"}]}'
-              ;;
+            all|inmem|sql|nlb|sql-preview|nlb-preview|postgres) ;;
             *)
               echo "::error::Unsupported image selection: ${SELECTED_IMAGE}"
               exit 1
               ;;
           esac
 
+          ENTRIES=()
+          while IFS='|' read -r ID IMAGE DOCKERFILE; do
+            if [[ "${SELECTED_IMAGE}" != 'all' && "${SELECTED_IMAGE}" != "${ID}" ]]; then
+              continue
+            fi
+
+            if [[ ! -f "${DOCKERFILE}" ]]; then
+              if [[ "${SELECTED_IMAGE}" == "${ID}" ]]; then
+                echo "::error::The selected image is not available on this branch: ${DOCKERFILE}"
+                exit 1
+              fi
+
+              echo "::notice::Skipping ${ID}; Dockerfile is not available on this branch."
+              continue
+            fi
+
+            ENTRIES+=("{\"id\":\"${ID}\",\"image\":\"${IMAGE}\",\"dockerfile\":\"${DOCKERFILE}\"}")
+          done <<'IMAGES'
+          inmem|sensenetcsp/sn-api-inmem|./src/WebApps/SnWebApplication.Api.InMem.TokenAuth/Dockerfile
+          sql|sensenetcsp/sn-api-sql|./src/WebApps/SnWebApplication.Api.Sql.TokenAuth/Dockerfile
+          nlb|sensenetcsp/sn-api-nlb|./src/WebApps/SnWebApplication.Api.Sql.SearchService.TokenAuth/Dockerfile
+          sql-preview|sensenetcsp/sn-api-sql-prv|./src/WebApps/SnWebApplication.Api.Sql.TokenAuth.Preview/Dockerfile
+          nlb-preview|sensenetcsp/sn-api-nlb-prv|./src/WebApps/SnWebApplication.Api.Sql.SearchService.TokenAuth.Preview/Dockerfile
+          postgres|sensenetcsp/sn-api-postgre|./src/WebApps/SnWebApplication.Api.PostgreSql.TokenAuth/Dockerfile
+          IMAGES
+
+          if (( ${#ENTRIES[@]} == 0 )); then
+            echo "::error::No Docker image source is available for the selected revision."
+            exit 1
+          fi
+
+          printf -v JOINED_ENTRIES '%s,' "${ENTRIES[@]}"
+          MATRIX="{\"include\":[${JOINED_ENTRIES%,}]}"
           echo "matrix=${MATRIX}" >> "${GITHUB_OUTPUT}"
 
   build:
