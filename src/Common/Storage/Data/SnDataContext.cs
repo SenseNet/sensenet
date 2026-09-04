@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Data;
 using System.Data.Common;
-using Microsoft.Data.SqlClient;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Transactions;
@@ -53,7 +52,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         public abstract DbCommand CreateCommand();
         public abstract DbParameter CreateParameter();
 
-        public DbParameter CreateParameter(string name, DbType dbType, object value)
+        public virtual DbParameter CreateParameter(string name, DbType dbType, object value)
         {
             var prm = CreateParameter();
             prm.ParameterName = name;
@@ -61,7 +60,7 @@ namespace SenseNet.ContentRepository.Storage.Data
             prm.Value = value;
             return prm;
         }
-        public DbParameter CreateParameter(string name, DbType dbType, int size, object value)
+        public virtual DbParameter CreateParameter(string name, DbType dbType, int size, object value)
         {
             var prm = CreateParameter();
             prm.ParameterName = name;
@@ -191,8 +190,22 @@ namespace SenseNet.ContentRepository.Storage.Data
         internal static bool ShouldRetryOnError(Exception ex)
         {
             //TODO: generalize the expression by relying on error codes instead of hardcoded message texts
-            return (ex is InvalidOperationException && ex.Message.Contains("connection from the pool")) ||
-                   (ex is SqlException && ex.Message.Contains("A network-related or instance-specific error occurred"));
+            if (ex is InvalidOperationException && ex.Message.Contains("connection from the pool"))
+                return true;
+
+            if (ex is DbException dbEx)
+            {
+                // Check for the IsTransient property (available on NpgsqlException and newer SqlException)
+                var isTransientProp = dbEx.GetType().GetProperty("IsTransient");
+                if (isTransientProp?.GetValue(dbEx) is bool isTransient && isTransient)
+                    return true;
+
+                // Fallback for SQL Server specific network error message
+                if (dbEx.Message.Contains("A network-related or instance-specific error occurred"))
+                    return true;
+            }
+
+            return false;
         }
 
         protected string GetOperationMessage(string name, string script)

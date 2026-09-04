@@ -1,0 +1,239 @@
+# ============================================================
+#  Sensenet lokális fejlesztői docker-compose (PostgreSQL)
+# ============================================================
+#  Szolgáltatások:
+#    postgres - PostgreSQL 16 (named volume)
+#    pgadmin  - pgAdmin 4 (webes felület)
+#    snauth   - SnAuth identity server (DockerHub image)
+#    snapp    - Sensenet API (lokális forrásból build-elt image)
+#
+# ── Dev-cert generálása (csak egyszer szükséges) ──────────────
+#    mkdir -p ./volumes/certificates
+#    dotnet dev-certs https -ep ./volumes/certificates/snapp.pfx \
+#           -p SuP3rS3CuR3P4sSw0Rd
+#    dotnet dev-certs https --trust
+#
+# ── Indítás ───────────────────────────────────────────────────
+#    docker compose -f docker-compose.postgres.yml up -d
+#
+# ── Tiszta újratelepítés (DB törlés + index törlés) ──────────
+#    docker compose -f docker-compose.postgres.yml --profile reset up -d
+# ============================================================
+
+services:
+
+  # ──────────────────────────────────────────────────────────
+  #  PostgreSQL 16
+  #  Elérhető a hoston: localhost,5532
+  # ──────────────────────────────────────────────────────────
+  postgres:
+    image: postgres:16
+    container_name: sensenet-postgres
+    command: ["postgres", "-c", "max_connections=300"]
+    environment:
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "SuP3rS3CuR3P4sSw0Rd"
+      POSTGRES_DB: "sensenet-sndb"
+    ports:
+      - "5532:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - sensenet
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d sensenet-sndb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  # ──────────────────────────────────────────────────────────
+  #  pgAdmin 4
+  #  Elérhető a hoston: http://localhost:5433
+  # ──────────────────────────────────────────────────────────
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: sensenet-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: "admin@sensenet.com"
+      PGADMIN_DEFAULT_PASSWORD: "admin"
+      PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: "False"
+      PGADMIN_SERVER_JSON_FILE: "/pgadmin4/servers.json"
+      PGADMIN_REPLACE_SERVERS_ON_STARTUP: "True"
+    entrypoint: >
+      /bin/sh -c "
+      /venv/bin/python3 /pgadmin4/setup-password.py &
+      exec /entrypoint.sh"
+    ports:
+      - "5433:80"
+    volumes:
+      - ./volumes/pgadmin/servers.json:/pgadmin4/servers.json:ro
+      - ./volumes/pgadmin/setup-password.py:/pgadmin4/setup-password.py:ro
+    networks:
+      - sensenet
+    depends_on:
+      - postgres
+
+  # ──────────────────────────────────────────────────────────
+  #  SnAuth – identity / JWT server
+  #  DockerHub: sensenetcsp/sn-auth:preview
+  #  HTTPS elérhető a hoston: https://localhost:44311
+  # ──────────────────────────────────────────────────────────
+  snauth:
+    image: sensenetcsp/sn-auth:preview
+    container_name: sensenet-snis
+    environment:
+      ASPNETCORE_URLS: "https://+:443;http://+:80"
+      ASPNETCORE_ENVIRONMENT: "Development"
+
+      # ── Sensenet repository (container-to-container) ─────
+      Sensenet__Repository__Url: "https://localhost:44362"
+      Sensenet__Repository__InnerUrl: "http://sensenet-snapp"
+      Sensenet__Repository__Authentication__ApiKey: "pr3Gen3R4Tedpr3Gen3R4Tedpr3Gen3R4Tedpr3Gen3R4Tedpr3Gen3R4Tedpr3Gen3R4Tedpr3Gen3R4Ted"
+
+      # ── JWT beállítások ───────────────────────────────────
+      JwtSettings__Issuer: "https://localhost:44311"
+      JwtSettings__Audience: "sensenet"
+      JwtSettings__SecretKey: "pr3Gen3R4Tedpr3Gen3R4Tedpr3Gen3R4Ted"
+      JwtSettings__AuthTokenExpiryMinutes: "300"
+      JwtSettings__MultiFactorAuthExpiryMinutes: "300"
+      JwtSettings__TokenExpiryMinutes: "300"
+      JwtSettings__RefreshTokenExpiryDays: "15"
+      PasswordRecovery__TokenExpiryMinutes: "60"
+      Registration__IsEnabled: "false"
+      Recaptcha__SiteKey: ""
+      Recaptcha__SecretKey: ""
+
+      # ── Alkalmazás / CORS ─────────────────────────────────
+      Application__Url: "https://localhost:44311"
+      Application__AllowedHosts__0: "https://adminui.test.sensenet.com"
+      Application__AllowedHosts__1: "https://localhost:44362"
+      Application__AllowedHosts__2: "http://sensenet-snapp"
+
+      # ── Dev cert (mount-olt) ──────────────────────────────
+      Kestrel__Certificates__Default__Path: "/root/.aspnet/https/snapp.pfx"
+      Kestrel__Certificates__Default__Password: "SuP3rS3CuR3P4sSw0Rd"
+
+    ports:
+      - "44311:443"
+    volumes:
+      - ./volumes/certificates:/root/.aspnet/https:ro
+    networks:
+      - sensenet
+    depends_on:
+      snapp:
+        condition: service_started
+
+  # ──────────────────────────────────────────────────────────
+  #  DB Reset – csak --profile reset esetén fut
+  #  Törli és újra létrehozza a sensenet-sndb adatbázist,
+  #  valamint a Lucene indexet.
+  # ──────────────────────────────────────────────────────────
+  db-reset:
+    image: postgres:16
+    container_name: sensenet-db-reset
+    profiles: ["reset"]
+    environment:
+      PGPASSWORD: "SuP3rS3CuR3P4sSw0Rd"
+    entrypoint: ["/bin/bash", "-c", "echo '⏳  Terminating active connections...' && psql -h sensenet-postgres -U postgres -d postgres -c \"SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = 'sensenet-sndb' AND pid <> pg_backend_pid();\" && echo '🗑️  Dropping database sensenet-sndb...' && dropdb -h sensenet-postgres -U postgres --if-exists sensenet-sndb && echo '✅  Database dropped.' && echo '🆕  Creating empty database sensenet-sndb...' && createdb -h sensenet-postgres -U postgres sensenet-sndb && echo '✅  Database created.' && echo '🗑️  Clearing Lucene index...' && rm -rf /app-data/LocalIndex/* && echo '✅  Index cleared. Fresh install will run on next snapp start.'"]
+    volumes:
+      - dotnet-data:/app-data
+    networks:
+      - sensenet
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  # ──────────────────────────────────────────────────────────
+  #  Sensenet API – lokális forrásból build-elt image
+  #  Build context: ../src  (a Dockerfile innen dolgozik)
+  #  HTTPS elérhető a hoston: https://localhost:44362
+  # ──────────────────────────────────────────────────────────
+  snapp:
+    build:
+      context: ../src
+      dockerfile: WebApps/SnWebApplication.Api.PostgreSql.TokenAuth/Dockerfile
+    pull_policy: build
+    container_name: sensenet-snapp
+    environment:
+      ASPNETCORE_URLS: "https://+:443;http://+:80"
+      ASPNETCORE_ENVIRONMENT: "Development"
+
+      # ── Adatbázis (postgres container) ───────────────────────
+      ConnectionStrings__SensenetRepository: "Host=sensenet-postgres;Database=sensenet-sndb;Username=postgres;Password=SuP3rS3CuR3P4sSw0Rd;Maximum Pool Size=200;Connection Idle Lifetime=60;Connection Pruning Interval=10"
+      
+      # ── SNAuth beállítások ────────────────────────────────
+      sensenet__authentication__authServerType: "SNAuth"
+      sensenet__authentication__authority: "https://localhost:44311"
+      sensenet__authentication__metadatahost: "http://sensenet-snis"
+      sensenet__authentication__repositoryUrl: "https://localhost:44362"
+      sensenet__authentication__AddJwtCookie: "false"
+      sensenet__identityManagement__UserProfilesEnabled: "false"
+      sensenet__repository__Authentication__ApiKey: "pr3Gen3R4Tedpr3Gen3R4Tedpr3Gen3R4Tedpr3Gen3R4Tedpr3Gen3R4Tedpr3Gen3R4Tedpr3Gen3R4Ted"
+
+      # ── Egyéb ─────────────────────────────────────────────
+      sensenet__apikeys__healthcheckeruser: "supaS3CUp4ss"
+      sensenet__install__postgres__EnableFirstInstallDB: "true"
+      sensenet__indexing__IndexDirectoryPath: "/app/App_Data/LocalIndex"
+      sensenet__Retrier__Count: "1"
+
+      # ── Dev cert (mount-olt) ──────────────────────────────
+      Kestrel__Certificates__Default__Path: "/root/.aspnet/https/snapp.pfx"
+      Kestrel__Certificates__Default__Password: "SuP3rS3CuR3P4sSw0Rd"
+
+    ports:
+      - "44362:443"
+    volumes:
+      - ./volumes/certificates:/root/.aspnet/https:ro
+      - dotnet-data:/app/App_Data
+    networks:
+      - sensenet
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  # ──────────────────────────────────────────────────────────
+  #  API Key helper – kiírja az admin API key-t a konzolra
+  #  Használat:
+  #    docker compose -f docker-compose.postgres.yml run --rm apikey
+  # ──────────────────────────────────────────────────────────
+  apikey:
+    image: postgres:16
+    container_name: sensenet-apikey
+    profiles: ["tools"]
+    environment:
+      PGPASSWORD: "SuP3rS3CuR3P4sSw0Rd"
+    entrypoint: ["/bin/bash", "-c"]
+    command:
+      - |
+        KEY=$$(psql -h sensenet-postgres -U postgres -d sensenet-sndb -t -A -c \
+          "SELECT \"Value\" FROM \"AccessTokens\" WHERE \"UserId\" = 1 AND \"ExpirationDate\" > NOW() ORDER BY \"CreationDate\" DESC LIMIT 1;" 2>/dev/null)
+        if [ -n "$$KEY" ]; then
+          echo ""
+          echo "══════════════════════════════════════════════════"
+          echo "  🔑  Admin API Key (PostgreSQL)"
+          echo "══════════════════════════════════════════════════"
+          echo "  $$KEY"
+          echo "══════════════════════════════════════════════════"
+          echo ""
+        else
+          echo "❌  No API key found. Is sensenet running?"
+          exit 1
+        fi
+    networks:
+      - sensenet
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+# ── Named volumes ──────────────────────────────────────────────
+volumes:
+  postgres-data:
+    driver: local
+  dotnet-data:
+    driver: local
+
+# ── Hálózat ────────────────────────────────────────────────────
+networks:
+  sensenet:
+    driver: bridge

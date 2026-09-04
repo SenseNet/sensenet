@@ -20,6 +20,11 @@ on:
         description: Unique GitHub Actions cache scope for this image.
         required: true
         type: string
+      prepare_install_package:
+        description: Build the embedded SenseNet install package before the Docker build.
+        required: false
+        default: false
+        type: boolean
       branch_tag:
         description: Optional source branch tag.
         required: false
@@ -140,6 +145,11 @@ jobs:
           echo "short_sha=${SHORT_SHA}" >> "${GITHUB_OUTPUT}"
           echo "version_tag=${VERSION_TAG}" >> "${GITHUB_OUTPUT}"
           echo "compatibility_tag=${COMPATIBILITY_TAG}" >> "${GITHUB_OUTPUT}"
+
+      - name: Prepare SenseNet install package
+        if: inputs.prepare_install_package
+        shell: pwsh
+        run: ./src/Services.Core.Install/scripts/CompressInstall.ps1
 
       - name: Set up Docker metadata
         id: meta
