@@ -230,6 +230,60 @@ namespace SenseNet.ContentRepository.Tests
             });
         }
 
+        [TestMethod]
+        public async STT.Task TreeLock_CanceledAcquireReleasesLocks()
+        {
+            await Test(async () =>
+            {
+                var locks = await TreeLock.GetAllLocksAsync(CancellationToken.None);
+                Assert.AreEqual(0, locks.Count);
+
+                using var cts = new CancellationTokenSource();
+                var acquireTask = TreeLock.AcquireAsync(cts.Token, "/Root/A/B/C");
+                cts.Cancel();
+
+                try
+                {
+                    using (await acquireTask.ConfigureAwait(false))
+                    {
+                        // The acquire may complete before the cancellation is observed.
+                    }
+                }
+                catch (System.OperationCanceledException)
+                {
+                    // expected when cancellation wins the race
+                }
+
+                locks = await TreeLock.GetAllLocksAsync(CancellationToken.None);
+                Assert.AreEqual(0, locks.Count);
+            });
+        }
+
+        [TestMethod]
+        public async STT.Task TreeLock_PartialAcquireFailureReleasesAcquiredLocks()
+        {
+            await Test(async () =>
+            {
+                using (await TreeLock.AcquireAsync(CancellationToken.None, "/Root/A/B/C"))
+                {
+                    try
+                    {
+                        await TreeLock.AcquireAsync(CancellationToken.None, "/Root/X", "/Root/A/B/C/D");
+                        Assert.Fail("LockedTreeException was not thrown.");
+                    }
+                    catch (LockedTreeException)
+                    {
+                        // expected
+                    }
+
+                    var locks = await TreeLock.GetAllLocksAsync(CancellationToken.None);
+                    Assert.AreEqual(1, locks.Count);
+                    Assert.IsTrue(locks.ContainsValue("/Root/A/B/C"));
+                    Assert.IsFalse(locks.ContainsValue("/Root/X"));
+                }
+            });
+        }
+
         private bool IsLocked(string path)
         {
             try
