@@ -17,11 +17,6 @@ on:
       - src/WebApps/SnWebApplication.Api.PostgreSql.TokenAuth/**
   workflow_dispatch:
     inputs:
-      source_ref:
-        description: Optional source branch, tag, or commit. Empty uses the selected workflow ref.
-        required: false
-        default: ''
-        type: string
       push_image:
         description: Push the built image to Docker Hub.
         required: false
@@ -46,12 +41,11 @@ jobs:
     if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
     uses: ./.github/workflows/_docker-build-image.yml
     with:
-      source_ref: ${{ github.event_name == 'workflow_dispatch' && inputs.source_ref != '' && inputs.source_ref || github.sha }}
       context: ./src
       dockerfile: ./src/WebApps/SnWebApplication.Api.PostgreSql.TokenAuth/Dockerfile
       image: sensenetcsp/sn-api-postgre
       cache_scope: sensenet-postgres
-      branch_tag: ${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || github.event_name == 'workflow_dispatch' && inputs.source_ref != '' && inputs.source_ref || github.ref_name }}
+      branch_tag: ${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || github.ref_name }}
       custom_tag: ${{ github.event_name == 'workflow_dispatch' && inputs.custom_tag || '' }}
       push_image: ${{ github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.push_image) }}
     secrets:

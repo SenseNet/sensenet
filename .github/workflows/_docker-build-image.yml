@@ -3,10 +3,6 @@ name: Reusable Docker image build
 on:
   workflow_call:
     inputs:
-      source_ref:
-        description: Exact branch, tag, or commit to check out.
-        required: true
-        type: string
       context:
         description: Docker build context, relative to the checked-out repository.
         required: false
@@ -89,7 +85,6 @@ jobs:
       - name: Check out source
         uses: actions/checkout@v6
         with:
-          ref: ${{ inputs.source_ref }}
           fetch-depth: 0
           persist-credentials: false
 

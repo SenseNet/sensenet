@@ -20,11 +20,6 @@ on:
       - .github/workflows/docker-sensenet-images.yml
   workflow_dispatch:
     inputs:
-      source_ref:
-        description: Optional source branch, tag, or commit. Empty uses the selected workflow ref.
-        required: false
-        default: ''
-        type: string
       image:
         description: Image to build.
         required: true
@@ -107,12 +102,11 @@ jobs:
       matrix: ${{ fromJSON(needs.plan.outputs.matrix) }}
     uses: ./.github/workflows/_docker-build-image.yml
     with:
-      source_ref: ${{ github.event_name == 'workflow_dispatch' && inputs.source_ref != '' && inputs.source_ref || github.sha }}
       context: ./src
       dockerfile: ${{ matrix.dockerfile }}
       image: ${{ matrix.image }}
       cache_scope: sensenet-${{ matrix.id }}
-      branch_tag: ${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || github.event_name == 'workflow_dispatch' && inputs.source_ref != '' && inputs.source_ref || github.ref_name }}
+      branch_tag: ${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || github.ref_name }}
       floating_tag: ${{ github.event_name == 'push' && github.ref_name == 'develop' && 'preview' || github.event_name == 'push' && github.ref_name == 'master' && 'latest' || '' }}
       custom_tag: ${{ github.event_name == 'workflow_dispatch' && inputs.custom_tag || '' }}
       push_image: ${{ github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.push_image) }}

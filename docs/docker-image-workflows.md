@@ -30,10 +30,7 @@ directory as their Docker build context.
 
 - Pull requests build but never log in or push.
 - Manual runs do not push unless `push_image` is explicitly enabled.
-- Manual runs can use the branch selected in GitHub's **Run workflow** dialog,
-  or override it with any source branch, tag, or commit through `source_ref`.
-  This also lets the default-branch workflow build an older branch that does
-  not contain the workflow files itself.
+- Manual runs build the branch selected in GitHub's **Run workflow** dialog.
 - Publishing runs retain the legacy TFS build-date tag: `develop.YYYY.MM.DD`
   on `develop`, `YYYY.MM.DD` on `master`/`main`, and
   `<branch>.YYYY.MM.DD` on other branches. They also publish a source-branch
