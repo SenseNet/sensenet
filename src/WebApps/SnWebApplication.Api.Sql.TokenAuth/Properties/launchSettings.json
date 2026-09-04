@@ -31,14 +31,13 @@
       "applicationUrl": "https://localhost:44362",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development",
-        "ConnectionStrings__SnCrMsSql": "Data Source=localhost,9998;Initial Catalog=sensenet-insql-cdb-vs-sndb;User ID=sa;Password=SuP3rS3CuR3P4sSw0Rd;TrustServerCertificate=True",
+        "ConnectionStrings__SnCrMsSql": "Data Source=localhost,9999;Initial Catalog=sensenet-insql-cdb-vs-sndb;User ID=sa;Password=SuP3rS3CuR3P4sSw0Rd;TrustServerCertificate=True",
         "sensenet__apikeys__healthcheckeruser": "supaS3CUp4ss",
         "sensenet__authentication__repositoryUrl": "https://localhost:44362",
         "sensenet__authentication__authority": "https://localhost:44311",
         "sensenet__authentication__authServerType": "SNAuth",
         "sensenet__authentication__AddJwtCookie": "false",
-        "sensenet__identityManagement__UserProfilesEnabled": "false",
-        "sensenet__repository__Authentication__ApiKey": "--to-be-set--"
+        "sensenet__identityManagement__UserProfilesEnabled": "false"
       }
     },
     "Docker": {
