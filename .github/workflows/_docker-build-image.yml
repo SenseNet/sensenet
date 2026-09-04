@@ -1,0 +1,168 @@
+name: Reusable Docker image build
+
+on:
+  workflow_call:
+    inputs:
+      source_ref:
+        description: Exact branch, tag, or commit to check out.
+        required: true
+        type: string
+      context:
+        description: Docker build context, relative to the checked-out repository.
+        required: false
+        default: ./src
+        type: string
+      dockerfile:
+        description: Dockerfile path, relative to the checked-out repository.
+        required: true
+        type: string
+      image:
+        description: Docker Hub image coordinate.
+        required: true
+        type: string
+      cache_scope:
+        description: Unique GitHub Actions cache scope for this image.
+        required: true
+        type: string
+      branch_tag:
+        description: Optional source branch tag.
+        required: false
+        default: ''
+        type: string
+      floating_tag:
+        description: Optional moving tag such as preview or latest.
+        required: false
+        default: ''
+        type: string
+      custom_tag:
+        description: Optional extra tag supplied by a manual caller.
+        required: false
+        default: ''
+        type: string
+      platforms:
+        description: Target platform list.
+        required: false
+        default: linux/amd64
+        type: string
+      push_image:
+        description: Push the image and all computed tags to Docker Hub.
+        required: false
+        default: false
+        type: boolean
+    secrets:
+      DOCKERHUB_USERNAME:
+        required: false
+      DOCKERHUB_TOKEN:
+        required: false
+    outputs:
+      digest:
+        description: Published image digest when available.
+        value: ${{ jobs.build.outputs.digest }}
+      source_sha:
+        description: Resolved source commit SHA.
+        value: ${{ jobs.build.outputs.source_sha }}
+      short_sha:
+        description: Eight-character source commit SHA.
+        value: ${{ jobs.build.outputs.short_sha }}
+      version_tag:
+        description: Date and source-SHA based version tag.
+        value: ${{ jobs.build.outputs.version_tag }}
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    outputs:
+      digest: ${{ steps.build.outputs.digest }}
+      source_sha: ${{ steps.source.outputs.source_sha }}
+      short_sha: ${{ steps.source.outputs.short_sha }}
+      version_tag: ${{ steps.source.outputs.version_tag }}
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.source_ref }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Validate build inputs
+        shell: bash
+        env:
+          BUILD_CONTEXT: ${{ inputs.context }}
+          DOCKERFILE: ${{ inputs.dockerfile }}
+          IMAGE: ${{ inputs.image }}
+        run: |
+          set -euo pipefail
+
+          test -d "${BUILD_CONTEXT}" || {
+            echo "::error::Docker context does not exist: ${BUILD_CONTEXT}"
+            exit 1
+          }
+          test -f "${DOCKERFILE}" || {
+            echo "::error::Dockerfile does not exist: ${DOCKERFILE}"
+            exit 1
+          }
+          case "${IMAGE}" in
+            sensenetcsp/*) ;;
+            *)
+              echo "::error::Unexpected Docker Hub namespace: ${IMAGE}"
+              exit 1
+              ;;
+          esac
+
+      - name: Resolve source version
+        id: source
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          SOURCE_SHA="$(git rev-parse HEAD)"
+          SHORT_SHA="$(git rev-parse --short=8 HEAD)"
+          COMMIT_DATE="$(git show -s --format=%cd --date=format:%Y%m%d HEAD)"
+          VERSION_TAG="${COMMIT_DATE}-${SHORT_SHA}"
+
+          echo "source_sha=${SOURCE_SHA}" >> "${GITHUB_OUTPUT}"
+          echo "short_sha=${SHORT_SHA}" >> "${GITHUB_OUTPUT}"
+          echo "version_tag=${VERSION_TAG}" >> "${GITHUB_OUTPUT}"
+
+      - name: Set up Docker metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ inputs.image }}
+          tags: |
+            type=raw,value=${{ inputs.branch_tag }},enable=${{ inputs.branch_tag != '' }}
+            type=raw,value=${{ steps.source.outputs.version_tag }}
+            type=raw,value=${{ inputs.floating_tag }},enable=${{ inputs.floating_tag != '' }}
+            type=raw,value=${{ inputs.custom_tag }},enable=${{ inputs.custom_tag != '' }}
+          labels: |
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
+            org.opencontainers.image.revision=${{ steps.source.outputs.source_sha }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Docker Hub
+        if: inputs.push_image
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and optionally push
+        id: build
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ inputs.context }}
+          file: ${{ inputs.dockerfile }}
+          platforms: ${{ inputs.platforms }}
+          push: ${{ inputs.push_image }}
+          pull: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha,scope=${{ inputs.cache_scope }}
+          cache-to: type=gha,mode=max,scope=${{ inputs.cache_scope }}

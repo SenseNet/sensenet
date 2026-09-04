@@ -1,0 +1,121 @@
+name: Docker images - SenseNet
+
+on:
+  push:
+    branches:
+      - develop
+      - master
+    paths:
+      - src/**
+      - .github/workflows/_docker-build-image.yml
+      - .github/workflows/docker-sensenet-images.yml
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    branches:
+      - develop
+      - master
+    paths:
+      - src/**
+      - .github/workflows/_docker-build-image.yml
+      - .github/workflows/docker-sensenet-images.yml
+  workflow_dispatch:
+    inputs:
+      source_ref:
+        description: Optional source branch, tag, or commit. Empty uses the selected workflow ref.
+        required: false
+        default: ''
+        type: string
+      image:
+        description: Image to build.
+        required: true
+        default: all
+        type: choice
+        options:
+          - all
+          - inmem
+          - sql
+          - nlb
+          - sql-preview
+          - nlb-preview
+      push_image:
+        description: Push built images to Docker Hub.
+        required: false
+        default: false
+        type: boolean
+      custom_tag:
+        description: Optional extra tag for a manual publication.
+        required: false
+        default: ''
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: docker-sensenet-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  plan:
+    name: Select images
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.matrix.outputs.matrix }}
+
+    steps:
+      - name: Create build matrix
+        id: matrix
+        shell: bash
+        env:
+          SELECTED_IMAGE: ${{ github.event.inputs.image || 'all' }}
+        run: |
+          set -euo pipefail
+
+          case "${SELECTED_IMAGE}" in
+            all)
+              MATRIX='{"include":[{"id":"inmem","image":"sensenetcsp/sn-api-inmem","dockerfile":"./src/WebApps/SnWebApplication.Api.InMem.TokenAuth/Dockerfile"},{"id":"sql","image":"sensenetcsp/sn-api-sql","dockerfile":"./src/WebApps/SnWebApplication.Api.Sql.TokenAuth/Dockerfile"},{"id":"nlb","image":"sensenetcsp/sn-api-nlb","dockerfile":"./src/WebApps/SnWebApplication.Api.Sql.SearchService.TokenAuth/Dockerfile"},{"id":"sql-preview","image":"sensenetcsp/sn-api-sql-prv","dockerfile":"./src/WebApps/SnWebApplication.Api.Sql.TokenAuth.Preview/Dockerfile"},{"id":"nlb-preview","image":"sensenetcsp/sn-api-nlb-prv","dockerfile":"./src/WebApps/SnWebApplication.Api.Sql.SearchService.TokenAuth.Preview/Dockerfile"}]}'
+              ;;
+            inmem)
+              MATRIX='{"include":[{"id":"inmem","image":"sensenetcsp/sn-api-inmem","dockerfile":"./src/WebApps/SnWebApplication.Api.InMem.TokenAuth/Dockerfile"}]}'
+              ;;
+            sql)
+              MATRIX='{"include":[{"id":"sql","image":"sensenetcsp/sn-api-sql","dockerfile":"./src/WebApps/SnWebApplication.Api.Sql.TokenAuth/Dockerfile"}]}'
+              ;;
+            nlb)
+              MATRIX='{"include":[{"id":"nlb","image":"sensenetcsp/sn-api-nlb","dockerfile":"./src/WebApps/SnWebApplication.Api.Sql.SearchService.TokenAuth/Dockerfile"}]}'
+              ;;
+            sql-preview)
+              MATRIX='{"include":[{"id":"sql-preview","image":"sensenetcsp/sn-api-sql-prv","dockerfile":"./src/WebApps/SnWebApplication.Api.Sql.TokenAuth.Preview/Dockerfile"}]}'
+              ;;
+            nlb-preview)
+              MATRIX='{"include":[{"id":"nlb-preview","image":"sensenetcsp/sn-api-nlb-prv","dockerfile":"./src/WebApps/SnWebApplication.Api.Sql.SearchService.TokenAuth.Preview/Dockerfile"}]}'
+              ;;
+            *)
+              echo "::error::Unsupported image selection: ${SELECTED_IMAGE}"
+              exit 1
+              ;;
+          esac
+
+          echo "matrix=${MATRIX}" >> "${GITHUB_OUTPUT}"
+
+  build:
+    name: Build ${{ matrix.id }}
+    needs: plan
+    if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.plan.outputs.matrix) }}
+    uses: ./.github/workflows/_docker-build-image.yml
+    with:
+      source_ref: ${{ github.event_name == 'workflow_dispatch' && inputs.source_ref != '' && inputs.source_ref || github.sha }}
+      context: ./src
+      dockerfile: ${{ matrix.dockerfile }}
+      image: ${{ matrix.image }}
+      cache_scope: sensenet-${{ matrix.id }}
+      branch_tag: ${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || github.event_name == 'workflow_dispatch' && inputs.source_ref != '' && inputs.source_ref || github.ref_name }}
+      floating_tag: ${{ github.event_name == 'push' && github.ref_name == 'develop' && 'preview' || github.event_name == 'push' && github.ref_name == 'master' && 'latest' || '' }}
+      custom_tag: ${{ github.event_name == 'workflow_dispatch' && inputs.custom_tag || '' }}
+      push_image: ${{ github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.push_image) }}
+    secrets:
+      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+      DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
