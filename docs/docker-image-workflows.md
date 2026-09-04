@@ -34,12 +34,14 @@ directory as their Docker build context.
   or override it with any source branch, tag, or commit through `source_ref`.
   This also lets the default-branch workflow build an older branch that does
   not contain the workflow files itself.
-- Source push/dispatch runs publish a source-branch tag and
-  `YYYYMMDD-shortSHA`.
-- `develop` source events also publish `preview`.
-- `master` source events also publish `latest`.
-- PostgreSQL publishes only its branch tag and source version tag. It does not
-  overwrite `preview` or `latest`.
+- Publishing runs retain the legacy TFS build-date tag: `develop.YYYY.MM.DD`
+  on `develop`, `YYYY.MM.DD` on `master`/`main`, and
+  `<branch>.YYYY.MM.DD` on other branches. They also publish a source-branch
+  tag and the immutable `YYYYMMDD-shortSHA` tag.
+- Pushes to `develop` also publish `preview`.
+- Pushes to `master` also publish `latest`.
+- PostgreSQL publishes its branch tag, branch/date compatibility tag, and
+  source version tag. It does not overwrite `preview` or `latest`.
 
 Repository secrets expected by publishing jobs:
 
@@ -60,6 +62,6 @@ revision does not contain the chosen WebApp or its Dockerfile.
   their own GitHub source repositories and are outside these workflows.
 - Registry cleanup, runner cleanup, and image keep-alive definitions remain
   operations concerns.
-- Confirm whether legacy consumers require the old TFS date/revision tag in
-  addition to the new source-derived version tag.
-- Confirm whether PostgreSQL should receive an `alpha` moving tag.
+- The archived PostgreSQL definition sets `SnImageVersion=alpha`, but the
+  legacy tag/publish steps derive tags from the source branch and do not
+  publish an `alpha` moving tag. This workflow preserves that behavior.

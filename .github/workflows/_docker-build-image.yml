@@ -67,6 +67,9 @@ on:
       version_tag:
         description: Date and source-SHA based version tag.
         value: ${{ jobs.build.outputs.version_tag }}
+      compatibility_tag:
+        description: Legacy TFS-compatible branch and build-date tag.
+        value: ${{ jobs.build.outputs.compatibility_tag }}
 
 permissions:
   contents: read
@@ -80,6 +83,7 @@ jobs:
       source_sha: ${{ steps.source.outputs.source_sha }}
       short_sha: ${{ steps.source.outputs.short_sha }}
       version_tag: ${{ steps.source.outputs.version_tag }}
+      compatibility_tag: ${{ steps.source.outputs.compatibility_tag }}
 
     steps:
       - name: Check out source
@@ -117,6 +121,8 @@ jobs:
       - name: Resolve source version
         id: source
         shell: bash
+        env:
+          BRANCH_TAG: ${{ inputs.branch_tag }}
         run: |
           set -euo pipefail
 
@@ -124,10 +130,21 @@ jobs:
           SHORT_SHA="$(git rev-parse --short=8 HEAD)"
           COMMIT_DATE="$(git show -s --format=%cd --date=format:%Y%m%d HEAD)"
           VERSION_TAG="${COMMIT_DATE}-${SHORT_SHA}"
+          LEGACY_DATE="$(TZ=Europe/Budapest date +%Y.%m.%d)"
+
+          case "${BRANCH_TAG}" in
+            ''|main|master)
+              COMPATIBILITY_TAG="${LEGACY_DATE}"
+              ;;
+            *)
+              COMPATIBILITY_TAG="${BRANCH_TAG}.${LEGACY_DATE}"
+              ;;
+          esac
 
           echo "source_sha=${SOURCE_SHA}" >> "${GITHUB_OUTPUT}"
           echo "short_sha=${SHORT_SHA}" >> "${GITHUB_OUTPUT}"
           echo "version_tag=${VERSION_TAG}" >> "${GITHUB_OUTPUT}"
+          echo "compatibility_tag=${COMPATIBILITY_TAG}" >> "${GITHUB_OUTPUT}"
 
       - name: Set up Docker metadata
         id: meta
@@ -136,6 +153,7 @@ jobs:
           images: ${{ inputs.image }}
           tags: |
             type=raw,value=${{ inputs.branch_tag }},enable=${{ inputs.branch_tag != '' }}
+            type=raw,value=${{ steps.source.outputs.compatibility_tag }}
             type=raw,value=${{ steps.source.outputs.version_tag }}
             type=raw,value=${{ inputs.floating_tag }},enable=${{ inputs.floating_tag != '' }}
             type=raw,value=${{ inputs.custom_tag }},enable=${{ inputs.custom_tag != '' }}
