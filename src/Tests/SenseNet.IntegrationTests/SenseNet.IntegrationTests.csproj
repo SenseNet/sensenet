@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
@@ -40,4 +40,8 @@
     <ProjectReference Include="..\SenseNet.Tests.Core\SenseNet.Tests.Core.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.TestHost" Version="8.0.11" />
+    <ProjectReference Include="../../Authentication.Local/SenseNet.Authentication.Local.csproj" />
+  </ItemGroup>
 </Project>

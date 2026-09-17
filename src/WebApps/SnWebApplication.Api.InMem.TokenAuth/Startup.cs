@@ -1,3 +1,4 @@
+using SenseNet.Authentication.Local;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -36,37 +37,42 @@ namespace SnWebApplication.Api.InMem.TokenAuth
             var authOptions = new AuthenticationOptions();
             Configuration.GetSection("sensenet:authentication").Bind(authOptions);
 
-            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-                .AddJwtBearer(options =>
-                {
-                    options.RequireHttpsMetadata = false;
-                    options.SaveToken = true;
-
-                    if (authOptions.AuthServerType == AuthenticationServerType.SNAuth)
+            if (Configuration.GetValue<LocalAuthenticationMode>(LocalAuthenticationConfiguration.SectionName + ":Mode") != LocalAuthenticationMode.InternalOnly)
+            {
+                services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+                    .AddJwtBearer(options =>
                     {
-                        options.TokenValidationParameters = new TokenValidationParameters
+                        options.RequireHttpsMetadata = false;
+                        options.SaveToken = true;
+
+                        if (authOptions.AuthServerType == AuthenticationServerType.SNAuth)
                         {
-                            ValidateIssuerSigningKey = false
-                        };
+                            options.TokenValidationParameters = new TokenValidationParameters
+                            {
+                                ValidateIssuerSigningKey = false
+                            };
 
-                        var snAuthUrl = !string.IsNullOrEmpty(authOptions.MetadataHost)
-                            ? authOptions.MetadataHost
-                            : authOptions.Authority;
+                            var snAuthUrl = !string.IsNullOrEmpty(authOptions.MetadataHost)
+                                ? authOptions.MetadataHost
+                                : authOptions.Authority;
 
-                        options.TokenHandlers.Clear();
-                        options.TokenHandlers.Add(new SenseNetJwtSecurityTokenHandler(
-                            $"{snAuthUrl}/api/auth/validate-token"));
-                    }
-                    else
-                    {
-                        options.Audience = "sensenet";
+                            options.TokenHandlers.Clear();
+                            options.TokenHandlers.Add(new SenseNetJwtSecurityTokenHandler(
+                                $"{snAuthUrl}/api/auth/validate-token"));
+                        }
+                        else
+                        {
+                            options.Audience = "sensenet";
 
-                        options.Authority = authOptions.Authority;
-                        if (!string.IsNullOrWhiteSpace(authOptions.MetadataHost))
-                            options.MetadataAddress =
-                        $"{authOptions.MetadataHost.AddUrlSchema().TrimEnd('/')}/.well-known/openid-configuration";
-                    }
-                });
+                            options.Authority = authOptions.Authority;
+                            if (!string.IsNullOrWhiteSpace(authOptions.MetadataHost))
+                                options.MetadataAddress =
+                            $"{authOptions.MetadataHost.AddUrlSchema().TrimEnd('/')}/.well-known/openid-configuration";
+                        }
+                    });
+            }
+
+            services.AddSenseNetLocalAuthentication(Configuration);
 
             // [sensenet]: Set options for ApiKeys
             services.Configure<ApiKeysOptions>(Configuration.GetSection("sensenet:ApiKeys"));
@@ -108,6 +114,7 @@ namespace SnWebApplication.Api.InMem.TokenAuth
             // [sensenet]: custom CORS policy
             app.UseSenseNetCors();
             // [sensenet]: use Authentication and set User.Current
+            app.UseSenseNetLocalAuthentication();
             app.UseSenseNetAuthentication();
 
             // [sensenet]: MembershipExtender middleware
