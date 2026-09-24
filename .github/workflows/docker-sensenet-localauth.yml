@@ -1,0 +1,43 @@
+name: Docker image - SenseNet SQL LocalAuth
+
+on:
+  push:
+    branches:
+      - develop
+      - master
+    paths:
+      - src/**
+      - .github/workflows/_docker-build-image.yml
+      - .github/workflows/docker-sensenet-localauth.yml
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    branches:
+      - develop
+      - master
+    paths:
+      - src/**
+      - .github/workflows/_docker-build-image.yml
+      - .github/workflows/docker-sensenet-localauth.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: docker-sensenet-localauth-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  build:
+    name: Build SQL LocalAuth
+    if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
+    uses: ./.github/workflows/_docker-build-image.yml
+    with:
+      context: ./src
+      dockerfile: ./src/WebApps/SnWebApplication.Api.Sql.LocalAuth/Dockerfile
+      image: sensenetcsp/sn-api-sql-localauth
+      cache_scope: sensenet-sql-localauth
+      branch_tag: ${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || github.ref_name }}
+      floating_tag: ${{ github.event_name == 'push' && github.ref_name == 'develop' && 'preview' || github.event_name == 'push' && github.ref_name == 'master' && 'latest' || '' }}
+      # Publication requires a separate approval; no registry credentials are passed.
+      push_image: false
