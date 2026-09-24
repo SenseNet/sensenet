@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
@@ -35,7 +35,4 @@
     <ProjectReference Include="..\..\WebHooks\SenseNet.WebHooks.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="../../Authentication.Local/SenseNet.Authentication.Local.csproj" />
-  </ItemGroup>
 </Project>

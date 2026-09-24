@@ -6,8 +6,13 @@ authentication unchanged. It does not require changes in the SNAuth service.
 
 ## Enable in a repository host
 
-The six TokenAuth sample webapps already register the module from
-`sensenet:Authentication:Local`. For a custom host, reference the module and call
+The dedicated `src/WebApps/SnWebApplication.Api.Sql.LocalAuth` host registers the module
+from `sensenet:Authentication:Local`. The existing TokenAuth webapps and their Docker
+images do not reference this module and remain unchanged. The dedicated host is a full
+SQL repository API with local authentication, not a separate authentication server.
+Its checked-in mode is `Disabled`; enable it explicitly in deployment configuration.
+
+For a custom host, reference the module and call
 `services.AddSenseNetLocalAuthentication(configuration)` **after** registering the external
 scheme. Call `app.UseSenseNetLocalAuthentication()` after CORS and before
 `app.UseSenseNetAuthentication()`.
@@ -37,7 +42,7 @@ Example configuration (replace paths, identifiers and networks with deployment v
 }
 ```
 
-`InternalOnly` skips external bearer registration in the sample hosts. `Secondary` retains
+`InternalOnly` skips external bearer registration in the dedicated host. `Secondary` retains
 the external scheme (`Bearer` by default), alongside the local scheme. Clients must choose
 a provider explicitly; there is no fallback to local authentication when external auth fails.
 The unverified issuer is used only to route requests; the chosen scheme must validate the token.
@@ -51,6 +56,43 @@ the user, subject to enabled state and MFA. Secondary-mode administrators requir
 even if `RequireMultiFactor` is false. Provision and test MFA before relying on break-glass access;
 this endpoint does not enroll a new authenticator.
 
+## Build and deploy the dedicated SQL host
+
+Build from the repository root; the Docker build context is `src`:
+
+```sh
+docker build -f src/WebApps/SnWebApplication.Api.Sql.LocalAuth/Dockerfile -t sensenet-local-auth:sb167 src
+```
+
+The image starts `SnWebApplication.Api.Sql.LocalAuth.dll`. Use a separate image name/tag
+from the standard `sn-api-sql` images so normal releases are independent of this test.
+Mount the signing key read-only and inject the SQL connection string, API keys and Local
+configuration through deployment secrets/environment variables. No credentials are supplied
+by the new launch profile. For local development use user secrets or environment variables;
+the profile listens on `https://localhost:44372` and requires a trusted development certificate.
+
+When replacing an existing repository container, preserve its database, index volumes,
+repository URL, issuer, signing key and local-auth policy. Back up the effective Compose
+configuration first and recreate only the selected repository service. Keep the Admin UI
+separate and use a client version that supports SB-167 capability discovery.
+
+Example Compose override (the base service supplies database and repository settings):
+
+```yaml
+services:
+  snrepo:
+    image: sensenet-local-auth:sb167
+    pull_policy: never
+    env_file:
+      - ./local-auth.env
+    volumes:
+      - ./secrets/local-auth-private.pem:/run/secrets/local-auth-private.pem:ro
+```
+
+After deployment, verify `/authentication/capabilities`, an authenticated repository
+operation, local login, refresh and logout. Restoring the previous image/configuration
+rolls back the host integration; this feature introduces no database schema migration.
+
 ## Network and proxy policy
 
 HTTPS and an identifiable client address are mandatory for login, refresh and revocation.
@@ -58,7 +100,12 @@ HTTPS and an identifiable client address are mandatory for login, refresh and re
 an empty array denies every local bearer request. IPv4-mapped IPv6 addresses are normalized.
 
 CIDRs are explicit: `127.0.0.0/8`, `::1/128`, an office/VPN subnet, or deliberately
-`0.0.0.0/0` and `::/0`. No LAN/VPN classification is inferred.
+`0.0.0.0/0` and `::/0`. No LAN/VPN classification is inferred. To deliberately disable IP restriction in a test
+deployment, set **both** `LoginNetworks` and `TokenNetworks` to
+`["0.0.0.0/0", "::/0"]`. To re-enable it, replace those entries in both lists with
+the actual allowed client/VPN CIDRs and recreate the dedicated host. Do not broaden
+`KnownProxies`: proxy trust is separate from client access. A VPN-only policy requires
+traffic to actually pass through the VPN, not merely an active VPN connection.
 
 Behind a proxy, configure `KnownProxies` or `KnownNetworks` and optionally `ForwardLimit`
 (default 1). Only these proxies can supply matching X-Forwarded-For/X-Forwarded-Proto pairs.
@@ -137,7 +184,7 @@ Run:
 
 ```powershell
 dotnet test src/Tests/SenseNet.Authentication.Local.Tests/SenseNet.Authentication.Local.Tests.csproj -p:LangVersion=12.0
-dotnet build src/WebApps/SnWebApplication.Api.InMem.TokenAuth/SnWebApplication.Api.InMem.TokenAuth.csproj -p:LangVersion=12.0
+dotnet build src/WebApps/SnWebApplication.Api.Sql.LocalAuth/SnWebApplication.Api.Sql.LocalAuth.csproj -p:LangVersion=12.0
 ```
 
 C# 12 avoids an unrelated existing `paths.Reverse()` overload conflict when this repository
