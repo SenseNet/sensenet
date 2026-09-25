@@ -78,6 +78,7 @@ namespace SnWebApplication.Api.Sql.LocalAuth
                     });
             }
 
+            services.AddSingleton<ILocalAuthenticationUserLock, SqlLocalAuthenticationUserLock>();
             services.AddSenseNetLocalAuthentication(Configuration);
 
             // [sensenet]: Set options for ApiKeys

@@ -22,6 +22,8 @@ public static class LocalAuthenticationExtensions
         services.AddSingleton<LocalAuthenticationPolicy>();
         services.TryAddSingleton<ILocalAuthenticationUsers, RepositoryLocalUsers>();
         services.AddTransient<LocalAuthenticationSessions>();
+        services.AddTransient<LocalAuthenticationFlows>();
+        services.TryAddTransient<ILocalPasswordResetSender, LocalPasswordResetSender>();
         services.AddAuthentication(authentication =>
             {
                 authentication.DefaultScheme = LocalAuthenticationOptions.PolicyScheme;
@@ -88,6 +90,8 @@ public static class LocalAuthenticationExtensions
         var options = app.ApplicationServices.GetRequiredService<LocalAuthenticationOptions>();
         if (options.Mode != LocalAuthenticationMode.Disabled)
         {
+            if (app.ApplicationServices.GetService<ILocalAuthenticationUserLock>() == null)
+                throw new InvalidOperationException("Register a repository-wide ILocalAuthenticationUserLock before enabling local authentication.");
             var repositoryAuth = app.ApplicationServices.GetService<Microsoft.Extensions.Options.IOptions<
                 Services.Core.Authentication.AuthenticationOptions>>()?.Value;
             if (repositoryAuth?.AddJwtCookie == true)
@@ -111,6 +115,24 @@ public static class LocalAuthenticationExtensions
             options.AllowedUserIds.Concat(options.AllowedGroupIds).Any(id => id <= 0) ||
             options.AttemptsPerMinutePerIp <= 0 || options.AttemptsPerMinutePerAccount <= 0 || options.ForwardLimit is < 1 or > 10)
             throw new ArgumentException("Local authentication requires an HTTPS issuer, RSA key with kid, explicit networks/users/groups and bounded lifetimes/limits.");
+        var appearance = options.Appearance;
+        foreach (var color in new[] { appearance.BackgroundColor, appearance.BrandColor, appearance.ButtonColor,
+                     appearance.ButtonTextColor, appearance.TextColor, appearance.PanelColor })
+            if (!System.Text.RegularExpressions.Regex.IsMatch(color, "^#[0-9a-fA-F]{6}([0-9a-fA-F]{2})?$"))
+                throw new ArgumentException("Login colors must be six- or eight-digit hexadecimal colors.");
+        if (appearance.Title.Length is 0 or > 120)
+            throw new ArgumentException("Login title must contain 1-120 characters.");
+        foreach (var image in new[] { appearance.BackgroundImageUrl, appearance.LogoUrl })
+            if (!string.IsNullOrEmpty(image) && (!Uri.TryCreate(image, UriKind.Absolute, out var imageUri) ||
+                imageUri.Scheme != "https" || !string.IsNullOrEmpty(imageUri.UserInfo)))
+                throw new ArgumentException("Branding images must use absolute HTTPS URLs without credentials.");
+        var recovery = options.PasswordRecovery;
+        if (recovery.Enabled && (!Uri.TryCreate(recovery.ResetUrl, UriKind.Absolute, out var resetUri) ||
+            (resetUri.Scheme != "https" && !(resetUri.Scheme == "http" && resetUri.IsLoopback)) ||
+            !string.IsNullOrEmpty(resetUri.UserInfo) || !string.IsNullOrEmpty(resetUri.Fragment) ||
+            recovery.TokenLifetime <= TimeSpan.Zero || recovery.TokenLifetime > TimeSpan.FromHours(1) ||
+            recovery.MinimumPasswordLength is < 12 or > 128))
+            throw new ArgumentException("Recovery requires a trusted HTTPS UI URL (HTTP loopback is allowed), bounded lifetime and password length.");
         var keys = options.PreviousSigningKeys.Prepend(options.SigningKey).ToArray();
         if (keys.Any(k => k.KeySize < 2048 || string.IsNullOrWhiteSpace(k.KeyId)) ||
             keys.Select(k => k.KeyId).Distinct(StringComparer.Ordinal).Count() != keys.Length)

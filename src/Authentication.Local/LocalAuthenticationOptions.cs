@@ -11,6 +11,8 @@ public sealed class LocalAuthenticationOptions
     public const string PolicyScheme = "SenseNet.Composite";
     public const string EndpointPrefix = "/authentication/local";
     public LocalAuthenticationMode Mode { get; set; }
+    public LocalLoginAppearance Appearance { get; set; } = new();
+    public LocalPasswordRecoveryOptions PasswordRecovery { get; set; } = new();
     public string Issuer { get; set; } = "";
     public string Audience { get; set; } = "sensenet";
     public string ExternalScheme { get; set; } = "Bearer";

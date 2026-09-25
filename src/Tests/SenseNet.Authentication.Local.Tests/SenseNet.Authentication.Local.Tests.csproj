@@ -13,4 +13,7 @@
     <ProjectReference Include="../../Authentication.Local/SenseNet.Authentication.Local.csproj" />
     <ProjectReference Include="../SenseNet.Tests.Core/SenseNet.Tests.Core.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <Compile Include="../../WebApps/SnWebApplication.Api.Sql.LocalAuth/SqlLocalAuthenticationUserLock.cs" Link="SqlLocalAuthenticationUserLock.cs" />
+  </ItemGroup>
 </Project>

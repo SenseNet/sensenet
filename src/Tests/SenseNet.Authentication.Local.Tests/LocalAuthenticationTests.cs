@@ -43,6 +43,13 @@ public partial class LocalAuthenticationTests : TestBase
             .ConfigureServices(s =>
             {
                 s.AddLogging();
+                var sql = Environment.GetEnvironmentVariable("SB167_TEST_SQL");
+                if (string.IsNullOrEmpty(sql))
+                    s.AddSingleton<ILocalAuthenticationUserLock, TestUserLock>();
+                else
+                    s.AddSingleton<ILocalAuthenticationUserLock>(
+                        new SnWebApplication.Api.Sql.LocalAuth.SqlLocalAuthenticationUserLock(
+                            Microsoft.Extensions.Options.Options.Create(new ConnectionStringOptions { Repository = sql })));
                 s.AddSingleton(Providers.Instance.Services.GetRequiredService<IAccessTokenDataProvider>());
                 services?.Invoke(s);
                 s.AddSenseNetLocalAuthentication(o => { Configure(o, key); configure?.Invoke(o); });
