@@ -17,7 +17,8 @@ namespace SenseNet.Extensions.DependencyInjection
         /// Registers the sensenet binary middleware in the pipeline
         /// if the request contains the appropriate prefix or points to
         /// a file content directly.
-        /// Add this middleware after authentication/authorization middlewares.
+        /// Add this middleware after UseSenseNetCors and authentication/authorization middlewares.
+        /// CORS must precede this terminating branch, including for OPTIONS preflight requests.
         /// </summary>
         /// <param name="builder">IApplicationBuilder instance.</param>
         /// <param name="buildAppBranchBefore">Optional builder method. Use this when you want to add
