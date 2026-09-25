@@ -68,9 +68,11 @@ docker build -f src/WebApps/SnWebApplication.Api.Sql.LocalAuth/Dockerfile -t sen
 
 The image starts `SnWebApplication.Api.Sql.LocalAuth.dll`. Use a separate image name/tag
 from the standard `sn-api-sql` images so normal releases are independent of this test.
-The dedicated `Docker image - SenseNet SQL LocalAuth` GitHub Actions workflow uses
-the image name `sensenetcsp/sn-api-sql-localauth` and the existing reusable builder.
-It currently validates builds only; registry publishing is not enabled.
+The shared `Docker images - SenseNet` GitHub Actions workflow includes this host as
+`sql-localauth`, using image name `sensenetcsp/sn-api-sql-localauth` and the existing
+reusable builder. It is included in `all` or can be selected individually for manual runs.
+LocalAuth currently validates builds only; registry publishing is not enabled, even
+when a manual run enables `push_image` for the other images.
 See [Docker image workflows](docker-image-workflows.md#dedicated-localauth-image).
 
 Mount the signing key read-only and inject the SQL connection string, API keys and Local
