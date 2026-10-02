@@ -1,3 +1,4 @@
+﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.32014.148
@@ -97,6 +98,14 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SnWebApplication.Api.Sql.SearchService.TokenAuth.Preview", "WebApps\SnWebApplication.Api.Sql.SearchService.TokenAuth.Preview\SnWebApplication.Api.Sql.SearchService.TokenAuth.Preview.csproj", "{8BA4865A-4C72-43C1-A3B2-FC21119C2CD6}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SnWebApplication.Api.Sql.TokenAuth.NLB", "WebApps\SnWebApplication.Api.Sql.TokenAuth.NLB\SnWebApplication.Api.Sql.TokenAuth.NLB.csproj", "{F91BACBA-937D-4282-CC0C-098383E793DC}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ContentRepository.PostgreSql", "ContentRepository.PostgreSql", "{83C76EEC-405A-CB63-4B2B-8F87D45E23B6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SenseNet.ContentRepository.PostgreSql", "ContentRepository.PostgreSql\SenseNet.ContentRepository.PostgreSql.csproj", "{E13051DE-12E2-4065-9605-46FAE1475DB0}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ContentRepository", "ContentRepository", "{59956430-9F3D-0442-91CD-7506CF199E10}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Storage", "Storage", "{2F2B95E5-6225-D1F4-CACB-8A4C26993FF3}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -758,6 +767,22 @@ Global
 		{F91BACBA-937D-4282-CC0C-098383E793DC}.Release|x64.Build.0 = Release|Any CPU
 		{F91BACBA-937D-4282-CC0C-098383E793DC}.Release|x86.ActiveCfg = Release|Any CPU
 		{F91BACBA-937D-4282-CC0C-098383E793DC}.Release|x86.Build.0 = Release|Any CPU
+		{E13051DE-12E2-4065-9605-46FAE1475DB0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E13051DE-12E2-4065-9605-46FAE1475DB0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E13051DE-12E2-4065-9605-46FAE1475DB0}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{E13051DE-12E2-4065-9605-46FAE1475DB0}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{E13051DE-12E2-4065-9605-46FAE1475DB0}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{E13051DE-12E2-4065-9605-46FAE1475DB0}.Debug|x64.Build.0 = Debug|Any CPU
+		{E13051DE-12E2-4065-9605-46FAE1475DB0}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{E13051DE-12E2-4065-9605-46FAE1475DB0}.Debug|x86.Build.0 = Debug|Any CPU
+		{E13051DE-12E2-4065-9605-46FAE1475DB0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E13051DE-12E2-4065-9605-46FAE1475DB0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E13051DE-12E2-4065-9605-46FAE1475DB0}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{E13051DE-12E2-4065-9605-46FAE1475DB0}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{E13051DE-12E2-4065-9605-46FAE1475DB0}.Release|x64.ActiveCfg = Release|Any CPU
+		{E13051DE-12E2-4065-9605-46FAE1475DB0}.Release|x64.Build.0 = Release|Any CPU
+		{E13051DE-12E2-4065-9605-46FAE1475DB0}.Release|x86.ActiveCfg = Release|Any CPU
+		{E13051DE-12E2-4065-9605-46FAE1475DB0}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -804,6 +829,7 @@ Global
 		{4C6517FA-E734-4090-BCE3-BC50FBC632B8} = {61F11B98-137D-402E-AAF9-DA329D109B4B}
 		{8BA4865A-4C72-43C1-A3B2-FC21119C2CD6} = {61F11B98-137D-402E-AAF9-DA329D109B4B}
 		{F91BACBA-937D-4282-CC0C-098383E793DC} = {61F11B98-137D-402E-AAF9-DA329D109B4B}
+		{E13051DE-12E2-4065-9605-46FAE1475DB0} = {83C76EEC-405A-CB63-4B2B-8F87D45E23B6}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {7D903DEB-CA0B-43D8-BD9D-820BB1453C4C}

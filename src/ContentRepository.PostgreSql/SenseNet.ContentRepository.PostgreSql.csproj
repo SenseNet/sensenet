@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <AssemblyName>SenseNet.ContentRepository.PostgreSql</AssemblyName>
+    <RootNamespace>SenseNet.ContentRepository</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Scripts\PgSqlInstall_Schema.sql" />
+    <EmbeddedResource Include="Scripts\PgSqlInstall_Security.sql" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Npgsql" Version="8.0.6" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.11" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.11" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ContentRepository\SenseNet.ContentRepository.csproj" />
+    <ProjectReference Include="..\Storage\SenseNet.Storage.csproj" />
+  </ItemGroup>
+
+</Project>

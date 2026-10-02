@@ -92,10 +92,21 @@ namespace SenseNet.ContentRepository.Storage.Security
         public static async Task<AccessToken> CreateTokenAsync(int userId, TimeSpan timeout, int contentId, string feature,
             CancellationToken cancellationToken)
         {
+            return await CreateTokenAsync(userId, timeout, contentId, feature, null, cancellationToken)
+                .ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Creates a new token for the provided user with the specified timeout and a pre-defined value.
+        /// If <paramref name="tokenValue"/> is null, a cryptographically random value is generated.
+        /// </summary>
+        public static async Task<AccessToken> CreateTokenAsync(int userId, TimeSpan timeout, int contentId, string feature,
+            string tokenValue, CancellationToken cancellationToken)
+        {
             var now = DateTime.UtcNow;
             var token = new AccessToken
             {
-                Value = GenerateTokenValue(),
+                Value = tokenValue ?? GenerateTokenValue(),
                 UserId = userId,
                 ContentId = contentId,
                 Feature = feature,

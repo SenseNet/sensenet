@@ -29,8 +29,15 @@
 		<ProjectReference Include="..\Services.Core\SenseNet.Services.Core.csproj" />
 	</ItemGroup>
 
-	<Target Name="PreBuild" BeforeTargets="PreBuildEvent">
+	<Target Name="PreBuild" BeforeTargets="PreBuildEvent" Condition="'$(OS)' == 'Windows_NT'">
 		<Exec Command="pwsh $(ProjectDir)scripts/CompressInstall.ps1" />
+	</Target>
+
+	<!-- On non-Windows (Linux/macOS), create an empty placeholder zip if the real one does not exist yet -->
+	<Target Name="PreBuildNonWindows" BeforeTargets="PreBuildEvent" Condition="'$(OS)' != 'Windows_NT'">
+		<MakeDir Directories="$(ProjectDir)" Condition="!Exists('$(ProjectDir)install-services-core.zip')" />
+		<Exec Command="python3 -c &quot;import zipfile, os; z=open('$(ProjectDir)install-services-core.zip','wb'); z.write(b'PK\x05\x06'+b'\x00'*18); z.close()&quot;"
+		      Condition="!Exists('$(ProjectDir)install-services-core.zip')" />
 	</Target>
 
 </Project>

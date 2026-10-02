@@ -151,6 +151,37 @@ namespace SenseNet.ContentRepository
                 {
                     logger?.LogInformation("Check apikey for admin...");
                     var akm = services.GetRequiredService<IApiKeyManager>();
+
+                    // Check for a configured (static) API key from configuration.
+                    // IConfiguration automatically maps env vars (sensenet__repository__Authentication__ApiKey)
+                    // and appsettings.json into the unified key format.
+                    var config = services.GetService<Microsoft.Extensions.Configuration.IConfiguration>();
+                    var configuredApiKey = config?["sensenet:repository:Authentication:ApiKey"];
+
+                    if (!string.IsNullOrEmpty(configuredApiKey))
+                    {
+                        // Ensure the configured API key exists in the database
+                        var existingToken = AccessTokenVault.GetTokenAsync(configuredApiKey, 0, "apikey", CancellationToken.None)
+                            .GetAwaiter().GetResult();
+                        if (existingToken == null)
+                        {
+                            AccessTokenVault.CreateTokenAsync(
+                                    Identifiers.AdministratorUserId,
+                                    TimeSpan.FromDays(365 * 100), // effectively never expires
+                                    0,
+                                    "apikey",
+                                    configuredApiKey,
+                                    CancellationToken.None)
+                                .GetAwaiter().GetResult();
+                            logger?.LogInformation("Configured API key inserted into database for admin.");
+                        }
+                        else
+                        {
+                            logger?.LogInformation("Configured API key already exists in database.");
+                        }
+                    }
+
+                    // Also ensure at least one API key exists (random key as fallback)
                     var apiKey = akm.GetApiKeysByUserAsync(Identifiers.AdministratorUserId, CancellationToken.None)
                         .GetAwaiter().GetResult()
                         .Where(a => a.ExpirationDate > DateTime.UtcNow)

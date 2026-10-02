@@ -1,0 +1,247 @@
+# ============================================================
+#  Sensenet lokális fejlesztői docker-compose
+# ============================================================
+#  Szolgáltatások:
+#    mssql   – MS SQL Server 2019 Express (named volume)
+#    snauth  – SnAuth identity server (DockerHub image)
+#    snapp   – Sensenet API (lokális forrásból build-elt image)
+#
+# ── Dev-cert generálása (csak egyszer szükséges) ──────────────
+#    mkdir -p ./volumes/certificates
+#    dotnet dev-certs https -ep ./volumes/certificates/snapp.pfx \
+#           -p SuP3rS3CuR3P4sSw0Rd
+#    dotnet dev-certs https --trust
+#
+# ── Indítás ───────────────────────────────────────────────────
+#    docker compose up -d
+#    (első indításnál az snapp image build-elése eltarthat egy ideig)
+# ============================================================
+
+services:
+
+  # ──────────────────────────────────────────────────────────
+  #  MS SQL Server 2019 Express
+  #  Elérhető a hoston: localhost,9999
+  # ──────────────────────────────────────────────────────────
+  mssql:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: sensenet-snsql
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: "SuP3rS3CuR3P4sSw0Rd"
+      MSSQL_PID: "Express"
+    ports:
+      - "9999:1433"
+    volumes:
+      # Teljes /var/opt/mssql mount szükséges, különben az initdb nem fér hozzá
+      - mssql-data:/var/opt/mssql
+    networks:
+      - sensenet
+    healthcheck:
+      test: [
+        "CMD-SHELL",
+        "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P 'SuP3rS3CuR3P4sSw0Rd' -Q 'SELECT 1' -No || exit 1"
+      ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 40s
+
+  # ──────────────────────────────────────────────────────────
+  #  MSSQL init – létrehozza az üres adatbázist (egyszer fut le)
+  # ──────────────────────────────────────────────────────────
+  mssql-init:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: sensenet-snsql-init
+    networks:
+      - sensenet
+    depends_on:
+      mssql:
+        condition: service_healthy
+    restart: "no"
+    entrypoint: ["/bin/bash", "-c"]
+    command:
+      - |
+        /opt/mssql-tools18/bin/sqlcmd -S sensenet-snsql -U sa -P 'SuP3rS3CuR3P4sSw0Rd' -No -Q \
+          "IF NOT EXISTS (SELECT name FROM sys.databases WHERE name = 'sensenet-sndb') CREATE DATABASE [sensenet-sndb]"
+
+  # ──────────────────────────────────────────────────────────
+  #  DB Reset – csak --profile reset esetén fut
+  #  Törli és újra létrehozza a sensenet-sndb adatbázist,
+  #  valamint a Lucene indexet.
+  # ──────────────────────────────────────────────────────────
+  db-reset:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: sensenet-db-reset
+    profiles: ["reset"]
+    networks:
+      - sensenet
+    depends_on:
+      mssql:
+        condition: service_healthy
+    restart: "no"
+    entrypoint: ["/bin/bash", "-c"]
+    command:
+      - |
+        echo '🗑️  Dropping database sensenet-sndb...'
+        /opt/mssql-tools18/bin/sqlcmd -S sensenet-snsql -U sa -P 'SuP3rS3CuR3P4sSw0Rd' -No -Q \
+          "IF EXISTS (SELECT name FROM sys.databases WHERE name = 'sensenet-sndb')
+           BEGIN
+             ALTER DATABASE [sensenet-sndb] SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
+             DROP DATABASE [sensenet-sndb];
+           END"
+        echo '✅  Database dropped.'
+        echo '🆕  Creating empty database sensenet-sndb...'
+        /opt/mssql-tools18/bin/sqlcmd -S sensenet-snsql -U sa -P 'SuP3rS3CuR3P4sSw0Rd' -No -Q \
+          "CREATE DATABASE [sensenet-sndb]"
+        echo '✅  Database created.'
+        echo '🗑️  Clearing Lucene index...'
+        rm -rf /app-data/LocalIndex/*
+        echo '✅  Index cleared. Fresh install will run on next snapp start.'
+    volumes:
+      - ./App_Data:/app-data
+
+  # ──────────────────────────────────────────────────────────
+  #  SnAuth – identity / JWT server
+  #  DockerHub: sensenetcsp/sn-auth:preview
+  #  HTTPS elérhető a hoston: https://localhost:44311
+  # ──────────────────────────────────────────────────────────
+  snauth:
+    image: sensenetcsp/sn-auth:preview
+    container_name: sensenet-snis
+    environment:
+      ASPNETCORE_URLS: "https://+:443;http://+:80"
+      ASPNETCORE_ENVIRONMENT: "Development"
+
+      # ── Sensenet repository (container-to-container) ─────
+      # Publikus URL (böngészőből / kliensből elérhető)
+      Sensenet__Repository__Url: "https://localhost:44362"
+      # Belső URL: az snauth container ezen éri el az snapp containert
+      Sensenet__Repository__InnerUrl: "http://sensenet-snapp"
+      Sensenet__Repository__Authentication__ApiKey: "pr3Gen3R4Tedpr3Gen3R4Tedpr3Gen3R4Tedpr3Gen3R4Tedpr3Gen3R4Tedpr3Gen3R4Tedpr3Gen3R4Ted"
+
+      # ── JWT beállítások ───────────────────────────────────
+      JwtSettings__Issuer: "https://localhost:44311"
+      JwtSettings__Audience: "sensenet"
+      JwtSettings__SecretKey: "pr3Gen3R4Tedpr3Gen3R4Tedpr3Gen3R4Ted"
+      JwtSettings__AuthTokenExpiryMinutes: "300"
+      JwtSettings__MultiFactorAuthExpiryMinutes: "300"
+      JwtSettings__TokenExpiryMinutes: "300"
+      JwtSettings__RefreshTokenExpiryDays: "15"
+      PasswordRecovery__TokenExpiryMinutes: "60"
+      Registration__IsEnabled: "false"
+      Recaptcha__SiteKey: ""
+      Recaptcha__SecretKey: ""
+
+      # ── Alkalmazás / CORS ─────────────────────────────────
+      Application__Url: "https://localhost:44311"
+      Application__AllowedHosts__0: "https://adminui.test.sensenet.com"
+      Application__AllowedHosts__1: "https://localhost:44362"
+      Application__AllowedHosts__2: "http://sensenet-snapp"
+
+      # ── Dev cert (mount-olt) ──────────────────────────────
+      Kestrel__Certificates__Default__Path: "/root/.aspnet/https/snapp.pfx"
+      Kestrel__Certificates__Default__Password: "SuP3rS3CuR3P4sSw0Rd"
+
+    ports:
+      - "44311:443"
+    volumes:
+      - ./volumes/certificates:/root/.aspnet/https:ro
+    networks:
+      - sensenet
+    depends_on:
+      snapp:
+        condition: service_started
+
+  # ──────────────────────────────────────────────────────────
+  #  Sensenet API – lokális forrásból build-elt image
+  #  Build context: ../src  (a Dockerfile innen dolgozik)
+  #  HTTPS elérhető a hoston: https://localhost:44362
+  # ──────────────────────────────────────────────────────────
+  snapp:
+    build:
+      context: ../src
+      dockerfile: WebApps/SnWebApplication.Api.Sql.TokenAuth/Dockerfile
+    pull_policy: build
+    container_name: sensenet-snapp
+    environment:
+      ASPNETCORE_URLS: "https://+:443;http://+:80"
+      ASPNETCORE_ENVIRONMENT: "Development"
+
+      # ── Adatbázis (mssql container) ───────────────────────
+      ConnectionStrings__SnCrMsSql: "Persist Security Info=False;Initial Catalog=sensenet-sndb;Data Source=sensenet-snsql;User ID=sa;Password=SuP3rS3CuR3P4sSw0Rd;TrustServerCertificate=true"
+
+      # ── SNAuth beállítások ────────────────────────────────
+      sensenet__authentication__authServerType: "SNAuth"
+      # A publikus authority (böngésző/kliens számára, pl. token validáláshoz)
+      sensenet__authentication__authority: "https://localhost:44311"
+      # Belső URL: snapp container ezen éri el az snauth containert (metadata, health)
+      sensenet__authentication__metadatahost: "http://sensenet-snis"
+      sensenet__authentication__repositoryUrl: "https://localhost:44362"
+      sensenet__authentication__AddJwtCookie: "false"
+      sensenet__identityManagement__UserProfilesEnabled: "false"
+      sensenet__repository__Authentication__ApiKey: "pr3Gen3R4Tedpr3Gen3R4Tedpr3Gen3R4Tedpr3Gen3R4Tedpr3Gen3R4Tedpr3Gen3R4Tedpr3Gen3R4Ted"
+
+      # ── Egyéb ─────────────────────────────────────────────
+      sensenet__apikeys__healthcheckeruser: "supaS3CUp4ss"
+      sensenet__install__mssql__EnableFirstInstallDB: "true"
+      # Lucene in-proc index könyvtár (az App_Data volume-on belül)
+      sensenet__indexing__IndexDirectoryPath: "/app/App_Data/LocalIndex"
+
+      # ── Dev cert (mount-olt) ──────────────────────────────
+      Kestrel__Certificates__Default__Path: "/root/.aspnet/https/snapp.pfx"
+      Kestrel__Certificates__Default__Password: "SuP3rS3CuR3P4sSw0Rd"
+
+    ports:
+      - "44362:443"
+    volumes:
+      - ./volumes/certificates:/root/.aspnet/https:ro
+      - ./App_Data:/app/App_Data
+    networks:
+      - sensenet
+    depends_on:
+      mssql-init:
+        condition: service_completed_successfully
+
+  # ──────────────────────────────────────────────────────────
+  #  API Key helper – kiírja az admin API key-t a konzolra
+  #  Használat:
+  #    docker compose -f docker-compose.mssql.yml run --rm apikey
+  # ──────────────────────────────────────────────────────────
+  apikey:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: sensenet-apikey
+    profiles: ["tools"]
+    networks:
+      - sensenet
+    depends_on:
+      mssql:
+        condition: service_healthy
+    restart: "no"
+    entrypoint: ["/bin/bash", "-c"]
+    command:
+      - |
+        KEY=$$(/opt/mssql-tools18/bin/sqlcmd -S sensenet-snsql -U sa -P 'SuP3rS3CuR3P4sSw0Rd' -d sensenet-sndb -No -h -1 -W -Q \
+          "SET NOCOUNT ON; SELECT TOP 1 Value FROM AccessTokens WHERE UserId = 1 AND ExpirationDate > GETDATE() ORDER BY CreationDate DESC" 2>/dev/null | head -1 | tr -d '[:space:]')
+        if [ -n "$$KEY" ]; then
+          echo ""
+          echo "══════════════════════════════════════════════════"
+          echo "  🔑  Admin API Key (MSSQL)"
+          echo "══════════════════════════════════════════════════"
+          echo "  $$KEY"
+          echo "══════════════════════════════════════════════════"
+          echo ""
+        else
+          echo "❌  No API key found. Is sensenet running?"
+          exit 1
+        fi
+
+# ── Named volumes ──────────────────────────────────────────────
+volumes:
+  mssql-data:
+    driver: local
+
+# ── Hálózat ────────────────────────────────────────────────────
+networks:
+  sensenet:
+    driver: bridge

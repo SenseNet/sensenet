@@ -82,7 +82,7 @@ jobs:
           esac
 
           ENTRIES=()
-          while IFS='|' read -r ID IMAGE DOCKERFILE; do
+          while IFS='|' read -r ID IMAGE DOCKERFILE PREPARE_INSTALL_PACKAGE; do
             if [[ "${SELECTED_IMAGE}" != 'all' && "${SELECTED_IMAGE}" != "${ID}" ]]; then
               continue
             fi
@@ -97,14 +97,14 @@ jobs:
               continue
             fi
 
-            ENTRIES+=("{\"id\":\"${ID}\",\"image\":\"${IMAGE}\",\"dockerfile\":\"${DOCKERFILE}\"}")
+            ENTRIES+=("{\"id\":\"${ID}\",\"image\":\"${IMAGE}\",\"dockerfile\":\"${DOCKERFILE}\",\"prepare_install_package\":${PREPARE_INSTALL_PACKAGE}}")
           done <<'IMAGES'
-          inmem|sensenetcsp/sn-api-inmem|./src/WebApps/SnWebApplication.Api.InMem.TokenAuth/Dockerfile
-          sql|sensenetcsp/sn-api-sql|./src/WebApps/SnWebApplication.Api.Sql.TokenAuth/Dockerfile
-          nlb|sensenetcsp/sn-api-nlb|./src/WebApps/SnWebApplication.Api.Sql.SearchService.TokenAuth/Dockerfile
-          sql-preview|sensenetcsp/sn-api-sql-prv|./src/WebApps/SnWebApplication.Api.Sql.TokenAuth.Preview/Dockerfile
-          nlb-preview|sensenetcsp/sn-api-nlb-prv|./src/WebApps/SnWebApplication.Api.Sql.SearchService.TokenAuth.Preview/Dockerfile
-          postgres|sensenetcsp/sn-api-postgre|./src/WebApps/SnWebApplication.Api.PostgreSql.TokenAuth/Dockerfile
+          inmem|sensenetcsp/sn-api-inmem|./src/WebApps/SnWebApplication.Api.InMem.TokenAuth/Dockerfile|false
+          sql|sensenetcsp/sn-api-sql|./src/WebApps/SnWebApplication.Api.Sql.TokenAuth/Dockerfile|false
+          nlb|sensenetcsp/sn-api-nlb|./src/WebApps/SnWebApplication.Api.Sql.SearchService.TokenAuth/Dockerfile|true
+          sql-preview|sensenetcsp/sn-api-sql-prv|./src/WebApps/SnWebApplication.Api.Sql.TokenAuth.Preview/Dockerfile|true
+          nlb-preview|sensenetcsp/sn-api-nlb-prv|./src/WebApps/SnWebApplication.Api.Sql.SearchService.TokenAuth.Preview/Dockerfile|true
+          postgres|sensenetcsp/sn-api-postgre|./src/WebApps/SnWebApplication.Api.PostgreSql.TokenAuth/Dockerfile|false
           IMAGES
 
           if (( ${#ENTRIES[@]} == 0 )); then
@@ -129,6 +129,7 @@ jobs:
       dockerfile: ${{ matrix.dockerfile }}
       image: ${{ matrix.image }}
       cache_scope: sensenet-${{ matrix.id }}
+      prepare_install_package: ${{ matrix.prepare_install_package }}
       branch_tag: ${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || github.ref_name }}
       floating_tag: ${{ github.event_name == 'push' && github.ref_name == 'develop' && 'preview' || github.event_name == 'push' && github.ref_name == 'master' && 'latest' || '' }}
       custom_tag: ${{ github.event_name == 'workflow_dispatch' && inputs.custom_tag || '' }}

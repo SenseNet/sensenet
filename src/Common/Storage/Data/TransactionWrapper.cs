@@ -63,7 +63,20 @@ namespace SenseNet.ContentRepository.Storage.Data
         {
             using (var op = SnTrace.Database.StartOperation("Transaction.Rollback " + Status))
             {
-                Transaction.Rollback();
+                try
+                {
+                    Transaction.Rollback();
+                }
+                catch (ObjectDisposedException)
+                {
+                    // Transaction or connection already disposed — nothing to roll back.
+                    SnTrace.Database.Write("Transaction.Rollback skipped: already disposed.");
+                }
+                catch (InvalidOperationException)
+                {
+                    // Transaction already completed or connection broken.
+                    SnTrace.Database.Write("Transaction.Rollback skipped: invalid operation.");
+                }
                 Status = TransactionStatus.Aborted;
                 op.Successful = true;
             }
