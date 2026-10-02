@@ -30,12 +30,13 @@ on:
           - all
           - inmem
           - sql
+          - sql-localauth
           - nlb
           - sql-preview
           - nlb-preview
           - postgres
       push_image:
-        description: Push built images to Docker Hub.
+        description: Push built images to Docker Hub (LocalAuth remains build-only).
         required: false
         default: false
         type: boolean
@@ -74,7 +75,7 @@ jobs:
           set -euo pipefail
 
           case "${SELECTED_IMAGE}" in
-            all|inmem|sql|nlb|sql-preview|nlb-preview|postgres) ;;
+            all|inmem|sql|sql-localauth|nlb|sql-preview|nlb-preview|postgres) ;;
             *)
               echo "::error::Unsupported image selection: ${SELECTED_IMAGE}"
               exit 1
@@ -101,6 +102,7 @@ jobs:
           done <<'IMAGES'
           inmem|sensenetcsp/sn-api-inmem|./src/WebApps/SnWebApplication.Api.InMem.TokenAuth/Dockerfile
           sql|sensenetcsp/sn-api-sql|./src/WebApps/SnWebApplication.Api.Sql.TokenAuth/Dockerfile
+          sql-localauth|sensenetcsp/sn-api-sql-localauth|./src/WebApps/SnWebApplication.Api.Sql.LocalAuth/Dockerfile
           nlb|sensenetcsp/sn-api-nlb|./src/WebApps/SnWebApplication.Api.Sql.SearchService.TokenAuth/Dockerfile
           sql-preview|sensenetcsp/sn-api-sql-prv|./src/WebApps/SnWebApplication.Api.Sql.TokenAuth.Preview/Dockerfile
           nlb-preview|sensenetcsp/sn-api-nlb-prv|./src/WebApps/SnWebApplication.Api.Sql.SearchService.TokenAuth.Preview/Dockerfile
@@ -132,7 +134,8 @@ jobs:
       branch_tag: ${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || github.ref_name }}
       floating_tag: ${{ github.event_name == 'push' && github.ref_name == 'develop' && 'preview' || github.event_name == 'push' && github.ref_name == 'master' && 'latest' || '' }}
       custom_tag: ${{ github.event_name == 'workflow_dispatch' && inputs.custom_tag || '' }}
-      push_image: ${{ github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.push_image) }}
+      # Keep LocalAuth build-only while it is being evaluated.
+      push_image: ${{ matrix.id != 'sql-localauth' && (github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.push_image)) }}
     secrets:
-      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
-      DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+      DOCKERHUB_USERNAME: ${{ matrix.id != 'sql-localauth' && secrets.DOCKERHUB_USERNAME || '' }}
+      DOCKERHUB_TOKEN: ${{ matrix.id != 'sql-localauth' && secrets.DOCKERHUB_TOKEN || '' }}

@@ -1,0 +1,12 @@
+{
+  "profiles": {
+    "SnWebApplication.Api.Sql.LocalAuth": {
+      "commandName": "Project",
+      "launchBrowser": false,
+      "applicationUrl": "https://localhost:44372",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      }
+    }
+  }
+}
