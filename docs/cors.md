@@ -169,3 +169,42 @@ $.ajax({
     }
 });		
 ```
+
+## ASP.NET Core binary requests
+
+Register CORS before authentication/authorization and the terminating file branch:
+
+```csharp
+app.UseRouting();
+app.UseSenseNetCors();
+app.UseSenseNetAuthentication();
+app.UseAuthorization();
+app.UseSenseNetFiles();
+```
+
+The preceding CORS middleware also covers the file branch. It evaluates the repository policy,
+handles OPTIONS preflight requests (including Authorization), and applies CORS headers to the
+response. BinaryMiddleware does not implement a second CORS policy evaluator. If an application
+registers the file branch before CORS, fix that registration order.
+
+UseSenseNetCors adds `Vary: Origin`, preserving existing Vary values, including on responses
+without an Origin or with a denied Origin. This is necessary because the repository provider
+builds a policy for each request's origin. It prevents caches from reusing another origin's
+response variant; it does not purge responses already stored before the fix.
+
+Binary request logging uses category `SenseNet.Services.Core.Virtualization.BinaryMiddleware`:
+
+- Information, EventId 1001 (`BinaryRequestCompleted`): one completion summary with method,
+  path (without query string), final status, CORS header outcome, duration, and trace ID.
+- Trace, EventId 1002 (`BinaryCorsResponse`): optional origin and CORS response header details.
+  No complete request/response header dump is written.
+
+`AllowOriginAbsent` reports an observed response header state, not proof of policy rejection:
+missing CORS registration can produce the same result. No-Origin requests are normal and do
+not emit warnings. Preflight requests finish in the framework CORS middleware and never enter
+BinaryMiddleware. Completion events are emitted when the response completes, not for requests
+that abort before completion.
+
+For Microsoft.Extensions.Logging configuration, set the category to `Information` for summaries
+or `Trace` for detailed diagnostics. If an application uses a Serilog sink, configure its matching
+category override to Information or Verbose respectively.
