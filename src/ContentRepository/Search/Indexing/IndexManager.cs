@@ -358,8 +358,30 @@ namespace SenseNet.ContentRepository.Search.Indexing
             var excludedNodeTypes = GetNotIndexedNodeTypes();
             var docs = _dataStore.LoadIndexDocumentsAsync(treeRoot, excludedNodeTypes)
                 .Select(CreateIndexDocument);
+            docs = TraceAddTreeProgress(docs, treeRoot, activityId);
             await IndexingEngine.WriteIndexAsync(delTerms, null, docs, cancellationToken).ConfigureAwait(false);
             return true;
+        }
+
+        private IEnumerable<IndexDocument> TraceAddTreeProgress(IEnumerable<IndexDocument> documents, string treeRoot,
+            int activityId)
+        {
+            var count = 0;
+            SnTrace.Index.Write("LM: AddTreeActivity progress started. ActivityId:{0}, Path:{1}",
+                activityId, treeRoot);
+
+            foreach (var document in documents)
+            {
+                count++;
+                if (count % 500 == 0)
+                    SnTrace.Index.Write("LM: AddTreeActivity progress. ActivityId:{0}, Path:{1}, Documents:{2}",
+                        activityId, treeRoot, count);
+
+                yield return document;
+            }
+
+            SnTrace.Index.Write("LM: AddTreeActivity progress finished. ActivityId:{0}, Path:{1}, Documents:{2}",
+                activityId, treeRoot, count);
         }
         
 
