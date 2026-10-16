@@ -1,4 +1,80 @@
-# Install sensenet on local Docker with Powershell
+# Local Docker demos: Compose or PowerShell
+
+Each `docker-compose*.yml` file is a complete scenario selected with one `-f` argument. The files share service definitions through `compose.services.yml`; no generator or installer script runs when Compose starts. Docker Compose v2.24 or newer is required. Published ports bind to `127.0.0.1`.
+
+Prepare the certificate once, from this directory:
+
+```powershell
+Copy-Item .env.template .env
+./scripts/create-devcert.ps1 -CertPsw 'SuP3rS3CuR3P4sSw0Rd'
+docker compose -f docker-compose.with-auth.yml up -d --pull always
+```
+
+The certificate helper exports/trusts the local .NET developer certificate. If you provide a certificate yourself, place `snapp.pfx` in `temp/certificates`, or set `CERT_FOLDER` and `CERT_PASSWORD` in `.env`. Set `ADMIN_UI_URL` to the origin of the Admin UI you use; its template value is a placeholder. `.env`, certificates and generated signing keys are ignored by Git. The default passwords/API key are public demo values.
+
+For webapps present in the current checkout, `up -d --build` builds the local source instead. An existing local floating image tag may be older than the registry tag; `--pull always` refreshes published images. The LocalAuth scenario always needs its local build, and PostgreSQL source is available on its provider branch.
+
+The following SQL scenarios preserve the PowerShell installer's repository/auth/search port calculation. The auth column selects the older IdentityServer or SNAuth. These are alternative authentication arrangements on the same ports, so stop one before starting another.
+
+| Database | Persistent data | Search service | Repository/auth/search ports | IdentityServer file | SNAuth file |
+| --- | --- | --- | --- | --- | --- |
+| Container | No | No | 51016 / 51017 | `docker-compose.yml` | `docker-compose.with-auth.yml` |
+| Host | No | No | 51026 / 51027 | `docker-compose.host-db.yml` | `docker-compose.host-db-auth.yml` |
+| Container | Yes | No | 51036 / 51037 | `docker-compose.with-volume.yml` | `docker-compose.with-volume-auth.yml` |
+| Host | Yes | No | 51046 / 51047 | `docker-compose.host-db-volume.yml` | `docker-compose.host-db-volume-auth.yml` |
+| Container | No | Yes | 51056 / 51057 / 51058 | `docker-compose.with-search.yml` | `docker-compose.with-search-auth.yml` |
+| Host | No | Yes | 51066 / 51067 / 51068 | `docker-compose.host-db-search.yml` | `docker-compose.host-db-search-auth.yml` |
+| Container | Yes | Yes | 51076 / 51077 / 51078 | `docker-compose.complete.yml` | `docker-compose.complete-auth.yml` |
+| Host | Yes | Yes | 51086 / 51087 / 51088 | `docker-compose.host-db-volume-search.yml` | `docker-compose.host-db-volume-search-auth.yml` |
+
+SQL containers publish port 9999, PostgreSQL containers 5532, and RabbitMQ management 51005. AMQP stays inside the Compose network. Override `SQL_PORT`, `POSTGRES_PORT` or `RABBIT_PORT` when running multiple projects. Each Compose project owns its RabbitMQ container and named volumes; the older PowerShell installer shares its `sensenet-rabbit` container. Stop a Compose demo with the same file (`docker compose -f <file> down`); adding `--volumes` also deletes its persistent data. Use this Compose cleanup for Compose resources, rather than the PowerShell uninstaller.
+
+For host SQL, configure `DATASOURCE`, `SQL_USER` and `SQL_PASSWORD` in `.env`. The login needs database-creation permission. The default Docker host address is `host.docker.internal`; an explicit `host-gateway` mapping also supports Linux hosts. Host scenarios create an empty database idempotently but never start or reset your SQL server.
+
+Additional webapps:
+
+| Scenario | Compose file | PowerShell selection | Repository/auth ports |
+| --- | --- | --- | --- |
+| In-memory, IdentityServer | `docker-compose.in-memory.yml` | `-InMemPlatform` | 51011 / 51012 |
+| In-memory, SNAuth | `docker-compose.in-memory-auth.yml` | `-InMemPlatform -UseAuth` | 51011 / 51012 |
+| SQL with document previews, SNAuth | `docker-compose.preview.yml` | `-WebApp Preview -UseAuth` | 51016 / 51017 |
+| Search service with previews, SNAuth | `docker-compose.preview-search.yml` | `-WebApp Preview -SearchService -UseAuth` | 51056 / 51057 |
+| SQL with internal authentication | `docker-compose.local-auth.yml` | `-WebApp LocalAuth` | 51016 |
+| PostgreSQL with SNAuth | `docker-compose.postgres.yml` | `-WebApp PostgreSql` | 51016 / 51017 |
+
+LocalAuth also has `local-auth-volume`, `local-auth-host-db`, and `local-auth-host-db-volume` variants, with repository ports 51036, 51026 and 51046. PostgreSQL has a `postgres-volume` variant on 51036/51037. The `*.Admin` projects and `WebHookHandler` have no Docker image definitions in this repository. `Sql.TokenAuth.NLB` uses an in-process index and is separate from the published `sn-api-nlb` image, which is built from `Sql.SearchService.TokenAuth`.
+
+LocalAuth is build-only in CI. Prepare its RSA key with PowerShell 7.2+, then build locally:
+
+```powershell
+./scripts/create-localauth-key.ps1
+docker compose -f docker-compose.local-auth.yml up -d --build
+# Equivalent installer, building the local checkout:
+./install-sensenet.ps1 -WebApp LocalAuth -CreateImages -LocalSn
+```
+
+This demo enables `InternalOnly`, bearer transport, the built-in admin user (Id=1), and private/loopback client networks. It explicitly disables mandatory MFA for the demo account. The login page is `/authentication/local/login`; never reuse the generated signing key or these demo settings for a hosted installation. Data persistence does not control key persistence: keep the same ignored key when restarting an existing demo.
+
+PostgreSQL application source is on `postgres-provider`, not `develop`. Its Compose scenario runs the published `sensenetcsp/sn-api-postgre:postgres-provider` image and does not try to build a missing Dockerfile from `develop`. Override `POSTGRES_IMAGE` to use another compatible image. To build PostgreSQL from source, use a checkout containing its webapp; `-WebApp PostgreSql -CreateImages` downloads that branch, while `-LocalSn` requires the webapp already present. PostgreSQL host-database and search-service combinations, and LocalAuth search-service combinations, are rejected because those webapps are unavailable. The branch's existing development Compose files use different ports (44362/44311); these demos retain the 510xx installer convention.
+
+`-WebApp Preview` selects the `sn-api-sql-prv` / `sn-api-nlb-prv` images. `-ImageTag` defaults to `preview` and is used consistently for local build and run. `-SensenetDockerImage` selects an explicit application image. `-CreateImages` also builds the selected external auth server (SNAuth or IdentityServer), and the installer reuses those builds without pulling over them. Repeated installation starts an existing stopped container and keeps a running container. Changed image/environment/volume settings require explicit recreation; repeated installation does not silently replace existing configuration or delete unusual container states.
+
+Validate the deployment changes without starting services:
+
+```powershell
+pwsh -NoProfile -File ./tests/Test-Deployment.ps1
+```
+
+Opt-in runtime tests create an isolated, randomly named Compose project, a temporary certificate/key without changing the trust store, and fresh databases. They validate OData, admin login, an authenticated admin read, repeated `up`, and restart, then remove only their own containers/volumes. Application ports from the selected scenario must be free:
+
+```powershell
+pwsh -NoProfile -File ./tests/Test-DeploymentSmoke.ps1 -Scenario WithAuth
+pwsh -NoProfile -File ./tests/Test-DeploymentSmoke.ps1 -Scenario LocalAuth
+pwsh -NoProfile -File ./tests/Test-DeploymentSmoke.ps1 -Scenario Postgres
+pwsh -NoProfile -File ./tests/Test-DeploymentSmoke.ps1 -Scenario Search
+```
+
+# Install sensenet on local Docker with PowerShell
 
 This article describes how to install sensenet in a docker environment on your local machine. It is a Powershell script that will install sensenet from Docker images. It will create a Docker network and start the necessary containers.
 
@@ -32,7 +108,7 @@ By default the installer uses the publicly available sensenet Docker images. In 
 
 ## Simple install
 
-The script is preconfigured so you don't have to know every switch if you just want to try it out. With the preconfigured settings the installer will create an IdentityServer, an MS SQL Server and a sensenet application container. Neither will have mounted volumes so the necessary files will be either copied into the containers or created inside them.
+The script is preconfigured so you don't have to know every switch if you just want to try it out. With the preconfigured settings the installer will create an IdentityServer, an MS SQL Server and a sensenet application container. Certificates are mounted read-only before the processes start. Repository/database/search data is persisted only when the selected scenario requests it.
 
 To install sensenet, execute the following script:
 
@@ -89,7 +165,7 @@ You can try this sensenet demo with your local database on the host machine. The
 ```
 ### UseVolume and VolumeBasePath
 
-This is a bit advanced switch as Docker for Windows with linux containers may have a problem with the default setup. By default containers will be created **without volume bind**, so it should work on every system. But it is recommended to use volumes with an actual sensenet project in containers. This switch shows how to bind those volumes for sensenet services. However with default settings it may only work on a linux host. If you use Docker for Windows you may have to set the folder path to bind and this path should be on linux. It is because Windows and linux file systems handle file locks differently and the Lucene engine from the linux containers will not be able to lock the necessary files on a Windows file system.
+This switch persists database/repository/search data through bind mounts. Without it, data remains inside the containers; certificates are mounted read-only in both modes. For Linux containers on Docker Desktop, Lucene data must live on a Linux filesystem because Windows bind mounts handle file locks differently. The Compose volume scenarios above use Docker named volumes for this reason. With the PowerShell installer, choose a Linux-backed `VolumeBasePath` when needed.
 
 While on linux it is enough to call 
 

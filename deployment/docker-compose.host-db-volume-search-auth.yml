@@ -1,0 +1,77 @@
+# Equivalent demo: ./install-sensenet.ps1 -HostDb -UseVolume -SearchService -UseAuth
+# Run from this folder: docker compose -f docker-compose.host-db-volume-search-auth.yml up -d
+name: "sensenet-insql-hdb-wv-ws"
+services:
+  snapp:
+    extends:
+      file: "compose.services.yml"
+      service: "repository"
+    image: "sensenetcsp/sn-api-nlb:${SN_IMAGE_TAG:-preview}"
+    build:
+      context: "../src"
+      dockerfile: "WebApps/SnWebApplication.Api.Sql.SearchService.TokenAuth/Dockerfile"
+    environment:
+      sensenet__authentication__repositoryUrl: "https://localhost:51086"
+      ConnectionStrings__SnCrMsSql: "Persist Security Info=False;Initial Catalog=${COMPOSE_PROJECT_NAME}-sndb;Data Source=${DATASOURCE:-host.docker.internal};User ID=${SQL_USER:-sa};Password=${SQL_PASSWORD:-SuP3rS3CuR3P4sSw0Rd};TrustServerCertificate=true"
+      sensenet__authentication__authServerType: "SNAuth"
+      sensenet__authentication__authority: "https://localhost:51087"
+      sensenet__authentication__metadatahost: "http://snis"
+      sensenet__authentication__AddJwtCookie: "false"
+      sensenet__search__service__ServiceAddress: "https://snsearch"
+      sensenet__search__service__ValidateServerCertificate: "false"
+      sensenet__security__rabbitmq__ServiceUrl: "amqp://${RABBIT_USER:-admin}:${RABBIT_PASSWORD:-SuP3rS3CuR3P4sSw0Rd}@rabbit/"
+      sensenet__rabbitmq__ServiceUrl: "amqp://${RABBIT_USER:-admin}:${RABBIT_PASSWORD:-SuP3rS3CuR3P4sSw0Rd}@rabbit/"
+    ports: ["127.0.0.1:51086:443"]
+    extra_hosts: ["host.docker.internal:host-gateway"]
+    depends_on:
+      db-init:
+        condition: "service_completed_successfully"
+      snis:
+        condition: "service_started"
+      snsearch:
+        condition: "service_started"
+      rabbit:
+        condition: "service_healthy"
+    volumes: ["app-data:/app/App_Data"]
+  db-init:
+    extends:
+      file: "compose.services.yml"
+      service: "mssql-init"
+    environment:
+      SQL_SERVER: "${DATASOURCE:-host.docker.internal}"
+      SQL_USER: "${SQL_USER:-sa}"
+    extra_hosts: ["host.docker.internal:host-gateway"]
+  snis:
+    extends:
+      file: "compose.services.yml"
+      service: "snauth"
+    environment:
+      Sensenet__Repository__Url: "https://localhost:51086"
+      JwtSettings__Issuer: "https://localhost:51087"
+      Application__Url: "https://localhost:51087"
+      Application__AllowedHosts__1: "https://localhost:51086"
+    ports: ["127.0.0.1:51087:443"]
+  rabbit:
+    extends:
+      file: "compose.services.yml"
+      service: "rabbit"
+  snsearch:
+    extends:
+      file: "compose.services.yml"
+      service: "search"
+    environment:
+      ConnectionStrings__SecurityStorage: "Persist Security Info=False;Initial Catalog=${COMPOSE_PROJECT_NAME}-sndb;Data Source=${DATASOURCE:-host.docker.internal};User ID=${SQL_USER:-sa};Password=${SQL_PASSWORD:-SuP3rS3CuR3P4sSw0Rd};TrustServerCertificate=true"
+    ports: ["127.0.0.1:51088:443"]
+    depends_on:
+      db-init:
+        condition: "service_completed_successfully"
+      rabbit:
+        condition: "service_healthy"
+    extra_hosts: ["host.docker.internal:host-gateway"]
+    volumes: ["search-data:/app/App_Data"]
+networks:
+  sensenet:
+    driver: "bridge"
+volumes:
+  app-data: {}
+  search-data: {}

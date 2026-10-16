@@ -1,0 +1,40 @@
+# Equivalent demo: ./install-sensenet.ps1 -UseAuth -WebApp PostgreSql
+# Run from this folder: docker compose -f docker-compose.postgres.yml up -d
+name: "sensenet-inpostgres-cdb"
+services:
+  snapp:
+    extends:
+      file: "compose.services.yml"
+      service: "repository"
+    image: "${POSTGRES_IMAGE:-sensenetcsp/sn-api-postgre:postgres-provider}"
+    environment:
+      sensenet__authentication__repositoryUrl: "https://localhost:51016"
+      ConnectionStrings__SensenetRepository: "Host=snsql;Database=${COMPOSE_PROJECT_NAME}-sndb;Username=postgres;Password=${SQL_PASSWORD:-SuP3rS3CuR3P4sSw0Rd}"
+      sensenet__install__postgres__EnableFirstInstallDB: "true"
+      sensenet__authentication__authServerType: "SNAuth"
+      sensenet__authentication__authority: "https://localhost:51017"
+      sensenet__authentication__metadatahost: "http://snis"
+      sensenet__authentication__AddJwtCookie: "false"
+    ports: ["127.0.0.1:51016:443"]
+    depends_on:
+      snsql:
+        condition: "service_healthy"
+      snis:
+        condition: "service_started"
+  snsql:
+    extends:
+      file: "compose.services.yml"
+      service: "postgres"
+  snis:
+    extends:
+      file: "compose.services.yml"
+      service: "snauth"
+    environment:
+      Sensenet__Repository__Url: "https://localhost:51016"
+      JwtSettings__Issuer: "https://localhost:51017"
+      Application__Url: "https://localhost:51017"
+      Application__AllowedHosts__1: "https://localhost:51016"
+    ports: ["127.0.0.1:51017:443"]
+networks:
+  sensenet:
+    driver: "bridge"
