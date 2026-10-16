@@ -42,24 +42,6 @@ if ($Cleanup -or $Uninstall) {
 $date = Get-Date -Format "yyyy-MM-dd HH:mm K"
 $RABBIT_DOCKERIMAGE="rabbitmq:3-management"
 
-$rbtStatus = $( docker container inspect -f "{{.State.Status}}" $RabbitContainerName )
-switch ($rbtStatus) {
-	"running" {
-		Write-Output "RabbitMq already running! Remove it first if you want to start a new container..."
-		return
-	}
-	"exited" {
-		Write-Error "RabbitMq already started but exited! Fix the issue with the container and try again."
-		return
-	}
-	"" {
-		# not an issue, new container will be started
-	}
-	Default {
-		Write-Output "Rabbit status: $rbtStatus" 
-	}
-}
-
 if (-not $RabbitUser -or -not $RabbitPsw) {
 	Write-Error "Username or password is missing!"
 	return
@@ -77,10 +59,10 @@ $params = "run", "-d", "eol",
 	"--name", "$($RabbitContainerName)", "eol",
 	"-e", "RABBITMQ_DEFAULT_USER=$RabbitUser", "eol",
 	"-e", "RABBITMQ_DEFAULT_PASS=$RabbitPsw", "eol",
-	"-p", "$($RabbitPort):15672", "eol",
+	"-p", "127.0.0.1:$($RabbitPort):15672", "eol",
 	"$RABBIT_DOCKERIMAGE"
 
-Invoke-Cli -execFile $execFile -params $params -DryRun $DryRun -ErrorAction stop
+$containerResult = Manage-Container -ContainerName $RabbitContainerName -DockerRunParams $params -DryRun $DryRun
 if (-not $DryRun) {	
 	$RABBITIP=$(docker inspect -f "{{ .NetworkSettings.Networks.$($NetworkName).IPAddress }}" $RabbitContainerName)
 	if ($RABBITIP -is [array] -and $RABBITIP[1] -is [string]) {

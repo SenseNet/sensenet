@@ -1,0 +1,47 @@
+# Equivalent demo: ./install-sensenet.ps1 -HostDb -UseAuth
+# Run from this folder: docker compose -f docker-compose.host-db-auth.yml up -d
+name: "sensenet-insql-hdb"
+services:
+  snapp:
+    extends:
+      file: "compose.services.yml"
+      service: "repository"
+    image: "sensenetcsp/sn-api-sql:${SN_IMAGE_TAG:-preview}"
+    build:
+      context: "../src"
+      dockerfile: "WebApps/SnWebApplication.Api.Sql.TokenAuth/Dockerfile"
+    environment:
+      sensenet__authentication__repositoryUrl: "https://localhost:51026"
+      ConnectionStrings__SnCrMsSql: "Persist Security Info=False;Initial Catalog=${COMPOSE_PROJECT_NAME}-sndb;Data Source=${DATASOURCE:-host.docker.internal};User ID=${SQL_USER:-sa};Password=${SQL_PASSWORD:-SuP3rS3CuR3P4sSw0Rd};TrustServerCertificate=true"
+      sensenet__authentication__authServerType: "SNAuth"
+      sensenet__authentication__authority: "https://localhost:51027"
+      sensenet__authentication__metadatahost: "http://snis"
+      sensenet__authentication__AddJwtCookie: "false"
+    ports: ["127.0.0.1:51026:443"]
+    extra_hosts: ["host.docker.internal:host-gateway"]
+    depends_on:
+      db-init:
+        condition: "service_completed_successfully"
+      snis:
+        condition: "service_started"
+  db-init:
+    extends:
+      file: "compose.services.yml"
+      service: "mssql-init"
+    environment:
+      SQL_SERVER: "${DATASOURCE:-host.docker.internal}"
+      SQL_USER: "${SQL_USER:-sa}"
+    extra_hosts: ["host.docker.internal:host-gateway"]
+  snis:
+    extends:
+      file: "compose.services.yml"
+      service: "snauth"
+    environment:
+      Sensenet__Repository__Url: "https://localhost:51026"
+      JwtSettings__Issuer: "https://localhost:51027"
+      Application__Url: "https://localhost:51027"
+      Application__AllowedHosts__1: "https://localhost:51026"
+    ports: ["127.0.0.1:51027:443"]
+networks:
+  sensenet:
+    driver: "bridge"

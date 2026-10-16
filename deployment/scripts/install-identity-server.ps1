@@ -60,6 +60,7 @@ Param (
 	[Parameter(Mandatory=$False)]
 	[bool]$Debugging=$False,
 	[Parameter(Mandatory=$False)]
+	[bool]$SkipPull=$False,
 	[bool]$DryRun=$False
 )
 
@@ -81,7 +82,7 @@ Write-Output "#   identity server container   #"
 Write-Output "#################################"
 Write-Output "[$($date) INFO] Start identity server"
 
-if ($IdentityDockerImage -Match "/") {
+if (-not $SkipPull -and $IdentityDockerImage -notmatch "^local/") {
 	Write-Output "pull $IdentityDockerImage image from the registry"
 	Invoke-Cli -command "docker pull $IdentityDockerImage" -DryRun $DryRun
 }
@@ -92,7 +93,7 @@ if ($IsAppPort -eq 443) {
 }
 
 $execFile = "docker"
-$params = "run", "-it", "-d", "eol",
+$params = "run", "-d", "eol",
 "--net", $NetworkName, "eol",
 "--name", $IdentityContainerName, "eol",
 "-e", "ASPNETCORE_URLS=$aspnetUrls", "eol",
@@ -124,7 +125,8 @@ if ($CertPass -ne "") {
 	$params += "-e", "Kestrel__Certificates__Default__Password=$CertPass", "eol"
 }
 
-if ($UseVolume -and $CertFolder -ne "") {
+if (-not $UseVolume) { $CertFolder = "$PSScriptRoot/../temp/certificates" }
+if ($CertFolder -ne "") {
 	$params += "-v", "$($CertFolder):/root/.aspnet/https:ro", "eol"
 }
 
@@ -133,28 +135,12 @@ if ($UseVolume -and $UserSecrets -ne "") {
 }
 
 if ($OpenPort) {
-	$params += "-p", "$($IsHostPort):$($IsAppPort)", "eol"
+	$params += "-p", "127.0.0.1:$($IsHostPort):$($IsAppPort)", "eol"
 }
 
 $params += "$IdentityDockerImage"
 
-# Use the new container management function
 $containerResult = Manage-Container -ContainerName $IdentityContainerName -DockerRunParams $params -DryRun $DryRun
-
-if ($containerResult -eq "error") {
-	Write-Error "Failed to manage container $IdentityContainerName"
-	return
-}
-
-if (-not $UseVolume -and ($containerResult -eq "created" -or $containerResult -eq "started")) {
-	if (-not (Test-Path "./temp/certificates/$($CertName)")) {
-		Write-Error "Certificate file missing!"
-	}
-
-	# if containers started without volume mounts upload the certificate to the container
-	Invoke-Cli -execFile $execFile -params "exec", "-it", $IdentityContainerName, "mkdir", "-p", "/root/.aspnet/https" -DryRun $DryRun -ErrorAction stop
-	Invoke-Cli -execFile $execFile -params "cp", "./temp/certificates/$($CertName)", "$($IdentityContainerName):/root/.aspnet/https/$($CertName)" -DryRun $DryRun -ErrorAction stop
-}
 
 if (-not $DryRun) {
 	if ($Debugging) {

@@ -1,0 +1,72 @@
+# Equivalent demo: ./install-sensenet.ps1 -HostDb -SearchService
+# Run from this folder: docker compose -f docker-compose.host-db-search.yml up -d
+name: "sensenet-insql-hdb-ws"
+services:
+  snapp:
+    extends:
+      file: "compose.services.yml"
+      service: "repository"
+    image: "sensenetcsp/sn-api-nlb:${SN_IMAGE_TAG:-preview}"
+    build:
+      context: "../src"
+      dockerfile: "WebApps/SnWebApplication.Api.Sql.SearchService.TokenAuth/Dockerfile"
+    environment:
+      sensenet__authentication__repositoryUrl: "https://localhost:51066"
+      ConnectionStrings__SnCrMsSql: "Persist Security Info=False;Initial Catalog=${COMPOSE_PROJECT_NAME}-sndb;Data Source=${DATASOURCE:-host.docker.internal};User ID=${SQL_USER:-sa};Password=${SQL_PASSWORD:-SuP3rS3CuR3P4sSw0Rd};TrustServerCertificate=true"
+      sensenet__authentication__authServerType: "IdentityServer"
+      sensenet__authentication__authority: "https://localhost:51067"
+      sensenet__authentication__metadatahost: "http://snis"
+      sensenet__authentication__AddJwtCookie: "true"
+      sensenet__search__service__ServiceAddress: "https://snsearch"
+      sensenet__search__service__ValidateServerCertificate: "false"
+      sensenet__security__rabbitmq__ServiceUrl: "amqp://${RABBIT_USER:-admin}:${RABBIT_PASSWORD:-SuP3rS3CuR3P4sSw0Rd}@rabbit/"
+      sensenet__rabbitmq__ServiceUrl: "amqp://${RABBIT_USER:-admin}:${RABBIT_PASSWORD:-SuP3rS3CuR3P4sSw0Rd}@rabbit/"
+    ports: ["127.0.0.1:51066:443"]
+    extra_hosts: ["host.docker.internal:host-gateway"]
+    depends_on:
+      db-init:
+        condition: "service_completed_successfully"
+      snis:
+        condition: "service_started"
+      snsearch:
+        condition: "service_started"
+      rabbit:
+        condition: "service_healthy"
+  db-init:
+    extends:
+      file: "compose.services.yml"
+      service: "mssql-init"
+    environment:
+      SQL_SERVER: "${DATASOURCE:-host.docker.internal}"
+      SQL_USER: "${SQL_USER:-sa}"
+    extra_hosts: ["host.docker.internal:host-gateway"]
+  snis:
+    extends:
+      file: "compose.services.yml"
+      service: "identity"
+    environment:
+      IdentityServer__IssuerUri: "https://localhost:51067"
+      sensenet__Clients__adminui__RepositoryHosts__0__PublicHost: "https://localhost:51066"
+      sensenet__Clients__spa__RepositoryHosts__0__PublicHost: "https://localhost:51066"
+      sensenet__Clients__client__RepositoryHosts__0__PublicHost: "https://localhost:51066"
+    ports: ["127.0.0.1:51067:443"]
+  rabbit:
+    extends:
+      file: "compose.services.yml"
+      service: "rabbit"
+  snsearch:
+    extends:
+      file: "compose.services.yml"
+      service: "search"
+    environment:
+      ConnectionStrings__SecurityStorage: "Persist Security Info=False;Initial Catalog=${COMPOSE_PROJECT_NAME}-sndb;Data Source=${DATASOURCE:-host.docker.internal};User ID=${SQL_USER:-sa};Password=${SQL_PASSWORD:-SuP3rS3CuR3P4sSw0Rd};TrustServerCertificate=true"
+    ports: ["127.0.0.1:51068:443"]
+    depends_on:
+      db-init:
+        condition: "service_completed_successfully"
+      rabbit:
+        condition: "service_healthy"
+    extra_hosts: ["host.docker.internal:host-gateway"]
+networks:
+  sensenet:
+    driver: "bridge"

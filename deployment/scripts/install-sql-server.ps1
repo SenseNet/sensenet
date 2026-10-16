@@ -62,7 +62,7 @@ if (-not (Get-Command "Invoke-Cli" -ErrorAction SilentlyContinue)) {
 $date = Get-Date -Format "yyyy-MM-dd HH:mm K"
 
 if ($Cleanup -or $Uninstall) {
-    if (-not $UseDbContainer) {
+    if (-not $UseDbContainer -and -not $DryRun) {
         Remove-Database -ServerName "$DataSource" -CatalogName "$SqlDbName" -UserName $SqlUser -UserPsw $SqlPsw -ErrorAction stop
     }
     if ($Uninstall) {
@@ -76,65 +76,27 @@ Write-Output "#       mssql server       #"
 Write-Output "############################"
 
 if ($UseDbContainer) {
-    Test-Docker 
-
-	$sqlContainerExists = (docker ps -a -q -f name=$SqlContainerName)
-	$sqlContainerRunning = (docker ps -q -f name=$SqlContainerName)
-
-	if ($sqlContainerRunning) {
-		Write-Host "Container $SqlContainerName is already running."	
-	} elseif (-not $Uninstall) {
-		if ($sqlContainerExists) {
-			Write-Host "Container $SqlContainerName exists but is stopped. Starting it now."
-			Invoke-Cli -command "docker container start $($SqlContainerName)" -ErrorAction Stop
-		} else {
-            if ($UseVolume) {
-                # add permission to volume folder
-                Write-Output "[$($date) INFO] Permit mssql server volume"
-                Invoke-Cli -execFile "docker" -params "run", "--rm", "-v", "$($SqlVolume):/var/opt/mssql", "alpine", "chmod", "777", "/var/opt/mssql" -DryRun $DryRun -ErrorAction stop
-            }
-
-            Write-Output "[$($date) INFO] Install mssql server"
-            $execFile = "docker"
-            $params = "run", "-d", "eol",
-                "--net", $NetworkName, "eol",
-                "--name", $SqlContainerName, "eol",
-                "-e", "ACCEPT_EULA=Y", "eol",
-                "-e", "MSSQL_SA_PASSWORD=$($SqlPsw)", "eol",
-                "-e", "MSSQL_PID=Express", "eol"
-            
-            if ($UseVolume) {
-                $params += "-v", "$($SqlVolume):/var/opt/mssql/data", "eol"
-            }
-
-            if ($OpenPort) {
-                $params += "-p", "$($SqlHostPort):$($SqlAppPort)", "eol"
-            }
-
-            $params += $SqlDockerImage
-            
-            # Use the new container management function
-            $containerResult = Manage-Container -ContainerName $SqlContainerName -DockerRunParams $params -DryRun $DryRun
-
-            if ($containerResult -eq "error") {
-                Write-Error "Failed to manage container $SqlContainerName"
-                return
-            }
-                
-            # wait for docker container to be started
-            Wait-Container -ContainerName $SqlContainerName -DryRun $DryRun -ErrorAction stop
-
-            # wait for sql server to be available
-            Wait-CntDbServer -ContainerName $SqlContainerName -UserName $($SqlUser) -UserPsw $($SqlPsw) -DryRun $DryRun -ErrorAction stop
-
-            # create empty database (only if container was newly created)
-            if ($containerResult -eq "created") {
-                Invoke-Cli -execFile "docker" -params "exec", $SqlContainerName, "/opt/mssql-tools/bin/sqlcmd", "-U", "$($SqlUser)", "-P", "$($SqlPsw)", "-Q", "IF NOT EXISTS (SELECT * FROM sys.databases WHERE name = '$($SqlDbName)') CREATE DATABASE [$($SqlDbName)]" -DryRun $DryRun -ErrorAction stop
-            }
-        }
+    Test-Docker
+    if ($UseVolume) {
+        Invoke-Cli -execFile docker -params "run", "--rm", "-v", "$($SqlVolume):/var/opt/mssql", "alpine", "chmod", "777", "/var/opt/mssql" -DryRun $DryRun -ErrorAction Stop
     }
+    $params = "run", "-d", "--net", $NetworkName, "--name", $SqlContainerName,
+        "-e", "ACCEPT_EULA=Y", "-e", "MSSQL_SA_PASSWORD=$SqlPsw", "-e", "MSSQL_PID=Express"
+    # Preserve the original data-directory layout of existing PowerShell demos.
+    if ($UseVolume) { $params += "-v", "$($SqlVolume):/var/opt/mssql/data" }
+    if ($OpenPort) { $params += "-p", "127.0.0.1:$($SqlHostPort):$SqlAppPort" }
+    $params += $SqlDockerImage
+    $containerResult = Manage-Container -ContainerName $SqlContainerName -DockerRunParams $params -DryRun $DryRun
+    Wait-Container -ContainerName $SqlContainerName -DryRun $DryRun -ErrorAction Stop
+    $sqlcmd = "/opt/mssql-tools/bin/sqlcmd"
+    if (-not $DryRun) {
+        $sqlcmd = docker exec $SqlContainerName sh -c 'if [ -x /opt/mssql-tools18/bin/sqlcmd ]; then echo /opt/mssql-tools18/bin/sqlcmd; else echo /opt/mssql-tools/bin/sqlcmd; fi'
+        if ($LASTEXITCODE -ne 0) { throw "Cannot locate sqlcmd in $SqlContainerName." }
+    }
+    Wait-CntDbServer -ContainerName $SqlContainerName -SqlCmdPath $sqlcmd -UserName $SqlUser -UserPsw $SqlPsw -DryRun $DryRun -ErrorAction Stop
+    Invoke-Cli -execFile docker -params "exec", $SqlContainerName, $sqlcmd, "-C", "-b", "-U", $SqlUser, "-P", $SqlPsw, "-Q", "IF DB_ID(N'$($SqlDbName.Replace("'", "''"))') IS NULL CREATE DATABASE [$($SqlDbName.Replace(']', ']]'))]" -DryRun $DryRun -ErrorAction Stop
 
-    $msSqlIp = docker inspect -f "{{ .NetworkSettings.Networks.$($NetworkName).IPAddress }}" $SqlContainerName
+    if (-not $DryRun) { $msSqlIp = docker inspect -f "{{ .NetworkSettings.Networks.$($NetworkName).IPAddress }}" $SqlContainerName }
 	Write-Output "`n[$($date) INFO] MsSql Server Ip: $msSqlIp"
     if ($OpenPort) {
 		Write-Output "[$($date) INFO] MsSql Server: localhost,$SqlHostPort"
@@ -142,5 +104,6 @@ if ($UseDbContainer) {
 } else {
     # Wait-RemoteDbServer -ServerName "$DataSource" -UserName $SqlUser -UserPsw $SqlPsw -ErrorAction stop
 	# standalone mssql server
-    New-Database -ServerName "$DataSource" -CatalogName "$SqlDbName" -UserName $SqlUser -UserPsw $SqlPsw -ErrorAction stop
+    if (-not $DryRun) { New-Database -ServerName "$DataSource" -CatalogName "$SqlDbName" -UserName $SqlUser -UserPsw $SqlPsw -ErrorAction Stop }
+    else { Write-Verbose "Would ensure host database $SqlDbName on $DataSource." }
 }

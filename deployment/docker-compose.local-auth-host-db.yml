@@ -1,0 +1,46 @@
+# Equivalent demo: ./install-sensenet.ps1 -HostDb -WebApp LocalAuth
+# Run from this folder: docker compose -f docker-compose.local-auth-host-db.yml up -d
+# Prepare the RSA key with scripts/create-localauth-key.ps1 first. This image is built locally.
+name: "sensenet-insql-hdb"
+services:
+  snapp:
+    extends:
+      file: "compose.services.yml"
+      service: "repository"
+    image: "${LOCALAUTH_IMAGE:-local/sn-api-sql-localauth:demo}"
+    environment:
+      sensenet__authentication__repositoryUrl: "https://localhost:51026"
+      ConnectionStrings__SnCrMsSql: "Persist Security Info=False;Initial Catalog=${COMPOSE_PROJECT_NAME}-sndb;Data Source=${DATASOURCE:-host.docker.internal};User ID=${SQL_USER:-sa};Password=${SQL_PASSWORD:-SuP3rS3CuR3P4sSw0Rd};TrustServerCertificate=true"
+      sensenet__authentication__AddJwtCookie: "false"
+      sensenet__authentication__Local__Mode: "InternalOnly"
+      sensenet__authentication__Local__Issuer: "https://localhost:51026"
+      sensenet__authentication__Local__Audience: "sensenet"
+      sensenet__authentication__Local__SigningKeyPath: "/run/secrets/localauth/signing-key.pem"
+      sensenet__authentication__Local__SigningKeyId: "local-demo"
+      sensenet__authentication__Local__AllowedUserIds__0: "1"
+      sensenet__authentication__Local__RequireMultiFactor: "false"
+      sensenet__authentication__Local__LoginNetworks__0: "127.0.0.0/8"
+      sensenet__authentication__Local__LoginNetworks__1: "172.16.0.0/12"
+      sensenet__authentication__Local__LoginNetworks__2: "192.168.0.0/16"
+      sensenet__authentication__Local__LoginNetworks__3: "10.0.0.0/8"
+      sensenet__authentication__Local__LoginNetworks__4: "::1/128"
+    ports: ["127.0.0.1:51026:443"]
+    extra_hosts: ["host.docker.internal:host-gateway"]
+    build:
+      context: "../src"
+      dockerfile: "WebApps/SnWebApplication.Api.Sql.LocalAuth/Dockerfile"
+    volumes: [{"type": "bind", "source": "${LOCAL_AUTH_KEY_FOLDER:-./temp/localauth}", "target": "/run/secrets/localauth", "read_only": true, "bind": {"create_host_path": false}}]
+    depends_on:
+      db-init:
+        condition: "service_completed_successfully"
+  db-init:
+    extends:
+      file: "compose.services.yml"
+      service: "mssql-init"
+    environment:
+      SQL_SERVER: "${DATASOURCE:-host.docker.internal}"
+      SQL_USER: "${SQL_USER:-sa}"
+    extra_hosts: ["host.docker.internal:host-gateway"]
+networks:
+  sensenet:
+    driver: "bridge"
