@@ -1,15 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Xml;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Fields;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.Diagnostics.Analysis;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Threading;
+using System.Xml;
 
 // ReSharper disable once CheckNamespace
 namespace SenseNet.Packaging.Tools
@@ -596,7 +597,7 @@ namespace SenseNet.Packaging.Tools
 
             // Iterate through the types again in reverse order (root --> leaves) and register 
             // the field with the new type.
-            foreach (var contentTypeName in contentTypeNames.Reverse())
+            foreach (var contentTypeName in Enumerable.Reverse(contentTypeNames))
             {
                 var contentType = ContentType.GetByName(contentTypeName);
                 var ctdXml = LoadContentTypeXmlDocument(contentType);
