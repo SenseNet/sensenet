@@ -41,7 +41,7 @@ namespace SenseNet.Extensions.DependencyInjection
                 buildAppBranchAfter?.Invoke(appBranch);
 
                 if (terminateAppBranch)
-                    appBranch.Use((context, next) => Task.CompletedTask);
+                    appBranch.Run(context => Task.CompletedTask);
             });
 
             return builder;
