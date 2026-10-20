@@ -1,0 +1,86 @@
+# Matching installer scenario (legacy ports are opt-in): ./install-sensenet.ps1 -UseVolume -SearchService -UseAuth
+# Run from this folder: docker compose -f docker-compose.complete-auth.yml up -d
+name: "sensenet-demo-complete-auth"
+services:
+  prerequisites:
+    extends:
+      file: "compose.services.yml"
+      service: "prerequisites"
+  snapp:
+    extends:
+      file: "compose.services.yml"
+      service: "repository"
+    image: "sensenetcsp/sn-api-nlb:${SN_IMAGE_TAG:-preview}"
+    build:
+      context: "../src"
+      dockerfile: "WebApps/SnWebApplication.Api.Sql.SearchService.TokenAuth/Dockerfile"
+    environment:
+      sensenet__authentication__repositoryUrl: "https://localhost:${REPOSITORY_PORT:-${LEGACY_COMPLETE_REPOSITORY_PORT:-18086}}"
+      ConnectionStrings__SnCrMsSql: "Persist Security Info=False;Initial Catalog=${COMPOSE_PROJECT_NAME}-sndb;Data Source=snsql;User ID=sa;Password=${SQL_PASSWORD:-SuP3rS3CuR3P4sSw0Rd};TrustServerCertificate=true"
+      sensenet__authentication__authServerType: "SNAuth"
+      sensenet__authentication__authority: "https://localhost:${AUTH_PORT:-${LEGACY_COMPLETE_AUTH_PORT:-18087}}"
+      sensenet__authentication__metadatahost: "http://snis"
+      sensenet__authentication__AddJwtCookie: "false"
+      sensenet__search__service__ServiceAddress: "https://snsearch"
+      sensenet__search__service__ValidateServerCertificate: "false"
+      sensenet__security__rabbitmq__ServiceUrl: "amqp://${RABBIT_USER:-admin}:${RABBIT_PASSWORD:-SuP3rS3CuR3P4sSw0Rd}@rabbit/"
+      sensenet__rabbitmq__ServiceUrl: "amqp://${RABBIT_USER:-admin}:${RABBIT_PASSWORD:-SuP3rS3CuR3P4sSw0Rd}@rabbit/"
+    ports: ["127.0.0.1:${REPOSITORY_PORT:-${LEGACY_COMPLETE_REPOSITORY_PORT:-18086}}:443"]
+    depends_on:
+      db-init:
+        condition: "service_completed_successfully"
+      snis:
+        condition: "service_started"
+      snsearch:
+        condition: "service_started"
+      rabbit:
+        condition: "service_healthy"
+    volumes: ["app-data:/app/App_Data"]
+  db-init:
+    extends:
+      file: "compose.services.yml"
+      service: "mssql-init"
+    depends_on:
+      snsql:
+        condition: "service_healthy"
+  snsql:
+    extends:
+      file: "compose.services.yml"
+      service: "mssql"
+    ports: ["127.0.0.1:${SQL_PORT:-18089}:1433"]
+    volumes: ["db-data:/var/opt/mssql"]
+  snis:
+    extends:
+      file: "compose.services.yml"
+      service: "snauth"
+    environment:
+      Sensenet__Repository__Url: "https://localhost:${REPOSITORY_PORT:-${LEGACY_COMPLETE_REPOSITORY_PORT:-18086}}"
+      JwtSettings__Issuer: "https://localhost:${AUTH_PORT:-${LEGACY_COMPLETE_AUTH_PORT:-18087}}"
+      Application__Url: "https://localhost:${AUTH_PORT:-${LEGACY_COMPLETE_AUTH_PORT:-18087}}"
+      Application__AllowedHosts__1: "https://localhost:${REPOSITORY_PORT:-${LEGACY_COMPLETE_REPOSITORY_PORT:-18086}}"
+    ports: ["127.0.0.1:${AUTH_PORT:-${LEGACY_COMPLETE_AUTH_PORT:-18087}}:443"]
+  rabbit:
+    extends:
+      file: "compose.services.yml"
+      service: "rabbit"
+    ports: ["127.0.0.1:${RABBIT_PORT:-18085}:15672"]
+  snsearch:
+    extends:
+      file: "compose.services.yml"
+      service: "search"
+    environment:
+      ConnectionStrings__SecurityStorage: "Persist Security Info=False;Initial Catalog=${COMPOSE_PROJECT_NAME}-sndb;Data Source=snsql;User ID=sa;Password=${SQL_PASSWORD:-SuP3rS3CuR3P4sSw0Rd};TrustServerCertificate=true"
+    ports: ["127.0.0.1:${SEARCH_PORT:-${LEGACY_COMPLETE_SEARCH_PORT:-18088}}:443"]
+    depends_on:
+      db-init:
+        condition: "service_completed_successfully"
+      rabbit:
+        condition: "service_healthy"
+    volumes: ["search-data:/app/App_Data"]
+networks:
+  sensenet:
+    driver: "bridge"
+volumes:
+  app-data: {}
+  db-data: {}
+  search-data: {}

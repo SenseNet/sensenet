@@ -3,6 +3,7 @@ Function Test-Docker {
 	if ($DryRun) { return }
 
 	$dockerResult = (docker info --format '{{json .}}')
+	if ($LASTEXITCODE -ne 0 -or -not $dockerResult) { throw "Docker server is not available." }
 	if ($dockerResult -is [array] -and $dockerResult[1] -is [string]) {
 		# workaround for "failed to get console mode for stdout: The handle is invalid."
     	$dockerResult = $dockerResult[1]
@@ -64,6 +65,10 @@ Function Get-GitRepo {
 		Write-Error "Repository url or target path missing!"
 		exit 1
 	}
+	if ($DryRun) {
+		Invoke-Cli -execFile git -params "clone", "-b", $BranchName, $Url, $TargetPath -DryRun $True
+		return
+	}
 	
 	if (Test-Path $TargetPath/.git) {
 		$TargetPath = Resolve-Path $TargetPath
@@ -93,6 +98,7 @@ Function New-DockerImage {
 		[string]$DockerImage="",
 		[Parameter(Mandatory=$False)]
 		[string]$DockerFilePath="",
+		[string]$BuildContext="",
 		[Parameter(Mandatory=$False)]
 		[bool]$DryRun=$False
 	)
@@ -102,14 +108,15 @@ Function New-DockerImage {
 	Write-Output "#       create docker image       #"
 	Write-Output "###################################"
 
-	Invoke-Cli -command "docker build --progress plain -t $DockerImage -f $($DockerfilePath) $($SolutionPath)/src" -DryRun $DryRun -ErrorAction Stop
+	if (-not $BuildContext) { $BuildContext = "$SolutionPath/src" }
+	Invoke-Cli -execFile docker -params "build", "--progress", "plain", "-t", $DockerImage, "-f", $DockerfilePath, $BuildContext -DryRun $DryRun -ErrorAction Stop
 
 	Write-Output " "
 	Write-Output "#################################"
 	Write-Output "#       docker image info       #"
 	Write-Output "#################################"
 
-	Invoke-Cli -command "docker image ls $DockerImage" -DryRun $DryRun
+	Invoke-Cli -execFile docker -params "image", "ls", $DockerImage -DryRun $DryRun
 }
 
 Function Remove-Database {
@@ -302,6 +309,7 @@ Function Wait-CntDbServer {
 	Param (		
 		[Parameter(Mandatory=$False)]
 		[string]$ContainerName,
+		[string]$SqlCmdPath="/opt/mssql-tools18/bin/sqlcmd",
 		[Parameter(Mandatory=$False)]
 		[int]$RecheckInSeconds=10,
 		[Parameter(Mandatory=$False)]
@@ -325,7 +333,7 @@ Function Wait-CntDbServer {
 		DO {
 			$isServerAvailable = $False
 			try {
-				$dummyQuery = $((docker exec $ContainerName /opt/mssql-tools/bin/sqlcmd -U "$($UserName)" -P "$($UserPsw)" -Q "SET NOCOUNT ON; select count(name) from sys.databases" -h -1).Trim())
+				$dummyQuery = $((docker exec $ContainerName $SqlCmdPath -C -b -U "$($UserName)" -P "$($UserPsw)" -Q "SET NOCOUNT ON; select count(name) from sys.databases" -h -1).Trim())
 				if ($dummyQuery -is [array] -and $dummyQuery[1] -is [string]) {
 					# workaround for "failed to get console mode for stdout: The handle is invalid."
 					$dummyQuery = $dummyQuery[1]
@@ -430,47 +438,76 @@ Function Wait-Container {
 }
 
 Function Wait-SnApp {
-	Param (		
-		[Parameter(Mandatory=$True)]
-		[int]$SnHostPort,
-		[Parameter(Mandatory=$False)]
-		[int]$RecheckInSeconds=10,
-		[Parameter(Mandatory=$False)]
-		[int]$MaxTryNumber=6,
-		[Parameter(Mandatory=$False)]
-		[string]$Message,
-		[Parameter(Mandatory=$False)]
-		[bool]$Silent=$False,
-		[Parameter(Mandatory=$False)]
-		[string]$Progress="Output",
-		[Parameter(Mandatory=$False)]
+    [CmdletBinding()]
+    Param (
+        [Parameter(Mandatory=$True)][int]$SnHostPort,
+        [int]$RecheckInSeconds=10,
+        [int]$MaxTryNumber=6,
+        [string]$Message,
+        [bool]$Silent=$False,
+        [string]$Progress="Output",
+        [bool]$DryRun=$False
+    )
+    if ($DryRun) { return }
+    for ($attempt = 0; $attempt -lt $MaxTryNumber; $attempt++) {
+        try {
+            $response = Invoke-WebRequest -Uri "https://localhost:$SnHostPort/odata.svc/('Root')?`$select=Id,Path" -UseBasicParsing -TimeoutSec 10 -Verbose:$False
+            $root = $response.Content | ConvertFrom-Json
+            if ($response.StatusCode -eq 200 -and $root.d.Id -gt 0 -and $root.d.Path -eq '/Root') { return }
+        } catch { Write-Verbose "Repository on port $SnHostPort is not ready: $($_.Exception.Message)" }
+        if ($attempt + 1 -lt $MaxTryNumber) { Wait-For-It -Seconds $RecheckInSeconds -Silent $Silent -DryRun $DryRun }
+    }
+    throw "Wait for snapp timed out on port $SnHostPort after $MaxTryNumber attempts."
+}
+
+# Return one status on the success stream. Logs must not become part of the result.
+Function Manage-Container {
+	[CmdletBinding()]
+	Param (
+		[Parameter(Mandatory=$True)][string]$ContainerName,
+		[Parameter(Mandatory=$True)][string[]]$DockerRunParams,
 		[bool]$DryRun=$False
 	)
 
-	Write-Output "Waiting for https://localhost:$($SnHostPort) snapp to be ready..."
-	if (-not $DryRun) {
-		DO {
-			$isSnAppAvailable = $False
-			try {
-				$snApiStatusCode = (Invoke-WebRequest -Uri https://localhost:$($SnHostPort)/odata.svc/Root -Verbose:$false).StatusCode
-				if ($snApiStatusCode = 200) {
-					Write-Output "sn api available!"
-					$isSnAppAvailable = $True
-				} else {
-					Write-Verbose "sn api not yet available!"
-					$isSnAppAvailable = $False
-					Wait-For-It -Seconds $RecheckInSeconds -Message "waiting..." -ShowSeconds $False -Silent $Silent -DryRun $DryRun 
-				}
-			}
-			catch {
-				if ($MaxTryNumber-- -gt 0) {
-					Write-Verbose "sn api not yet available!"
-					$isSnAppAvailable = $False
-					Wait-For-It -Seconds $RecheckInSeconds -Message "waiting..." -ShowSeconds $False -Silent $Silent -DryRun $DryRun 
-				} else {
-					Write-Error "Wait for snapp timed out! ($($MaxTryNumber * $RecheckInSeconds)s)"
-				}
-			}
-		} Until ($isSnAppAvailable)
+	if ($DryRun) {
+		Invoke-Cli -execFile docker -params $DockerRunParams -DryRun $True
+		return "created"
 	}
+
+	$status = docker container inspect -f '{{.State.Status}}' $ContainerName 2>$null
+	if ($LASTEXITCODE -eq 0) {
+		switch ($status) {
+			"running" { Write-Verbose "$ContainerName is already running."; return "running" }
+			{ $_ -in "exited", "created" } {
+				Invoke-Cli -execFile docker -params "start", $ContainerName -ErrorAction Stop | Out-Host
+				return "started"
+			}
+			default { throw "Container $ContainerName is in state '$status'. Resolve its state before retrying; it has not been removed." }
+		}
+	}
+
+	Invoke-Cli -execFile docker -params $DockerRunParams -ErrorAction Stop | Out-Host
+	return "created"
+}
+
+Function Get-SensenetImage {
+	Param (
+		[string]$SnType="InSql",
+		[ValidateSet("Standard", "Preview", "LocalAuth", "PostgreSql")][string]$WebApp="Standard",
+		[bool]$SearchService=$False,
+		[string]$ImageTag=""
+	)
+	if (-not $ImageTag) { if ($WebApp -eq "PostgreSql") { $ImageTag="postgres-provider" } else { $ImageTag="preview" } }
+	if ($SnType -eq "InMem") {
+		return @{ Image="sensenetcsp/sn-api-inmem:$ImageTag"; Project="SnWebApplication.Api.InMem.TokenAuth" }
+	}
+	switch ($WebApp) {
+		"LocalAuth" { return @{ Image="local/sn-api-sql-localauth:demo"; Project="SnWebApplication.Api.Sql.LocalAuth" } }
+		"PostgreSql" { return @{ Image="sensenetcsp/sn-api-postgre:$ImageTag"; Project="SnWebApplication.Api.PostgreSql.TokenAuth" } }
+	}
+	$name = "sn-api-sql"
+	$project = "SnWebApplication.Api.Sql.TokenAuth"
+	if ($SearchService) { $name="sn-api-nlb"; $project="SnWebApplication.Api.Sql.SearchService.TokenAuth" }
+	if ($WebApp -eq "Preview") { $name+="-prv"; $project+=".Preview" }
+	return @{ Image="sensenetcsp/${name}:$ImageTag"; Project=$project }
 }

@@ -1,0 +1,45 @@
+# INACTIVE scaffold: enable and validate after the PostgreSQL provider joins develop.
+# Kept outside the active *.yml demo suite; see readme.md.
+name: "sensenet-demo-postgres"
+services:
+  prerequisites:
+    extends:
+      file: "compose.services.yml"
+      service: "prerequisites"
+  snapp:
+    extends:
+      file: "compose.services.yml"
+      service: "repository"
+    image: "${POSTGRES_IMAGE:-sensenetcsp/sn-api-postgre:postgres-provider}"
+    environment:
+      sensenet__authentication__repositoryUrl: "https://localhost:${REPOSITORY_PORT:-${LEGACY_CONTAINER_REPOSITORY_PORT:-18256}}"
+      ConnectionStrings__SensenetRepository: "Host=snsql;Database=${COMPOSE_PROJECT_NAME}-sndb;Username=postgres;Password=${SQL_PASSWORD:-SuP3rS3CuR3P4sSw0Rd}"
+      sensenet__install__postgres__EnableFirstInstallDB: "true"
+      sensenet__authentication__authServerType: "SNAuth"
+      sensenet__authentication__authority: "https://localhost:${AUTH_PORT:-${LEGACY_CONTAINER_AUTH_PORT:-18257}}"
+      sensenet__authentication__metadatahost: "http://snis"
+      sensenet__authentication__AddJwtCookie: "false"
+    ports: ["127.0.0.1:${REPOSITORY_PORT:-${LEGACY_CONTAINER_REPOSITORY_PORT:-18256}}:443"]
+    depends_on:
+      snsql:
+        condition: "service_healthy"
+      snis:
+        condition: "service_started"
+  snsql:
+    extends:
+      file: "compose.services.yml"
+      service: "postgres"
+    ports: ["127.0.0.1:${POSTGRES_PORT:-18259}:5432"]
+  snis:
+    extends:
+      file: "compose.services.yml"
+      service: "snauth"
+    environment:
+      Sensenet__Repository__Url: "https://localhost:${REPOSITORY_PORT:-${LEGACY_CONTAINER_REPOSITORY_PORT:-18256}}"
+      JwtSettings__Issuer: "https://localhost:${AUTH_PORT:-${LEGACY_CONTAINER_AUTH_PORT:-18257}}"
+      Application__Url: "https://localhost:${AUTH_PORT:-${LEGACY_CONTAINER_AUTH_PORT:-18257}}"
+      Application__AllowedHosts__1: "https://localhost:${REPOSITORY_PORT:-${LEGACY_CONTAINER_REPOSITORY_PORT:-18256}}"
+    ports: ["127.0.0.1:${AUTH_PORT:-${LEGACY_CONTAINER_AUTH_PORT:-18257}}:443"]
+networks:
+  sensenet:
+    driver: "bridge"

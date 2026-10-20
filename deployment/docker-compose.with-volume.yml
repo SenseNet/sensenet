@@ -1,0 +1,62 @@
+# Matching installer scenario (legacy ports are opt-in): ./install-sensenet.ps1 -UseVolume
+# Run from this folder: docker compose -f docker-compose.with-volume.yml up -d
+name: "sensenet-demo-with-volume"
+services:
+  prerequisites:
+    extends:
+      file: "compose.services.yml"
+      service: "prerequisites"
+  snapp:
+    extends:
+      file: "compose.services.yml"
+      service: "repository"
+    image: "sensenetcsp/sn-api-sql:${SN_IMAGE_TAG:-preview}"
+    build:
+      context: "../src"
+      dockerfile: "WebApps/SnWebApplication.Api.Sql.TokenAuth/Dockerfile"
+    environment:
+      sensenet__authentication__repositoryUrl: "https://localhost:${REPOSITORY_PORT:-${LEGACY_VOLUME_REPOSITORY_PORT:-18036}}"
+      ConnectionStrings__SnCrMsSql: "Persist Security Info=False;Initial Catalog=${COMPOSE_PROJECT_NAME}-sndb;Data Source=snsql;User ID=sa;Password=${SQL_PASSWORD:-SuP3rS3CuR3P4sSw0Rd};TrustServerCertificate=true"
+      sensenet__authentication__authServerType: "IdentityServer"
+      sensenet__authentication__authority: "https://localhost:${AUTH_PORT:-${LEGACY_VOLUME_AUTH_PORT:-18037}}"
+      sensenet__authentication__metadatahost: "http://snis"
+      sensenet__authentication__AddJwtCookie: "true"
+    ports: ["127.0.0.1:${REPOSITORY_PORT:-${LEGACY_VOLUME_REPOSITORY_PORT:-18036}}:443"]
+    depends_on:
+      db-init:
+        condition: "service_completed_successfully"
+      snis:
+        condition: "service_started"
+    volumes: ["app-data:/app/App_Data"]
+  db-init:
+    extends:
+      file: "compose.services.yml"
+      service: "mssql-init"
+    depends_on:
+      snsql:
+        condition: "service_healthy"
+  snsql:
+    extends:
+      file: "compose.services.yml"
+      service: "mssql"
+    ports: ["127.0.0.1:${SQL_PORT:-18039}:1433"]
+    volumes: ["db-data:/var/opt/mssql"]
+  snis:
+    extends:
+      file: "compose.services.yml"
+      service: "identity"
+    environment:
+      IdentityServer__IssuerUri: "https://localhost:${AUTH_PORT:-${LEGACY_VOLUME_AUTH_PORT:-18037}}"
+      sensenet__Clients__adminui__RepositoryHosts__0__PublicHost: "https://localhost:${REPOSITORY_PORT:-${LEGACY_VOLUME_REPOSITORY_PORT:-18036}}"
+      sensenet__Clients__adminui__RepositoryHosts__1__PublicHost: "https://127.0.0.1:${REPOSITORY_PORT:-${LEGACY_VOLUME_REPOSITORY_PORT:-18036}}"
+      sensenet__Clients__spa__RepositoryHosts__0__PublicHost: "https://localhost:${REPOSITORY_PORT:-${LEGACY_VOLUME_REPOSITORY_PORT:-18036}}"
+      sensenet__Clients__spa__RepositoryHosts__1__PublicHost: "https://127.0.0.1:${REPOSITORY_PORT:-${LEGACY_VOLUME_REPOSITORY_PORT:-18036}}"
+      sensenet__Clients__client__RepositoryHosts__0__PublicHost: "https://localhost:${REPOSITORY_PORT:-${LEGACY_VOLUME_REPOSITORY_PORT:-18036}}"
+      sensenet__Clients__client__RepositoryHosts__1__PublicHost: "https://127.0.0.1:${REPOSITORY_PORT:-${LEGACY_VOLUME_REPOSITORY_PORT:-18036}}"
+    ports: ["127.0.0.1:${AUTH_PORT:-${LEGACY_VOLUME_AUTH_PORT:-18037}}:443"]
+networks:
+  sensenet:
+    driver: "bridge"
+volumes:
+  app-data: {}
+  db-data: {}

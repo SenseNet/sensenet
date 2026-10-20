@@ -51,12 +51,13 @@ Param (
 	[bool]$DryRun=$False
 )
 
-if (-not (Get-Command "Invoke-Cli" -DryRun $DryRun -ErrorAction SilentlyContinue)) {
+if (-not (Get-Command "Invoke-Cli" -ErrorAction SilentlyContinue)) {
 	Write-Output "load helper functions"
 	. "$($PSScriptRoot)/helper-functions.ps1"
 }
 
 Test-Docker
+if ($SnType -eq "InPostgres") { $SqlVolume = "$VolumeBasePath/$SensenetContainerName/postgres" }
 
 #############################
 ##    Variables section     #
@@ -70,12 +71,12 @@ Write-Output "#########################"
 
 # stop and remove previous containers
 if ($UseDbContainer -and
-	$SnType -eq "InSql") {
+	$SnType -ne "InMem") {
 	Invoke-Cli -command "docker container stop $SqlContainerName" -message "[$($date) INFO] Stop container: $SqlContainerName" -DryRun $DryRun -ErrorAction SilentlyContinue
 }
 Invoke-Cli -command "docker container stop $IdentityContainerName" -message "[$($date) INFO] Stop container: $IdentityContainerName" -DryRun $DryRun -ErrorAction SilentlyContinue
 Invoke-Cli -command "docker container stop $SensenetContainerName" -message "[$($date) INFO] Stop container: $SensenetContainerName" -DryRun $DryRun -ErrorAction SilentlyContinue
-if ($SnType -eq "InSql" -and $SearchService) {
+if ($SnType -ne "InMem" -and $SearchService) {
 	Invoke-Cli -command "docker container stop $SearchContainerName" -message "[$($date) INFO] Stop container: $SearchContainerName" -DryRun $DryRun -ErrorAction SilentlyContinue
 }
 if ($WithServices) {
@@ -85,12 +86,12 @@ if ($WithServices) {
 Write-Output "`n"
 
 if ($UseDbContainer -and
-	$SnType -eq "InSql") {
+	$SnType -ne "InMem") {
 	Invoke-Cli -command "docker container rm $SqlContainerName" -message "[$($date) INFO] Remove container: $SqlContainerName" -DryRun $DryRun -ErrorAction SilentlyContinue 
 }
 Invoke-Cli -command "docker container rm $IdentityContainerName" -message "[$($date) INFO] Remove container: $IdentityContainerName" -DryRun $DryRun -ErrorAction SilentlyContinue
 Invoke-Cli -command "docker container rm $SensenetContainerName" -message "[$($date) INFO] Remove container: $SensenetContainerName" -DryRun $DryRun -ErrorAction SilentlyContinue
-if ($SnType -eq "InSql" -and $SearchService) {
+if ($SnType -ne "InMem" -and $SearchService) {
 	Invoke-Cli -command "docker container rm $SearchContainerName" -message "[$($date) INFO] Remove container: $SearchContainerName" -DryRun $DryRun -ErrorAction SilentlyContinue
 }
 if ($WithServices) {
@@ -99,18 +100,18 @@ if ($WithServices) {
 
 if ($UseVolume -and 
 	$SensenetAppdataVolume -ne "" -and
-	$SnType -eq "InSql") {
+	$SnType -ne "InMem") {
 	Invoke-Cli -execFile "docker" -params "run", "--rm", "-v", "$($SensenetAppdataVolume):/app/App_Data", "alpine", "rm", "-rf", "/app/App_Data" -message "[$($date) INFO] Cleanup volume: $SensenetAppdataVolume" -DryRun $DryRun -ErrorAction SilentlyContinue
 }
 if ($UseDbContainer -and
 	$SqlVolume -ne "" -and
 	$UseVolume -and
-	$SnType -eq "InSql") {
+	$SnType -ne "InMem") {
 	Invoke-Cli -execFile "docker" -params "run", "--rm", "-v", "$($SqlVolume):/var/opt/mssql", "alpine", "rm", "-rf", "/var/opt/mssql" -message "[$($date) INFO] Cleanup volume: $SqlVolume" -DryRun $DryRun -ErrorAction SilentlyContinue
 }
 if ($UseVolume -and 
 	$SearchAppdataVolume -ne "" -and
-	($SnType -eq "InSql" -and $SearchService)) {
+	($SnType -ne "InMem" -and $SearchService)) {
 	Invoke-Cli -execFile "docker" -params "run", "--rm", "-v", "$($SearchAppdataVolume):/app/App_Data", "alpine", "rm", "-rf", "/app/App_Data" -message "[$($date) INFO] Cleanup volume: $SearchAppdataVolume" -DryRun $DryRun -ErrorAction SilentlyContinue
 }
 

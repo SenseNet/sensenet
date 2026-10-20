@@ -1,0 +1,50 @@
+# INACTIVE scaffold: enable and validate after the PostgreSQL provider joins develop.
+# Kept outside the active *.yml demo suite; see readme.md.
+name: "sensenet-demo-postgres-volume"
+services:
+  prerequisites:
+    extends:
+      file: "compose.services.yml"
+      service: "prerequisites"
+  snapp:
+    extends:
+      file: "compose.services.yml"
+      service: "repository"
+    image: "${POSTGRES_IMAGE:-sensenetcsp/sn-api-postgre:postgres-provider}"
+    environment:
+      sensenet__authentication__repositoryUrl: "https://localhost:${REPOSITORY_PORT:-${LEGACY_VOLUME_REPOSITORY_PORT:-18266}}"
+      ConnectionStrings__SensenetRepository: "Host=snsql;Database=${COMPOSE_PROJECT_NAME}-sndb;Username=postgres;Password=${SQL_PASSWORD:-SuP3rS3CuR3P4sSw0Rd}"
+      sensenet__install__postgres__EnableFirstInstallDB: "true"
+      sensenet__authentication__authServerType: "SNAuth"
+      sensenet__authentication__authority: "https://localhost:${AUTH_PORT:-${LEGACY_VOLUME_AUTH_PORT:-18267}}"
+      sensenet__authentication__metadatahost: "http://snis"
+      sensenet__authentication__AddJwtCookie: "false"
+    ports: ["127.0.0.1:${REPOSITORY_PORT:-${LEGACY_VOLUME_REPOSITORY_PORT:-18266}}:443"]
+    depends_on:
+      snsql:
+        condition: "service_healthy"
+      snis:
+        condition: "service_started"
+    volumes: ["app-data:/app/App_Data"]
+  snsql:
+    extends:
+      file: "compose.services.yml"
+      service: "postgres"
+    ports: ["127.0.0.1:${POSTGRES_PORT:-18269}:5432"]
+    volumes: ["db-data:/var/lib/postgresql/data"]
+  snis:
+    extends:
+      file: "compose.services.yml"
+      service: "snauth"
+    environment:
+      Sensenet__Repository__Url: "https://localhost:${REPOSITORY_PORT:-${LEGACY_VOLUME_REPOSITORY_PORT:-18266}}"
+      JwtSettings__Issuer: "https://localhost:${AUTH_PORT:-${LEGACY_VOLUME_AUTH_PORT:-18267}}"
+      Application__Url: "https://localhost:${AUTH_PORT:-${LEGACY_VOLUME_AUTH_PORT:-18267}}"
+      Application__AllowedHosts__1: "https://localhost:${REPOSITORY_PORT:-${LEGACY_VOLUME_REPOSITORY_PORT:-18266}}"
+    ports: ["127.0.0.1:${AUTH_PORT:-${LEGACY_VOLUME_AUTH_PORT:-18267}}:443"]
+networks:
+  sensenet:
+    driver: "bridge"
+volumes:
+  app-data: {}
+  db-data: {}

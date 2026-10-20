@@ -1,0 +1,182 @@
+# Shared service definitions. Start one docker-compose.*.yml scenario, not this file.
+x-runtime: &runtime
+  ASPNETCORE_ENVIRONMENT: Development
+  ASPNETCORE_URLS: https://+:443;http://+:80
+  Kestrel__Certificates__Default__Path: /root/.aspnet/https/snapp.pfx
+  Kestrel__Certificates__Default__Password: ${CERT_PASSWORD:-SuP3rS3CuR3P4sSw0Rd}
+x-certificate: &certificate
+  type: bind
+  source: ${CERT_FOLDER:-./temp/certificates}/snapp.pfx
+  target: /root/.aspnet/https/snapp.pfx
+  read_only: true
+  bind:
+    create_host_path: false
+
+services:
+  prerequisites:
+    image: alpine:3.20
+    network_mode: none
+    environment:
+      REQUIRE_LOCAL_AUTH_KEY: "false"
+    entrypoint: ["/bin/sh", "-ec"]
+    command:
+      - |
+        if [ ! -f /root/.aspnet/https/snapp.pfx ] || [ ! -s /root/.aspnet/https/snapp.pfx ]; then
+          echo 'Missing snapp.pfx. Run scripts/create-devcert.ps1 or configure CERT_FOLDER/CERT_PASSWORD.' >&2
+          exit 1
+        fi
+        if [ "$$REQUIRE_LOCAL_AUTH_KEY" = true ] && { [ ! -f /run/secrets/localauth/signing-key.pem ] || [ ! -s /run/secrets/localauth/signing-key.pem ]; }; then
+          echo 'Missing signing-key.pem. Run scripts/create-localauth-key.ps1 or configure LOCAL_AUTH_KEY_FOLDER.' >&2
+          exit 1
+        fi
+    volumes:
+      - *certificate
+    restart: "no"
+
+  repository:
+    container_name: ${COMPOSE_PROJECT_NAME}-snapp
+    depends_on:
+      prerequisites:
+        condition: service_completed_successfully
+    environment:
+      <<: *runtime
+      sensenet__identityManagement__UserProfilesEnabled: "false"
+      sensenet__apikeys__healthcheckeruser: ${HEALTH_CHECK_USER:-s3Cur3P4Ss}
+      sensenet__repository__Authentication__ApiKey: ${REPOSITORY_API_KEY:-pr3Gen3R4Tedpr3Gen3R4Tedpr3Gen3R4Tedpr3Gen3R4Tedpr3Gen3R4Tedpr3Gen3R4Tedpr3Gen3R4Ted}
+    volumes:
+      - *certificate
+    networks: [sensenet]
+    restart: unless-stopped
+
+  identity:
+    image: ${IDENTITY_IMAGE:-sensenetcsp/sn-identityserver:latest}
+    depends_on:
+      prerequisites:
+        condition: service_completed_successfully
+    container_name: ${COMPOSE_PROJECT_NAME}-snis
+    environment:
+      <<: *runtime
+      sensenet__LoginPage__DisplayOtherRepositoryButton: "true"
+      sensenet__authentication__setDefaultClients: "true"
+      sensenet__Clients__adminui__RepositoryHosts__0__InternalHost: http://snapp
+      sensenet__Clients__adminui__RepositoryHosts__1__InternalHost: http://snapp
+      sensenet__Clients__spa__RepositoryHosts__0__InternalHost: http://snapp
+      sensenet__Clients__spa__RepositoryHosts__1__InternalHost: http://snapp
+      sensenet__Clients__client__RepositoryHosts__0__InternalHost: http://snapp
+      sensenet__Clients__client__RepositoryHosts__1__InternalHost: http://snapp
+    volumes:
+      - *certificate
+    networks: [sensenet]
+    restart: unless-stopped
+
+  snauth:
+    image: ${AUTH_IMAGE:-sensenetcsp/sn-auth:preview}
+    depends_on:
+      prerequisites:
+        condition: service_completed_successfully
+    container_name: ${COMPOSE_PROJECT_NAME}-snis
+    environment:
+      <<: *runtime
+      Sensenet__Repository__InnerUrl: http://snapp
+      Sensenet__Repository__Authentication__ApiKey: ${REPOSITORY_API_KEY:-pr3Gen3R4Tedpr3Gen3R4Tedpr3Gen3R4Tedpr3Gen3R4Tedpr3Gen3R4Tedpr3Gen3R4Tedpr3Gen3R4Ted}
+      JwtSettings__Audience: sensenet
+      JwtSettings__SecretKey: ${JWT_SECRET:-pr3Gen3R4Tedpr3Gen3R4Tedpr3Gen3R4Ted}
+      JwtSettings__AuthTokenExpiryMinutes: "300"
+      JwtSettings__MultiFactorAuthExpiryMinutes: "300"
+      JwtSettings__TokenExpiryMinutes: "300"
+      JwtSettings__RefreshTokenExpiryDays: "15"
+      PasswordRecovery__TokenExpiryMinutes: "60"
+      Registration__IsEnabled: "false"
+      Application__AllowedHosts__0: ${ADMIN_UI_URL:-https://admin.example.invalid}
+      Application__AllowedHosts__2: http://snapp
+    volumes:
+      - *certificate
+    networks: [sensenet]
+    restart: unless-stopped
+
+  mssql:
+    image: ${SQL_IMAGE:-mcr.microsoft.com/mssql/server:2022-latest}
+    depends_on:
+      prerequisites:
+        condition: service_completed_successfully
+    container_name: ${COMPOSE_PROJECT_NAME}-snsql
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: ${SQL_PASSWORD:-SuP3rS3CuR3P4sSw0Rd}
+      MSSQL_PID: Express
+    networks: [sensenet]
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P \"$$MSSQL_SA_PASSWORD\" -C -b -Q 'SELECT 1' >/dev/null"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 15s
+
+  mssql-init:
+    image: ${SQL_IMAGE:-mcr.microsoft.com/mssql/server:2022-latest}
+    depends_on:
+      prerequisites:
+        condition: service_completed_successfully
+    environment:
+      SQL_PASSWORD: ${SQL_PASSWORD:-SuP3rS3CuR3P4sSw0Rd}
+      SQL_DATABASE: ${COMPOSE_PROJECT_NAME}-sndb
+      SQL_SERVER: snsql
+      SQL_USER: sa
+    entrypoint: ["/bin/bash", "-ec"]
+    command:
+      - >-
+        exec /opt/mssql-tools18/bin/sqlcmd -S "$$SQL_SERVER" -U "$$SQL_USER" -P "$$SQL_PASSWORD" -C -b
+        -Q "IF DB_ID(N'$$SQL_DATABASE') IS NULL CREATE DATABASE [$$SQL_DATABASE]"
+    networks: [sensenet]
+    restart: "no"
+
+  postgres:
+    image: ${POSTGRES_DB_IMAGE:-postgres:16}
+    depends_on:
+      prerequisites:
+        condition: service_completed_successfully
+    container_name: ${COMPOSE_PROJECT_NAME}-snsql
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${SQL_PASSWORD:-SuP3rS3CuR3P4sSw0Rd}
+      POSTGRES_DB: ${COMPOSE_PROJECT_NAME}-sndb
+    networks: [sensenet]
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d \"$$POSTGRES_DB\""]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+  rabbit:
+    image: ${RABBIT_IMAGE:-rabbitmq:3-management}
+    depends_on:
+      prerequisites:
+        condition: service_completed_successfully
+    container_name: ${COMPOSE_PROJECT_NAME}-rabbit
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBIT_USER:-admin}
+      RABBITMQ_DEFAULT_PASS: ${RABBIT_PASSWORD:-SuP3rS3CuR3P4sSw0Rd}
+    networks: [sensenet]
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 5s
+      timeout: 10s
+      retries: 30
+
+  search:
+    image: ${SEARCH_IMAGE:-sensenetcsp/sn-searchservice:preview}
+    depends_on:
+      prerequisites:
+        condition: service_completed_successfully
+    container_name: ${COMPOSE_PROJECT_NAME}-snsearch
+    environment:
+      <<: *runtime
+      ConnectionStrings__SecurityStorage: "Persist Security Info=False;Initial Catalog=${COMPOSE_PROJECT_NAME}-sndb;Data Source=snsql;User ID=sa;Password=${SQL_PASSWORD:-SuP3rS3CuR3P4sSw0Rd};TrustServerCertificate=true"
+      sensenet__security__rabbitmq__ServiceUrl: "amqp://${RABBIT_USER:-admin}:${RABBIT_PASSWORD:-SuP3rS3CuR3P4sSw0Rd}@rabbit/"
+    volumes:
+      - *certificate
+    networks: [sensenet]
+    restart: unless-stopped
