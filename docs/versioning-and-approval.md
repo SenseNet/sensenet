@@ -160,6 +160,25 @@ just like `LoadNodeByVersionIdAsync`. `NodeHead.GetByVersionGuidAsync` returns t
 head, not a historical snapshot, and follows the existing `NodeHead.GetByVersionIdAsync` access behavior.
 Empty, unknown and deleted GUIDs return `null`. All these APIs accept cancellation tokens.
 
+#### OData fields
+
+`GenericContent` exposes `NodeGuid` and `VersionGuid` as read-only `ShortText` fields. JSON responses contain
+the identifiers in the hyphenated `D` format, and the OData metadata describes them as `Edm.String`.
+For example, add `$select=Id,NodeGuid,VersionGuid` to a content request. The fields also work on collections,
+expanded contents and individual property requests. A content link exposes its own row identifiers.
+
+Both fields explicitly disable indexing and index storage (`Mode=No`, `Store=No`). They do not provide
+index-based GUID filtering or ordering. The existing GUID loading methods resolve the identifiers through
+the data provider.
+
+POST, PUT, PATCH and import ignore values supplied for these read-only fields. New rows receive identifiers
+from the provider, and existing rows retain theirs. A user with only `See` permission cannot read the fields.
+The `Node` and `NodeData` properties remain typed as `Guid`; the `NodeGuidText` and `VersionGuidText` bindings
+only provide their current string representation and do not persist another copy.
+
+Fresh installations include the fields in the base content type. The services patch from `7.8.1` to `7.8.2`
+adds them to existing repositories while preserving other fields in `GenericContent`.
+
 #### Compatibility for data provider implementers
 
 All `DataProvider` implementations must preserve these identities, including during object replacement and transaction

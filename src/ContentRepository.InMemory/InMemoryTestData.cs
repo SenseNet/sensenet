@@ -1666,6 +1666,19 @@ VersionId: 406
         <ReadOnly>true</ReadOnly>
       </Configuration>
     </Field>
+    <Field name=""NodeGuid"" type=""ShortText"">
+      <Bind property=""NodeGuidText"" />
+      <Indexing>
+        <Mode>No</Mode>
+        <Store>No</Store>
+      </Indexing>
+      <Configuration>
+        <ReadOnly>true</ReadOnly>
+        <VisibleBrowse>Hide</VisibleBrowse>
+        <VisibleEdit>Hide</VisibleEdit>
+        <VisibleNew>Hide</VisibleNew>
+      </Configuration>
+    </Field>
     <Field name=""ParentId"" type=""Integer"">
       <DisplayName>$Ctd-GenericContent,ParentId-DisplayName</DisplayName>
       <Description>$Ctd-GenericContent,ParentId-Description</Description>
@@ -1709,6 +1722,19 @@ VersionId: 406
         <VisibleEdit>Hide</VisibleEdit>
         <VisibleNew>Hide</VisibleNew>
         <ReadOnly>true</ReadOnly>
+      </Configuration>
+    </Field>
+    <Field name=""VersionGuid"" type=""ShortText"">
+      <Bind property=""VersionGuidText"" />
+      <Indexing>
+        <Mode>No</Mode>
+        <Store>No</Store>
+      </Indexing>
+      <Configuration>
+        <ReadOnly>true</ReadOnly>
+        <VisibleBrowse>Hide</VisibleBrowse>
+        <VisibleEdit>Hide</VisibleEdit>
+        <VisibleNew>Hide</VisibleNew>
       </Configuration>
     </Field>
     <Field name=""Type"" type=""NodeType"">

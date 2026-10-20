@@ -570,7 +570,7 @@ namespace SenseNet.ContentRepository
 
         public override bool HasProperty(string name)
         {
-            if (name == "CheckedOutTo")
+            if (name is "CheckedOutTo" or nameof(NodeGuidText) or nameof(VersionGuidText))
                 return true;
             return base.HasProperty(name);
         }
@@ -627,6 +627,19 @@ namespace SenseNet.ContentRepository
         /// Gets a value that is true if the value of the ApprovingMode is <see cref="ApprovingType.True"/>.
         /// </summary>
         public bool HasApproving => this.ApprovingMode == ApprovingType.True;
+
+        /// <summary>Gets the node row identifier in the format exposed by the NodeGuid ShortText field.</summary>
+        public string NodeGuidText => GetRowGuidText(nameof(NodeGuid), NodeGuid);
+
+        /// <summary>Gets the loaded version row identifier in the format exposed by the VersionGuid ShortText field.</summary>
+        public string VersionGuidText => GetRowGuidText(nameof(VersionGuid), VersionGuid);
+
+        private string GetRowGuidText(string propertyName, Guid value)
+        {
+            if (!IsAllowedProperty(propertyName))
+                throw new SenseNetSecurityException($"Access denied to property {propertyName} of {Path}.");
+            return value.ToString("D");
+        }
 
         private GenericContent _workspace;
         /// <summary>
@@ -805,6 +818,10 @@ namespace SenseNet.ContentRepository
         {
             switch (name)
             {
+                case nameof(NodeGuidText):
+                    return NodeGuidText;
+                case nameof(VersionGuidText):
+                    return VersionGuidText;
                 case ASPECTS:
                     return this.Aspects;
                 case ASPECTDATA:
@@ -874,6 +891,9 @@ namespace SenseNet.ContentRepository
         {
             switch (name)
             {
+                case nameof(NodeGuidText):
+                case nameof(VersionGuidText):
+                    throw new InvalidOperationException($"Property {name} is read-only.");
                 case ASPECTS:
                     this.Aspects = ((System.Collections.IEnumerable)value).Cast<Aspect>();
                     break;
