@@ -217,6 +217,7 @@ namespace SenseNet.IntegrationTests.Infrastructure
             var builder = new ConfigurationBuilder();
             builder.AddJsonFile("appsettings.json");
             builder.AddUserSecrets("86cf56af-3ef2-46f4-afba-503609b83378");
+            builder.AddEnvironmentVariables("SENSENET_TEST_");
             return builder.Build(); ;
         }
 

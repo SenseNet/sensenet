@@ -62,9 +62,10 @@ namespace SenseNet.ContentRepository.InMemory
                     dynamicData.VersionId = versionId;
                     versionData.NodeId = nodeId;
 
-                    var versionDoc = CreateVersionDocSafe(versionData, dynamicData);
+                    var versionDoc = CreateVersionDocSafe(versionData, dynamicData, Guid.NewGuid());
                     DB.Versions.Insert(versionDoc);
                     versionData.Timestamp = versionDoc.Timestamp;
+                    versionData.RowGuid = versionDoc.RowGuid;
 
                     // Manage LongTextProperties
                     foreach (var item in dynamicData.LongTextProperties)
@@ -83,11 +84,12 @@ namespace SenseNet.ContentRepository.InMemory
                     nodeHeadData.LastMajorVersionId = lastMajorVersionId;
                     nodeHeadData.LastMinorVersionId = lastMinorVersionId;
 
-                    var nodeDoc = CreateNodeDocSafe(nodeHeadData);
+                    var nodeDoc = CreateNodeDocSafe(nodeHeadData, Guid.NewGuid());
                     nodeDoc.LastMajorVersionId = lastMajorVersionId;
                     nodeDoc.LastMinorVersionId = lastMinorVersionId;
                     DB.Nodes.Insert(nodeDoc);
                     nodeHeadData.Timestamp = nodeDoc.Timestamp;
+                    nodeHeadData.RowGuid = nodeDoc.RowGuid;
 
                     transaction.Commit();
                 }
@@ -133,7 +135,7 @@ namespace SenseNet.ContentRepository.InMemory
                     DeleteVersionsSafe(versionIdsToDelete);
 
                     // Update NodeDoc (create a new nodeDoc instance)
-                    var nodeDoc = CreateNodeDocSafe(nodeHeadData);
+                    var nodeDoc = CreateNodeDocSafe(nodeHeadData, existingNodeDoc.RowGuid);
                     (int lastMajorVersionId, int lastMinorVersionId) = LoadLastVersionIdsSafe(nodeHeadData.NodeId);
                     nodeDoc.LastMajorVersionId = lastMajorVersionId;
                     nodeDoc.LastMinorVersionId = lastMinorVersionId;
@@ -157,7 +159,9 @@ namespace SenseNet.ContentRepository.InMemory
                         UpdateSubTreePathSafe(originalPath, nodeHeadData.Path);
 
                     versionData.Timestamp = versionDoc.Timestamp;
+                    versionData.RowGuid = versionDoc.RowGuid;
                     nodeHeadData.Timestamp = nodeDoc.Timestamp;
+                    nodeHeadData.RowGuid = nodeDoc.RowGuid;
                     nodeHeadData.LastMajorVersionId = lastMajorVersionId;
                     nodeHeadData.LastMinorVersionId = lastMinorVersionId;
 
@@ -196,7 +200,21 @@ namespace SenseNet.ContentRepository.InMemory
                         throw new ContentNotFoundException(
                             $"Version not found. VersionId: {sourceVersionId} NodeId: {nodeHeadData.NodeId}, path: {nodeHeadData.Path}.");
                     var targetVersionId = expectedVersionId == 0 ? DB.Versions.GetNextId() : expectedVersionId;
-                    var versionDoc = CloneVersionDocSafe(currentVersionDoc);
+                    // Object replacement preserves the destination row's identity.
+                    Guid targetRowGuid;
+                    if (expectedVersionId != 0)
+                    {
+                        var targetVersionDoc = DB.Versions.FirstOrDefault(x => x.VersionId == expectedVersionId);
+                        if (targetVersionDoc == null)
+                            throw new ContentNotFoundException(
+                                $"Version not found. VersionId: {expectedVersionId} NodeId: {nodeHeadData.NodeId}, path: {nodeHeadData.Path}.");
+                        targetRowGuid = targetVersionDoc.RowGuid;
+                    }
+                    else
+                    {
+                        targetRowGuid = Guid.NewGuid();
+                    }
+                    var versionDoc = CloneVersionDocSafe(currentVersionDoc, targetRowGuid);
                     versionDoc.VersionId = targetVersionId;
                     versionData.VersionId = targetVersionId;
                     dynamicData.VersionId = targetVersionId;
@@ -225,7 +243,7 @@ namespace SenseNet.ContentRepository.InMemory
                     DeleteVersionsSafe(versionIdsToDelete);
 
                     // UpdateNodeDoc
-                    var nodeDoc = CreateNodeDocSafe(nodeHeadData);
+                    var nodeDoc = CreateNodeDocSafe(nodeHeadData, existingNodeDoc.RowGuid);
                     (int lastMajorVersionId, int lastMinorVersionId) = LoadLastVersionIdsSafe(nodeHeadData.NodeId);
                     nodeDoc.LastMajorVersionId = lastMajorVersionId;
                     nodeDoc.LastMinorVersionId = lastMinorVersionId;
@@ -237,7 +255,9 @@ namespace SenseNet.ContentRepository.InMemory
                         UpdateSubTreePathSafe(originalPath, nodeHeadData.Path);
 
                     versionData.Timestamp = versionDoc.Timestamp;
+                    versionData.RowGuid = versionDoc.RowGuid;
                     nodeHeadData.Timestamp = nodeDoc.Timestamp;
+                    nodeHeadData.RowGuid = nodeDoc.RowGuid;
                     nodeHeadData.LastMajorVersionId = lastMajorVersionId;
                     nodeHeadData.LastMinorVersionId = lastMinorVersionId;
 
@@ -272,7 +292,7 @@ namespace SenseNet.ContentRepository.InMemory
                     DeleteVersionsSafe(versionIdsToDelete);
 
                     // Update NodeDoc (create a new nodeDoc instance)
-                    var nodeDoc = CreateNodeDocSafe(nodeHeadData);
+                    var nodeDoc = CreateNodeDocSafe(nodeHeadData, existingNodeDoc.RowGuid);
                     (int lastMajorVersionId, int lastMinorVersionId) = LoadLastVersionIdsSafe(nodeHeadData.NodeId);
                     nodeDoc.LastMajorVersionId = lastMajorVersionId;
                     nodeDoc.LastMinorVersionId = lastMinorVersionId;
@@ -281,6 +301,7 @@ namespace SenseNet.ContentRepository.InMemory
 
                     // Update return values
                     nodeHeadData.Timestamp = nodeDoc.Timestamp;
+                    nodeHeadData.RowGuid = nodeDoc.RowGuid;
                     nodeHeadData.LastMajorVersionId = lastMajorVersionId;
                     nodeHeadData.LastMinorVersionId = lastMinorVersionId;
 
@@ -384,7 +405,9 @@ namespace SenseNet.ContentRepository.InMemory
                         VersionModificationDate = versionDoc.ModificationDate,
                         VersionModifiedById = versionDoc.ModifiedById,
                         NodeTimestamp = nodeDoc.Timestamp,
-                        VersionTimestamp = versionDoc.Timestamp
+                        VersionTimestamp = versionDoc.Timestamp,
+                        NodeGuid = nodeDoc.RowGuid,
+                        VersionGuid = versionDoc.RowGuid
                     };
 
                     var dynamicProps = versionDoc.DynamicProperties;
@@ -1770,7 +1793,7 @@ namespace SenseNet.ContentRepository.InMemory
         }
         private void InstallNodeSafe(NodeHeadData nData, VersionData vData, DynamicPropertyData dData, InitialData data)
         {
-            DB.Nodes.Insert(new NodeDoc
+            DB.Nodes.Insert(new NodeDoc(Guid.NewGuid())
             {
                 NodeId = nData.NodeId,
                 NodeTypeId = nData.NodeTypeId,
@@ -1809,7 +1832,7 @@ namespace SenseNet.ContentRepository.InMemory
                 foreach (var contentListProperty in dData.ContentListProperties)
                     dynamicProperties.Add(contentListProperty.Key.Name, contentListProperty.Value);
 
-            DB.Versions.Insert(new VersionDoc
+            DB.Versions.Insert(new VersionDoc(Guid.NewGuid())
             {
                 VersionId = vData.VersionId,
                 NodeId = vData.NodeId,
@@ -2210,9 +2233,9 @@ namespace SenseNet.ContentRepository.InMemory
             return (lastMajorVersionId, lastMinorVersionId);
         }
 
-        private NodeDoc CreateNodeDocSafe(NodeHeadData nodeHeadData)
+        private NodeDoc CreateNodeDocSafe(NodeHeadData nodeHeadData, Guid rowGuid)
         {
-            return new NodeDoc
+            return new NodeDoc(rowGuid)
             {
                 NodeId = nodeHeadData.NodeId,
                 NodeTypeId = nodeHeadData.NodeTypeId,
@@ -2246,7 +2269,7 @@ namespace SenseNet.ContentRepository.InMemory
                 // Timestamp handled by the new instance itself.
             };
         }
-        private VersionDoc CreateVersionDocSafe(VersionData versionData, DynamicPropertyData dynamicData)
+        private VersionDoc CreateVersionDocSafe(VersionData versionData, DynamicPropertyData dynamicData, Guid rowGuid)
         {
             // Clone property values
             var dynamicProperties = new Dictionary<string, object>();
@@ -2269,7 +2292,7 @@ namespace SenseNet.ContentRepository.InMemory
                 dynamicProperties.Add(propertyType.Name, GetCloneSafe(item.Value, dataType));
             }
 
-            return new VersionDoc
+            return new VersionDoc(rowGuid)
             {
                 VersionId = versionData.VersionId,
                 NodeId = versionData.NodeId,
@@ -2363,9 +2386,9 @@ namespace SenseNet.ContentRepository.InMemory
             return ((IEnumerable<int>)value).Any();
         }
 
-        private VersionDoc CloneVersionDocSafe(VersionDoc source)
+        private VersionDoc CloneVersionDocSafe(VersionDoc source, Guid? rowGuid = null)
         {
-            return new VersionDoc
+            return new VersionDoc(rowGuid ?? source.RowGuid)
             {
                 VersionId = source.VersionId,
                 NodeId = source.NodeId,

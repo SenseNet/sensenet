@@ -616,6 +616,19 @@ namespace SenseNet.ContentRepository.Storage
         }
 
         /// <summary>
+        /// Gets the identifier of the Nodes row. It is <see cref="Guid.Empty"/> before the first
+        /// successful save and remains unchanged for the lifetime of the row.
+        /// </summary>
+        public Guid NodeGuid => _data.NodeGuid;
+
+        /// <summary>
+        /// Gets the identifier of the Versions row selected by <see cref="VersionId"/>.
+        /// It is <see cref="Guid.Empty"/> before the first successful save and is immutable per row.
+        /// Selecting another version row returns that row's identifier.
+        /// </summary>
+        public Guid VersionGuid => _data.VersionGuid;
+
+        /// <summary>
         /// The <see cref="Node"/> is new if its Id is 0.
         /// </summary>
         public virtual bool IsNew
@@ -1044,6 +1057,8 @@ namespace SenseNet.ContentRepository.Storage
                 case "SavingState": return data.SavingState;
                 case "NodeTimestamp": return data.NodeTimestamp;
                 case "VersionTimestamp": return data.VersionTimestamp;
+                case "NodeGuid": return data.NodeGuid;
+                case "VersionGuid": return data.VersionGuid;
                 default: return data.GetDynamicRawData(GetPropertyTypeByName(name)); // this[GetPropertyTypeByName(name)];
             }
         }
@@ -1083,6 +1098,8 @@ namespace SenseNet.ContentRepository.Storage
                     case "ModifiedById": return this.ModifiedById;
                     case "NodeTimestamp": return this.NodeTimestamp;
                     case "VersionTimestamp": return this.VersionTimestamp;
+                    case "NodeGuid": return this.NodeGuid;
+                    case "VersionGuid": return this.VersionGuid;
                     case "Version": return this.Version;
                     case "VersionId": return this.VersionId;
                     case "VersionCreationDate": return this.VersionCreationDate;
@@ -1116,6 +1133,8 @@ namespace SenseNet.ContentRepository.Storage
                     case "Parent":
                     case "Path":
                     case "Security":
+                    case "NodeGuid":
+                    case "VersionGuid":
                         throw new InvalidOperationException(String.Concat("Property is read only: ", propertyName));
                     case "CreationDate": this.CreationDate = (DateTime)value; break;
                     case "VersionCreationDate": this.VersionCreationDate = (DateTime)value; break;
@@ -1189,7 +1208,7 @@ namespace SenseNet.ContentRepository.Storage
             "Index","IsModified","IsDeleted","IsInherited","IsSystem","CreationDate","CreatedBy","CreatedById","ModificationDate","ModifiedBy","ModifiedById", "Owner", "OwnerId",
             "Version","VersionId","VersionCreationDate","VersionCreatedBy","VersionCreatedById","VersionModificationDate","VersionModifiedBy","VersionModifiedById",
             "Locked","Lock","LockedById","LockedBy","ETag","LockType","LockTimeout","LockDate","LockToken","LastLockUpdate","Security",
-            "SavingState", "ChangedData"});
+            "SavingState", "ChangedData", "NodeGuid", "VersionGuid"});
 
         /// <summary>
         /// Gets the <see cref="PropertyType"/> collection of this <see cref="Node"/>.

@@ -1,5 +1,9 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SenseNet.ContentRepository.InMemory;
+using SenseNet.ContentRepository.Storage;
 using SenseNet.IntegrationTests.Infrastructure;
 using SenseNet.IntegrationTests.Platforms;
 using SenseNet.IntegrationTests.TestCases;
@@ -9,6 +13,46 @@ namespace SenseNet.IntegrationTests.InMemTests
     [TestClass]
     public class InMemDataProviderTests : IntegrationTest<InMemPlatform, DataProviderTestCases>
     {
+        [TestMethod]
+        public void IntT_InMem_DP_RowGuids_DocumentClones()
+        {
+            var nodeGuid = Guid.NewGuid();
+            var versionGuid = Guid.NewGuid();
+            var node = new NodeDoc(nodeGuid) { NodeId = 42 };
+            var version = new VersionDoc(versionGuid)
+            {
+                VersionId = 43, NodeId = 42, Version = VersionNumber.Parse("V1.0.A"),
+                DynamicProperties = new Dictionary<string, object>()
+            };
+            Assert.AreEqual(nodeGuid, node.Clone().RowGuid);
+            Assert.AreEqual(versionGuid, version.Clone().RowGuid);
+            Assert.IsNull(typeof(NodeDoc).GetProperty(nameof(NodeDoc.RowGuid)).SetMethod);
+            Assert.IsNull(typeof(VersionDoc).GetProperty(nameof(VersionDoc.RowGuid)).SetMethod);
+            Assert.ThrowsException<ArgumentException>(() => new NodeDoc(Guid.Empty));
+            Assert.ThrowsException<ArgumentException>(() => new VersionDoc(Guid.Empty));
+        }
+
+        [TestMethod]
+        public Task IntT_InMem_DP_RowGuids_NodeLifecycle() => TestCase.DP_RowGuids_NodeLifecycle();
+
+        [DataTestMethod]
+        [DataRow(false)]
+        [DataRow(true)]
+        public Task IntT_InMem_DP_RowGuids_ProviderWrites(bool emptyInput) => TestCase.DP_RowGuids_ProviderWrites(emptyInput);
+
+        [TestMethod]
+        public Task IntT_InMem_DP_RowGuids_InitialDataAndAuxiliaryWrites() => TestCase.DP_RowGuids_InitialDataAndAuxiliaryWrites();
+
+        [TestMethod]
+        public Task IntT_InMem_DP_RowGuids_MissingDestination() => TestCase.DP_RowGuids_MissingDestination();
+
+        [DataTestMethod]
+        [DataRow("update")]
+        [DataRow("head")]
+        [DataRow("new-version")]
+        [DataRow("overwrite")]
+        public Task IntT_InMem_DP_RowGuids_Rollback(string operation) => TestCase.DP_RowGuids_Rollback(operation);
+
         [TestMethod]
         public Task IntT_InMem_DP_InsertNode() { return TestCase.DP_InsertNode(); }
         [TestMethod]

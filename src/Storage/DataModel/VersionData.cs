@@ -7,6 +7,11 @@ namespace SenseNet.ContentRepository.Storage.DataModel
     public class VersionData : IDataModel
     {
         public int VersionId;
+        /// <summary>
+        /// The immutable Versions row identifier. Providers ignore this as write input and return
+        /// the destination row's value after a successful save, preserving it on overwrite.
+        /// </summary>
+        public Guid RowGuid;
         public int NodeId;
         public VersionNumber Version;
         public DateTime CreationDate;

@@ -24,6 +24,11 @@ namespace SenseNet.ContentRepository.Storage.Data
     ///                                                         |-> LongTextProperties
     ///                                                         |-> ReferenceProperties
     /// Additional structure: TreeLocks, LogEntries, IndexingActivities
+    /// Every provider must assign a new, non-empty RowGuid only when inserting a Nodes or Versions row.
+    /// The identifier is immutable for the row's lifetime, including updates, moves, status changes,
+    /// object replacement and rollback. Load operations return the stored identifiers without generating them.
+    /// Write operations ignore incoming RowGuid values and return the stored identifiers in their DTOs.
+    /// Copying onto an existing version preserves the destination identifier; copying to a new row generates one.
     /// </remarks>
     public abstract class DataProvider
     {
@@ -70,6 +75,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// and [dynamicData] parameters: NodeId, NodeTimestamp, VersionId, VersionTimestamp, BinaryPropertyIds,
         /// LastMajorVersionId, LastMinorVersionId. This method needs to be transactional. If an error occurs during execution,
         /// all data changes should be reverted to the original state by the data provider.
+        /// Generates new node and version RowGuids regardless of incoming values and returns them in the DTOs.
         /// </summary>
         /// <remarks>
         /// Algorithm:
@@ -122,6 +128,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         ///     NodeTimestamp, VersionTimestamp, BinaryPropertyIds, LastMajorVersionId, LastMinorVersionId.
         /// This method needs to be transactional. If an error occurs during execution, all data changes
         /// should be reverted to the original state by the data provider.
+        /// Preserves both stored RowGuids, ignores incoming GUIDs and returns the stored values in the DTOs.
         /// </summary>
         /// <remarks>
         /// Algorithm:
@@ -185,6 +192,8 @@ namespace SenseNet.ContentRepository.Storage.Data
         ///     NodeTimestamp, VersionId, VersionTimestamp, BinaryPropertyIds, LastMajorVersionId, LastMinorVersionId.
         /// This method needs to be transactional. If an error occurs during execution, all data changes
         /// should be reverted to the original state by the data provider.
+        /// Preserves the node RowGuid and returns the destination version RowGuid. A new version gets a new GUID;
+        /// an existing destination keeps its GUID. Incoming GUIDs are ignored; a missing explicit destination is an error.
         /// </summary>
         /// <remarks>
         /// Algorithm:
@@ -248,6 +257,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// Updates the paths in the subtree if the node is renamed (i.e. Name property changed).
         /// This method needs to be transactional. If an error occurs during execution, all data changes
         /// should be reverted to the original state by the data provider.
+        /// Preserves the stored node RowGuid, ignores the incoming GUID and returns the stored value in nodeHeadData.
         /// </summary>
         /// <remarks>
         /// Algorithm:
@@ -290,6 +300,7 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         /// <summary>
         /// Loads node data items by the provided versionId set. If a node is not found by it's versionId, the item must be skipped.
+        /// Returns NodeGuid and VersionGuid from the stored rows; never generates or substitutes identifiers.
         /// </summary>
         /// <remarks>
         /// Algorithm:
@@ -869,6 +880,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// Prepares the initial valid state of the database using the provided storage-model structure.
         /// The database structure (tables, collections, indexes) should be prepared before calling this method 
         /// which happens during the installation process.
+        /// Assigns new RowGuids to new node and version rows, ignoring incoming GUIDs. Existing row GUIDs must not change.
         /// </summary>
         /// <param name="data">A storage-model structure to install.</param>
         /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>

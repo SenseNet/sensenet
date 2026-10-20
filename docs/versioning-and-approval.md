@@ -129,6 +129,43 @@ You can change versioning or approving mode on any container type (like a list o
 
 <img src="https://raw.githubusercontent.com/SenseNet/sensenet/master/docs/images/approval/versioning-change.png" style="margin: 20px auto" />
 
+### Node and version row identifiers (.NET API)
+
+`Node.NodeGuid` identifies the stored node row; `Node.VersionGuid` identifies the version row selected by `Node.VersionId`.
+Both are read-only `Guid` properties, also available on `NodeData`. Before the first successful save they are `Guid.Empty`;
+after saving they contain the stored identifiers without requiring a reload. The database column names remain `Nodes.RowGuid`
+and `Versions.RowGuid`.
+
+Each GUID is assigned only when its row is inserted and remains unchanged for that row's lifetime. Updating, renaming,
+moving or changing the status or version number of an existing row preserves its GUID. Creating a new version preserves
+`NodeGuid` and gives the new version row a new GUID. Overwriting an existing destination version preserves the destination's
+GUID. Copying content to a new node creates new node and version GUIDs. Loading another version returns that row's GUID;
+the previously loaded row's identifier does not change.
+
+#### Compatibility for data provider implementers
+
+All `DataProvider` implementations must preserve these identities, including during object replacement and transaction
+rollback. Incoming `NodeHeadData.RowGuid` and `VersionData.RowGuid` values are ignored as write inputs. Successful insert,
+update and copy operations return the actual stored values in those DTOs. Loading or cloning an existing row must never
+generate an identifier. In-memory `NodeDoc` and `VersionDoc` constructors now require an explicit non-empty GUID; their
+read-only `RowGuid` properties and `Clone()` methods preserve the logical row identity.
+
+Custom `RelationalDataProviderBase` implementations must update their result sets along with their provider binaries:
+
+| Script | Additional result columns |
+| --- | --- |
+| `LoadNodesScript` (base data), `InsertNodeAndVersionScript` | `NodeGuid`, `VersionGuid` |
+| `CopyVersionAndUpdateScript` (first result set) | `VersionGuid` |
+| `UpdateNodeScript` | `NodeGuid`, alongside `Timestamp` |
+| `UpdateVersionScript` | `VersionGuid`, alongside `Timestamp` |
+
+These columns must contain the stored, non-null GUIDs. The update scripts must never assign `RowGuid`, and an explicitly
+requested destination version must exist. Run the shared `DP_RowGuids_*` integration test cases for every provider.
+SQL Server uses its existing `DEFAULT NEWID()` on insertion; no schema migration or regeneration of existing GUIDs is needed.
+
+For an isolated integration-test run, `SENSENET_TEST_ConnectionStrings__SnCrMsSql` overrides the configured connection string
+without editing user secrets. Point it at a disposable test database: the SQL test platform reinitializes its schema.
+
 ### Example/Tutorials
 
 In this section you can see examples of how content version numbers change if you work with the content. If you want to see the actions you can perform in particular state of a content, check [Enabled versioning actions](#enable).

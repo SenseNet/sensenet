@@ -37,7 +37,9 @@ BEGIN
         UPDATE Nodes SET LastMinorVersionId = @VersionId WHERE NodeId = @NodeId
     SELECT @NodeTimestamp = [Timestamp] FROM Nodes WHERE NodeId = @NodeId
 
-    SELECT @NodeId NodeId, @VersionId VersionId, @NodeTimestamp NodeTimestamp, @VersionTimestamp VersionTimestamp, LastMajorVersionId, LastMinorVersionId, Path FROM Nodes WHERE NodeId = @NodeId
+    SELECT @NodeId NodeId, @VersionId VersionId, @NodeTimestamp NodeTimestamp, @VersionTimestamp VersionTimestamp,
+        N.LastMajorVersionId, N.LastMinorVersionId, N.Path, N.RowGuid AS NodeGuid, V.RowGuid AS VersionGuid
+    FROM Nodes N JOIN Versions V ON V.VersionId = @VersionId WHERE N.NodeId = @NodeId
 END
 ";
         #endregion
@@ -83,7 +85,7 @@ UPDATE Versions SET
     ContentListProperties = @ContentListProperties
 WHERE VersionId = @VersionId
 
-SELECT [Timestamp] FROM Versions WHERE VersionId = @VersionId
+SELECT [Timestamp], RowGuid AS VersionGuid FROM Versions WHERE VersionId = @VersionId
 ";
         #endregion
         #region UpdateNodeScript
@@ -128,7 +130,7 @@ IF @@ROWCOUNT = 0 BEGIN
         RAISERROR (N'Node is out of date Id: %d, path: %s.', 12, 1, @NodeId, @Path);
 END
 ELSE BEGIN
-    SELECT [Timestamp] FROM Nodes WHERE NodeId = @NodeId
+    SELECT [Timestamp], RowGuid AS NodeGuid FROM Nodes WHERE NodeId = @NodeId
 END
 ";
         #endregion
@@ -182,7 +184,15 @@ SELECT Timestamp FROM Versions WHERE VersionId = @VersionId"
         #region CopyVersionAndUpdateScript
         protected override string CopyVersionAndUpdateScript => @"-- MsSqlDataProvider.CopyVersionAndUpdate
 IF(NOT EXISTS (SELECT NodeId FROM Versions WHERE VersionId = @PreviousVersionId))
+BEGIN
     RAISERROR (N'Cannot copy a deleted Version. @VersionId: %d.', 12, 1, @PreviousVersionId);
+    RETURN;
+END
+IF @DestinationVersionId IS NOT NULL AND NOT EXISTS (SELECT 1 FROM Versions WHERE VersionId = @DestinationVersionId)
+BEGIN
+    RAISERROR (N'Cannot copy a deleted Version. @VersionId: %d.', 12, 1, @DestinationVersionId);
+    RETURN;
+END
 
 DECLARE @NewVersionId int
     
@@ -236,7 +246,7 @@ INSERT INTO LongTextProperties
     FROM LongTextProperties WHERE VersionId = @PreviousVersionId
 
 -- Return
-SELECT VersionId, [Timestamp] FROM Versions WHERE VersionId = @NewVersionId
+SELECT VersionId, [Timestamp], RowGuid AS VersionGuid FROM Versions WHERE VersionId = @NewVersionId
 
 SELECT B.BinaryPropertyId, B.PropertyTypeId FROM BinaryProperties B JOIN Files F ON B.FileId = F.FileId
     WHERE B.VersionId = @NewVersionId AND Staging IS NULL
@@ -629,9 +639,11 @@ SELECT N.NodeId, N.NodeTypeId, N.ContentListTypeId, N.ContentListId, N.CreatingI
     N.IsSystem, N.OwnerId,
     N.SavingState, V.ChangedData,
     N.Timestamp AS NodeTimestamp,
+    N.RowGuid AS NodeGuid,
     V.VersionId, V.MajorNumber, V.MinorNumber, V.CreationDate, V.CreatedById, 
     V.ModificationDate, V.ModifiedById, V.[Status],
     V.Timestamp AS VersionTimestamp,
+    V.RowGuid AS VersionGuid,
     V.DynamicProperties, V.ContentListProperties
 FROM dbo.Nodes AS N 
     INNER JOIN dbo.Versions AS V ON N.NodeId = V.NodeId

@@ -43,7 +43,7 @@ using Task = System.Threading.Tasks.Task;
 
 namespace SenseNet.IntegrationTests.TestCases
 {
-    public class DataProviderTestCases : TestCaseBase
+    public partial class DataProviderTestCases : TestCaseBase
     {
         private IDataStore DataStore => Providers.Instance.DataStore;
         private StorageSchema StorageSchema => Providers.Instance.StorageSchema;

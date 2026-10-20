@@ -159,6 +159,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                     // Write back the version level changed values
                     nodeData.VersionId = versionData.VersionId;
                     nodeData.VersionTimestamp = versionData.Timestamp;
+                    nodeData.VersionGuid = versionData.RowGuid;
                 }
                 else
                 {
@@ -171,6 +172,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                 settings.LastMajorVersionIdAfter = lastMajorVersionId;
                 settings.LastMinorVersionIdAfter = lastMinorVersionId;
                 nodeData.NodeTimestamp = nodeHeadData.Timestamp;
+                nodeData.NodeGuid = nodeHeadData.RowGuid;
 
                 // Cache manipulations
                 if (!isNewNode)
