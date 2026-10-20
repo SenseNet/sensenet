@@ -1,163 +1,72 @@
+[CmdletBinding()]
 Param (
-	[Parameter(Mandatory=$False)]
-	[string]$ImageType="InSql",
-	[Parameter(Mandatory=$False)]
-	[bool]$LocalSn=$False,
-
-	# Sensenet App
-	[Parameter(Mandatory=$False)]
-	[string]$SensenetGitRepo="https://github.com/SenseNet/sensenet",
-	[Parameter(Mandatory=$False)]
-	[string]$SensenetGitBranch="master",
-	[Parameter(Mandatory=$False)]
-	[string]$SensenetFolderPath,
-	[Parameter(Mandatory=$False)]
-	[string]$SensenetDockerImage,
-
-	# Identity server
-	[Parameter(Mandatory=$False)]
-	[string]$IdentityGitRepo="https://github.com/SenseNet/sn-identityserver",
-	[Parameter(Mandatory=$False)]
-	[string]$IdentityGitBranch="main",
-	[Parameter(Mandatory=$False)]
-	[string]$IdentityDockerImage="sensenetcsp/sn-identityserver",
-
-	# Search service parameters
-	[Parameter(Mandatory=$False)]
-	[bool]$SearchService=$False,
-	[Parameter(Mandatory=$False)]
-	[string]$SearchGitRepo="https://github.com/SenseNet/sn-search-lucene29",
-	[Parameter(Mandatory=$False)]
-	[string]$SearchGitBranch="master",	
-	[Parameter(Mandatory=$False)]
-	[string]$SearchDockerImage="sensenetcsp/sn-searchservice",
-	
-	# Technical
-	[Parameter(Mandatory=$False)]
-	[bool]$DryRun=$False
+    [ValidateSet('InMem','InSql','InPostgres','Is','Auth','Search','All')][string]$ImageType='InSql',
+    [ValidateSet('Standard','Preview','LocalAuth','PostgreSql')][string]$WebApp='Standard',
+    [string]$ImageTag='',
+    [bool]$LocalSn=$False,
+    [string]$SensenetGitRepo='https://github.com/SenseNet/sensenet',
+    [string]$SensenetGitBranch='develop',
+    [string]$SensenetFolderPath='',
+    [string]$SensenetDockerImage='',
+    [string]$IdentityGitRepo='https://github.com/SenseNet/sn-identityserver',
+    [string]$IdentityGitBranch='main',
+    [string]$IdentityDockerImage='sensenetcsp/sn-identityserver:preview',
+    [string]$AuthGitRepo='https://github.com/SenseNet/sn-auth',
+    [string]$AuthGitBranch='develop',
+    [string]$AuthDockerImage='sensenetcsp/sn-auth:preview',
+    [bool]$SearchService=$False,
+    [string]$SearchGitRepo='https://github.com/SenseNet/sn-search-lucene29',
+    [string]$SearchGitBranch='master',
+    [string]$SearchDockerImage='sensenetcsp/sn-searchservice:preview',
+    [bool]$DryRun=$False
 )
-
-if (-not (Get-Command "Invoke-Cli" -ErrorAction SilentlyContinue)) {
-	Write-Output "load helper functions"
-	. "$($PSScriptRoot)/helper-functions.ps1"
+. "$PSScriptRoot/helper-functions.ps1"
+if ($ImageType -eq 'InPostgres') { $WebApp = 'PostgreSql' }
+if ($WebApp -eq 'PostgreSql' -and -not (Test-Path -LiteralPath "$PSScriptRoot/../../src/WebApps/SnWebApplication.Api.PostgreSql.TokenAuth/Dockerfile" -PathType Leaf)) {
+    throw 'The PostgreSQL demo is inactive on this checkout: its provider source is missing.'
 }
-
 Test-Docker
-
-# ==================================================================================
-
-#############################
-##    Variables section     #
-#############################
-# Prepare sn solution if run script independently
-$creationList = @()
 if (-not $SensenetFolderPath) {
-	if (-not $LocalSn) {
-		$SensenetFolderPath="$($PSScriptRoot)/../temp/Sensenet"
-	} else {
-		$SensenetFolderPath="$($PSScriptRoot)/../../"
-	}
+    if ($LocalSn) { $SensenetFolderPath = "$PSScriptRoot/../.." }
+    else { $SensenetFolderPath = "$PSScriptRoot/../temp/Sensenet" }
 }
-
-# Set image creator params according to app type
-if ($ImageType -eq "InMem" -or $ImageType -eq "All")
-{
-	$SensenetDockerImage="sensenetcsp/sn-api-inmem"
-	$SensenetDockerfilePath="$($SensenetFolderPath)/src/WebApps/SnWebApplication.Api.InMem.TokenAuth/Dockerfile"
-	$imageFrom = @{
-		SolutionPath=$SensenetFolderPath
-		DockerImage=$SensenetDockerImage
-		DockerFilePath=$SensenetDockerfilePath
-	}
-	$creationList += $imageFrom
+$creationList = @()
+if ($ImageType -in 'InMem','InSql','InPostgres','All') {
+    if ($WebApp -eq 'PostgreSql') { $SensenetGitBranch = 'postgres-provider' }
+    if (-not $LocalSn) { Get-GitRepo -Url $SensenetGitRepo -TargetPath $SensenetFolderPath -BranchName $SensenetGitBranch -DryRun $DryRun -ErrorAction Stop }
+    if ($ImageType -eq 'All' -and $SensenetDockerImage) { throw 'Select one ImageType when overriding SensenetDockerImage.' }
+    $selections = @(Get-SensenetImage -SnType $ImageType -WebApp $WebApp -SearchService $SearchService -ImageTag $ImageTag)
+    if ($ImageType -eq 'All') {
+        $selections = @(
+            (Get-SensenetImage -SnType InMem -ImageTag $ImageTag),
+            (Get-SensenetImage -WebApp $WebApp -ImageTag $ImageTag)
+        )
+        if ($WebApp -in 'Standard','Preview') { $selections += Get-SensenetImage -WebApp $WebApp -SearchService $True -ImageTag $ImageTag }
+    }
+    foreach ($selection in $selections) {
+        $image = $selection.Image
+        if ($SensenetDockerImage) { $image = $SensenetDockerImage }
+        $creationList += @{ SolutionPath=$SensenetFolderPath; DockerImage=$image; DockerFilePath="$SensenetFolderPath/src/WebApps/$($selection.Project)/Dockerfile" }
+    }
 }
-if (($ImageType -eq "InSql" -and -not $SearchService) -or $ImageType -eq "All")
-{
-	$SensenetDockerImage="sensenetcsp/sn-api-sql"
-	$SensenetDockerfilePath="$($SensenetFolderPath)/src/WebApps/SnWebApplication.Api.Sql.TokenAuth/Dockerfile"
-	$imageFrom = @{
-		SolutionPath=$SensenetFolderPath
-		DockerImage=$SensenetDockerImage
-		DockerFilePath=$SensenetDockerfilePath
-	}
-	$creationList += $imageFrom
+$dependencies = @(
+    @{ Type='Is'; Folder='Identity'; LocalFolder='sn-identityserver'; Repo=$IdentityGitRepo; Branch=$IdentityGitBranch; Image=$IdentityDockerImage; Dockerfile='SenseNet.IdentityServer4.Web/Dockerfile' },
+    @{ Type='Auth'; Folder='Auth'; LocalFolder='sn-auth'; Repo=$AuthGitRepo; Branch=$AuthGitBranch; Image=$AuthDockerImage; Dockerfile='sn-auth/Dockerfile' },
+    @{ Type='Search'; Folder='SearchService'; LocalFolder='sn-search-lucene29'; Repo=$SearchGitRepo; Branch=$SearchGitBranch; Image=$SearchDockerImage; Dockerfile='SenseNet.Search.Lucene29.Centralized.GrpcService/Dockerfile' }
+)
+foreach ($dependency in $dependencies) {
+    if ($ImageType -ne $dependency.Type -and $ImageType -ne 'All') { continue }
+    $folder = "$PSScriptRoot/../temp/$($dependency.Folder)"
+    if ($LocalSn) { $folder = "$PSScriptRoot/../../../$($dependency.LocalFolder)" }
+    else { Get-GitRepo -Url $dependency.Repo -TargetPath $folder -BranchName $dependency.Branch -DryRun $DryRun -ErrorAction Stop }
+    $context = "$folder/src"
+    # SNAuth copies src/sn-auth from the repository root; the other Dockerfiles copy from src.
+    if ($dependency.Type -eq 'Auth') { $context = $folder }
+    $creationList += @{ SolutionPath=$folder; BuildContext=$context; DockerImage=$dependency.Image; DockerFilePath="$folder/src/$($dependency.Dockerfile)" }
 }
-if ($SearchService -or $ImageType -eq "All")
-{
-	$SensenetDockerImage="sensenetcsp/sn-api-nlb"
-	$SensenetDockerfilePath="$($SensenetFolderPath)/src/WebApps/SnWebApplication.Api.Sql.SearchService.TokenAuth/Dockerfile"
-	$imageFrom = @{
-		SolutionPath=$SensenetFolderPath
-		DockerImage=$SensenetDockerImage
-		DockerFilePath=$SensenetDockerfilePath
-	}
-	$creationList += $imageFrom
-}
-
-if ($ImageType -eq "Is" -or $ImageType -eq "All")
-{
-	$identityFolderPath="$($PSScriptRoot)/../temp/Identity"
-	$IdentityDockerfilePath="$($identityFolderPath)/src/SenseNet.IdentityServer4.Web/Dockerfile"
-	$imageFrom = @{
-		SolutionPath=$identityFolderPath
-		DockerImage=$IdentityDockerImage
-		DockerFilePath=$IdentityDockerfilePath
-	}
-	$creationList += $imageFrom
-}
-
-if ($ImageType -eq "Search" -or $ImageType -eq "All")
-{
-	$SearchFolderPath="$($PSScriptRoot)/../temp/SearchService"
-	$SearchDockerfilePath="$($SearchFolderPath)/src/SenseNet.Search.Lucene29.Centralized.GrpcService/Dockerfile"
-	$imageFrom = @{
-		SolutionPath=$SearchFolderPath
-		DockerImage=$SearchDockerImage
-		DockerFilePath=$SearchDockerfilePath
-	}
-	$creationList += $imageFrom
-}
-
-#############################
-##    Prepare Solutions     #
-#############################
-
-if (-not $LocalSn -and
-	($ImageType -eq "InMem" -or 
-	$ImageType -eq "InSql" -or	
-	$ImageType -eq "All")) {
-	Write-Output " "
-	Write-Output "############################"
-	Write-Output "#       get git repo       #"
-	Write-Output "############################"
-	
-	Get-GitRepo -Url "$SensenetGitRepo" -TargetPath $SensenetFolderPath -BranchName "$SensenetGitBranch" -DryRun $DryRun -ErrorAction Stop
-}
-
-if ($ImageType -eq "Is" -or 	
-	$ImageType -eq "All") {
-	Write-Output " "
-	Write-Output "############################"
-	Write-Output "#       get git repo       #"
-	Write-Output "############################"
-	
-	Get-GitRepo -Url "$IdentityGitRepo" -TargetPath $identityFolderPath -BranchName "$IdentityGitBranch" -DryRun $DryRun -ErrorAction Stop
-}
-
-if ($ImageType -eq "Search" -or 	
-	$ImageType -eq "All") {
-	Write-Output " "
-	Write-Output "#######################################"
-	Write-Output "#       get search service repo       #"
-	Write-Output "#######################################"
-	
-	Get-GitRepo -Url "$SearchGitRepo" -TargetPath $SearchFolderPath -BranchName "$SearchGitBranch" -DryRun $DryRun -ErrorAction Stop
-}
-
-###############################
-##    Build Docker Images     #
-###############################
-
-Foreach ($item in $creationList) {
-	New-DockerImage @item -DryRun $DryRun -ErrorAction Stop
+foreach ($item in $creationList) {
+    if (-not $DryRun -and -not (Test-Path -LiteralPath $item.DockerFilePath)) {
+        throw "Dockerfile missing: $($item.DockerFilePath). Select the branch containing this webapp, or build without -LocalSn."
+    }
+    New-DockerImage @item -DryRun $DryRun -ErrorAction Stop
 }
