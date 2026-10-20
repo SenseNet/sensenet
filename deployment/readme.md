@@ -17,6 +17,14 @@ The certificate helper exports/trusts the local .NET developer certificate. If y
 
 Set `ADMIN_UI_URL` to the origin of the Admin UI you use; its template value is a placeholder. `.env`, certificates and generated signing keys are ignored by Git. The default admin login is `admin` / `admin`; passwords/API keys are public demo values.
 
+To log in and browse repository content:
+
+1. Open the [Admin UI](https://admin.sensenet.com).
+2. Enter the repository URL from the command table, for example `https://localhost:18016` for `docker-compose.yml`.
+3. Log in with `admin` / `admin` on the authentication page opened by Admin UI. For the default demo its IdentityServer is at `https://localhost:18017`.
+
+The repository URLs in the tables are REST API endpoints. Opening their root directly shows `sensenet is listening`; that is normal and does not display the Admin UI. Use `localhost` in the repository URL, matching the configured authentication URLs, even though the Docker port is bound to `127.0.0.1`.
+
 For webapps present in the current checkout, `up -d --build` builds the local source instead. An existing local floating image tag may be older than the registry tag; `--pull always` refreshes published images. The LocalAuth scenario always needs its local build, and PostgreSQL source is available on its provider branch.
 
 Start commands for PowerShell (run from `deployment/`). Each row is one independent command; select the demo you want. The repository base URL is `https://localhost:<API port>`. LocalAuth's login page is `/authentication/local/login` on that same port.
@@ -202,7 +210,7 @@ To install sensenet, execute the following script:
 
 After the script completes, your repository will be accessible on the URL displayed by the script. In case of the default installation this is `https://localhost:51016` but it may be different in case of in-memory or search service scenarios. 
 
-You can log in by visiting [https://admin.sensenet.com](https://admin.test.sensenet.com) and providing the repository url. The default credentials are:
+You can log in by visiting [https://admin.sensenet.com](https://admin.sensenet.com) and providing the repository url. The default credentials are:
 
 ```text
 username: admin
