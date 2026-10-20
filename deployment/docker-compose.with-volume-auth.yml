@@ -1,7 +1,11 @@
-# Equivalent demo: ./install-sensenet.ps1 -UseVolume -UseAuth
+# Matching installer scenario (legacy ports are opt-in): ./install-sensenet.ps1 -UseVolume -UseAuth
 # Run from this folder: docker compose -f docker-compose.with-volume-auth.yml up -d
-name: "sensenet-insql-cdb-wv"
+name: "sensenet-demo-with-volume-auth"
 services:
+  prerequisites:
+    extends:
+      file: "compose.services.yml"
+      service: "prerequisites"
   snapp:
     extends:
       file: "compose.services.yml"
@@ -11,13 +15,13 @@ services:
       context: "../src"
       dockerfile: "WebApps/SnWebApplication.Api.Sql.TokenAuth/Dockerfile"
     environment:
-      sensenet__authentication__repositoryUrl: "https://localhost:51036"
+      sensenet__authentication__repositoryUrl: "https://localhost:${REPOSITORY_PORT:-${LEGACY_VOLUME_REPOSITORY_PORT:-18046}}"
       ConnectionStrings__SnCrMsSql: "Persist Security Info=False;Initial Catalog=${COMPOSE_PROJECT_NAME}-sndb;Data Source=snsql;User ID=sa;Password=${SQL_PASSWORD:-SuP3rS3CuR3P4sSw0Rd};TrustServerCertificate=true"
       sensenet__authentication__authServerType: "SNAuth"
-      sensenet__authentication__authority: "https://localhost:51037"
+      sensenet__authentication__authority: "https://localhost:${AUTH_PORT:-${LEGACY_VOLUME_AUTH_PORT:-18047}}"
       sensenet__authentication__metadatahost: "http://snis"
       sensenet__authentication__AddJwtCookie: "false"
-    ports: ["127.0.0.1:51036:443"]
+    ports: ["127.0.0.1:${REPOSITORY_PORT:-${LEGACY_VOLUME_REPOSITORY_PORT:-18046}}:443"]
     depends_on:
       db-init:
         condition: "service_completed_successfully"
@@ -35,17 +39,18 @@ services:
     extends:
       file: "compose.services.yml"
       service: "mssql"
+    ports: ["127.0.0.1:${SQL_PORT:-18049}:1433"]
     volumes: ["db-data:/var/opt/mssql"]
   snis:
     extends:
       file: "compose.services.yml"
       service: "snauth"
     environment:
-      Sensenet__Repository__Url: "https://localhost:51036"
-      JwtSettings__Issuer: "https://localhost:51037"
-      Application__Url: "https://localhost:51037"
-      Application__AllowedHosts__1: "https://localhost:51036"
-    ports: ["127.0.0.1:51037:443"]
+      Sensenet__Repository__Url: "https://localhost:${REPOSITORY_PORT:-${LEGACY_VOLUME_REPOSITORY_PORT:-18046}}"
+      JwtSettings__Issuer: "https://localhost:${AUTH_PORT:-${LEGACY_VOLUME_AUTH_PORT:-18047}}"
+      Application__Url: "https://localhost:${AUTH_PORT:-${LEGACY_VOLUME_AUTH_PORT:-18047}}"
+      Application__AllowedHosts__1: "https://localhost:${REPOSITORY_PORT:-${LEGACY_VOLUME_REPOSITORY_PORT:-18046}}"
+    ports: ["127.0.0.1:${AUTH_PORT:-${LEGACY_VOLUME_AUTH_PORT:-18047}}:443"]
 networks:
   sensenet:
     driver: "bridge"

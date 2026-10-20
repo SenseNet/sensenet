@@ -1,19 +1,26 @@
-# Equivalent demo: ./install-sensenet.ps1 -UseVolume -WebApp LocalAuth
+# Matching installer scenario (legacy ports are opt-in): ./install-sensenet.ps1 -UseVolume -WebApp LocalAuth
 # Run from this folder: docker compose -f docker-compose.local-auth-volume.yml up -d
 # Prepare the RSA key with scripts/create-localauth-key.ps1 first. This image is built locally.
-name: "sensenet-insql-cdb-wv"
+name: "sensenet-demo-local-auth-volume"
 services:
+  prerequisites:
+    extends:
+      file: "compose.services.yml"
+      service: "prerequisites"
+    environment:
+      REQUIRE_LOCAL_AUTH_KEY: "true"
+    volumes: [{"type": "bind", "source": "${LOCAL_AUTH_KEY_FOLDER:-./temp/localauth}/signing-key.pem", "target": "/run/secrets/localauth/signing-key.pem", "read_only": true, "bind": {"create_host_path": false}}]
   snapp:
     extends:
       file: "compose.services.yml"
       service: "repository"
     image: "${LOCALAUTH_IMAGE:-local/sn-api-sql-localauth:demo}"
     environment:
-      sensenet__authentication__repositoryUrl: "https://localhost:51036"
+      sensenet__authentication__repositoryUrl: "https://localhost:${REPOSITORY_PORT:-${LEGACY_VOLUME_REPOSITORY_PORT:-18226}}"
       ConnectionStrings__SnCrMsSql: "Persist Security Info=False;Initial Catalog=${COMPOSE_PROJECT_NAME}-sndb;Data Source=snsql;User ID=sa;Password=${SQL_PASSWORD:-SuP3rS3CuR3P4sSw0Rd};TrustServerCertificate=true"
       sensenet__authentication__AddJwtCookie: "false"
       sensenet__authentication__Local__Mode: "InternalOnly"
-      sensenet__authentication__Local__Issuer: "https://localhost:51036"
+      sensenet__authentication__Local__Issuer: "https://localhost:${REPOSITORY_PORT:-${LEGACY_VOLUME_REPOSITORY_PORT:-18226}}"
       sensenet__authentication__Local__Audience: "sensenet"
       sensenet__authentication__Local__SigningKeyPath: "/run/secrets/localauth/signing-key.pem"
       sensenet__authentication__Local__SigningKeyId: "local-demo"
@@ -24,11 +31,11 @@ services:
       sensenet__authentication__Local__LoginNetworks__2: "192.168.0.0/16"
       sensenet__authentication__Local__LoginNetworks__3: "10.0.0.0/8"
       sensenet__authentication__Local__LoginNetworks__4: "::1/128"
-    ports: ["127.0.0.1:51036:443"]
+    ports: ["127.0.0.1:${REPOSITORY_PORT:-${LEGACY_VOLUME_REPOSITORY_PORT:-18226}}:443"]
     build:
       context: "../src"
       dockerfile: "WebApps/SnWebApplication.Api.Sql.LocalAuth/Dockerfile"
-    volumes: [{"type": "bind", "source": "${LOCAL_AUTH_KEY_FOLDER:-./temp/localauth}", "target": "/run/secrets/localauth", "read_only": true, "bind": {"create_host_path": false}}, "app-data:/app/App_Data"]
+    volumes: [{"type": "bind", "source": "${LOCAL_AUTH_KEY_FOLDER:-./temp/localauth}/signing-key.pem", "target": "/run/secrets/localauth/signing-key.pem", "read_only": true, "bind": {"create_host_path": false}}, "app-data:/app/App_Data"]
     depends_on:
       db-init:
         condition: "service_completed_successfully"
@@ -43,6 +50,7 @@ services:
     extends:
       file: "compose.services.yml"
       service: "mssql"
+    ports: ["127.0.0.1:${SQL_PORT:-18229}:1433"]
     volumes: ["db-data:/var/opt/mssql"]
 networks:
   sensenet:

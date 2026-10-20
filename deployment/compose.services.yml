@@ -6,15 +6,38 @@ x-runtime: &runtime
   Kestrel__Certificates__Default__Password: ${CERT_PASSWORD:-SuP3rS3CuR3P4sSw0Rd}
 x-certificate: &certificate
   type: bind
-  source: ${CERT_FOLDER:-./temp/certificates}
-  target: /root/.aspnet/https
+  source: ${CERT_FOLDER:-./temp/certificates}/snapp.pfx
+  target: /root/.aspnet/https/snapp.pfx
   read_only: true
   bind:
     create_host_path: false
 
 services:
+  prerequisites:
+    image: alpine:3.20
+    network_mode: none
+    environment:
+      REQUIRE_LOCAL_AUTH_KEY: "false"
+    entrypoint: ["/bin/sh", "-ec"]
+    command:
+      - |
+        if [ ! -f /root/.aspnet/https/snapp.pfx ] || [ ! -s /root/.aspnet/https/snapp.pfx ]; then
+          echo 'Missing snapp.pfx. Run scripts/create-devcert.ps1 or configure CERT_FOLDER/CERT_PASSWORD.' >&2
+          exit 1
+        fi
+        if [ "$$REQUIRE_LOCAL_AUTH_KEY" = true ] && { [ ! -f /run/secrets/localauth/signing-key.pem ] || [ ! -s /run/secrets/localauth/signing-key.pem ]; }; then
+          echo 'Missing signing-key.pem. Run scripts/create-localauth-key.ps1 or configure LOCAL_AUTH_KEY_FOLDER.' >&2
+          exit 1
+        fi
+    volumes:
+      - *certificate
+    restart: "no"
+
   repository:
     container_name: ${COMPOSE_PROJECT_NAME}-snapp
+    depends_on:
+      prerequisites:
+        condition: service_completed_successfully
     environment:
       <<: *runtime
       sensenet__identityManagement__UserProfilesEnabled: "false"
@@ -27,6 +50,9 @@ services:
 
   identity:
     image: ${IDENTITY_IMAGE:-sensenetcsp/sn-identityserver:latest}
+    depends_on:
+      prerequisites:
+        condition: service_completed_successfully
     container_name: ${COMPOSE_PROJECT_NAME}-snis
     environment:
       <<: *runtime
@@ -42,6 +68,9 @@ services:
 
   snauth:
     image: ${AUTH_IMAGE:-sensenetcsp/sn-auth:preview}
+    depends_on:
+      prerequisites:
+        condition: service_completed_successfully
     container_name: ${COMPOSE_PROJECT_NAME}-snis
     environment:
       <<: *runtime
@@ -64,12 +93,14 @@ services:
 
   mssql:
     image: ${SQL_IMAGE:-mcr.microsoft.com/mssql/server:2022-latest}
+    depends_on:
+      prerequisites:
+        condition: service_completed_successfully
     container_name: ${COMPOSE_PROJECT_NAME}-snsql
     environment:
       ACCEPT_EULA: "Y"
       MSSQL_SA_PASSWORD: ${SQL_PASSWORD:-SuP3rS3CuR3P4sSw0Rd}
       MSSQL_PID: Express
-    ports: ["127.0.0.1:${SQL_PORT:-9999}:1433"]
     networks: [sensenet]
     restart: unless-stopped
     healthcheck:
@@ -81,6 +112,9 @@ services:
 
   mssql-init:
     image: ${SQL_IMAGE:-mcr.microsoft.com/mssql/server:2022-latest}
+    depends_on:
+      prerequisites:
+        condition: service_completed_successfully
     environment:
       SQL_PASSWORD: ${SQL_PASSWORD:-SuP3rS3CuR3P4sSw0Rd}
       SQL_DATABASE: ${COMPOSE_PROJECT_NAME}-sndb
@@ -96,12 +130,14 @@ services:
 
   postgres:
     image: ${POSTGRES_DB_IMAGE:-postgres:16}
+    depends_on:
+      prerequisites:
+        condition: service_completed_successfully
     container_name: ${COMPOSE_PROJECT_NAME}-snsql
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: ${SQL_PASSWORD:-SuP3rS3CuR3P4sSw0Rd}
       POSTGRES_DB: ${COMPOSE_PROJECT_NAME}-sndb
-    ports: ["127.0.0.1:${POSTGRES_PORT:-5532}:5432"]
     networks: [sensenet]
     restart: unless-stopped
     healthcheck:
@@ -112,11 +148,13 @@ services:
 
   rabbit:
     image: ${RABBIT_IMAGE:-rabbitmq:3-management}
+    depends_on:
+      prerequisites:
+        condition: service_completed_successfully
     container_name: ${COMPOSE_PROJECT_NAME}-rabbit
     environment:
       RABBITMQ_DEFAULT_USER: ${RABBIT_USER:-admin}
       RABBITMQ_DEFAULT_PASS: ${RABBIT_PASSWORD:-SuP3rS3CuR3P4sSw0Rd}
-    ports: ["127.0.0.1:${RABBIT_PORT:-51005}:15672"]
     networks: [sensenet]
     restart: unless-stopped
     healthcheck:
@@ -127,6 +165,9 @@ services:
 
   search:
     image: ${SEARCH_IMAGE:-sensenetcsp/sn-searchservice:preview}
+    depends_on:
+      prerequisites:
+        condition: service_completed_successfully
     container_name: ${COMPOSE_PROJECT_NAME}-snsearch
     environment:
       <<: *runtime

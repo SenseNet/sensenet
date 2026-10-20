@@ -1,7 +1,11 @@
-# Equivalent demo: ./install-sensenet.ps1 -SearchService
+# Matching installer scenario (legacy ports are opt-in): ./install-sensenet.ps1 -SearchService
 # Run from this folder: docker compose -f docker-compose.with-search.yml up -d
-name: "sensenet-insql-cdb-ws"
+name: "sensenet-demo-with-search"
 services:
+  prerequisites:
+    extends:
+      file: "compose.services.yml"
+      service: "prerequisites"
   snapp:
     extends:
       file: "compose.services.yml"
@@ -11,17 +15,17 @@ services:
       context: "../src"
       dockerfile: "WebApps/SnWebApplication.Api.Sql.SearchService.TokenAuth/Dockerfile"
     environment:
-      sensenet__authentication__repositoryUrl: "https://localhost:51056"
+      sensenet__authentication__repositoryUrl: "https://localhost:${REPOSITORY_PORT:-${LEGACY_SEARCH_REPOSITORY_PORT:-18056}}"
       ConnectionStrings__SnCrMsSql: "Persist Security Info=False;Initial Catalog=${COMPOSE_PROJECT_NAME}-sndb;Data Source=snsql;User ID=sa;Password=${SQL_PASSWORD:-SuP3rS3CuR3P4sSw0Rd};TrustServerCertificate=true"
       sensenet__authentication__authServerType: "IdentityServer"
-      sensenet__authentication__authority: "https://localhost:51057"
+      sensenet__authentication__authority: "https://localhost:${AUTH_PORT:-${LEGACY_SEARCH_AUTH_PORT:-18057}}"
       sensenet__authentication__metadatahost: "http://snis"
       sensenet__authentication__AddJwtCookie: "true"
       sensenet__search__service__ServiceAddress: "https://snsearch"
       sensenet__search__service__ValidateServerCertificate: "false"
       sensenet__security__rabbitmq__ServiceUrl: "amqp://${RABBIT_USER:-admin}:${RABBIT_PASSWORD:-SuP3rS3CuR3P4sSw0Rd}@rabbit/"
       sensenet__rabbitmq__ServiceUrl: "amqp://${RABBIT_USER:-admin}:${RABBIT_PASSWORD:-SuP3rS3CuR3P4sSw0Rd}@rabbit/"
-    ports: ["127.0.0.1:51056:443"]
+    ports: ["127.0.0.1:${REPOSITORY_PORT:-${LEGACY_SEARCH_REPOSITORY_PORT:-18056}}:443"]
     depends_on:
       db-init:
         condition: "service_completed_successfully"
@@ -42,27 +46,29 @@ services:
     extends:
       file: "compose.services.yml"
       service: "mssql"
+    ports: ["127.0.0.1:${SQL_PORT:-18059}:1433"]
   snis:
     extends:
       file: "compose.services.yml"
       service: "identity"
     environment:
-      IdentityServer__IssuerUri: "https://localhost:51057"
-      sensenet__Clients__adminui__RepositoryHosts__0__PublicHost: "https://localhost:51056"
-      sensenet__Clients__spa__RepositoryHosts__0__PublicHost: "https://localhost:51056"
-      sensenet__Clients__client__RepositoryHosts__0__PublicHost: "https://localhost:51056"
-    ports: ["127.0.0.1:51057:443"]
+      IdentityServer__IssuerUri: "https://localhost:${AUTH_PORT:-${LEGACY_SEARCH_AUTH_PORT:-18057}}"
+      sensenet__Clients__adminui__RepositoryHosts__0__PublicHost: "https://localhost:${REPOSITORY_PORT:-${LEGACY_SEARCH_REPOSITORY_PORT:-18056}}"
+      sensenet__Clients__spa__RepositoryHosts__0__PublicHost: "https://localhost:${REPOSITORY_PORT:-${LEGACY_SEARCH_REPOSITORY_PORT:-18056}}"
+      sensenet__Clients__client__RepositoryHosts__0__PublicHost: "https://localhost:${REPOSITORY_PORT:-${LEGACY_SEARCH_REPOSITORY_PORT:-18056}}"
+    ports: ["127.0.0.1:${AUTH_PORT:-${LEGACY_SEARCH_AUTH_PORT:-18057}}:443"]
   rabbit:
     extends:
       file: "compose.services.yml"
       service: "rabbit"
+    ports: ["127.0.0.1:${RABBIT_PORT:-18055}:15672"]
   snsearch:
     extends:
       file: "compose.services.yml"
       service: "search"
     environment:
       ConnectionStrings__SecurityStorage: "Persist Security Info=False;Initial Catalog=${COMPOSE_PROJECT_NAME}-sndb;Data Source=snsql;User ID=sa;Password=${SQL_PASSWORD:-SuP3rS3CuR3P4sSw0Rd};TrustServerCertificate=true"
-    ports: ["127.0.0.1:51058:443"]
+    ports: ["127.0.0.1:${SEARCH_PORT:-${LEGACY_SEARCH_SEARCH_PORT:-18058}}:443"]
     depends_on:
       db-init:
         condition: "service_completed_successfully"

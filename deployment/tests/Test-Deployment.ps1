@@ -109,8 +109,8 @@ Assert ($script:probeCalls -eq 1) 'An initialized repository was not accepted.'
 Remove-Item Function:Invoke-WebRequest
 . "$deployment/scripts/helper-functions.ps1"
 
-# Compose must resolve every dependency/resource and retain the legacy port matrix.
-$expectedPorts = @{
+# Historical ports remain available only when explicitly requested.
+$legacyPorts = @{
     ''=51016; 'with-auth'=51016; 'with-volume'=51036; 'with-volume-auth'=51036
     'with-search'=51056; 'with-search-auth'=51056; 'complete'=51076; 'complete-auth'=51076
     'host-db'=51026; 'host-db-auth'=51026; 'host-db-volume'=51046; 'host-db-volume-auth'=51046
@@ -119,24 +119,124 @@ $expectedPorts = @{
     'local-auth'=51016; 'local-auth-volume'=51036; 'local-auth-host-db'=51026; 'local-auth-host-db-volume'=51046
     'preview'=51016; 'preview-search'=51056; 'postgres'=51016; 'postgres-volume'=51036
 }
-foreach ($file in Get-ChildItem $deployment -Filter 'docker-compose*.yml') {
-    $json = & docker compose -f $file.FullName config --format json
-    Assert ($LASTEXITCODE -eq 0) "Compose failed: $($file.Name)"
-    $config = ($json -join "`n") | ConvertFrom-Json
-    $key = $file.BaseName -replace '^docker-compose\.?',''
-    Assert ($expectedPorts.ContainsKey($key)) "Unaccounted scenario: $($file.Name)"
-    $port = [int]$config.services.snapp.ports[0].published
-    Assert ($port -eq $expectedPorts[$key]) "Legacy repository port changed in $($file.Name)"
+$defaultPorts = @{
+    ''=18016; 'with-auth'=18026; 'with-volume'=18036; 'with-volume-auth'=18046
+    'with-search'=18056; 'with-search-auth'=18066; 'complete'=18076; 'complete-auth'=18086
+    'host-db'=18096; 'host-db-auth'=18106; 'host-db-volume'=18116; 'host-db-volume-auth'=18126
+    'host-db-search'=18136; 'host-db-search-auth'=18146; 'host-db-volume-search'=18156; 'host-db-volume-search-auth'=18166
+    'in-memory'=18176; 'in-memory-auth'=18186; 'preview'=18196; 'preview-search'=18206
+    'local-auth'=18216; 'local-auth-volume'=18226; 'local-auth-host-db'=18236; 'local-auth-host-db-volume'=18246
+    'postgres'=18256; 'postgres-volume'=18266
+}
+function Assert-Endpoints($config, [int]$port, [string]$scenario) {
+    Assert ($config.services.prerequisites.network_mode -eq 'none') "Required-file check should not use a network in $scenario"
+    $repositoryUrl = "https://localhost:$port"
+    Assert ($config.services.snapp.environment.sensenet__authentication__repositoryUrl -eq $repositoryUrl) "Repository URL disagrees with port in $scenario"
+    if ($config.services.snapp.environment.sensenet__authentication__Local__Issuer) {
+        Assert ($config.services.snapp.environment.sensenet__authentication__Local__Issuer -eq $repositoryUrl) "LocalAuth issuer disagrees with port in $scenario"
+    }
     if ($config.services.snis) {
-        Assert ([int]$config.services.snis.ports[0].published -eq $port+1) "Wrong auth port in $($file.Name)"
+        $authUrl = "https://localhost:$($config.services.snis.ports[0].published)"
+        Assert ($config.services.snapp.environment.sensenet__authentication__authority -eq $authUrl) "Auth authority disagrees with port in $scenario"
+        $auth = $config.services.snis.environment
+        if ($auth.JwtSettings__Issuer) {
+            Assert ($auth.JwtSettings__Issuer -eq $authUrl -and $auth.Application__Url -eq $authUrl) "SNAuth issuer/URL disagrees with port in $scenario"
+            Assert ($auth.Sensenet__Repository__Url -eq $repositoryUrl -and $auth.Application__AllowedHosts__1 -eq $repositoryUrl) "SNAuth repository/CORS URL disagrees with port in $scenario"
+        } else {
+            Assert ($auth.IdentityServer__IssuerUri -eq $authUrl) "IdentityServer issuer disagrees with port in $scenario"
+            foreach ($client in @('adminui','spa','client')) {
+                Assert ($auth."sensenet__Clients__${client}__RepositoryHosts__0__PublicHost" -eq $repositoryUrl) "IdentityServer $client URL disagrees with port in $scenario"
+            }
+        }
     }
-    foreach ($service in $config.services.PSObject.Properties.Value) {
-        foreach ($binding in $service.ports) { Assert ($binding.host_ip -eq '127.0.0.1') "Non-local demo port in $($file.Name)" }
+    foreach ($entry in $config.services.PSObject.Properties) {
+        $service = $entry.Value
+        if ($entry.Name -ne 'prerequisites') {
+            Assert ($service.depends_on.prerequisites.condition -eq 'service_completed_successfully') "Service $($entry.Name) can start before required-file validation in $scenario"
+        }
+        foreach ($binding in $service.ports) { Assert ($binding.host_ip -eq '127.0.0.1') "Non-local demo port in $scenario" }
+        foreach ($mount in $service.volumes | Where-Object type -eq bind) {
+            Assert ($mount.read_only -and -not $mount.bind.create_host_path) "Missing required read-only file bind in $scenario"
+            Assert ($mount.source -match '\.(pfx|pem)$' -and $mount.target -match '\.(pfx|pem)$') "Bind must require the cert/key file, not an empty directory, in $scenario"
+        }
     }
+    $requiresKey = $config.services.prerequisites.environment.REQUIRE_LOCAL_AUTH_KEY -eq 'true'
+    Assert ($requiresKey -eq [bool]$config.services.snapp.environment.sensenet__authentication__Local__SigningKeyPath) "Wrong LocalAuth key requirement in $scenario"
     if ($config.services.snsearch) {
-        Assert ($config.services.snapp.image -like '*sn-api-nlb*') "Search scenario uses an in-process API in $($file.Name)"
+        Assert ($config.services.snapp.image -like '*sn-api-nlb*') "Search scenario uses an in-process API in $scenario"
         Assert ($config.services.snapp.environment.sensenet__search__service__ServiceAddress -eq 'https://snsearch') 'Missing search address.'
         Assert ($null -ne $config.services.snsearch.environment.ConnectionStrings__SecurityStorage) 'Missing search security database.'
     }
 }
-Write-Host "PASS: $checks deployment assertions (PowerShell syntax, lifecycle, DryRun, image selection and 26 Compose scenarios)."
+function Get-ComposeConfig([string]$file, [switch]$Legacy) {
+    $arguments = @('compose','--env-file',"$deployment/.env.template")
+    if ($Legacy) { $arguments += @('--env-file',"$deployment/legacy-ports.env") }
+    $json = & docker @arguments -f $file config --format json
+    Assert ($LASTEXITCODE -eq 0) "Compose failed: $file"
+    ($json -join "`n") | ConvertFrom-Json
+}
+# Isolate configuration tests from the caller's port overrides and private .env.
+$portVariables = @('COMPOSE_PROJECT_NAME','REPOSITORY_PORT','AUTH_PORT','SEARCH_PORT','SQL_PORT','POSTGRES_PORT','RABBIT_PORT')
+$portVariables += @(Get-ChildItem Env: | Where-Object Name -like 'LEGACY_*_PORT' | ForEach-Object Name)
+$previous = @{}
+foreach ($variable in $portVariables) {
+    $previous[$variable] = [Environment]::GetEnvironmentVariable($variable)
+    Remove-Item -LiteralPath "Env:$variable" -ErrorAction SilentlyContinue
+}
+try {
+    $projects = [Collections.Generic.HashSet[string]]::new()
+    $containers = [Collections.Generic.HashSet[string]]::new()
+    $bindings = [Collections.Generic.HashSet[string]]::new()
+    $files = @(Get-ChildItem $deployment -Filter 'docker-compose*.yml')
+    Assert ($files.Count -eq 26) 'Expected 26 independent scenarios.'
+    foreach ($file in $files) {
+        $key = $file.BaseName -replace '^docker-compose\.?',''
+        Assert ($defaultPorts.ContainsKey($key)) "Unaccounted scenario: $($file.Name)"
+        $config = Get-ComposeConfig $file.FullName
+        Assert ($projects.Add($config.name)) "Default project name collision in $($file.Name)"
+        $port = [int]$config.services.snapp.ports[0].published
+        Assert ($port -eq $defaultPorts[$key]) "Wrong default repository port in $($file.Name)"
+        Assert-Endpoints $config $port $file.Name
+        foreach ($service in $config.services.PSObject.Properties.Value) {
+            if ($service.container_name) { Assert ($containers.Add($service.container_name)) "Container name collision in $($file.Name)" }
+            foreach ($binding in $service.ports) {
+                Assert ($bindings.Add("$($binding.host_ip):$($binding.published)/$($binding.protocol)")) "Default port collision in $($file.Name)"
+            }
+        }
+        if ($config.services.snis) { Assert ([int]$config.services.snis.ports[0].published -eq $port+1) "Wrong default auth port in $($file.Name)" }
+        if ($config.services.snsearch) { Assert ([int]$config.services.snsearch.ports[0].published -eq $port+2) "Wrong default search port in $($file.Name)" }
+        if ($config.services.snsql) { Assert ([int]$config.services.snsql.ports[0].published -eq $port+3) "Wrong default DB port in $($file.Name)" }
+        if ($config.services.rabbit) { Assert ([int]$config.services.rabbit.ports[0].published -eq $port-1) "Wrong default Rabbit port in $($file.Name)" }
+        $legacy = Get-ComposeConfig $file.FullName -Legacy
+        $port = [int]$legacy.services.snapp.ports[0].published
+        Assert ($port -eq $legacyPorts[$key]) "Legacy repository port changed in $($file.Name)"
+        Assert ($legacy.name -eq $config.name) 'Legacy ports must not change project/resource ownership.'
+        Assert-Endpoints $legacy $port $file.Name
+        if ($legacy.services.snis) { Assert ([int]$legacy.services.snis.ports[0].published -eq $port+1) "Wrong legacy auth port in $($file.Name)" }
+        if ($legacy.services.snsearch) { Assert ([int]$legacy.services.snsearch.ports[0].published -eq $port+2) "Wrong legacy search port in $($file.Name)" }
+        if ($legacy.services.snsql) {
+            $dbPort = $(if ($key -like 'postgres*') { 5532 } else { 9999 })
+            Assert ([int]$legacy.services.snsql.ports[0].published -eq $dbPort) "Wrong legacy DB port in $($file.Name): expected $dbPort, got $($legacy.services.snsql.ports[0].published)"
+        }
+        if ($legacy.services.rabbit) { Assert ([int]$legacy.services.rabbit.ports[0].published -eq 51005) "Wrong legacy Rabbit port in $($file.Name)" }
+    }
+    # Arbitrary overrides must change both bindings and advertised endpoints.
+    $env:REPOSITORY_PORT='52916'; $env:AUTH_PORT='52917'; $env:SEARCH_PORT='52918'
+    $env:SQL_PORT='52919'; $env:RABBIT_PORT='52915'; $env:POSTGRES_PORT='52929'
+    foreach ($scenario in @('with-search-auth','with-search','local-auth','postgres')) {
+        $config = Get-ComposeConfig "$deployment/docker-compose.$scenario.yml" -Legacy
+        Assert ([int]$config.services.snapp.ports[0].published -eq 52916) 'Explicit API override must take precedence over legacy defaults.'
+        Assert-Endpoints $config 52916 $scenario
+        if ($config.services.snis) { Assert ([int]$config.services.snis.ports[0].published -eq 52917) 'Explicit auth port override was ignored.' }
+        if ($config.services.snsearch) { Assert ([int]$config.services.snsearch.ports[0].published -eq 52918) 'Explicit search port override was ignored.' }
+        if ($config.services.rabbit) { Assert ([int]$config.services.rabbit.ports[0].published -eq 52915) 'Explicit RabbitMQ port override was ignored.' }
+        $dbPort = $(if ($scenario -eq 'postgres') { 52929 } else { 52919 })
+        Assert ([int]$config.services.snsql.ports[0].published -eq $dbPort) 'Explicit DB port override was ignored.'
+    }
+} finally {
+    foreach ($variable in $portVariables) {
+        if ($null -eq $previous[$variable]) { Remove-Item -LiteralPath "Env:$variable" -ErrorAction SilentlyContinue }
+        else { [Environment]::SetEnvironmentVariable($variable,$previous[$variable]) }
+    }
+}
+Write-Host "PASS: $checks deployment assertions (PowerShell, lifecycle, 26 non-conflicting defaults, legacy ports and URL overrides)."

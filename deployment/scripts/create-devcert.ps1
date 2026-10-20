@@ -47,6 +47,9 @@ Write-Output "#      check certificate      #"
 Write-Output "###############################"
 
 if (Test-Path $tempCertPath) {
+	if (-not (Test-Path -LiteralPath $tempCertPath -PathType Leaf)) {
+		throw "The certificate path is a directory: $tempCertPath. Remove that empty directory and rerun this helper."
+	}
 	Write-Output "Certificate already exists"
 } else {	
 	Invoke-Cli -execFile "dotnet" -params "dev-certs", "https", "-ep", $tempCertPath, "-p", "$CertPsw" -DryRun $DryRun -ErrorAction Stop
