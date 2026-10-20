@@ -124,8 +124,11 @@ foreach ($parameters in @(
     @{WebApp='Preview';CreateImages=$True;LocalSn=$True;SearchService=$True;UseAuth=$True},
     @{WebApp='LocalAuth';CreateImages=$True;LocalSn=$True}
 )) {
-    & "$deployment/install-sensenet.ps1" @parameters -DryRun -Verbose *>&1 | Out-Null
+    $dryRunOutput = & "$deployment/install-sensenet.ps1" @parameters -DryRun -Verbose *>&1 | Out-String
     Assert $True 'DryRun completed.'
+    if (-not $parameters.InMemPlatform) {
+        Assert ($dryRunOutput.Contains('sensenet__install__mssql__EnableFirstInstallDB=true')) 'SQL demo installer must enable initial schema installation.'
+    }
 }
 foreach ($parameters in @(
     @{WebApp='LocalAuth';SearchService=$True}, @{WebApp='LocalAuth';UseAuth=$True},
@@ -207,6 +210,9 @@ if ($supportsPostgres) {
 }
 function Assert-Endpoints($config, [int]$port, [string]$scenario) {
     Assert ($config.services.prerequisites.network_mode -eq 'none') "Required-file check should not use a network in $scenario"
+    if ($config.services.snapp.environment.ConnectionStrings__SnCrMsSql) {
+        Assert ($config.services.snapp.environment.sensenet__install__mssql__EnableFirstInstallDB -eq 'true') "SQL demo cannot initialize an empty database in $scenario"
+    }
     $repositoryUrl = "https://localhost:$port"
     Assert ($config.services.snapp.environment.sensenet__authentication__repositoryUrl -eq $repositoryUrl) "Repository URL disagrees with port in $scenario"
     if ($config.services.snapp.environment.sensenet__authentication__Local__Issuer) {
