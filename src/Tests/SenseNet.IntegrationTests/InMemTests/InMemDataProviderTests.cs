@@ -14,6 +14,17 @@ namespace SenseNet.IntegrationTests.InMemTests
     public class InMemDataProviderTests : IntegrationTest<InMemPlatform, DataProviderTestCases>
     {
         [TestMethod]
+        public Task IntT_InMem_DP_GuidLoads_Versions() => TestCase.DP_GuidLoads_Versions();
+        [TestMethod]
+        public Task IntT_InMem_DP_GuidLoads_Missing() => TestCase.DP_GuidLoads_Missing();
+        [TestMethod]
+        public Task IntT_InMem_DP_GuidLoads_Lifecycle() => TestCase.DP_GuidLoads_Lifecycle();
+        [TestMethod]
+        public Task IntT_InMem_DP_GuidLoads_Cancellation() => TestCase.DP_GuidLoads_Cancellation();
+        [TestMethod]
+        public Task IntT_InMem_DP_GuidLoads_Permissions() => TestCase.DP_GuidLoads_Permissions();
+
+        [TestMethod]
         public void IntT_InMem_DP_RowGuids_DocumentClones()
         {
             var nodeGuid = Guid.NewGuid();

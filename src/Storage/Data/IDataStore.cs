@@ -216,6 +216,21 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <returns>A Task that represents the asynchronous operation and wraps a node head
         /// for the provided id or null if it does not exist.</returns>
         public Task<NodeHead> LoadNodeHeadAsync(int nodeId, CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Loads the current node head by its immutable GUID, or returns null if it does not exist.
+        /// </summary>
+        public Task<NodeHead> LoadNodeHeadAsync(Guid nodeGuid, CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Loads the current head of the node owning the specified version, or returns null if it does not exist.
+        /// </summary>
+        public Task<NodeHead> LoadNodeHeadByVersionGuidAsync(Guid versionGuid, CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Resolves a stored version GUID to its version id, or returns 0 if it does not exist.
+        /// </summary>
+        public Task<int> GetVersionIdByGuidAsync(Guid versionGuid, CancellationToken cancellationToken);
         /// <summary>
         /// Loads a node head from the database.
         /// </summary>

@@ -142,6 +142,24 @@ moving or changing the status or version number of an existing row preserves its
 GUID. Copying content to a new node creates new node and version GUIDs. Loading another version returns that row's GUID;
 the previously loaded row's identifier does not change.
 
+The asynchronous loading APIs also accept these GUIDs:
+
+```csharp
+var node = await Node.LoadNodeAsync(nodeGuid, cancellationToken);
+var published = await Node.LoadNodeAsync(nodeGuid, VersionNumber.LastMajor, cancellationToken);
+var file = await Node.LoadAsync<File>(nodeGuid, cancellationToken);
+var fileVersion = await Node.LoadAsync<File>(nodeGuid, versionNumber, cancellationToken);
+var exactVersion = await Node.LoadNodeByVersionGuidAsync(versionGuid, cancellationToken);
+var head = await NodeHead.GetAsync(nodeGuid, cancellationToken);
+var ownerHead = await NodeHead.GetByVersionGuidAsync(versionGuid, cancellationToken);
+```
+
+Node GUID lookups use the same permission checks, default version selection and caches as node-id lookups.
+`Node.LoadNodeByVersionGuidAsync` selects the exact stored version and requires `Open` and `RecallOldVersion`,
+just like `LoadNodeByVersionIdAsync`. `NodeHead.GetByVersionGuidAsync` returns the owning node's **current**
+head, not a historical snapshot, and follows the existing `NodeHead.GetByVersionIdAsync` access behavior.
+Empty, unknown and deleted GUIDs return `null`. All these APIs accept cancellation tokens.
+
 #### Compatibility for data provider implementers
 
 All `DataProvider` implementations must preserve these identities, including during object replacement and transaction
@@ -149,6 +167,14 @@ rollback. Incoming `NodeHeadData.RowGuid` and `VersionData.RowGuid` values are i
 update and copy operations return the actual stored values in those DTOs. Loading or cloning an existing row must never
 generate an identifier. In-memory `NodeDoc` and `VersionDoc` constructors now require an explicit non-empty GUID; their
 read-only `RowGuid` properties and `Clone()` methods preserve the logical row identity.
+
+Providers must implement `GetNodeIdByGuidAsync` and `GetVersionIdByGuidAsync`, resolving the stored `RowGuid`
+to the corresponding numeric id without modifying any data. Both return `0` for empty or unknown GUIDs and
+honor cancellation. Relational providers supply `GetNodeIdByGuidScript` and `GetVersionIdByGuidScript`, each
+returning a single numeric id using a `DbType.Guid` parameter named `@RowGuid`. These are new abstract members;
+custom providers must implement them when updating. Run the shared `DP_GuidLoads_*` cases for every provider.
+Custom `IDataStore` implementations must also implement the GUID overload of `LoadNodeHeadAsync`,
+`LoadNodeHeadByVersionGuidAsync` and `GetVersionIdByGuidAsync`.
 
 Custom `RelationalDataProviderBase` implementations must update their result sets along with their provider binaries:
 

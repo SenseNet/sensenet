@@ -10,6 +10,17 @@ namespace SenseNet.IntegrationTests.MsSql.MsSqlTests
     public class MsSqlDataProviderTests : IntegrationTest<MsSqlPlatform, DataProviderTestCases>
     {
         [TestMethod]
+        public Task IntT_MsSql_DP_GuidLoads_Versions() => TestCase.DP_GuidLoads_Versions();
+        [TestMethod]
+        public Task IntT_MsSql_DP_GuidLoads_Missing() => TestCase.DP_GuidLoads_Missing();
+        [TestMethod]
+        public Task IntT_MsSql_DP_GuidLoads_Lifecycle() => TestCase.DP_GuidLoads_Lifecycle();
+        [TestMethod]
+        public Task IntT_MsSql_DP_GuidLoads_Cancellation() => TestCase.DP_GuidLoads_Cancellation();
+        [TestMethod]
+        public Task IntT_MsSql_DP_GuidLoads_Permissions() => TestCase.DP_GuidLoads_Permissions();
+
+        [TestMethod]
         public Task IntT_MsSql_DP_RowGuids_NodeLifecycle() => TestCase.DP_RowGuids_NodeLifecycle();
 
         [DataTestMethod]

@@ -741,6 +741,11 @@ WHERE
                 join ?? string.Empty,
                 where ?? string.Empty);
         }
+        protected override string GetNodeIdByGuidScript =>
+            "SELECT NodeId FROM Nodes WHERE RowGuid = @RowGuid";
+        protected override string GetVersionIdByGuidScript =>
+            "SELECT VersionId FROM Versions WHERE RowGuid = @RowGuid";
+
         protected override string LoadNodeHeadByPathScript => LoadNodeHeadScript("LoadNodeHead by Path", where: "Node.Path = @Path COLLATE Latin1_General_CI_AS");
         protected override string LoadNodeHeadByIdScript => LoadNodeHeadScript("LoadNodeHead by NodeId", where: "Node.NodeId = @NodeId");
         protected override string LoadNodeHeadByVersionIdScript => LoadNodeHeadScript("LoadNodeHead by VersionId",

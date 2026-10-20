@@ -386,6 +386,20 @@ namespace SenseNet.ContentRepository.Storage.Data
         /* =============================================================================================== NodeHead */
 
         /// <summary>
+        /// Resolves the immutable Nodes.RowGuid to its node id.
+        /// Returns 0 for <see cref="Guid.Empty"/> or a GUID that is not stored.
+        /// This lookup must not generate or modify any identifier.
+        /// </summary>
+        public abstract Task<int> GetNodeIdByGuidAsync(Guid nodeGuid, CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Resolves the immutable Versions.RowGuid to its version id.
+        /// Returns 0 for <see cref="Guid.Empty"/> or a GUID that is not stored.
+        /// This lookup must not generate or modify any identifier.
+        /// </summary>
+        public abstract Task<int> GetVersionIdByGuidAsync(Guid versionGuid, CancellationToken cancellationToken);
+
+        /// <summary>
         /// Loads a <see cref="NodeHead"/> instance.
         /// Returns null if the requested object does not exist in the database.
         /// </summary>

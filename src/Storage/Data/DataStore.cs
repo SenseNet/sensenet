@@ -432,6 +432,26 @@ namespace SenseNet.ContentRepository.Storage.Data
 
             return item;
         }
+        public async Task<NodeHead> LoadNodeHeadAsync(Guid nodeGuid, CancellationToken cancellationToken)
+        {
+            var nodeId = await DataProvider.GetNodeIdByGuidAsync(nodeGuid, cancellationToken).ConfigureAwait(false);
+            cancellationToken.ThrowIfCancellationRequested();
+            return nodeId == 0
+                ? null
+                : await LoadNodeHeadAsync(nodeId, cancellationToken).ConfigureAwait(false);
+        }
+        public async Task<NodeHead> LoadNodeHeadByVersionGuidAsync(Guid versionGuid, CancellationToken cancellationToken)
+        {
+            var versionId = await GetVersionIdByGuidAsync(versionGuid, cancellationToken).ConfigureAwait(false);
+            cancellationToken.ThrowIfCancellationRequested();
+            return versionId == 0
+                ? null
+                : await LoadNodeHeadByVersionIdAsync(versionId, cancellationToken).ConfigureAwait(false);
+        }
+        public Task<int> GetVersionIdByGuidAsync(Guid versionGuid, CancellationToken cancellationToken)
+        {
+            return DataProvider.GetVersionIdByGuidAsync(versionGuid, cancellationToken);
+        }
         public Task<NodeHead> LoadNodeHeadByVersionIdAsync(int versionId, CancellationToken cancellationToken)
         {
             return DataProvider.LoadNodeHeadByVersionIdAsync(versionId, cancellationToken);

@@ -2031,6 +2031,46 @@ namespace SenseNet.ContentRepository.Storage
         // ----------------------------------------------------------------------------- Static single loaders
 
         /// <summary>
+        /// Loads a node of the requested type by its immutable node GUID, using the default version selection.
+        /// Returns null for an empty or unknown GUID.
+        /// </summary>
+        public static async Task<T> LoadAsync<T>(Guid nodeGuid, CancellationToken cancellationToken) where T : Node
+        {
+            return (T)await LoadNodeAsync(nodeGuid, cancellationToken).ConfigureAwait(false);
+        }
+        /// <summary>
+        /// Loads the requested version of a node of the requested type by its immutable node GUID.
+        /// Returns null if the node or version does not exist.
+        /// </summary>
+        public static async Task<T> LoadAsync<T>(Guid nodeGuid, VersionNumber version,
+            CancellationToken cancellationToken) where T : Node
+        {
+            return (T)await LoadNodeAsync(nodeGuid, version, cancellationToken).ConfigureAwait(false);
+        }
+        /// <summary>
+        /// Loads a node by its immutable node GUID, using the default version selection.
+        /// Returns null for an empty or unknown GUID.
+        /// </summary>
+        public static Task<Node> LoadNodeAsync(Guid nodeGuid, CancellationToken cancellationToken)
+        {
+            return LoadNodeAsync(nodeGuid, DefaultAbstractVersion, cancellationToken);
+        }
+        /// <summary>
+        /// Loads the requested version of a node by its immutable node GUID.
+        /// Uses the same permission checks and version selection as loading by node id.
+        /// Returns null if the node or version does not exist.
+        /// </summary>
+        public static async Task<Node> LoadNodeAsync(Guid nodeGuid, VersionNumber version,
+            CancellationToken cancellationToken)
+        {
+            var head = await NodeHead.GetAsync(nodeGuid, cancellationToken).ConfigureAwait(false);
+            cancellationToken.ThrowIfCancellationRequested();
+            return head == null
+                ? null
+                : await LoadNodeAsync(head, version, cancellationToken).ConfigureAwait(false);
+        }
+
+        /// <summary>
         /// Loads a <see cref="Node"/> by the provided id.
         /// </summary>
         /// <typeparam name="T">The requested return type.</typeparam>
@@ -2402,7 +2442,7 @@ namespace SenseNet.ContentRepository.Storage
                 // </L2Cache>
 
                 var token = await Providers.Instance.DataStore
-                    .LoadNodeAsync(head, versionId, CancellationToken.None).ConfigureAwait(false);
+                    .LoadNodeAsync(head, versionId, cancellationToken).ConfigureAwait(false);
                 if (token.NodeData != null)
                 {
                     var node = CreateTargetClass(token);
@@ -2738,6 +2778,21 @@ namespace SenseNet.ContentRepository.Storage
             if (token.NodeData != null)
                 node = CreateTargetClass(token);
             return node;
+        }
+
+        /// <summary>
+        /// Loads the exact stored version identified by its immutable version GUID.
+        /// Requires the same Open and RecallOldVersion permissions as loading by version id.
+        /// Returns null for an empty or unknown GUID.
+        /// </summary>
+        public static async Task<Node> LoadNodeByVersionGuidAsync(Guid versionGuid, CancellationToken cancellationToken)
+        {
+            var versionId = await Providers.Instance.DataStore
+                .GetVersionIdByGuidAsync(versionGuid, cancellationToken).ConfigureAwait(false);
+            cancellationToken.ThrowIfCancellationRequested();
+            return versionId == 0
+                ? null
+                : await LoadNodeByVersionIdAsync(versionId, cancellationToken).ConfigureAwait(false);
         }
 
         internal void Refresh()

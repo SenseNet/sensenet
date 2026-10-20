@@ -14,7 +14,7 @@ namespace SenseNet.IntegrationTests.MsSql.CustomTests
     [TestClass]
     public class MsSqlDatabaseInstallerTest
     {
-        private static readonly string LocalServer = "(local)\\SQL2016";
+        private static readonly string LocalServer = "(local)";
 
         private static MsSqlDatabaseInstaller CreateInstaller(MsSqlDatabaseInstallationOptions options = null)
         {

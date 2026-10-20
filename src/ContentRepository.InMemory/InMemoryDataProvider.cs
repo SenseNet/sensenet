@@ -776,6 +776,24 @@ namespace SenseNet.ContentRepository.InMemory
 
         /* =============================================================================================== NodeHead */
 
+        public override Task<int> GetNodeIdByGuidAsync(Guid nodeGuid, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            lock (DB)
+                return STT.Task.FromResult(nodeGuid == Guid.Empty
+                    ? 0
+                    : DB.Nodes.FirstOrDefault(x => x.RowGuid == nodeGuid)?.NodeId ?? 0);
+        }
+
+        public override Task<int> GetVersionIdByGuidAsync(Guid versionGuid, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            lock (DB)
+                return STT.Task.FromResult(versionGuid == Guid.Empty
+                    ? 0
+                    : DB.Versions.FirstOrDefault(x => x.RowGuid == versionGuid)?.VersionId ?? 0);
+        }
+
         public override Task<NodeHead> LoadNodeHeadAsync(string path, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();

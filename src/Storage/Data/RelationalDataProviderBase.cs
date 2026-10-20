@@ -1168,6 +1168,40 @@ namespace SenseNet.ContentRepository.Storage.Data
         /* =============================================================================================== NodeHead */
 
         /// <inheritdoc />
+        public override Task<int> GetNodeIdByGuidAsync(Guid nodeGuid, CancellationToken cancellationToken)
+        {
+            return GetIdByGuidAsync(GetNodeIdByGuidScript, nodeGuid, cancellationToken);
+        }
+        protected abstract string GetNodeIdByGuidScript { get; }
+
+        /// <inheritdoc />
+        public override Task<int> GetVersionIdByGuidAsync(Guid versionGuid, CancellationToken cancellationToken)
+        {
+            return GetIdByGuidAsync(GetVersionIdByGuidScript, versionGuid, cancellationToken);
+        }
+        protected abstract string GetVersionIdByGuidScript { get; }
+
+        private async Task<int> GetIdByGuidAsync(string script, Guid guid, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            if (guid == Guid.Empty)
+                return 0;
+
+            using var op = SnTrace.Database.StartOperation("RelationalDataProviderBase: GetIdByGuid(guid: {0})", guid);
+            var result = await RetryAsync(async () =>
+            {
+                using var ctx = CreateDataContext(cancellationToken);
+                var value = await ctx.ExecuteScalarAsync(script, cmd =>
+                {
+                    cmd.Parameters.Add(ctx.CreateParameter("@RowGuid", DbType.Guid, guid));
+                }).ConfigureAwait(false);
+                return value == null || value == DBNull.Value ? 0 : (int)value;
+            }, cancellationToken).ConfigureAwait(false);
+            op.Successful = true;
+            return result;
+        }
+
+        /// <inheritdoc />
         public override async Task<NodeHead> LoadNodeHeadAsync(string path, CancellationToken cancellationToken)
         {
             using var op = SnTrace.Database.StartOperation("RelationalDataProviderBase: " +
