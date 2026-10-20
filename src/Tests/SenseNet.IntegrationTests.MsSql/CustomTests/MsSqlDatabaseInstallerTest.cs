@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Data;
 using Microsoft.Data.SqlClient;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
@@ -14,7 +15,7 @@ namespace SenseNet.IntegrationTests.MsSql.CustomTests
     [TestClass]
     public class MsSqlDatabaseInstallerTest
     {
-        private static readonly string LocalServer = "(local)";
+        private static string TestServer => new SqlConnectionStringBuilder(SystemConnectionString).DataSource;
 
         private static MsSqlDatabaseInstaller CreateInstaller(MsSqlDatabaseInstallationOptions options = null)
         {
@@ -78,9 +79,10 @@ namespace SenseNet.IntegrationTests.MsSql.CustomTests
         [TestMethod]
         public void MsSqlDbInstaller_ConnectionString_LocalServerInstance()
         {
+            const string localServer = "(local)";
             var parameters = new MsSqlDatabaseInstallationOptions
             {
-                Server = LocalServer,
+                Server = localServer,
                 DatabaseName = "DB1"
             };
             var installer = CreateInstaller(parameters);
@@ -89,7 +91,7 @@ namespace SenseNet.IntegrationTests.MsSql.CustomTests
             var connectionString = installer.GetConnectionString(parameters);
 
             // ASSERT
-            Assert.AreEqual($"Data Source={LocalServer};Initial Catalog=DB1;Integrated Security=True;Trust Server Certificate=True",
+            Assert.AreEqual($"Data Source={localServer};Initial Catalog=DB1;Integrated Security=True;Trust Server Certificate=True",
                 connectionString);
         }
 
@@ -125,7 +127,7 @@ namespace SenseNet.IntegrationTests.MsSql.CustomTests
             // ACTION
             var parameters = new MsSqlDatabaseInstallationOptions
             {
-                Server = LocalServer,
+                Server = TestServer,
                 DatabaseName = "Database1",
                 DbCreatorUserName = "Creator1",
                 DbCreatorPassword = "CreatorPassword1",
@@ -155,7 +157,7 @@ namespace SenseNet.IntegrationTests.MsSql.CustomTests
             // ACTION
             var parameters = new MsSqlDatabaseInstallationOptions
             {
-                Server = LocalServer,
+                Server = TestServer,
                 DatabaseName = "Database1",
                 DbCreatorUserName = "Creator1",
                 DbCreatorPassword = "CreatorPassword1",
@@ -188,7 +190,7 @@ namespace SenseNet.IntegrationTests.MsSql.CustomTests
             // ACTION
             var parameters = new MsSqlDatabaseInstallationOptions
             {
-                Server = LocalServer,
+                Server = TestServer,
                 DatabaseName = "Database1",
                 DbCreatorUserName = null,
                 DbCreatorPassword = null,
@@ -222,7 +224,7 @@ namespace SenseNet.IntegrationTests.MsSql.CustomTests
             // ACTION
             var parameters = new MsSqlDatabaseInstallationOptions
             {
-                Server = LocalServer,
+                Server = TestServer,
                 DatabaseName = "Database1",
                 DbCreatorUserName = null,
                 DbCreatorPassword = null,
@@ -260,7 +262,7 @@ namespace SenseNet.IntegrationTests.MsSql.CustomTests
             // ACTION
             var parameters = new MsSqlDatabaseInstallationOptions
             {
-                Server = LocalServer,
+                Server = TestServer,
                 DatabaseName = database,
                 DbCreatorUserName = null,
                 DbCreatorPassword = null,
@@ -295,7 +297,7 @@ namespace SenseNet.IntegrationTests.MsSql.CustomTests
             // ACTION
             var parameters = new MsSqlDatabaseInstallationOptions
             {
-                Server = LocalServer,
+                Server = TestServer,
                 DatabaseName = database,
                 DbCreatorUserName = null,
                 DbCreatorPassword = null,
@@ -354,7 +356,7 @@ namespace SenseNet.IntegrationTests.MsSql.CustomTests
             // ACTION
             var parameters = new MsSqlDatabaseInstallationOptions
             {
-                Server = LocalServer,
+                Server = TestServer,
                 DatabaseName = database,
                 DbCreatorUserName = null,
                 DbCreatorPassword = null,
@@ -410,7 +412,7 @@ namespace SenseNet.IntegrationTests.MsSql.CustomTests
             // ACTION
             var parameters = new MsSqlDatabaseInstallationOptions
             {
-                Server = LocalServer,
+                Server = TestServer,
                 DatabaseName = database,
                 DbCreatorUserName = null,
                 DbCreatorPassword = null,
@@ -473,7 +475,7 @@ namespace SenseNet.IntegrationTests.MsSql.CustomTests
             // ACTION
             var parameters = new MsSqlDatabaseInstallationOptions
             {
-                Server = LocalServer,
+                Server = TestServer,
                 DatabaseName = database,
                 DbCreatorUserName = null,
                 DbCreatorPassword = null,
@@ -502,10 +504,10 @@ namespace SenseNet.IntegrationTests.MsSql.CustomTests
             EnsureRestrictiveCreator(creatorName, creatorPassword);
             var userName = "Customer2";
             var password = "CustomerPassword2";
-            var builder = new SqlConnectionStringBuilder
+            var builder = new SqlConnectionStringBuilder(SystemConnectionString)
             {
-                DataSource = LocalServer,
-                InitialCatalog = "master",
+                IntegratedSecurity = false,
+                Authentication = SqlAuthenticationMethod.NotSpecified,
                 UserID = creatorName,
                 Password = creatorPassword
             };
@@ -544,10 +546,10 @@ namespace SenseNet.IntegrationTests.MsSql.CustomTests
             EnsureRestrictiveCreator(creatorName, creatorPassword);
             CreateLogin(userName, password);
 
-            var builder = new SqlConnectionStringBuilder
+            var builder = new SqlConnectionStringBuilder(SystemConnectionString)
             {
-                DataSource = LocalServer,
-                InitialCatalog = "master",
+                IntegratedSecurity = false,
+                Authentication = SqlAuthenticationMethod.NotSpecified,
                 UserID = creatorName,
                 Password = creatorPassword
             };
@@ -576,8 +578,22 @@ namespace SenseNet.IntegrationTests.MsSql.CustomTests
 
         /* ===================================================================================== */
 
-        private static readonly string SystemConnectionString =
-            $"Data Source={LocalServer};Initial Catalog=master;Integrated Security=SSPI;Persist Security Info=False;TrustServerCertificate=True";
+        private static readonly Lazy<string> SystemConnectionStringSource = new Lazy<string>(() =>
+        {
+            using var configuration = new ConfigurationManager();
+            configuration
+                .AddJsonFile("appsettings.json")
+                .AddUserSecrets(typeof(MsSqlDatabaseInstallerTest).Assembly)
+                .AddEnvironmentVariables("SENSENET_TEST_");
+            var connectionString = configuration.GetConnectionString("SnCrMsSql");
+            if (string.IsNullOrWhiteSpace(connectionString))
+                throw new InvalidOperationException(
+                    "Configure ConnectionStrings:SnCrMsSql in the SQL test project's user secrets.");
+
+            return new SqlConnectionStringBuilder(connectionString) { InitialCatalog = "master" }.ConnectionString;
+        });
+
+        private static string SystemConnectionString => SystemConnectionStringSource.Value;
 
         private string GetConnectionStringFor(string databaseName)
         {
