@@ -59,8 +59,11 @@ services:
       sensenet__LoginPage__DisplayOtherRepositoryButton: "true"
       sensenet__authentication__setDefaultClients: "true"
       sensenet__Clients__adminui__RepositoryHosts__0__InternalHost: http://snapp
+      sensenet__Clients__adminui__RepositoryHosts__1__InternalHost: http://snapp
       sensenet__Clients__spa__RepositoryHosts__0__InternalHost: http://snapp
+      sensenet__Clients__spa__RepositoryHosts__1__InternalHost: http://snapp
       sensenet__Clients__client__RepositoryHosts__0__InternalHost: http://snapp
+      sensenet__Clients__client__RepositoryHosts__1__InternalHost: http://snapp
     volumes:
       - *certificate
     networks: [sensenet]

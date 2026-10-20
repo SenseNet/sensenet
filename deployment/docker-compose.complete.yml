@@ -56,8 +56,11 @@ services:
     environment:
       IdentityServer__IssuerUri: "https://localhost:${AUTH_PORT:-${LEGACY_COMPLETE_AUTH_PORT:-18077}}"
       sensenet__Clients__adminui__RepositoryHosts__0__PublicHost: "https://localhost:${REPOSITORY_PORT:-${LEGACY_COMPLETE_REPOSITORY_PORT:-18076}}"
+      sensenet__Clients__adminui__RepositoryHosts__1__PublicHost: "https://127.0.0.1:${REPOSITORY_PORT:-${LEGACY_COMPLETE_REPOSITORY_PORT:-18076}}"
       sensenet__Clients__spa__RepositoryHosts__0__PublicHost: "https://localhost:${REPOSITORY_PORT:-${LEGACY_COMPLETE_REPOSITORY_PORT:-18076}}"
+      sensenet__Clients__spa__RepositoryHosts__1__PublicHost: "https://127.0.0.1:${REPOSITORY_PORT:-${LEGACY_COMPLETE_REPOSITORY_PORT:-18076}}"
       sensenet__Clients__client__RepositoryHosts__0__PublicHost: "https://localhost:${REPOSITORY_PORT:-${LEGACY_COMPLETE_REPOSITORY_PORT:-18076}}"
+      sensenet__Clients__client__RepositoryHosts__1__PublicHost: "https://127.0.0.1:${REPOSITORY_PORT:-${LEGACY_COMPLETE_REPOSITORY_PORT:-18076}}"
     ports: ["127.0.0.1:${AUTH_PORT:-${LEGACY_COMPLETE_AUTH_PORT:-18077}}:443"]
   rabbit:
     extends:

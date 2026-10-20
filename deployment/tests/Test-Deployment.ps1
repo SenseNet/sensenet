@@ -146,6 +146,8 @@ function Assert-Endpoints($config, [int]$port, [string]$scenario) {
             Assert ($auth.IdentityServer__IssuerUri -eq $authUrl) "IdentityServer issuer disagrees with port in $scenario"
             foreach ($client in @('adminui','spa','client')) {
                 Assert ($auth."sensenet__Clients__${client}__RepositoryHosts__0__PublicHost" -eq $repositoryUrl) "IdentityServer $client URL disagrees with port in $scenario"
+                Assert ($auth."sensenet__Clients__${client}__RepositoryHosts__1__PublicHost" -eq "https://127.0.0.1:$port") "IdentityServer $client rejects the IPv4 loopback repository URL in $scenario"
+                Assert ($auth."sensenet__Clients__${client}__RepositoryHosts__1__InternalHost" -eq 'http://snapp') "IdentityServer $client lacks internal routing for the IPv4 loopback alias in $scenario"
             }
         }
     }

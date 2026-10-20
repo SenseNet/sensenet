@@ -23,7 +23,7 @@ To log in and browse repository content:
 2. Enter the repository URL from the command table, for example `https://localhost:18016` for `docker-compose.yml`.
 3. Log in with `admin` / `admin` on the authentication page opened by Admin UI. For the default demo its IdentityServer is at `https://localhost:18017`.
 
-The repository URLs in the tables are REST API endpoints. Opening their root directly shows `sensenet is listening`; that is normal and does not display the Admin UI. Use `localhost` in the repository URL, matching the configured authentication URLs, even though the Docker port is bound to `127.0.0.1`.
+The repository URLs in the tables are REST API endpoints. Opening their root directly shows `sensenet is listening`; that is normal and does not display the Admin UI. The examples use `localhost`. IdentityServer demos also accept `127.0.0.1` as the repository hostname and route that alias to the same internal repository; the authentication server's canonical URL remains `localhost`.
 
 For webapps present in the current checkout, `up -d --build` builds the local source instead. An existing local floating image tag may be older than the registry tag; `--pull always` refreshes published images. The LocalAuth scenario always needs its local build, and PostgreSQL source is available on its provider branch.
 
@@ -165,6 +165,14 @@ pwsh -NoProfile -File ./tests/Test-DeploymentSmoke.ps1 -Scenario Parallel
 # Optional historical-port runtime check; historical ports must be free:
 pwsh -NoProfile -File ./tests/Test-DeploymentSmoke.ps1 -Scenario InMemory -LegacyPorts
 ```
+
+For an already running IdentityServer demo, test the exact repository URL and Admin UI origin involved in a login failure:
+
+```powershell
+pwsh -NoProfile -File ./tests/Test-IdentityServerLogin.ps1 -RepositoryUrl https://127.0.0.1:18016 -AdminUiOrigin https://admin.example.invalid
+```
+
+Replace the example origin with your actual Admin UI origin. This test checks the client bootstrap, discovery/signing-key/token CORS responses, the login form with its anti-forgery cookie, authorization-code/PKCE exchange, and an authenticated Admin read. It does not follow the external redirect or print credentials, cookies, authorization codes or tokens. It checks the HTTP authentication flow; browser-specific permissions and existing browser session state require a separate browser check.
 
 # Install sensenet on local Docker with PowerShell
 
