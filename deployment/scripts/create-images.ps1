@@ -10,7 +10,7 @@ Param (
     [string]$SensenetDockerImage='',
     [string]$IdentityGitRepo='https://github.com/SenseNet/sn-identityserver',
     [string]$IdentityGitBranch='main',
-    [string]$IdentityDockerImage='sensenetcsp/sn-identityserver:latest',
+    [string]$IdentityDockerImage='sensenetcsp/sn-identityserver:preview',
     [string]$AuthGitRepo='https://github.com/SenseNet/sn-auth',
     [string]$AuthGitBranch='develop',
     [string]$AuthDockerImage='sensenetcsp/sn-auth:preview',
@@ -21,8 +21,9 @@ Param (
     [bool]$DryRun=$False
 )
 . "$PSScriptRoot/helper-functions.ps1"
-Test-Docker
 if ($ImageType -eq 'InPostgres') { $WebApp = 'PostgreSql' }
+if ($WebApp -eq 'PostgreSql') { throw 'The PostgreSQL demo is inactive until its provider is integrated into develop.' }
+Test-Docker
 if (-not $SensenetFolderPath) {
     if ($LocalSn) { $SensenetFolderPath = "$PSScriptRoot/../.." }
     else { $SensenetFolderPath = "$PSScriptRoot/../temp/Sensenet" }

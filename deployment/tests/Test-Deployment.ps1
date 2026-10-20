@@ -41,6 +41,52 @@ $sqlOutput = & "$deployment/scripts/install-sql-server.ps1" -UseVolume $True -Sq
 $sqlCommand = @($sqlOutput | Where-Object { $_ -is [Management.Automation.VerboseRecord] -and $_.Message -like 'docker run -d *' })
 Assert ($sqlCommand.Count -eq 1 -and $sqlCommand[0].Message.Contains(':/var/opt/mssql/data')) 'Existing SQL data mount layout changed.'
 
+# Source builds must produce the exact dependency image the installer will run.
+foreach ($dependency in @(@('Is','install-identity-server.ps1'),@('Auth','install-snauth.ps1'),@('Search','install-search-service.ps1'))) {
+    $buildOutput = & "$deployment/scripts/create-images.ps1" -ImageType $dependency[0] -LocalSn $True -DryRun $True -Verbose 4>&1
+    $buildCommand = @($buildOutput | Where-Object { $_ -is [Management.Automation.VerboseRecord] -and $_.Message -like 'docker build *' })
+    $builtImage = [regex]::Match($buildCommand[0].Message,' -t (\S+)').Groups[1].Value
+    $runOutput = & "$deployment/scripts/$($dependency[1])" -SkipPull $True -DryRun $True -Verbose 4>&1
+    $runCommand = @($runOutput | Where-Object { $_ -is [Management.Automation.VerboseRecord] -and $_.Message -like 'docker run *' })
+    $runImage = ($runCommand[0].Message.Trim() -split '\s+')[-1]
+    Assert ($builtImage -and $builtImage -eq $runImage) "$($dependency[0]) build/run image tags do not agree."
+}
+
+# Compose networks must not satisfy the PowerShell installer's exact network name.
+$global:deploymentTestNetwork = [pscustomobject]@{
+    Calls = [Collections.Generic.List[string]]::new()
+    Exists = $False
+    FailCreate = $False
+}
+function docker {
+    $arguments = @($args | ForEach-Object { $_ })
+    $global:deploymentTestNetwork.Calls.Add($arguments -join ' ')
+    $global:LASTEXITCODE = 0
+    if ($arguments[0] -eq 'info') { return '{"ServerErrors":[]}' }
+    if ($arguments[0] -ne 'network') { throw 'Unexpected Docker command in network test.' }
+    switch ($arguments[1]) {
+        'list' { 'sensenet-demo_sensenet' }
+        'inspect' {
+            if ($global:deploymentTestNetwork.Exists -and $arguments[-1] -eq 'sensenet') { 'sensenet' }
+            else { $global:LASTEXITCODE = 1 }
+        }
+        'create' {
+            if ($global:deploymentTestNetwork.FailCreate) { $global:LASTEXITCODE = 1 }
+            else { $global:deploymentTestNetwork.Exists = $True; 'test-network-id' }
+        }
+        default { throw 'Unexpected network operation.' }
+    }
+}
+& "$deployment/scripts/install-sensenet-init.ps1" -NetworkName sensenet | Out-Null
+Assert ($global:deploymentTestNetwork.Exists) 'Compose networks prevented creation of the required sensenet network.'
+Assert (@($global:deploymentTestNetwork.Calls -match '^network create ').Count -eq 1) 'Missing network must be created exactly once.'
+& "$deployment/scripts/install-sensenet-init.ps1" -NetworkName sensenet | Out-Null
+Assert (@($global:deploymentTestNetwork.Calls -match '^network create ').Count -eq 1) 'Repeated initialization must reuse the exact network.'
+$global:deploymentTestNetwork.Exists = $False; $global:deploymentTestNetwork.FailCreate = $True; $rejected = $False
+try { & "$deployment/scripts/install-sensenet-init.ps1" -NetworkName sensenet | Out-Null } catch { $rejected = $True }
+Assert $rejected 'Failed network creation must terminate the installer.'
+Remove-Variable -Name deploymentTestNetwork -Scope Global
+
 # Exercise the lifecycle contract without touching the Docker daemon.
 $script:dockerCalls = [Collections.Generic.List[string]]::new()
 function docker {
@@ -75,8 +121,7 @@ foreach ($parameters in @(
     @{UseVolume=$True;SearchService=$True;UseAuth=$True},
     @{HostDb=$True;SqlUser='demo';SqlPsw='demo';SearchService=$True},
     @{WebApp='Preview';CreateImages=$True;LocalSn=$True;SearchService=$True;UseAuth=$True},
-    @{WebApp='LocalAuth';CreateImages=$True;LocalSn=$True},
-    @{WebApp='PostgreSql';UseVolume=$True}
+    @{WebApp='LocalAuth';CreateImages=$True;LocalSn=$True}
 )) {
     & "$deployment/install-sensenet.ps1" @parameters -DryRun -Verbose *>&1 | Out-Null
     Assert $True 'DryRun completed.'
@@ -89,6 +134,22 @@ foreach ($parameters in @(
     try { & "$deployment/install-sensenet.ps1" @parameters -DryRun *>&1 | Out-Null } catch { $rejected = $True }
     Assert $rejected 'An unsupported webapp combination was accepted.'
 }
+foreach ($parameters in @(@{}, @{CreateImages=$True}, @{CreateImages=$True;LocalSn=$True})) {
+    $rejected = $False
+    try { & "$deployment/install-sensenet.ps1" -WebApp PostgreSql @parameters -DryRun *>&1 | Out-Null }
+    catch { $rejected = $_.Exception.Message -like '*PostgreSQL demo is inactive*' }
+    Assert $rejected 'The inactive PostgreSQL installer must fail before using external tools.'
+}
+foreach ($parameters in @(@{ImageType='InPostgres'}, @{WebApp='PostgreSql'})) {
+    $rejected = $False
+    try { & "$deployment/scripts/create-images.ps1" @parameters -DryRun $True *>&1 | Out-Null }
+    catch { $rejected = $_.Exception.Message -like '*PostgreSQL demo is inactive*' }
+    Assert $rejected 'The inactive PostgreSQL build must not fetch the provider branch.'
+}
+$rejected = $False
+try { & "$deployment/tests/Test-DeploymentSmoke.ps1" -Scenario Postgres *>&1 | Out-Null }
+catch { $rejected = $_.Exception.Message -like '*PostgreSQL demo is inactive*' }
+Assert $rejected 'The inactive PostgreSQL smoke scenario must not start containers.'
 Remove-Item Function:docker,Function:dotnet,Function:git
 
 # HTTP 200 for an empty collection is not proof that a repository is installed.
@@ -117,7 +178,7 @@ $legacyPorts = @{
     'host-db-search'=51066; 'host-db-search-auth'=51066; 'host-db-volume-search'=51086; 'host-db-volume-search-auth'=51086
     'in-memory'=51011; 'in-memory-auth'=51011
     'local-auth'=51016; 'local-auth-volume'=51036; 'local-auth-host-db'=51026; 'local-auth-host-db-volume'=51046
-    'preview'=51016; 'preview-search'=51056; 'postgres'=51016; 'postgres-volume'=51036
+    'preview'=51016; 'preview-search'=51056
 }
 $defaultPorts = @{
     ''=18016; 'with-auth'=18026; 'with-volume'=18036; 'with-volume-auth'=18046
@@ -126,7 +187,6 @@ $defaultPorts = @{
     'host-db-search'=18136; 'host-db-search-auth'=18146; 'host-db-volume-search'=18156; 'host-db-volume-search-auth'=18166
     'in-memory'=18176; 'in-memory-auth'=18186; 'preview'=18196; 'preview-search'=18206
     'local-auth'=18216; 'local-auth-volume'=18226; 'local-auth-host-db'=18236; 'local-auth-host-db-volume'=18246
-    'postgres'=18256; 'postgres-volume'=18266
 }
 function Assert-Endpoints($config, [int]$port, [string]$scenario) {
     Assert ($config.services.prerequisites.network_mode -eq 'none') "Required-file check should not use a network in $scenario"
@@ -189,8 +249,16 @@ try {
     $projects = [Collections.Generic.HashSet[string]]::new()
     $containers = [Collections.Generic.HashSet[string]]::new()
     $bindings = [Collections.Generic.HashSet[string]]::new()
-    $files = @(Get-ChildItem $deployment -Filter 'docker-compose*.yml')
-    Assert ($files.Count -eq 26) 'Expected 26 independent scenarios.'
+    # Test this demo suite explicitly; other development Compose files may coexist.
+    $files = @($defaultPorts.Keys | Sort-Object | ForEach-Object {
+        $name = $(if ($_ -eq '') { 'docker-compose.yml' } else { "docker-compose.$_.yml" })
+        Get-Item -LiteralPath "$deployment/$name" -ErrorAction Stop
+    })
+    Assert ($files.Count -eq $defaultPorts.Count) 'An active demo scenario is missing.'
+    foreach ($pending in @('postgres','postgres-volume')) {
+        Assert (-not (Test-Path "$deployment/docker-compose.$pending.yml")) 'PostgreSQL must not be advertised as an active Compose demo.'
+        Assert (Test-Path "$deployment/docker-compose.$pending.yml.disabled" -PathType Leaf) 'Keep the pending PostgreSQL scaffold for later integration.'
+    }
     foreach ($file in $files) {
         $key = $file.BaseName -replace '^docker-compose\.?',''
         Assert ($defaultPorts.ContainsKey($key)) "Unaccounted scenario: $($file.Name)"
@@ -217,7 +285,7 @@ try {
         if ($legacy.services.snis) { Assert ([int]$legacy.services.snis.ports[0].published -eq $port+1) "Wrong legacy auth port in $($file.Name)" }
         if ($legacy.services.snsearch) { Assert ([int]$legacy.services.snsearch.ports[0].published -eq $port+2) "Wrong legacy search port in $($file.Name)" }
         if ($legacy.services.snsql) {
-            $dbPort = $(if ($key -like 'postgres*') { 5532 } else { 9999 })
+            $dbPort = 9999
             Assert ([int]$legacy.services.snsql.ports[0].published -eq $dbPort) "Wrong legacy DB port in $($file.Name): expected $dbPort, got $($legacy.services.snsql.ports[0].published)"
         }
         if ($legacy.services.rabbit) { Assert ([int]$legacy.services.rabbit.ports[0].published -eq 51005) "Wrong legacy Rabbit port in $($file.Name)" }
@@ -225,15 +293,14 @@ try {
     # Arbitrary overrides must change both bindings and advertised endpoints.
     $env:REPOSITORY_PORT='52916'; $env:AUTH_PORT='52917'; $env:SEARCH_PORT='52918'
     $env:SQL_PORT='52919'; $env:RABBIT_PORT='52915'; $env:POSTGRES_PORT='52929'
-    foreach ($scenario in @('with-search-auth','with-search','local-auth','postgres')) {
+    foreach ($scenario in @('with-search-auth','with-search','local-auth')) {
         $config = Get-ComposeConfig "$deployment/docker-compose.$scenario.yml" -Legacy
         Assert ([int]$config.services.snapp.ports[0].published -eq 52916) 'Explicit API override must take precedence over legacy defaults.'
         Assert-Endpoints $config 52916 $scenario
         if ($config.services.snis) { Assert ([int]$config.services.snis.ports[0].published -eq 52917) 'Explicit auth port override was ignored.' }
         if ($config.services.snsearch) { Assert ([int]$config.services.snsearch.ports[0].published -eq 52918) 'Explicit search port override was ignored.' }
         if ($config.services.rabbit) { Assert ([int]$config.services.rabbit.ports[0].published -eq 52915) 'Explicit RabbitMQ port override was ignored.' }
-        $dbPort = $(if ($scenario -eq 'postgres') { 52929 } else { 52919 })
-        Assert ([int]$config.services.snsql.ports[0].published -eq $dbPort) 'Explicit DB port override was ignored.'
+        Assert ([int]$config.services.snsql.ports[0].published -eq 52919) 'Explicit DB port override was ignored.'
     }
 } finally {
     foreach ($variable in $portVariables) {
@@ -241,4 +308,4 @@ try {
         else { [Environment]::SetEnvironmentVariable($variable,$previous[$variable]) }
     }
 }
-Write-Host "PASS: $checks deployment assertions (PowerShell, lifecycle, 26 non-conflicting defaults, legacy ports and URL overrides)."
+Write-Host "PASS: $checks deployment assertions (PowerShell, network/container lifecycle, $($files.Count) active demos, inactive PostgreSQL, legacy ports and URL overrides)."

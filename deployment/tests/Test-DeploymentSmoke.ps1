@@ -7,11 +7,12 @@ Param (
 )
 $ErrorActionPreference = 'Stop'
 $PSNativeCommandUseErrorActionPreference = $False
+if ($Scenario -eq 'Postgres') { throw 'The PostgreSQL demo is inactive until its provider is integrated into develop.' }
 if ($LegacyPorts -and $Scenario -eq 'Parallel') { throw 'Legacy LocalAuth/SNAuth demos share ports. Test parallel demos with default ports.' }
 $deployment = Split-Path -Parent $PSScriptRoot
 $files = @{
     WithAuth='docker-compose.with-auth.yml'; LocalAuth='docker-compose.local-auth.yml'
-    Postgres='docker-compose.postgres.yml'; Search='docker-compose.with-search-auth.yml'
+    Search='docker-compose.with-search-auth.yml'
     InMemory='docker-compose.in-memory-auth.yml'
 }
 $selected = $(if ($Scenario -eq 'Parallel') { @('LocalAuth','WithAuth') } else { @($Scenario) })

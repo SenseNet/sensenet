@@ -1,5 +1,5 @@
-# Matching installer scenario (legacy ports are opt-in): ./install-sensenet.ps1 -UseAuth -WebApp PostgreSql
-# Run from this folder: docker compose -f docker-compose.postgres.yml up -d
+# INACTIVE scaffold: enable and validate after the PostgreSQL provider joins develop.
+# Kept outside the active *.yml demo suite; see readme.md.
 name: "sensenet-demo-postgres"
 services:
   prerequisites:

@@ -1,6 +1,6 @@
 # Local Docker demos: Compose or PowerShell
 
-These are local demos for trying sensenet. Each `docker-compose*.yml` file is a complete scenario selected with one `-f` argument. Every scenario has a distinct default project name and published ports, so different demos can run side by side without configuration. Databases, networks, RabbitMQ and named volumes belong to their own project. Host-database scenarios still require an existing SQL server.
+These are local demos for trying sensenet. Each active `docker-compose*.yml` file is a complete scenario selected with one `-f` argument. The 24 active scenarios have distinct default project names and published ports, so different demos can run side by side without configuration. Databases, networks, RabbitMQ and named volumes belong to their own project. Host-database scenarios still require an existing SQL server. PostgreSQL scaffolds are inactive until their provider is integrated into `develop`.
 
 The files share service definitions through `compose.services.yml`; no generator or installer script runs when Compose starts. Docker Compose v2.24 or newer is required. Published ports bind to `127.0.0.1`. The PowerShell installer's historical ports are available through the optional `legacy-ports.env` file.
 
@@ -25,7 +25,7 @@ To log in and browse repository content:
 
 The repository URLs in the tables are REST API endpoints. Opening their root directly shows `sensenet is listening`; that is normal and does not display the Admin UI. The examples use `localhost`. IdentityServer demos also accept `127.0.0.1` as the repository hostname and route that alias to the same internal repository; the authentication server's canonical URL remains `localhost`.
 
-For webapps present in the current checkout, `up -d --build` builds the local source instead. An existing local floating image tag may be older than the registry tag; `--pull always` refreshes published images. The LocalAuth scenario always needs its local build, and PostgreSQL source is available on its provider branch.
+For webapps present in the current checkout, `up -d --build` builds the local source instead. An existing local floating image tag may be older than the registry tag; `--pull always` refreshes published images. The LocalAuth scenario always needs its local build.
 
 Start commands for PowerShell (run from `deployment/`). Each row is one independent command; select the demo you want. The repository base URL is `https://localhost:<API port>`. LocalAuth's login page is `/authentication/local/login` on that same port.
 
@@ -45,8 +45,6 @@ Start commands for PowerShell (run from `deployment/`). Each row is one independ
 | SQL + search service + document previews + SNAuth | `docker compose -f docker-compose.preview-search.yml up -d --pull always` | 18206 |
 | SQL + LocalAuth | `docker compose -f docker-compose.local-auth.yml up -d --build` | 18216 |
 | SQL + LocalAuth, persistent data | `docker compose -f docker-compose.local-auth-volume.yml up -d --build` | 18226 |
-| PostgreSQL + SNAuth | `docker compose -f docker-compose.postgres.yml up -d --pull always` | 18256 |
-| PostgreSQL + SNAuth, persistent data | `docker compose -f docker-compose.postgres-volume.yml up -d --pull always` | 18266 |
 
 The following demos use an existing SQL server. Set `DATASOURCE`, `SQL_USER` and `SQL_PASSWORD` in `.env` before starting one:
 
@@ -97,10 +95,8 @@ All default service ports (each scenario can run alongside the other scenarios):
 | `docker-compose.local-auth-volume.yml` | 18226 | Internal | - | 18229 | - |
 | `docker-compose.local-auth-host-db.yml` | 18236 | Internal | - | Host | - |
 | `docker-compose.local-auth-host-db-volume.yml` | 18246 | Internal | - | Host | - |
-| `docker-compose.postgres.yml` | 18256 | 18257 | - | 18259 | - |
-| `docker-compose.postgres-volume.yml` | 18266 | 18267 | - | 18269 | - |
 
-Each scenario reserves a ten-port block: repository at `+6`, auth at `+7`, search at `+8`, container DB at `+9`, RabbitMQ management at `+5`. AMQP stays inside the Compose network. Optional `REPOSITORY_PORT`, `AUTH_PORT`, `SEARCH_PORT`, `SQL_PORT`, `POSTGRES_PORT` and `RABBIT_PORT` overrides also update the application/auth URLs. Leave these unset in a shared `.env` to retain the non-conflicting defaults. To run multiple copies of the *same* scenario, use distinct `-p` project names and distinct overrides for all its published ports.
+Each scenario reserves a ten-port block: repository at `+6`, auth at `+7`, search at `+8`, container DB at `+9`, RabbitMQ management at `+5`. AMQP stays inside the Compose network. Optional `REPOSITORY_PORT`, `AUTH_PORT`, `SEARCH_PORT`, `SQL_PORT` and `RABBIT_PORT` overrides also update the application/auth URLs. Leave these unset in a shared `.env` to retain the non-conflicting defaults. To run multiple copies of the *same* scenario, use distinct `-p` project names and distinct overrides for all its published ports.
 
 If you copied `.env.template` from an earlier revision, remove its `SQL_PORT=9999`, `POSTGRES_PORT=5532` and `RABBIT_PORT=51005` lines to enable the new defaults. Select `legacy-ports.env` explicitly when you want those old ports.
 
@@ -114,7 +110,7 @@ docker compose --env-file .env --env-file legacy-ports.env -f docker-compose.wit
 docker compose --env-file .env --env-file legacy-ports.env -f docker-compose.with-auth.yml down
 ```
 
-The second env file changes ports only. In compatibility mode, SQL containers publish 9999, PostgreSQL containers 5532, and RabbitMQ management 51005. Scenarios using the same historical API/DB/Rabbit ports must run one at a time. The following table shows the historical SQL port calculation; it is also what the PowerShell installer continues to use:
+The second env file changes ports only. In compatibility mode, SQL containers publish 9999 and RabbitMQ management 51005. Scenarios using the same historical API/DB/Rabbit ports must run one at a time. The following table shows the historical SQL port calculation; it is also what the PowerShell installer continues to use:
 
 | Database | Persistent data | Search service | Repository/auth/search ports | IdentityServer file | SNAuth file |
 | --- | --- | --- | --- | --- | --- |
@@ -127,7 +123,7 @@ The second env file changes ports only. In compatibility mode, SQL containers pu
 | Container | Yes | Yes | 51076 / 51077 / 51078 | `docker-compose.complete.yml` | `docker-compose.complete-auth.yml` |
 | Host | Yes | Yes | 51086 / 51087 / 51088 | `docker-compose.host-db-volume-search.yml` | `docker-compose.host-db-volume-search-auth.yml` |
 
-In-memory compatibility ports are 51011/51012. LocalAuth, Preview and PostgreSQL compatibility ports follow their matching SQL row (LocalAuth has no external auth port). The older PowerShell installer shares its `sensenet-rabbit` container; Compose demos each own a RabbitMQ container.
+In-memory compatibility ports are 51011/51012. LocalAuth and Preview compatibility ports follow their matching SQL row (LocalAuth has no external auth port). The older PowerShell installer shares its `sensenet-rabbit` container; Compose demos each own a RabbitMQ container. The installer checks its exact `sensenet` network name, so existing Compose networks do not prevent it from starting.
 
 For host SQL, configure `DATASOURCE`, `SQL_USER` and `SQL_PASSWORD` in `.env`. The login needs database-creation permission. The default Docker host address is `host.docker.internal`; an explicit `host-gateway` mapping also supports Linux hosts. Host scenarios create an empty database idempotently but never start or reset your SQL server.
 
@@ -144,7 +140,7 @@ docker compose -f docker-compose.local-auth.yml up -d --build
 
 This demo enables `InternalOnly`, bearer transport, the built-in admin user (Id=1), and private/loopback client networks. It explicitly disables mandatory MFA for the demo account. The login page is `/authentication/local/login`; never reuse the generated signing key or these demo settings for a hosted installation. Data persistence does not control key persistence: keep the same ignored key when restarting an existing demo.
 
-PostgreSQL application source is on `postgres-provider`, not `develop`. Its Compose scenario runs the published `sensenetcsp/sn-api-postgre:postgres-provider` image and does not try to build a missing Dockerfile from `develop`. Override `POSTGRES_IMAGE` to use another compatible image. To build PostgreSQL from source, use a checkout containing its webapp; `-WebApp PostgreSql -CreateImages` downloads that branch, while `-LocalSn` requires the webapp already present. PostgreSQL host-database and search-service combinations, and LocalAuth search-service combinations, are rejected because those webapps are unavailable. The branch's existing development Compose files use different ports (44362/44311).
+PostgreSQL is pending: its provider is not integrated into `develop`, so it is not offered as a runnable demo here. The prepared `docker-compose.postgres.yml.disabled` and `docker-compose.postgres-volume.yml.disabled` files are retained for later integration and are excluded from the active startup/port tables. The installer, image builder and smoke test reject PostgreSQL selection before using Docker or fetching another branch. After this deployment PR is merged, update `postgres-provider` from `develop`, then complete and validate its integration before enabling these demos. LocalAuth search-service combinations are also unavailable and are rejected.
 
 `-WebApp Preview` selects the `sn-api-sql-prv` / `sn-api-nlb-prv` images. `-ImageTag` defaults to `preview` and is used consistently for local build and run. `-SensenetDockerImage` selects an explicit application image. `-CreateImages` also builds the selected external auth server (SNAuth or IdentityServer), and the installer reuses those builds without pulling over them. Repeated installation starts an existing stopped container and keeps a running container. Changed image/environment/volume settings require explicit recreation; repeated installation does not silently replace existing configuration or delete unusual container states.
 
@@ -159,7 +155,6 @@ Opt-in runtime tests create isolated, randomly named Compose projects, a tempora
 ```powershell
 pwsh -NoProfile -File ./tests/Test-DeploymentSmoke.ps1 -Scenario WithAuth
 pwsh -NoProfile -File ./tests/Test-DeploymentSmoke.ps1 -Scenario LocalAuth
-pwsh -NoProfile -File ./tests/Test-DeploymentSmoke.ps1 -Scenario Postgres
 pwsh -NoProfile -File ./tests/Test-DeploymentSmoke.ps1 -Scenario Search
 pwsh -NoProfile -File ./tests/Test-DeploymentSmoke.ps1 -Scenario Parallel
 # Optional historical-port runtime check; historical ports must be free:

@@ -45,10 +45,9 @@ Write-Output "#       docker network        #"
 Write-Output "###############################"
 Write-Output "[$($date) INFO] Create $($NetworkName)"
 $getNetwork = $null
-if (-not $DryRun) { $getNetwork=(docker network list -f name=$($NetworkName) --format "{{.Name}}" ) }
-if ($getNetwork -is [array] -and $getNetwork[1] -is [string]) {
-	# workaround for "failed to get console mode for stdout: The handle is invalid."
-	$getNetwork = $getNetwork[1]
+if (-not $DryRun) {
+	$networkResult = docker network inspect --format '{{.Name}}' $NetworkName 2>$null
+	if ($LASTEXITCODE -eq 0 -and $networkResult -contains $NetworkName) { $getNetwork = $NetworkName }
 }
 if ($getNetwork) {
     Write-Output "Docker network $getNetwork already exists..."
