@@ -4,16 +4,13 @@ These are local demos for trying sensenet. Each `docker-compose*.yml` file is a 
 
 The files share service definitions through `compose.services.yml`; no generator or installer script runs when Compose starts. Docker Compose v2.24 or newer is required. Published ports bind to `127.0.0.1`. The PowerShell installer's historical ports are available through the optional `legacy-ports.env` file.
 
-Prepare once from this directory, using PowerShell 7.2+:
+Prepare once from the repository root, using PowerShell 7.2+:
 
 ```powershell
-Copy-Item .env.template .env
+Set-Location .\deployment
+if (!(Test-Path .env)) { Copy-Item .env.template .env }
 ./scripts/create-devcert.ps1 -CertPsw 'SuP3rS3CuR3P4sSw0Rd'
 ./scripts/create-localauth-key.ps1
-# SNAuth demo: repository https://localhost:18026, auth https://localhost:18027
-docker compose -f docker-compose.with-auth.yml up -d --pull always
-# LocalAuth demo alongside it: https://localhost:18216/authentication/local/login
-docker compose -f docker-compose.local-auth.yml up -d --build
 ```
 
 The certificate helper exports/trusts the local .NET developer certificate. If you provide a certificate yourself, place `snapp.pfx` in `temp/certificates`, or set `CERT_FOLDER` and `CERT_PASSWORD` in `.env`. LocalAuth also requires `signing-key.pem` in `temp/localauth` (or `LOCAL_AUTH_KEY_FOLDER`). A small, network-disabled `prerequisites` container checks these required files before any service starts, including on Docker Desktop where an absent bind-file source can become an empty directory. A missing certificate/key stops startup instead of putting the app in a restart loop. Read the error with `docker compose -f <file> logs prerequisites`, run the named helper, then repeat `up`. If a missing file has become a directory, remove that empty directory before running the helper. The first database installation may take a few minutes; `db-init` exiting with code 0 means success.
@@ -22,7 +19,49 @@ Set `ADMIN_UI_URL` to the origin of the Admin UI you use; its template value is 
 
 For webapps present in the current checkout, `up -d --build` builds the local source instead. An existing local floating image tag may be older than the registry tag; `--pull always` refreshes published images. The LocalAuth scenario always needs its local build, and PostgreSQL source is available on its provider branch.
 
-Default ports (each row can run alongside the other rows):
+Start commands for PowerShell (run from `deployment/`). Each row is one independent command; select the demo you want. The repository base URL is `https://localhost:<API port>`. LocalAuth's login page is `/authentication/local/login` on that same port.
+
+| Demo | PowerShell command | API port |
+| --- | --- | --- |
+| SQL + IdentityServer | `docker compose -f docker-compose.yml up -d --pull always` | 18016 |
+| SQL + SNAuth | `docker compose -f docker-compose.with-auth.yml up -d --pull always` | 18026 |
+| SQL + IdentityServer, persistent data | `docker compose -f docker-compose.with-volume.yml up -d --pull always` | 18036 |
+| SQL + SNAuth, persistent data | `docker compose -f docker-compose.with-volume-auth.yml up -d --pull always` | 18046 |
+| SQL + search service + IdentityServer | `docker compose -f docker-compose.with-search.yml up -d --pull always` | 18056 |
+| SQL + search service + SNAuth | `docker compose -f docker-compose.with-search-auth.yml up -d --pull always` | 18066 |
+| SQL + search service + IdentityServer, persistent data | `docker compose -f docker-compose.complete.yml up -d --pull always` | 18076 |
+| SQL + search service + SNAuth, persistent data | `docker compose -f docker-compose.complete-auth.yml up -d --pull always` | 18086 |
+| In-memory + IdentityServer | `docker compose -f docker-compose.in-memory.yml up -d --pull always` | 18176 |
+| In-memory + SNAuth | `docker compose -f docker-compose.in-memory-auth.yml up -d --pull always` | 18186 |
+| SQL + document previews + SNAuth | `docker compose -f docker-compose.preview.yml up -d --pull always` | 18196 |
+| SQL + search service + document previews + SNAuth | `docker compose -f docker-compose.preview-search.yml up -d --pull always` | 18206 |
+| SQL + LocalAuth | `docker compose -f docker-compose.local-auth.yml up -d --build` | 18216 |
+| SQL + LocalAuth, persistent data | `docker compose -f docker-compose.local-auth-volume.yml up -d --build` | 18226 |
+| PostgreSQL + SNAuth | `docker compose -f docker-compose.postgres.yml up -d --pull always` | 18256 |
+| PostgreSQL + SNAuth, persistent data | `docker compose -f docker-compose.postgres-volume.yml up -d --pull always` | 18266 |
+
+The following demos use an existing SQL server. Set `DATASOURCE`, `SQL_USER` and `SQL_PASSWORD` in `.env` before starting one:
+
+| Demo | PowerShell command | API port |
+| --- | --- | --- |
+| Host SQL + IdentityServer | `docker compose -f docker-compose.host-db.yml up -d --pull always` | 18096 |
+| Host SQL + SNAuth | `docker compose -f docker-compose.host-db-auth.yml up -d --pull always` | 18106 |
+| Host SQL + IdentityServer, persistent data | `docker compose -f docker-compose.host-db-volume.yml up -d --pull always` | 18116 |
+| Host SQL + SNAuth, persistent data | `docker compose -f docker-compose.host-db-volume-auth.yml up -d --pull always` | 18126 |
+| Host SQL + search service + IdentityServer | `docker compose -f docker-compose.host-db-search.yml up -d --pull always` | 18136 |
+| Host SQL + search service + SNAuth | `docker compose -f docker-compose.host-db-search-auth.yml up -d --pull always` | 18146 |
+| Host SQL + search service + IdentityServer, persistent data | `docker compose -f docker-compose.host-db-volume-search.yml up -d --pull always` | 18156 |
+| Host SQL + search service + SNAuth, persistent data | `docker compose -f docker-compose.host-db-volume-search-auth.yml up -d --pull always` | 18166 |
+| Host SQL + LocalAuth | `docker compose -f docker-compose.local-auth-host-db.yml up -d --build` | 18236 |
+| Host SQL + LocalAuth, persistent data | `docker compose -f docker-compose.local-auth-host-db-volume.yml up -d --build` | 18246 |
+
+To stop a demo while keeping its containers for the next start, for example:
+
+```powershell
+docker compose -f docker-compose.local-auth.yml stop
+```
+
+All default service ports (each scenario can run alongside the other scenarios):
 
 | Compose file | Repository | Auth | Search | DB | Rabbit management |
 | --- | --- | --- | --- | --- | --- |
