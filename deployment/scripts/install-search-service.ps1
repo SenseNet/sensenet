@@ -74,6 +74,7 @@ Param (
 	[Parameter(Mandatory=$False)]
 	[bool]$Debugging=$False,
 	[Parameter(Mandatory=$False)]
+	[bool]$SkipPull=$False,
 	[bool]$DryRun=$False
 )
 
@@ -105,7 +106,7 @@ Write-Output "#   searchservice container   #"
 Write-Output "#################################"
 Write-Output "[$($date) INFO] Start search service"
 
-if ($SearchDockerImage -Match "/") {
+if (-not $SkipPull -and $SearchDockerImage -notmatch "^local/") {
 	Write-Output "pull $SearchDockerImage image from the registry"
 	Invoke-Cli -command "docker pull $SearchDockerImage" -DryRun $DryRun
 }
@@ -116,7 +117,7 @@ if ($SearchAppPort -eq 443) {
 }
 
 $execFile = "docker"
-$params = "run", "-it", "-d", "eol",
+$params = "run", "-d", "eol",
 "--net", $NetworkName, "eol",
 "--name", $SearchContainerName, "eol",
 "-e", "ASPNETCORE_URLS=$aspnetUrls", "eol",
@@ -132,7 +133,8 @@ if ($CertPass -ne "") {
 	$params += "-e", "Kestrel__Certificates__Default__Password=$CertPass", "eol"
 }
 
-if ($UseVolume -and $CertFolder -ne "") {
+if (-not $UseVolume) { $CertFolder = "$PSScriptRoot/../temp/certificates" }
+if ($CertFolder -ne "") {
 	$params += "-v", "$($CertFolder):/root/.aspnet/https:ro", "eol"
 }
 
@@ -145,23 +147,14 @@ if ($UseVolume) {
 }
 
 if ($OpenPort) {
-	$params += "-p", "$($SearchHostPort):$($SearchAppPort)", "eol"
+	$params += "-p", "127.0.0.1:$($SearchHostPort):$($SearchAppPort)", "eol"
 }
 
 $params += "$SearchDockerImage"
 
 
-Invoke-Cli -execFile $execFile -params $params -dryRun $DryRun -ErrorAction stop
+$containerResult = Manage-Container -ContainerName $SearchContainerName -DockerRunParams $params -DryRun $DryRun
 
-if (-not $UseVolume) {
-	if (-not (Test-Path "./temp/certificates/$($CertName)")) {
-		Write-Error "Certificate file missing!"
-	}
-	
-	# if containers started without volume mounts upload the certificate to the container
-	Invoke-Cli -execFile $execFile -params "exec", "-it", $SearchContainerName, "mkdir", "-p", "/root/.aspnet/https" -DryRun $DryRun -ErrorAction stop
-	Invoke-Cli -execFile $execFile -params "cp", "./temp/certificates/$($CertName)", "$($SearchContainerName):/root/.aspnet/https/$($CertName)" -DryRun $DryRun -ErrorAction stop
-}
 
 if (-not $DryRun) {	
 	if ($Debugging) {

@@ -26,7 +26,9 @@ Param (
 	[Parameter(Mandatory=$False)]
 	[string]$SnType="InSql",
 	[Parameter(Mandatory=$False)]
-	[string]$SensenetDockerImage="sensenetcsp/sn-api-sql:preview",
+	[string]$SensenetDockerImage="",
+	[ValidateSet("Standard", "Preview", "LocalAuth", "PostgreSql")][string]$WebApp="Standard",
+	[string]$ImageTag="",
 	[Parameter(Mandatory=$False)]
 	[string]$SensenetContainerName="$($ProjectName)-snapp",
 	[Parameter(Mandatory=$False)]
@@ -69,8 +71,6 @@ Param (
     [string]$SqlUser="",
     [Parameter(Mandatory=$False)]
     [string]$SqlPsw="",
-	[Parameter(Mandatory=$False)]
-    [string]$HealthCheckUser="qwerty",
 
 	# Search service parameters
 	[Parameter(Mandatory=$False)]
@@ -104,6 +104,7 @@ Param (
 	[Parameter(Mandatory=$False)]
 	[bool]$Debugging=$False,
 	[Parameter(Mandatory=$False)]
+	[bool]$SkipPull=$False,
 	[bool]$DryRun=$False
 )
 
@@ -115,6 +116,10 @@ if (-not (Get-Command "Invoke-Cli" -ErrorAction SilentlyContinue)) {
 Test-Docker
 
 if ($Restart) {
+	if ($DryRun) {
+		Invoke-Cli -execFile docker -params "restart", $SensenetContainerName -DryRun $True
+		return
+	}
 	# workaround if sensenet repository and search service preparation were too slow and snapp was terminated
 	$cntStatus = $( docker container inspect -f "{{.State.Status}}" $SensenetContainerName )
 	if ($cntStatus -ne "running") {
@@ -130,22 +135,8 @@ if ($Restart) {
 #############################
 $date = Get-Date -Format "yyyy-MM-dd HH:mm K"
 
-switch ($SnType) {
-	"InMem" { 
-		$SensenetDockerImage="sensenetcsp/sn-api-inmem:preview"
-	}
-	"InSql" { 
-		if ($SearchService) { 			
-			$SensenetDockerImage="sensenetcsp/sn-api-nlb:preview"
-		}
-		else {
-			$SensenetDockerImage="sensenetcsp/sn-api-sql:preview"
-		}		
-	}
-	Default {
-		Write-Error "Invalid sensenet type!"
-		return
-	}
+if (-not $SensenetDockerImage) {
+    $SensenetDockerImage = (Get-SensenetImage -SnType $SnType -WebApp $WebApp -SearchService $SearchService -ImageTag $ImageTag).Image
 }
 
 if ($UseDbContainer) {
@@ -158,7 +149,7 @@ Write-Output "#    sensenet app container    #"
 Write-Output "################################"
 Write-Output "[$($date) INFO] Install sensenet repository"
 
-if ($SensenetDockerImage -Match "/") {
+if (-not $SkipPull -and $SensenetDockerImage -notmatch "^local/") {
 	Write-Output "pull $SensenetDockerImage image from the registry"
 	Invoke-Cli -command "docker pull $SensenetDockerImage" -DryRun $DryRun
 }
@@ -173,7 +164,7 @@ if ($SnAppPort -eq 443) {
 }
 
 $execFile = "docker"
-$params = "run", "-it", "-d", "eol",
+$params = "run", "-d", "eol",
 "--net", $NetworkName, "eol",
 "--name", $SensenetContainerName, "eol",
 "-e", "ASPNETCORE_URLS=$aspnetUrls", "eol",
@@ -187,7 +178,9 @@ $params = "run", "-it", "-d", "eol",
 "-e", "sensenet__authentication__AddJwtCookie=$($JwtCookie)", "eol",
 "-e", "sensenet__apikeys__healthcheckeruser=$($HealthCheckUser)", "eol"
 
-if ($UseAuth) {
+if ($WebApp -eq "LocalAuth") {
+	$params += "-e", "sensenet__authentication__AddJwtCookie=false", "eol"
+} elseif ($UseAuth) {
 	$params += "-e", "sensenet__authentication__authServerType=SNAuth", "eol",
 	"-e", "sensenet__authentication__AddJwtCookie=false", "eol"
 } else {
@@ -196,7 +189,10 @@ if ($UseAuth) {
 	"-e", "sensenet__identityManagement__UserProfilesEnabled=false", "eol"
 }
 
-if ($SnType -eq "InSql") {
+if ($WebApp -eq "PostgreSql") {
+	$params += "-e", "ConnectionStrings__SensenetRepository=Host=$DataSource;Database=$SqlDbName;Username=$SqlUser;Password=$SqlPsw", "eol",
+	"-e", "sensenet__install__postgres__EnableFirstInstallDB=true", "eol"
+} elseif ($SnType -eq "InSql") {
 	$params += "-e", "ConnectionStrings__SnCrMsSql=Persist Security Info=False;Initial Catalog=$($SqlDbName);Data Source=$($DataSource);User ID=$($SqlUser);Password=$($SqlPsw);TrustServerCertificate=true", "eol"
 }
 
@@ -204,6 +200,22 @@ if ($SnType -eq "InSql" -and $SearchService) {
 	$params += "-e", "sensenet__search__service__ServiceAddress=$($SearchServiceHost)", "eol",
 	"-e", "sensenet__security__rabbitmq__ServiceUrl=$($RabbitserviceHost)", "eol",
 	"-e", "sensenet__rabbitmq__ServiceUrl=$($RabbitserviceHost)", "eol"
+}
+
+if ($WebApp -eq "LocalAuth") {
+    $params += "-v", "$PSScriptRoot/../temp/localauth:/run/secrets/localauth:ro", "eol",
+        "-e", "sensenet__authentication__Local__Mode=InternalOnly", "eol",
+        "-e", "sensenet__authentication__Local__Issuer=$SensenetPublicHost", "eol",
+        "-e", "sensenet__authentication__Local__Audience=sensenet", "eol",
+        "-e", "sensenet__authentication__Local__SigningKeyPath=/run/secrets/localauth/signing-key.pem", "eol",
+        "-e", "sensenet__authentication__Local__SigningKeyId=local-demo", "eol",
+        "-e", "sensenet__authentication__Local__AllowedUserIds__0=1", "eol",
+        "-e", "sensenet__authentication__Local__LoginNetworks__0=127.0.0.0/8", "eol",
+        "-e", "sensenet__authentication__Local__LoginNetworks__1=172.16.0.0/12", "eol",
+        "-e", "sensenet__authentication__Local__LoginNetworks__2=192.168.0.0/16", "eol",
+        "-e", "sensenet__authentication__Local__LoginNetworks__3=10.0.0.0/8", "eol",
+        "-e", "sensenet__authentication__Local__LoginNetworks__4=::1/128", "eol",
+        "-e", "sensenet__authentication__Local__RequireMultiFactor=false", "eol"
 }
 
 switch($Routing) {
@@ -233,7 +245,8 @@ if ($CertPass -ne "") {
 	$params += "-e", "Kestrel__Certificates__Default__Password=$CertPass", "eol"
 }
 
-if ($UseVolume -and $CertFolder -ne "") {
+if (-not $UseVolume) { $CertFolder = "$PSScriptRoot/../temp/certificates" }
+if ($CertFolder -ne "") {
 	$params += "-v", "$($CertFolder):/root/.aspnet/https:ro", "eol"
 }
 
@@ -241,27 +254,18 @@ if ($UseVolume -and $UserSecrets -ne "") {
 	$params += "-v", "$($UserSecrets):/root/.microsoft/usersecrets:ro", "eol"
 }
 
-if ($UseVolume -and $SnType -eq "InSql") {
+if ($UseVolume -and $SnType -ne "InMem") {
 	$params += "-v", "$($SensenetAppdataVolume):/app/App_Data", "eol"
 }
 
 if ($OpenPort) {
-	$params += "-p", "$($SnHostPort):$($SnAppPort)", "eol"
+	$params += "-p", "127.0.0.1:$($SnHostPort):$($SnAppPort)", "eol"
 }
 
 $params += "$SensenetDockerImage"
 
-Invoke-Cli -execFile $execFile -params $params -DryRun $DryRun -ErrorAction stop 
+$containerResult = Manage-Container -ContainerName $SensenetContainerName -DockerRunParams $params -DryRun $DryRun
 
-if (-not $UseVolume) {
-	if (-not (Test-Path "./temp/certificates/$($CertName)")) {
-		Write-Error "Certificate file missing!"
-	}
-	
-	# if containers started without volume mounts upload the certificate to the container
-	Invoke-Cli -execFile $execFile -params "exec", "-it", $SensenetContainerName, "mkdir", "-p", "/root/.aspnet/https" -DryRun $DryRun -ErrorAction stop
-	Invoke-Cli -execFile $execFile -params "cp", "./temp/certificates/$($CertName)", "$($SensenetContainerName):/root/.aspnet/https/$($CertName)" -DryRun $DryRun -ErrorAction stop
-}
 
 if (-not $DryRun) {
 	if ($Debugging) {

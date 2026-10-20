@@ -1683,7 +1683,7 @@ namespace SenseNet.ContentRepository.Storage.Data
             paths[0] = "/" + paths[0];
             for (int i = 1; i < paths.Length; i++)
                 paths[i] = paths[i - 1] + "/" + paths[i];
-            return ((IEnumerable<string>)paths).Reverse().ToArray();
+            return Enumerable.Reverse(paths).ToArray();
         }
         protected DateTime GetObsoleteLimitTime()
         {

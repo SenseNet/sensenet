@@ -31,25 +31,35 @@ namespace SenseNet.MiddlewareTests
     public class BinaryCorsTests : TestBase
     {
         [DataTestMethod]
-        [DataRow("https://one.example.com", false, 200)]
-        [DataRow("https://two.example.com", true, 200)]
-        [DataRow("https://denied.example.net", false, 200)]
-        [DataRow(null, false, 200)]
-        [DataRow("https://one.example.com", false, 304)]
-        [DataRow("https://two.example.com", true, 304)]
-        [DataRow(null, true, 304)]
-        public async Task BinaryCors_ResponseAndLogging(string origin, bool directPath, int statusCode)
+        [DataRow("https://one.example.com", false, 200, false)]
+        [DataRow("https://two.example.com", true, 200, false)]
+        [DataRow("https://denied.example.net", false, 200, false)]
+        [DataRow(null, false, 200, false)]
+        [DataRow("https://one.example.com", false, 304, false)]
+        [DataRow("https://two.example.com", true, 304, false)]
+        [DataRow(null, true, 304, false)]
+        [DataRow("https://one.example.com", false, 200, true)]
+        [DataRow("https://two.example.com", true, 200, true)]
+        [DataRow("https://denied.example.net", false, 200, true)]
+        [DataRow(null, false, 200, true)]
+        [DataRow("https://one.example.com", false, 304, true)]
+        [DataRow("https://two.example.com", true, 304, true)]
+        [DataRow(null, true, 304, true)]
+        public async Task BinaryCors_ResponseAndLogging(string origin, bool directPath, int statusCode,
+            bool frameworkCors)
         {
             await Test(async () =>
             {
                 var file = await PrepareFile();
                 var logger = new BinaryLogger();
-                using var server = CreateServer(logger);
+                using var server = CreateServer(logger, frameworkCors);
                 using var client = server.CreateClient();
                 using var request = new HttpRequestMessage(HttpMethod.Get,
-                    directPath ? file.Path : $"/binaryhandler.ashx?nodeid={file.Id}");
+                    directPath ? file.Path : $"/binaryhandler.ashx?nodeid={file.Id}&unused=secret-query");
                 if (origin != null)
                     request.Headers.Add("Origin", origin);
+                request.Headers.Add("Cookie", "secret-request-cookie");
+                request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", "secret-token");
                 if (statusCode == 304)
                     request.Headers.IfModifiedSince = DateTimeOffset.UtcNow.AddMinutes(1);
 
@@ -62,8 +72,8 @@ namespace SenseNet.MiddlewareTests
                     CollectionAssert.AreEqual(new[] { origin }, response.Headers.GetValues("Access-Control-Allow-Origin").ToArray());
                     Assert.AreEqual("true", response.Headers.GetValues("Access-Control-Allow-Credentials").Single());
                 }
-                Assert.AreEqual(1, response.Headers.Vary.Count(value => value.Equals("Origin", StringComparison.OrdinalIgnoreCase)));
                 Assert.IsTrue(response.Headers.Vary.Contains("Accept-Encoding"));
+                Assert.IsFalse(response.Headers.Vary.Contains("Origin"), "The scoped fix must not add global cache variation.");
                 Assert.AreEqual(statusCode == 200 ? "binary body" : "", await response.Content.ReadAsStringAsync());
 
                 await logger.Completed.Task.WaitAsync(TimeSpan.FromSeconds(10));
@@ -71,7 +81,7 @@ namespace SenseNet.MiddlewareTests
                 Assert.AreEqual(1, entries.Count(entry => entry.Level == LogLevel.Information));
                 Assert.AreEqual(1, entries.Count(entry => entry.Level == LogLevel.Trace));
                 Assert.IsFalse(entries.Any(entry => entry.Level >= LogLevel.Warning));
-                Assert.IsFalse(entries.Any(entry => entry.Message.Contains("secret-cookie")));
+                Assert.IsFalse(entries.Any(entry => entry.Message.Contains("secret-")));
                 var summary = entries.Single(entry => entry.Id.Name == "BinaryRequestCompleted");
                 Assert.AreEqual(statusCode, summary.State["StatusCode"]);
                 Assert.AreEqual(origin == null ? "NoOrigin" : allowed ? "AllowOriginPresent" : "AllowOriginAbsent", summary.State["CorsOutcome"]);
@@ -79,15 +89,44 @@ namespace SenseNet.MiddlewareTests
         }
 
         [DataTestMethod]
+        [DataRow(false, false)]
+        [DataRow(true, false)]
+        [DataRow(true, true)]
+        public async Task BinaryCors_OriginalWildcardAndExposedHeaders(bool allowAnyOrigin, bool credentials)
+        {
+            await Test(async () =>
+            {
+                var file = await PrepareFile();
+                var policy = new CorsPolicy { SupportsCredentials = credentials };
+                policy.Origins.Add(allowAnyOrigin ? "*" : "https://one.example.com");
+                policy.ExposedHeaders.Add("Content-Disposition");
+                var logger = new BinaryLogger(LogLevel.Information);
+                using var server = CreateServer(logger, policy: policy);
+                using var client = server.CreateClient();
+                using var request = new HttpRequestMessage(HttpMethod.Get, $"/binaryhandler.ashx?nodeid={file.Id}");
+                request.Headers.Add("Origin", "https://one.example.com");
+                using var response = await client.SendAsync(request);
+                Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
+                Assert.AreEqual(allowAnyOrigin && !credentials ? "*" : "https://one.example.com",
+                    response.Headers.GetValues("Access-Control-Allow-Origin").Single());
+                Assert.AreEqual(credentials, response.Headers.Contains("Access-Control-Allow-Credentials"));
+                Assert.AreEqual("Content-Disposition", response.Headers.GetValues("Access-Control-Expose-Headers").Single());
+                await response.Content.ReadAsStringAsync();
+                await logger.Completed.Task.WaitAsync(TimeSpan.FromSeconds(10));
+                Assert.AreEqual(1, logger.Entries.Count, "Trace diagnostics must be opt-in.");
+            });
+        }
+
+        [DataTestMethod]
         [DataRow("https://one.example.com", true)]
         [DataRow("https://denied.example.net", false)]
-        public async Task BinaryCors_PreflightDoesNotEnterBinaryBranch(string origin, bool allowed)
+        public async Task BinaryCors_FrameworkPreflightDoesNotEnterBinaryBranch(string origin, bool allowed)
         {
             await Test(async () =>
             {
                 await PrepareFile();
                 var logger = new BinaryLogger();
-                using var server = CreateServer(logger, failIfBinaryEntered: true);
+                using var server = CreateServer(logger, frameworkCors: true, failIfBinaryEntered: true);
                 using var client = server.CreateClient();
                 using var request = new HttpRequestMessage(HttpMethod.Options, "/binaryhandler.ashx");
                 request.Headers.Add("Origin", origin);
@@ -106,47 +145,71 @@ namespace SenseNet.MiddlewareTests
         }
 
         [TestMethod]
-        public async Task BinaryCors_CustomOriginPredicateIsHonored()
+        public async Task BinaryCors_DisabledLoggingKeepsFallbackHeaders()
         {
             await Test(async () =>
             {
                 var file = await PrepareFile();
-                var logger = new BinaryLogger(LogLevel.Information);
-                using var server = CreateServer(logger, customPolicy: true);
+                var logger = new BinaryLogger(LogLevel.Warning);
+                using var server = CreateServer(logger);
                 using var client = server.CreateClient();
                 using var request = new HttpRequestMessage(HttpMethod.Get, $"/binaryhandler.ashx?nodeid={file.Id}");
-                request.Headers.Add("Origin", "https://custom.example.net");
+                request.Headers.Add("Origin", "https://one.example.com");
                 using var response = await client.SendAsync(request);
-                Assert.AreEqual("https://custom.example.net", response.Headers.GetValues("Access-Control-Allow-Origin").Single());
-                Assert.AreEqual(1, response.Headers.Vary.Count(value => value == "Origin"));
-                await logger.Completed.Task.WaitAsync(TimeSpan.FromSeconds(10));
-                Assert.AreEqual(1, logger.Entries.Count);
+                Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
+                Assert.AreEqual("https://one.example.com", response.Headers.GetValues("Access-Control-Allow-Origin").Single());
+                Assert.AreEqual("binary body", await response.Content.ReadAsStringAsync());
+                Assert.AreEqual(0, logger.Entries.Count);
             });
         }
 
-        private static TestServer CreateServer(BinaryLogger logger, bool failIfBinaryEntered = false, bool customPolicy = false)
+        [TestMethod]
+        public void BinaryCors_PrePrConstructorRemainsAvailable()
+        {
+            var constructor = typeof(BinaryMiddleware).GetConstructor(new[] { typeof(RequestDelegate) });
+            Assert.IsNotNull(constructor, "Previously compiled clients require the exact one-argument constructor.");
+            Assert.IsNotNull(constructor.Invoke(new object[] { null }));
+            using var services = new ServiceCollection().BuildServiceProvider();
+            Assert.IsNotNull(ActivatorUtilities.CreateInstance<BinaryMiddleware>(services,
+                new RequestDelegate(_ => Task.CompletedTask)));
+
+            var logger = new BinaryLogger();
+            var policyProvider = new FixedPolicyProvider(new CorsPolicy());
+            using var configuredServices = new ServiceCollection()
+                .AddSingleton<ILogger<BinaryMiddleware>>(logger)
+                .AddSingleton<ICorsPolicyProvider>(policyProvider)
+                .BuildServiceProvider();
+            var middleware = ActivatorUtilities.CreateInstance<BinaryMiddleware>(configuredServices,
+                new RequestDelegate(_ => Task.CompletedTask));
+            var fields = typeof(BinaryMiddleware).GetFields(System.Reflection.BindingFlags.Instance |
+                System.Reflection.BindingFlags.NonPublic);
+            Assert.AreSame(logger, fields.Single(field => field.Name == "_logger").GetValue(middleware));
+            Assert.AreSame(policyProvider, fields.Single(field => field.Name == "_corsPolicyProvider").GetValue(middleware));
+        }
+
+        private static TestServer CreateServer(BinaryLogger logger, bool frameworkCors = false,
+            bool failIfBinaryEntered = false, CorsPolicy policy = null)
         {
             return new TestServer(new WebHostBuilder()
                 .ConfigureServices(services =>
                 {
                     services.AddLogging();
-                    if (customPolicy)
-                        services.AddCors(options => options.AddPolicy("sensenet", policy => policy
-                            .SetIsOriginAllowed(origin => origin == "https://custom.example.net")
-                            .AllowCredentials()));
-                    else
+                    if (policy == null)
                         services.AddSenseNetCors();
+                    else
+                        services.AddSingleton<ICorsPolicyProvider>(new FixedPolicyProvider(policy));
                     services.AddSingleton<ILogger<BinaryMiddleware>>(logger);
                     services.AddSingleton(new WebTransferRegistrator(null));
                 })
                 .Configure(app =>
                 {
-                    app.UseSenseNetCors();
+                    if (frameworkCors)
+                        app.UseSenseNetCors();
                     app.Use((context, next) =>
                     {
                         User.Current = User.Administrator;
                         context.Response.Headers.Append("Vary", "Accept-Encoding");
-                        context.Response.Headers.Append("Set-Cookie", "secret-cookie");
+                        context.Response.Headers.Append("Set-Cookie", "secret-response-cookie");
                         return next();
                     });
                     app.UseSenseNetFiles(buildAppBranchBefore: branch =>
@@ -171,6 +234,17 @@ namespace SenseNet.MiddlewareTests
             file.Binary.SetStream(RepositoryTools.GetStreamFromString("binary body"));
             await file.SaveAsync(CancellationToken.None);
             return file;
+        }
+
+        private sealed class FixedPolicyProvider : ICorsPolicyProvider
+        {
+            private readonly CorsPolicy _policy;
+            public FixedPolicyProvider(CorsPolicy policy) => _policy = policy;
+            public Task<CorsPolicy> GetPolicyAsync(HttpContext context, string policyName)
+            {
+                Assert.AreEqual("sensenet", policyName);
+                return Task.FromResult(_policy);
+            }
         }
 
         private sealed class BinaryLogger : ILogger<BinaryMiddleware>

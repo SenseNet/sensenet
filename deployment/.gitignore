@@ -1,3 +1,4 @@
 **/temp
 **/volumes
 **/certificates
+.env

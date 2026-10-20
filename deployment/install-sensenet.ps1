@@ -27,6 +27,10 @@ Param (
 	[switch]$UseVolume,
 	[Parameter(Mandatory=$False)]
 	[switch]$UseAuth,
+	[ValidateSet("Standard", "Preview", "LocalAuth", "PostgreSql")]
+	[string]$WebApp="Standard",
+	[string]$ImageTag="preview",
+	[string]$SensenetDockerImage="",
 
 	# Hosting environment
 	[Parameter(Mandatory=$False, DontShow=$True)]
@@ -82,16 +86,26 @@ Param (
 ##    Variables section     #
 #############################
 $AppEnvironment="Development"
+if ($WebApp -eq "PostgreSql" -and -not (Test-Path -LiteralPath "$PSScriptRoot/../src/WebApps/SnWebApplication.Api.PostgreSql.TokenAuth/Dockerfile" -PathType Leaf)) {
+	throw "The PostgreSQL demo is inactive on this checkout: its provider source is missing. Use Standard, Preview or LocalAuth for now."
+}
+if ($InMemPlatform -and $WebApp -ne "Standard") { throw "InMemPlatform supports the Standard webapp only." }
+if ($WebApp -in "LocalAuth", "PostgreSql" -and $SearchService) { throw "$WebApp does not have a SearchService webapp." }
+if ($WebApp -eq "LocalAuth" -and $UseAuth) { throw "The LocalAuth demo uses InternalOnly mode, without an external auth server." }
+if ($WebApp -eq "PostgreSql" -and $HostDb) { throw "The PostgreSql demo currently supports its own database container only." }
+if ($WebApp -eq "PostgreSql") { $UseAuth = $True }
+if ($WebApp -eq "PostgreSql" -and -not $PSBoundParameters.ContainsKey('ImageTag')) { $ImageTag = "postgres-provider" }
 if ($InMemPlatform) {
 	$SnType = "InMem"
 } else {
 	$SnType = "InSql"
 }
+if ($WebApp -eq "PostgreSql") { $SnType = "InPostgres" }
 
 # different sensenet types with different names for combined demo
 if (-not $ProjectName) {
 	$ProjectName = "sensenet-$($SnType.ToLower())"
-	if ($SnType -eq "InSql") {
+	if ($SnType -ne "InMem") {
 		if ($HostDb) { $ProjectName += "-hdb" } else { $ProjectName += "-cdb" }
 		if ($UseVolume) { $ProjectName += "-wv" }
 		if ($SearchService) { $ProjectName += "-ws" }
@@ -101,7 +115,7 @@ if (-not $ProjectName) {
 # different sensenet types on different ports for combined demo
 $basePort = 51000
 $portModifier = 0
-if ($SnType -eq "InSql") {
+if ($SnType -ne "InMem") {
 	$portModifier = 5 + 10 * [bool]$HostDb + 20 * [bool]$UseVolume + 40 * [bool]$SearchService
 }
 $SnHostPort=$basePort + 11 + $portModifier
@@ -110,7 +124,8 @@ $SearchHostPort=$basePort + 13 + $portModifier
 #dbport?
 
 # Docker images needed for the actual setup
-[string[]]$imageTypes = "$($SnType)", "Is" 
+[string[]]$imageTypes = "$($SnType)"
+if ($WebApp -ne "LocalAuth") { if ($UseAuth) { $imageTypes += "Auth" } else { $imageTypes += "Is" } }
 if ($SearchService) { $imageTypes+="Search" }
 
 # InMem repo neither use database nor search service 
@@ -152,7 +167,7 @@ if (-not $SearchService) {
 	$RabbitServiceHost="amqp://$($rabbitUser):$($rabbitPsw)@$($rabbitContainerName)/"
 }
 
-if ($SnType -eq "InSql") {
+if ($SnType -ne "InMem") {
 	if ($HostDb) {
 		if (-not $SqlUser -or -not $SqlPsw) {
 			$SqlUser = Read-Host -Prompt 'Input your mssql user name'
@@ -160,8 +175,8 @@ if ($SnType -eq "InSql") {
 		}		
 	} else {
 		# db in container, use sa for demo purposes
+		if (-not $SqlUser) { if ($WebApp -eq "PostgreSql") { $SqlUser = "postgres" } else { $SqlUser = "sa" } }
 		if (-not $SqlPsw) {
-			$SqlUser = "sa"
 			$SqlPsw = "SuP3rS3CuR3P4sSw0Rd"
 		}
 	} 
@@ -224,6 +239,9 @@ if ($CreateImages) {
 	foreach ($imageType in $imageTypes) {
 		& $PSScriptRoot/scripts/create-images.ps1 `
 			-ImageType $imageType `
+			-WebApp $WebApp `
+			-ImageTag $ImageTag `
+			-SensenetDockerImage $SensenetDockerImage `
 			-SearchService $SearchService `
 			-LocalSn $LocalSn `
 			-DryRun $DryRun `
@@ -251,7 +269,13 @@ if ($SearchService -and $createRabbitContainer) {
 		-ErrorAction stop
 }
 
-if ($SnType -eq "InSql") {
+if ($WebApp -eq "LocalAuth") {
+	& $PSScriptRoot/scripts/create-localauth-key.ps1 -DryRun $DryRun -ErrorAction Stop
+}
+
+if ($WebApp -eq "PostgreSql") {
+	& $PSScriptRoot/scripts/install-postgres-server.ps1 -ProjectName $ProjectName -NetworkName sensenet -VolumeBasePath $VolumeBasePath -SqlUser $SqlUser -SqlPsw $SqlPsw -UseVolume $UseVolume -DryRun $DryRun -ErrorAction Stop
+} elseif ($SnType -eq "InSql") {
 	& $PSScriptRoot/scripts/install-sql-server.ps1 `
 		-ProjectName $ProjectName `
 		-HostName $Hostname `
@@ -265,8 +289,11 @@ if ($SnType -eq "InSql") {
 		-ErrorAction stop
 }
 
-if ($UseAuth) {
+if ($WebApp -eq "LocalAuth") {
+	Write-Verbose "LocalAuth InternalOnly: no external authentication container."
+} elseif ($UseAuth) {
 		& $PSScriptRoot/scripts/install-snauth.ps1 `
+		-SkipPull $CreateImages `
 		-ProjectName $ProjectName `
 		-VolumeBasePath $VolumeBasePath `
 		-Routing cnt `
@@ -281,6 +308,7 @@ if ($UseAuth) {
 		-ErrorAction stop
 } else {
 	& $PSScriptRoot/scripts/install-identity-server.ps1 `
+		-SkipPull $CreateImages `
 		-ProjectName $ProjectName `
 		-VolumeBasePath $VolumeBasePath `
 		-Routing cnt `
@@ -297,6 +325,7 @@ if ($UseAuth) {
 
 if ($SearchService) {
 	& $PSScriptRoot/scripts/install-search-service.ps1 `
+		-SkipPull $CreateImages `
 		-ProjectName $ProjectName `
 		-HostName $HostName `
 		-VolumeBasePath $VolumeBasePath `
@@ -316,6 +345,7 @@ if ($SearchService) {
 }
 
 & $PSScriptRoot/scripts/install-sensenet-app.ps1 `
+		-SkipPull $CreateImages `
 	-ProjectName $ProjectName `
 	-HostName $Hostname `
 	-VolumeBasePath $VolumeBasePath `
@@ -323,6 +353,9 @@ if ($SearchService) {
 	-AppEnvironment $AppEnvironment `
 	-OpenPort $True `
 	-SnType $SnType `
+	-WebApp $WebApp `
+	-ImageTag $ImageTag `
+	-SensenetDockerImage $SensenetDockerImage `
 	-SnHostPort $SnHostPort `
 	-SensenetPublicHost https://localhost:$SnHostPort `
 	-IdentityPublicHost https://localhost:$IsHostPort `
@@ -346,6 +379,7 @@ if (-not $DryRun -and ($OpenInBrowser -or $SearchService)) {
 if ($SearchService) {
 	# Search service workaround to refresh lucene index after sensenet repository is initialized
 	& $PSScriptRoot/scripts/install-search-service.ps1 `
+		-SkipPull $CreateImages `
 		-ProjectName $ProjectName `
 		-Restart $True `
 		-DryRun $DryRun `
@@ -353,6 +387,7 @@ if ($SearchService) {
 
 	# Sensenet application workaround if preparation was too slow and app terminated
 	& $PSScriptRoot/scripts/install-sensenet-app.ps1 `
+		-SkipPull $CreateImages `
 		-ProjectName $ProjectName `
 		-Restart $True `
 		-DryRun $DryRun `
@@ -365,7 +400,8 @@ if ($SearchService) {
 # & $PSScriptRoot/scripts/insert-apikey.ps1 
 
 if (-not $DryRun -and $OpenInBrowser) {
-	Start-Process "https://admin.sensenet.com/?repoUrl=https%3A%2F%2Flocalhost%3A$SnHostPort"
+	if ($WebApp -eq "LocalAuth") { Start-Process "https://localhost:$SnHostPort/authentication/local/login" }
+	else { Start-Process "https://admin.sensenet.com/?repoUrl=https%3A%2F%2Flocalhost%3A$SnHostPort" }
 }
 
 Write-Output "You're welcome!"
