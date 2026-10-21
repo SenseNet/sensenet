@@ -14,6 +14,25 @@ namespace SenseNet.ContentRepository.Tests
     public class AccessTokenUnitTests : TestBase
     {
         [TestMethod]
+        public async System.Threading.Tasks.Task UT_AccessToken_UpdateAndDelete_WithoutApiKeyManager()
+        {
+            Providers.Instance = new Providers(new ServiceCollection()
+                .AddSingleton<DataProvider, InMemoryDataProvider>()
+                .AddSingleton<IAccessTokenDataProvider, InMemoryAccessTokenDataProvider>()
+                .BuildServiceProvider());
+
+            var token = await AccessTokenVault.CreateTokenAsync(1, TimeSpan.FromHours(1), CancellationToken.None);
+            var expiration = token.ExpirationDate.AddHours(1);
+
+            await AccessTokenVault.UpdateTokenAsync(token.Value, expiration, CancellationToken.None);
+            Assert.AreEqual(expiration,
+                (await AccessTokenVault.GetTokenAsync(token.Value, CancellationToken.None)).ExpirationDate);
+
+            await AccessTokenVault.DeleteTokenAsync(token.Value, CancellationToken.None);
+            Assert.IsNull(await AccessTokenVault.GetTokenAsync(token.Value, CancellationToken.None));
+        }
+
+        [TestMethod]
         public void UT_AccessToken_Create_MinTimeOut()
         {
             Providers.Instance = new Providers(new ServiceCollection()
