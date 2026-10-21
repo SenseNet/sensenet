@@ -1599,15 +1599,14 @@ namespace SenseNet.ContentRepository
                 ?? throw new InvalidOperationException("GenericContent has no Fields element.");
             var changed = false;
 
-            foreach (var (name, binding, precedingField) in new[]
+            foreach (var (name, precedingField) in new[]
                      {
-                         (nameof(Node.NodeGuid), nameof(GenericContent.NodeGuidText), "Id"),
-                         (nameof(Node.VersionGuid), nameof(GenericContent.VersionGuidText), "VersionId")
+                         (nameof(GenericContent.NodeGuidText), "Id"),
+                         (nameof(GenericContent.VersionGuidText), "VersionId")
                      })
             {
                 var field = new XElement(ns + "Field",
                     new XAttribute("name", name), new XAttribute("type", "ShortText"),
-                    new XElement(ns + "Bind", new XAttribute("property", binding)),
                     new XElement(ns + "Indexing",
                         new XElement(ns + "Mode", "No"), new XElement(ns + "Store", "No")),
                     new XElement(ns + "Configuration",

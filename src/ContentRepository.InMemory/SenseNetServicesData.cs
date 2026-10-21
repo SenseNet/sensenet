@@ -1826,8 +1826,7 @@ VersionId: 406
         <ReadOnly>true</ReadOnly>
       </Configuration>
     </Field>
-    <Field name=""NodeGuid"" type=""ShortText"">
-      <Bind property=""NodeGuidText"" />
+    <Field name=""NodeGuidText"" type=""ShortText"">
       <Indexing>
         <Mode>No</Mode>
         <Store>No</Store>
@@ -1884,8 +1883,7 @@ VersionId: 406
         <ReadOnly>true</ReadOnly>
       </Configuration>
     </Field>
-    <Field name=""VersionGuid"" type=""ShortText"">
-      <Bind property=""VersionGuidText"" />
+    <Field name=""VersionGuidText"" type=""ShortText"">
       <Indexing>
         <Mode>No</Mode>
         <Store>No</Store>

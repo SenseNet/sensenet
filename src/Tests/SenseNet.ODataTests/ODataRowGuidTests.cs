@@ -25,7 +25,7 @@ namespace SenseNet.ODataTests;
 [TestClass]
 public class ODataRowGuidTests : ODataTestBase
 {
-    private static readonly string[] GuidFields = { "NodeGuid", "VersionGuid" };
+    private static readonly string[] GuidFields = { "NodeGuidText", "VersionGuidText" };
 
     private sealed class GuidTextResult
     {
@@ -62,6 +62,7 @@ public class ODataRowGuidTests : ODataTestBase
         await ODataTestAsync(async () =>
         {
             var content = Content.CreateNew("Folder", CreateTestRoot(), "GuidFields");
+            AssertGuidFieldDefinitions(ContentType.GetByName("GenericContent"));
             foreach (var name in GuidFields)
             {
                 var field = content.Fields[name];
@@ -90,9 +91,9 @@ public class ODataRowGuidTests : ODataTestBase
 
     [DataTestMethod]
     [DataRow("?metadata=no")]
-    [DataRow("?metadata=no&$select=Id,NodeGuid,VersionGuid")]
+    [DataRow("?metadata=no&$select=Id,NodeGuidText,VersionGuidText")]
     [DataRow("?metadata=no&$expand=CreatedBy")]
-    [DataRow("?metadata=no&$expand=CreatedBy&$select=Id,NodeGuid,VersionGuid,CreatedBy/NodeGuid,CreatedBy/VersionGuid")]
+    [DataRow("?metadata=no&$expand=CreatedBy&$select=Id,NodeGuidText,VersionGuidText,CreatedBy/NodeGuidText,CreatedBy/VersionGuidText")]
     public async Task OD_RowGuid_GetAndExpand(string query)
     {
         await ODataTestAsync(async () =>
@@ -109,7 +110,7 @@ public class ODataRowGuidTests : ODataTestBase
 
     [DataTestMethod]
     [DataRow("?metadata=no")]
-    [DataRow("?metadata=no&$select=Id,NodeGuid,VersionGuid")]
+    [DataRow("?metadata=no&$select=Id,NodeGuidText,VersionGuidText")]
     public async Task OD_RowGuid_Children(string query)
     {
         await ODataTestAsync(async () =>
@@ -131,7 +132,7 @@ public class ODataRowGuidTests : ODataTestBase
             var node = CreateTestRoot();
             foreach (var name in GuidFields)
             {
-                var expected = ((Guid)node[name]).ToString("D");
+                var expected = GetExpectedGuidText(node, name);
                 var response = await ODataGetAsync(EntityUrl(node) + "/" + name, "?metadata=no");
                 AssertNoError(response);
                 Assert.AreEqual(expected, GetEntity(response).AllProperties[name].ToString());
@@ -173,7 +174,7 @@ public class ODataRowGuidTests : ODataTestBase
             var node = new File(CreateTestRoot()) { Name = "Versions.txt", VersioningMode = VersioningType.MajorAndMinor };
             node.Binary.SetStream(RepositoryTools.GetStreamFromString("original"));
             var content = Content.Create(node);
-            Assert.AreEqual(Guid.Empty.ToString("D"), content["VersionGuid"]);
+            Assert.AreEqual(Guid.Empty.ToString("D"), content["VersionGuidText"]);
             await content.SaveAsync(CancellationToken.None);
             await node.PublishAsync(CancellationToken.None);
             AssertContentGuids(content);
@@ -197,7 +198,7 @@ public class ODataRowGuidTests : ODataTestBase
             var original = await Node.LoadNodeAsync(nodeGuid, originalVersion, CancellationToken.None);
             Assert.AreEqual(originalGuid, original.VersionGuid);
             AssertContentGuids(Content.Create(original));
-            var response = await ODataGetAsync(EntityUrl(node), "?metadata=no&$select=NodeGuid,VersionGuid");
+            var response = await ODataGetAsync(EntityUrl(node), "?metadata=no&$select=NodeGuidText,VersionGuidText");
             AssertNoError(response);
             AssertEntityGuids(GetEntity(response), node);
         });
@@ -215,7 +216,7 @@ public class ODataRowGuidTests : ODataTestBase
             {
                 var body = "models=" + JsonConvert.SerializeObject(new[] { new
                 {
-                    Name = node.Name, DisplayName = "Updated", NodeGuid = input, VersionGuid = input
+                    Name = node.Name, DisplayName = "Updated", NodeGuidText = input, VersionGuidText = input
                 }});
                 var response = await ODataCallAsync(EntityUrl(node), "", body, method);
                 AssertNoError(response);
@@ -237,7 +238,7 @@ public class ODataRowGuidTests : ODataTestBase
             {
                 var body = "models=" + JsonConvert.SerializeObject(new[] { new
                 {
-                    __ContentType = "Folder", Name = "Child" + input.ToString("N"), NodeGuid = input, VersionGuid = input
+                    __ContentType = "Folder", Name = "Child" + input.ToString("N"), NodeGuidText = input, VersionGuidText = input
                 }});
                 var response = await ODataPostAsync("/OData.svc" + parent.Path, "", body);
                 AssertNoError(response);
@@ -263,14 +264,14 @@ public class ODataRowGuidTests : ODataTestBase
             Assert.AreNotEqual(linked.NodeGuid, link.NodeGuid);
             Assert.AreNotEqual(linked.VersionGuid, link.VersionGuid);
             AssertContentGuids(Content.Create(link));
-            var response = await ODataGetAsync(EntityUrl(link), "?metadata=no&$select=NodeGuid,VersionGuid");
+            var response = await ODataGetAsync(EntityUrl(link), "?metadata=no&$select=NodeGuidText,VersionGuidText");
             AssertNoError(response);
             AssertEntityGuids(GetEntity(response), link);
         });
     }
 
     [TestMethod]
-    public async Task OD_RowGuid_SettingsUseComputedBindings()
+    public async Task OD_RowGuid_SettingsUseComputedProperties()
     {
         await ODataTestAsync(async () =>
         {
@@ -281,7 +282,7 @@ public class ODataRowGuidTests : ODataTestBase
             await handler.SaveAsync(CancellationToken.None);
             var settings = Content.Create(handler);
             AssertContentGuids(settings);
-            var response = await ODataGetAsync(EntityUrl(settings.ContentHandler), "?metadata=no&$select=NodeGuid,VersionGuid");
+            var response = await ODataGetAsync(EntityUrl(settings.ContentHandler), "?metadata=no&$select=NodeGuidText,VersionGuidText");
             AssertNoError(response);
             AssertEntityGuids(GetEntity(response), settings.ContentHandler);
         });
@@ -302,7 +303,7 @@ public class ODataRowGuidTests : ODataTestBase
             using (new CurrentUserBlock(user))
             {
                 Assert.IsTrue(Node.LoadNode(node.Id).IsHeadOnly);
-                foreach (var query in new[] { "?metadata=no&$select=NodeGuid,VersionGuid", "?metadata=no&$expand=CreatedBy&$select=*" })
+                foreach (var query in new[] { "?metadata=no&$select=NodeGuidText,VersionGuidText", "?metadata=no&$expand=CreatedBy&$select=*" })
                 {
                     var response = await ODataGetAsync(EntityUrl(node), query);
                     AssertNoError(response);
@@ -314,7 +315,7 @@ public class ODataRowGuidTests : ODataTestBase
                 {
                     var response = await ODataGetAsync(EntityUrl(node) + "/" + name + "/$value", "");
                     Assert.AreNotEqual(200, response.StatusCode);
-                    Assert.IsFalse(response.Result.Contains(((Guid)node[name]).ToString("D")));
+                    Assert.IsFalse(response.Result.Contains(GetExpectedGuidText(node, name)));
                 }
             }
         });
@@ -331,7 +332,7 @@ public class ODataRowGuidTests : ODataTestBase
             var model = new { path, data = new
             {
                 ContentName = "Imported", ContentType = "Folder",
-                Fields = new { NodeGuid = input, VersionGuid = input, DisplayName = "Imported" }
+                Fields = new { NodeGuidText = input, VersionGuidText = input, DisplayName = "Imported" }
             }};
             var request = "models=" + JsonConvert.SerializeObject(new[] { model });
             var response = await ODataPostAsync("/OData.svc/('Root')/Import", "", request);
@@ -369,6 +370,7 @@ public class ODataRowGuidTests : ODataTestBase
             ContentTypeInstaller.InstallContentType(xml.ToString());
             ServicesComponent.AddRowGuidFields();
             var updated = ContentType.GetByName("GenericContent");
+            AssertGuidFieldDefinitions(updated);
             Assert.IsNotNull(updated.FieldSettings.SingleOrDefault(f => f.Name == "CustomField"));
             foreach (var name in GuidFields)
             {
@@ -387,10 +389,28 @@ public class ODataRowGuidTests : ODataTestBase
 
     private static string EntityUrl(Node node) => $"/OData.svc{node.ParentPath}('{node.Name}')";
 
+    private static string GetExpectedGuidText(Node node, string fieldName) =>
+        (fieldName == nameof(GenericContent.NodeGuidText) ? node.NodeGuid : node.VersionGuid).ToString("D");
+
+    private static void AssertGuidFieldDefinitions(ContentType type)
+    {
+        using var stream = type.Binary.GetStream();
+        var definition = XDocument.Load(stream);
+        var ns = definition.Root.Name.Namespace;
+        var fields = definition.Root.Element(ns + "Fields").Elements(ns + "Field").ToArray();
+        Assert.IsFalse(fields.Any(f => (string)f.Attribute("name") is "NodeGuid" or "VersionGuid"));
+        foreach (var name in GuidFields)
+        {
+            var field = fields.Single(f => (string)f.Attribute("name") == name);
+            Assert.IsNull(field.Element(ns + "Bind"), name);
+            CollectionAssert.AreEqual(new[] { name }, type.FieldSettings.Single(f => f.Name == name).Bindings.ToArray());
+        }
+    }
+
     private static void AssertContentGuids(Content content)
     {
-        Assert.AreEqual(content.ContentHandler.NodeGuid.ToString("D"), content["NodeGuid"]);
-        Assert.AreEqual(content.ContentHandler.VersionGuid.ToString("D"), content["VersionGuid"]);
+        Assert.AreEqual(content.ContentHandler.NodeGuid.ToString("D"), content["NodeGuidText"]);
+        Assert.AreEqual(content.ContentHandler.VersionGuid.ToString("D"), content["VersionGuidText"]);
     }
 
     private static void AssertEntityGuids(ODataEntityResponse entity, Node node)
@@ -399,7 +419,7 @@ public class ODataRowGuidTests : ODataTestBase
         {
             var value = (JToken)entity.AllProperties[name];
             Assert.AreEqual(JTokenType.String, value.Type);
-            Assert.AreEqual(((Guid)node[name]).ToString("D"), value.Value<string>());
+            Assert.AreEqual(GetExpectedGuidText(node, name), value.Value<string>());
         }
     }
 }

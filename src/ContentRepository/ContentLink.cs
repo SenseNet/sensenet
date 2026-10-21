@@ -16,7 +16,7 @@ namespace SenseNet.ContentRepository
     [ContentHandler]
     public class ContentLink : GenericContent
     {
-        private static readonly List<string> _notLinkedFields = new List<string>(new[] { "Id", "ParentId", "VersionId", "NodeGuid", "VersionGuid", "Name", "Path", "Index", "InTree", "InFolder", "Depth", "Type", "TypeIs", "Version" });
+        private static readonly List<string> _notLinkedFields = new List<string>(new[] { "Id", "ParentId", "VersionId", nameof(NodeGuidText), nameof(VersionGuidText), "Name", "Path", "Index", "InTree", "InFolder", "Depth", "Type", "TypeIs", "Version" });
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ContentLink"/> class.

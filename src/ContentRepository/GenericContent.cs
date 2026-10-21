@@ -628,10 +628,10 @@ namespace SenseNet.ContentRepository
         /// </summary>
         public bool HasApproving => this.ApprovingMode == ApprovingType.True;
 
-        /// <summary>Gets the node row identifier in the format exposed by the NodeGuid ShortText field.</summary>
+        /// <summary>Gets the node row identifier in the format exposed by the NodeGuidText ShortText field.</summary>
         public string NodeGuidText => GetRowGuidText(nameof(NodeGuid), NodeGuid);
 
-        /// <summary>Gets the loaded version row identifier in the format exposed by the VersionGuid ShortText field.</summary>
+        /// <summary>Gets the loaded version row identifier in the format exposed by the VersionGuidText ShortText field.</summary>
         public string VersionGuidText => GetRowGuidText(nameof(VersionGuid), VersionGuid);
 
         private string GetRowGuidText(string propertyName, Guid value)

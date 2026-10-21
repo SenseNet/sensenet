@@ -162,9 +162,9 @@ Empty, unknown and deleted GUIDs return `null`. All these APIs accept cancellati
 
 #### OData fields
 
-`GenericContent` exposes `NodeGuid` and `VersionGuid` as read-only `ShortText` fields. JSON responses contain
+`GenericContent` exposes `NodeGuidText` and `VersionGuidText` as read-only `ShortText` fields. JSON responses contain
 the identifiers in the hyphenated `D` format, and the OData metadata describes them as `Edm.String`.
-For example, add `$select=Id,NodeGuid,VersionGuid` to a content request. The fields also work on collections,
+For example, add `$select=Id,NodeGuidText,VersionGuidText` to a content request. The fields also work on collections,
 expanded contents and individual property requests. A content link exposes its own row identifiers.
 
 Both fields explicitly disable indexing and index storage (`Mode=No`, `Store=No`). They do not provide
@@ -173,8 +173,9 @@ the data provider.
 
 POST, PUT, PATCH and import ignore values supplied for these read-only fields. New rows receive identifiers
 from the provider, and existing rows retain theirs. A user with only `See` permission cannot read the fields.
-The `Node` and `NodeData` properties remain typed as `Guid`; the `NodeGuidText` and `VersionGuidText` bindings
-only provide their current string representation and do not persist another copy.
+The `Node` and `NodeData` properties remain typed as `Guid`; the `NodeGuidText` and `VersionGuidText` properties
+only provide their current string representation and do not persist another copy. The fields have the same
+names as these properties, so their CTD definitions do not require explicit bindings.
 
 Fresh installations include the fields in the base content type. The services patch from `7.8.1` to `7.8.2`
 adds them to existing repositories while preserving other fields in `GenericContent`.

@@ -15,9 +15,9 @@ namespace SenseNet.ContentRepository.Fields
         public override object GetData(bool localized)
         {
             // Row identifiers may change after the first save or when selecting another version.
-            // Read their computed bindings instead of retaining a previous value in the field cache.
-            if (Content.ContentHandler is GenericContent && FieldSetting.Bindings?.Count == 1 &&
-                FieldSetting.Bindings[0] is nameof(GenericContent.NodeGuidText) or nameof(GenericContent.VersionGuidText))
+            // Read their computed properties instead of retaining a previous value in the field cache.
+            if (Content.ContentHandler is GenericContent &&
+                FieldSetting.Name is nameof(GenericContent.NodeGuidText) or nameof(GenericContent.VersionGuidText))
                 return ReadProperties();
 
             return base.GetData(localized);
