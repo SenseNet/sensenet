@@ -64,7 +64,8 @@ namespace SenseNet.ContentRepository.Storage
             Locked, LockedById, ETag, LockType, LockTimeout, LockDate, LockToken, LastLockUpdate,
             IsSystem, OwnerId,
             SavingState, ChangedData,
-            NodeTimestamp, VersionTimestamp
+            NodeTimestamp, VersionTimestamp,
+            NodeGuid, VersionGuid
         }
         private static readonly object LockObject = new Object();
         private object _readPropertySync = new object();
@@ -114,6 +115,7 @@ namespace SenseNet.ContentRepository.Storage
                 OwnerId = OwnerId,
                 SavingState = SavingState,
                 Timestamp = NodeTimestamp,
+                RowGuid = NodeGuid,
             };
         }
         internal VersionData GetVersionData()
@@ -129,6 +131,7 @@ namespace SenseNet.ContentRepository.Storage
                 ModifiedById = VersionModifiedById,
                 ChangedData = ChangedData,
                 Timestamp = VersionTimestamp,
+                RowGuid = VersionGuid,
             };
         }
         internal DynamicPropertyData GetDynamicData(bool allBinaries)
@@ -521,6 +524,25 @@ namespace SenseNet.ContentRepository.Storage
         {
             get { return Get<long>(StaticDataSlot.VersionTimestamp); }
             set { Set<long>(StaticDataSlot.VersionTimestamp, value); }
+        }
+
+        /// <summary>
+        /// Gets the immutable identifier of the Nodes row, or <see cref="Guid.Empty"/> before insertion.
+        /// </summary>
+        public Guid NodeGuid
+        {
+            get => Get<Guid>(StaticDataSlot.NodeGuid);
+            internal set => Set<Guid>(StaticDataSlot.NodeGuid, value);
+        }
+
+        /// <summary>
+        /// Gets the immutable identifier of the Versions row selected by VersionId,
+        /// or <see cref="Guid.Empty"/> before insertion. Selecting another row changes this value.
+        /// </summary>
+        public Guid VersionGuid
+        {
+            get => Get<Guid>(StaticDataSlot.VersionGuid);
+            internal set => Set<Guid>(StaticDataSlot.VersionGuid, value);
         }
 
 
@@ -970,6 +992,9 @@ namespace SenseNet.ContentRepository.Storage
                 if (staticDataIsModified[i])
                 {
                     var slot = (StaticDataSlot)i;
+                    // Row identifiers are persistence results, not user changes.
+                    if (slot == StaticDataSlot.NodeGuid || slot == StaticDataSlot.VersionGuid)
+                        continue;
                     changes.Add(new ChangedData
                     {
                         Name = slot.ToString(),
@@ -1061,6 +1086,8 @@ namespace SenseNet.ContentRepository.Storage
             values.Add("OwnerId", OwnerId);
             values.Add("Owner",  FormatUser(OwnerId));
             values.Add("SavingState", SavingState);
+            values.Add("NodeGuid", NodeGuid.ToString("D"));
+            values.Add("VersionGuid", VersionGuid.ToString("D"));
 
             foreach (var key in dynamicData.Keys)
             {
@@ -1075,6 +1102,10 @@ namespace SenseNet.ContentRepository.Storage
         {
             switch (slot)
             {
+                case StaticDataSlot.NodeGuid:
+                case StaticDataSlot.VersionGuid:
+                    return ((Guid?)data ?? Guid.Empty).ToString("D");
+
                 case StaticDataSlot.Id:
                 case StaticDataSlot.NodeTypeId:
                 case StaticDataSlot.ContentListId:

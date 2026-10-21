@@ -616,6 +616,19 @@ namespace SenseNet.ContentRepository.Storage
         }
 
         /// <summary>
+        /// Gets the identifier of the Nodes row. It is <see cref="Guid.Empty"/> before the first
+        /// successful save and remains unchanged for the lifetime of the row.
+        /// </summary>
+        public Guid NodeGuid => _data.NodeGuid;
+
+        /// <summary>
+        /// Gets the identifier of the Versions row selected by <see cref="VersionId"/>.
+        /// It is <see cref="Guid.Empty"/> before the first successful save and is immutable per row.
+        /// Selecting another version row returns that row's identifier.
+        /// </summary>
+        public Guid VersionGuid => _data.VersionGuid;
+
+        /// <summary>
         /// The <see cref="Node"/> is new if its Id is 0.
         /// </summary>
         public virtual bool IsNew
@@ -1044,6 +1057,8 @@ namespace SenseNet.ContentRepository.Storage
                 case "SavingState": return data.SavingState;
                 case "NodeTimestamp": return data.NodeTimestamp;
                 case "VersionTimestamp": return data.VersionTimestamp;
+                case "NodeGuid": return data.NodeGuid;
+                case "VersionGuid": return data.VersionGuid;
                 default: return data.GetDynamicRawData(GetPropertyTypeByName(name)); // this[GetPropertyTypeByName(name)];
             }
         }
@@ -1083,6 +1098,8 @@ namespace SenseNet.ContentRepository.Storage
                     case "ModifiedById": return this.ModifiedById;
                     case "NodeTimestamp": return this.NodeTimestamp;
                     case "VersionTimestamp": return this.VersionTimestamp;
+                    case "NodeGuid": return this.NodeGuid;
+                    case "VersionGuid": return this.VersionGuid;
                     case "Version": return this.Version;
                     case "VersionId": return this.VersionId;
                     case "VersionCreationDate": return this.VersionCreationDate;
@@ -1116,6 +1133,8 @@ namespace SenseNet.ContentRepository.Storage
                     case "Parent":
                     case "Path":
                     case "Security":
+                    case "NodeGuid":
+                    case "VersionGuid":
                         throw new InvalidOperationException(String.Concat("Property is read only: ", propertyName));
                     case "CreationDate": this.CreationDate = (DateTime)value; break;
                     case "VersionCreationDate": this.VersionCreationDate = (DateTime)value; break;
@@ -1189,7 +1208,7 @@ namespace SenseNet.ContentRepository.Storage
             "Index","IsModified","IsDeleted","IsInherited","IsSystem","CreationDate","CreatedBy","CreatedById","ModificationDate","ModifiedBy","ModifiedById", "Owner", "OwnerId",
             "Version","VersionId","VersionCreationDate","VersionCreatedBy","VersionCreatedById","VersionModificationDate","VersionModifiedBy","VersionModifiedById",
             "Locked","Lock","LockedById","LockedBy","ETag","LockType","LockTimeout","LockDate","LockToken","LastLockUpdate","Security",
-            "SavingState", "ChangedData"});
+            "SavingState", "ChangedData", "NodeGuid", "VersionGuid"});
 
         /// <summary>
         /// Gets the <see cref="PropertyType"/> collection of this <see cref="Node"/>.
@@ -2012,6 +2031,46 @@ namespace SenseNet.ContentRepository.Storage
         // ----------------------------------------------------------------------------- Static single loaders
 
         /// <summary>
+        /// Loads a node of the requested type by its immutable node GUID, using the default version selection.
+        /// Returns null for an empty or unknown GUID.
+        /// </summary>
+        public static async Task<T> LoadAsync<T>(Guid nodeGuid, CancellationToken cancellationToken) where T : Node
+        {
+            return (T)await LoadNodeAsync(nodeGuid, cancellationToken).ConfigureAwait(false);
+        }
+        /// <summary>
+        /// Loads the requested version of a node of the requested type by its immutable node GUID.
+        /// Returns null if the node or version does not exist.
+        /// </summary>
+        public static async Task<T> LoadAsync<T>(Guid nodeGuid, VersionNumber version,
+            CancellationToken cancellationToken) where T : Node
+        {
+            return (T)await LoadNodeAsync(nodeGuid, version, cancellationToken).ConfigureAwait(false);
+        }
+        /// <summary>
+        /// Loads a node by its immutable node GUID, using the default version selection.
+        /// Returns null for an empty or unknown GUID.
+        /// </summary>
+        public static Task<Node> LoadNodeAsync(Guid nodeGuid, CancellationToken cancellationToken)
+        {
+            return LoadNodeAsync(nodeGuid, DefaultAbstractVersion, cancellationToken);
+        }
+        /// <summary>
+        /// Loads the requested version of a node by its immutable node GUID.
+        /// Uses the same permission checks and version selection as loading by node id.
+        /// Returns null if the node or version does not exist.
+        /// </summary>
+        public static async Task<Node> LoadNodeAsync(Guid nodeGuid, VersionNumber version,
+            CancellationToken cancellationToken)
+        {
+            var head = await NodeHead.GetAsync(nodeGuid, cancellationToken).ConfigureAwait(false);
+            cancellationToken.ThrowIfCancellationRequested();
+            return head == null
+                ? null
+                : await LoadNodeAsync(head, version, cancellationToken).ConfigureAwait(false);
+        }
+
+        /// <summary>
         /// Loads a <see cref="Node"/> by the provided id.
         /// </summary>
         /// <typeparam name="T">The requested return type.</typeparam>
@@ -2383,7 +2442,7 @@ namespace SenseNet.ContentRepository.Storage
                 // </L2Cache>
 
                 var token = await Providers.Instance.DataStore
-                    .LoadNodeAsync(head, versionId, CancellationToken.None).ConfigureAwait(false);
+                    .LoadNodeAsync(head, versionId, cancellationToken).ConfigureAwait(false);
                 if (token.NodeData != null)
                 {
                     var node = CreateTargetClass(token);
@@ -2719,6 +2778,21 @@ namespace SenseNet.ContentRepository.Storage
             if (token.NodeData != null)
                 node = CreateTargetClass(token);
             return node;
+        }
+
+        /// <summary>
+        /// Loads the exact stored version identified by its immutable version GUID.
+        /// Requires the same Open and RecallOldVersion permissions as loading by version id.
+        /// Returns null for an empty or unknown GUID.
+        /// </summary>
+        public static async Task<Node> LoadNodeByVersionGuidAsync(Guid versionGuid, CancellationToken cancellationToken)
+        {
+            var versionId = await Providers.Instance.DataStore
+                .GetVersionIdByGuidAsync(versionGuid, cancellationToken).ConfigureAwait(false);
+            cancellationToken.ThrowIfCancellationRequested();
+            return versionId == 0
+                ? null
+                : await LoadNodeByVersionIdAsync(versionId, cancellationToken).ConfigureAwait(false);
         }
 
         internal void Refresh()

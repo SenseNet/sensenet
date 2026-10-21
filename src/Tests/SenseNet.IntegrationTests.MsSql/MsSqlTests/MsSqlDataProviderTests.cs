@@ -10,6 +10,38 @@ namespace SenseNet.IntegrationTests.MsSql.MsSqlTests
     public class MsSqlDataProviderTests : IntegrationTest<MsSqlPlatform, DataProviderTestCases>
     {
         [TestMethod]
+        public Task IntT_MsSql_DP_GuidLoads_Versions() => TestCase.DP_GuidLoads_Versions();
+        [TestMethod]
+        public Task IntT_MsSql_DP_GuidLoads_Missing() => TestCase.DP_GuidLoads_Missing();
+        [TestMethod]
+        public Task IntT_MsSql_DP_GuidLoads_Lifecycle() => TestCase.DP_GuidLoads_Lifecycle();
+        [TestMethod]
+        public Task IntT_MsSql_DP_GuidLoads_Cancellation() => TestCase.DP_GuidLoads_Cancellation();
+        [TestMethod]
+        public Task IntT_MsSql_DP_GuidLoads_Permissions() => TestCase.DP_GuidLoads_Permissions();
+
+        [TestMethod]
+        public Task IntT_MsSql_DP_RowGuids_NodeLifecycle() => TestCase.DP_RowGuids_NodeLifecycle();
+
+        [DataTestMethod]
+        [DataRow(false)]
+        [DataRow(true)]
+        public Task IntT_MsSql_DP_RowGuids_ProviderWrites(bool emptyInput) => TestCase.DP_RowGuids_ProviderWrites(emptyInput);
+
+        [TestMethod]
+        public Task IntT_MsSql_DP_RowGuids_InitialDataAndAuxiliaryWrites() => TestCase.DP_RowGuids_InitialDataAndAuxiliaryWrites();
+
+        [TestMethod]
+        public Task IntT_MsSql_DP_RowGuids_MissingDestination() => TestCase.DP_RowGuids_MissingDestination();
+
+        [DataTestMethod]
+        [DataRow("update")]
+        [DataRow("head")]
+        [DataRow("new-version")]
+        [DataRow("overwrite")]
+        public Task IntT_MsSql_DP_RowGuids_Rollback(string operation) => TestCase.DP_RowGuids_Rollback(operation);
+
+        [TestMethod]
         public Task IntT_MsSql_DP_InsertNode() { return TestCase.DP_InsertNode(); }
         [TestMethod]
         public Task IntT_MsSql_DP_Update() { return TestCase.DP_Update(); }

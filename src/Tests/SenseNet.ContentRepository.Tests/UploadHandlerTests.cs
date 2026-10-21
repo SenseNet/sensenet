@@ -10,6 +10,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.Services.Core.Operations;
 using SenseNet.Tests.Core;
+using Microsoft.AspNetCore.Http.Internal;
 
 namespace SenseNet.ContentRepository.Tests
 {

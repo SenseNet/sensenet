@@ -146,6 +146,22 @@ namespace SenseNet.ContentRepository.Storage
         {
             return DataStore.LoadNodeHeadAsync(nodeId, cancellationToken);
         }
+        /// <summary>
+        /// Gets the current node head by its immutable node GUID.
+        /// Returns null for an empty or unknown GUID.
+        /// </summary>
+        public static Task<NodeHead> GetAsync(Guid nodeGuid, CancellationToken cancellationToken)
+        {
+            return DataStore.LoadNodeHeadAsync(nodeGuid, cancellationToken);
+        }
+        /// <summary>
+        /// Gets the current head of the node owning the specified version.
+        /// This is not a historical snapshot of the head. Returns null for an empty or unknown GUID.
+        /// </summary>
+        public static Task<NodeHead> GetByVersionGuidAsync(Guid versionGuid, CancellationToken cancellationToken)
+        {
+            return DataStore.LoadNodeHeadByVersionGuidAsync(versionGuid, cancellationToken);
+        }
         public static NodeHead GetByVersionId(int versionId)
         {
             return DataStore.LoadNodeHeadByVersionIdAsync(versionId, CancellationToken.None).GetAwaiter().GetResult();
