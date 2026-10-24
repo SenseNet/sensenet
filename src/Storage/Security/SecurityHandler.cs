@@ -1240,11 +1240,11 @@ namespace SenseNet.ContentRepository.Storage.Security
                 Options.Create(securityConfig), Options.Create(messagingOptions),
                 securityLogger);
 
+            // Keep the instance available for cleanup if startup fails partway through.
+            _securitySystem = securitySystem;
             securitySystem.StartAsync(CancellationToken.None).GetAwaiter().GetResult();
 
             _securityContextFactory = new DynamicSecurityContextFactory(securitySystem);
-
-            _securitySystem = securitySystem;
 
             _logger.LogInformation("Security subsystem started. " +
                                    $"DataProvider: {securityDataProvider.GetType().FullName}, " +
@@ -1375,7 +1375,7 @@ namespace SenseNet.ContentRepository.Storage.Security
 
 	    public void ShutDownSecurity()
 	    {
-            _securitySystem.Shutdown();
+            _securitySystem?.Shutdown();
 	    }
     }
 }
