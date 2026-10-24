@@ -674,7 +674,8 @@ namespace SenseNet.Services.Wopi.Tests
 
         protected override void InitializeTest()
         {
-            if (_repository == null)
+            if (_repository == null || !RepositoryInstance.IsReusable ||
+                !ReferenceEquals(_repository, RepositoryInstance.Instance))
             {
                 var builder = CreateRepositoryBuilderForTest();
 
