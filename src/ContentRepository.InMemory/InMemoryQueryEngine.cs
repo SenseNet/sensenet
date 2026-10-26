@@ -348,7 +348,7 @@ namespace SenseNet.ContentRepository.InMemory
                 var shouldSubset = new List<int>();
                 var mustSubset = new List<int>();
                 var notSubset = new List<int>();
-                var firstMust = true;
+                var hasMust = false;
 
                 for (int i = visitedClauses.Count - 1; i >= 0; i--)
                 {
@@ -362,10 +362,10 @@ namespace SenseNet.ContentRepository.InMemory
                             shouldSubset = shouldSubset.Union(currentSubset).Distinct().ToList();
                             break;
                         case Occurence.Must:
-                            if (firstMust)
+                            if (!hasMust)
                             {
                                 mustSubset = currentSubset;
-                                firstMust = false;
+                                hasMust = true;
                             }
                             else
                             {
@@ -380,8 +380,8 @@ namespace SenseNet.ContentRepository.InMemory
                     }
                 }
 
-                // combine the subsets (if there is any "must", the "should" is irrelevant)
-                var result = (mustSubset.Count > 0 ? mustSubset : shouldSubset).Except(notSubset).ToList();
+                // combine the subsets (if there is any "must", use its intersection even when empty)
+                var result = (hasMust ? mustSubset : shouldSubset).Except(notSubset).ToList();
 
                 // push result to the hit stack
                 _hitStack.Push(result);
