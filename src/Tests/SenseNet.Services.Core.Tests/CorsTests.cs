@@ -78,6 +78,86 @@ namespace SenseNet.Services.Core.Tests
             Assert.AreEqual(null, SnCorsPolicyProvider.GetAllowedDomain("abc", new[] { "*abc" }));
         }
 
+        [DataTestMethod]
+        [DataRow("https://app.sensenet.com", "*.sensenet.com", true)]
+        [DataRow("https://a.b.sensenet.com", "*.sensenet.com", true)]
+        [DataRow("HTTPS://APP.SENSENET.COM", "*.sensenet.com", true)]
+        [DataRow("https://attacker-sensenet.com", "*.sensenet.com", false)]
+        [DataRow("https://app.sensenetXcom", "*.sensenet.com", false)]
+        [DataRow("https://app.sensenet.evil.com", "*.sensenet.com", false)]
+        [DataRow("https://app.sensenet.com.evil.example", "*.sensenet.com", false)]
+        [DataRow("https://sensenet.com", "*.sensenet.com", false)]
+        [DataRow("https://app.sensenet.com", "sensenet.com", false)]
+        [DataRow("https://sensenet.evil.com", "sensenet.com", false)]
+        [DataRow("https://sensenet.com.evil.example", "sensenet.com", false)]
+        [DataRow("https://x.a.c.a.b", "*.a.b", true)]
+        [DataRow("https://abc.one.two.com", "abc.*.com", true)]
+        [DataRow("https://abc.com", "abc.*.com", false)]
+        [DataRow("https://x.abc.one.com", "abc.*.com", false)]
+        [DataRow("https://a.x.y.b.z.com", "a.*.b.*.com", true)]
+        [DataRow("https://a.x.b.y.b.z.com", "a.*.b.*.com", true)]
+        [DataRow("https://a.x.b.com", "a.*.b.*.com", false)]
+        [DataRow("https://x.y.example.com", "*.*.example.com", true)]
+        [DataRow("https://x.example.com", "*.*.example.com", false)]
+        [DataRow("https://abc.one.two", "abc.*", true)]
+        [DataRow("https://abc", "abc.*", false)]
+        public void Cors_AllowedDomain_WildcardBoundaries(string origin, string template, bool expected)
+        {
+            Assert.AreEqual(expected ? template : null,
+                SnCorsPolicyProvider.GetAllowedDomain(origin, new[] { template }));
+        }
+
+        [DataTestMethod]
+        [DataRow("https://abc.one.two.com:8443", "https://abc.*.com:8443", true)]
+        [DataRow("http://abc.one.two.com:8443", "https://abc.*.com:8443", false)]
+        [DataRow("https://abc.one.two.com:8443", "https://abc.*.com:443", false)]
+        [DataRow("https://abc.one.two.com:8443", "https://abc.*.com", false)]
+        [DataRow("https://abc.one.two.com:8443", "https://abc.*.com:*", true)]
+        [DataRow("https://abc.one.two.com", "https://abc.*.com:*", true)]
+        [DataRow("https://example.com:443", "https://example.com", false)]
+        [DataRow("example.com", "https://example.com", false)]
+        [DataRow("https://example.com", "https://example.com", true)]
+        [DataRow("http://localhost:5000", "localhost:*", true)]
+        [DataRow("http://127.0.0.1:5000", "127.0.0.1:*", true)]
+        [DataRow("http://[::1]:5000", "[::1]:*", true)]
+        [DataRow("http://[::1]", "[::1]", true)]
+        [DataRow("http://[::1]:5000", "[::1]", false)]
+        [DataRow("http://[::2]:5000", "[::1]:*", false)]
+        public void Cors_AllowedDomain_SchemeAndPort(string origin, string template, bool expected)
+        {
+            Assert.AreEqual(expected ? template : null,
+                SnCorsPolicyProvider.GetAllowedDomain(origin, new[] { template }));
+        }
+
+        [DataTestMethod]
+        [DataRow(null, "*")]
+        [DataRow("", "*")]
+        [DataRow("null", "*")]
+        [DataRow("https://example.com", null)]
+        [DataRow("https://example.com", "")]
+        [DataRow("https://app..sensenet.com", "*.sensenet.com")]
+        [DataRow("https://.sensenet.com", "*.sensenet.com")]
+        [DataRow("https://app.sensenet.com.", "*.sensenet.com")]
+        [DataRow("https://app.sensenet.com", "app*.sensenet.com")]
+        [DataRow("https://app.sensenet.com", "*.sensenet.(com|net)")]
+        [DataRow("https://app.sensenet.com", "*..sensenet.com")]
+        [DataRow("https://app.sensenet.com\n", "*.sensenet.com")]
+        [DataRow("https://user@app.sensenet.com", "*.sensenet.com")]
+        [DataRow("https://app.sensenet.com/path", "*.sensenet.com")]
+        [DataRow("https://app.sensenet.com?query", "*.sensenet.com")]
+        [DataRow("https://app.sensenet.com#fragment", "*.sensenet.com")]
+        [DataRow("https://app.sensenet.com:65536", "*.sensenet.com:*")]
+        [DataRow("https://app.sensenet.com:-1", "*.sensenet.com:*")]
+        [DataRow("https://app.sensenet.com:", "*.sensenet.com:*")]
+        [DataRow("https://app.sensenet.com:*", "*.sensenet.com:*")]
+        [DataRow("ftp://app.sensenet.com", "*.sensenet.com")]
+        [DataRow("ftp://app.sensenet.com", "ftp://app.sensenet.com")]
+        [DataRow("https://https://app.sensenet.com", "https://*.sensenet.com")]
+        public void Cors_AllowedDomain_RejectsInvalidInput(string origin, string template)
+        {
+            Assert.IsNull(SnCorsPolicyProvider.GetAllowedDomain(origin, new[] { template }));
+        }
+
         [TestMethod]
         public void Cors_SetHeader_Simple()
         {
@@ -177,6 +257,11 @@ namespace SenseNet.Services.Core.Tests
 
                 await AssertOriginPrivate("sensenet.com", false);
                 await AssertOriginPrivate("example.com", false);
+                await AssertOriginPrivate("https://app.sensenet.com", true);
+                p = await AssertOriginPrivate("https://attacker-sensenet.com", false);
+                Assert.IsFalse(p.SupportsCredentials);
+                p = await AssertOriginPrivate("https://app.sensenet.evil.com", false);
+                Assert.IsFalse(p.SupportsCredentials);
             });
 
             async Task<CorsPolicy> AssertOriginPrivate(string origin, bool expected)

@@ -1,12 +1,14 @@
-﻿using System;
-using System.Threading;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json.Linq;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.OData;
+using SenseNet.Services.Core.Operations;
+using System;
+using System.Reflection;
+using System.Threading;
 using Task = System.Threading.Tasks.Task;
 // ReSharper disable CommentTypo
 // ReSharper disable StringLiteralTypo
@@ -382,5 +384,14 @@ namespace SenseNet.ODataTests
             }).ConfigureAwait(false);
         }
 
+
+        [TestMethod]
+        public void OD_Security_CorsRejectsUnrelatedDomain()
+        {
+            var type = typeof(IdentityOperations).Assembly.GetType("SenseNet.Services.Core.Cors.SnCorsPolicyProvider");
+            var method = type.GetMethod("GetAllowedDomain", BindingFlags.Static | BindingFlags.NonPublic);
+            var result = method.Invoke(null, new object[] { "https://attacker-sensenet.com", new[] { "*.sensenet.com" } });
+            Assert.IsNull(result, "An unrelated registrable domain matched the default CORS allowlist.");
+        }
     }
 }
