@@ -73,6 +73,10 @@ namespace SenseNet.OData.IO
                     if(content.ContentType.IsTransitiveForAllowedTypes)
                         return false;
                     break;
+                case "Password":
+                    if (!User.Current.IsOperator)
+                        return false;
+                    break;
             }
             return base.IsAllowedField(content, fieldName);
         }
