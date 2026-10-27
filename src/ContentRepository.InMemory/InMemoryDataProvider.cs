@@ -1941,7 +1941,8 @@ namespace SenseNet.ContentRepository.InMemory
                         FileNameWithoutExtension = binProp.FileName.FileNameWithoutExtension,
                         Extension = binProp.FileName.Extension,
                         ContentType = binProp.ContentType,
-                        Size = binProp.Size,
+                        // Generated metadata can be stale after editing the initial blob contents.
+                        Size = buffer?.LongLength ?? binProp.Size,
                         Timestamp = binProp.Timestamp,
                         BlobProvider = blobProviderName,
                         BlobProviderData = blobProviderData,

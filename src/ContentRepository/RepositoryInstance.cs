@@ -4,6 +4,7 @@ using System.Linq;
 using SenseNet.ContentRepository.i18n;
 using SenseNet.ContentRepository.Storage;
 using System.Reflection;
+using System.Runtime.ExceptionServices;
 using SenseNet.Diagnostics;
 using System.IO;
 using System.Threading;
@@ -81,7 +82,56 @@ namespace SenseNet.ContentRepository
         }
 
         private ILogger<RepositoryInstance> _logger;
+
+        // True after the subsystems have started; the outer Repository.Start may still
+        // be initializing the repository. Reset whenever the instance is shut down.
         private static bool _started;
+
+        // True only after the complete Repository.Start succeeds. A startup or shutdown
+        // failure invalidates the environment. A clean shutdown preserves this flag so
+        // tests can reuse the installed data and providers, but not the disposed instance.
+        private static bool _isReusable;
+
+        internal static bool IsReusable => _isReusable;
+        internal static void InvalidateReuse() => _isReusable = false;
+
+        // Installation can call Repository.Start recursively, including across async callbacks.
+        private static readonly AsyncLocal<int> _startupDepth = new AsyncLocal<int>();
+
+        internal static RepositoryInstance RunStartup(Func<RepositoryInstance> initialize)
+        {
+            _isReusable = false;
+            _startupDepth.Value++;
+            try
+            {
+                var instance = initialize();
+                if (_startupDepth.Value == 1)
+                    _isReusable = true;
+                return instance;
+            }
+            catch (Exception startupError)
+            {
+                try
+                {
+                    Shutdown();
+                }
+                catch (Exception shutdownError)
+                {
+                    // Keep the startup failure as the primary exception.
+                    startupError.Data["RepositoryShutdownException"] = shutdownError;
+                }
+                finally
+                {
+                    _isReusable = false;
+                }
+                throw;
+            }
+            finally
+            {
+                _startupDepth.Value--;
+            }
+        }
+
         internal static RepositoryInstance Start(RepositoryStartSettings settings)
         {
             if (!_started)
@@ -94,17 +144,9 @@ namespace SenseNet.ContentRepository
                         instance._settings = new RepositoryStartSettings.ImmutableRepositoryStartSettings(settings);
                         _instance = instance;
                         _instance._logger = instance._settings.Services.GetService<ILogger<RepositoryInstance>>();
-                        try
-                        {
-                            Providers.Instance.RepositoryStatus?.SetStatus("Starting subsystems");
-                            instance.DoStart();
-                            Providers.Instance.RepositoryStatus?.SetStatus("Subsystems started");
-                        }
-                        catch (Exception)
-                        {
-                            _instance = null;
-                            throw;
-                        }
+                        Providers.Instance.RepositoryStatus?.SetStatus("Starting subsystems");
+                        instance.DoStart();
+                        Providers.Instance.RepositoryStatus?.SetStatus("Subsystems started");
                         _started = true;
                     }
                 }
@@ -132,7 +174,9 @@ namespace SenseNet.ContentRepository
             LoadAssemblies();
 
             Providers.Instance.RepositoryStatus?.SetStatus("  Starting Security");
-            _settings.Services.GetRequiredService<SecurityHandler>().StartSecurity(_settings.Services);
+            var securityHandler = _settings.Services.GetRequiredService<SecurityHandler>();
+            _shutdownActions.Push(("Shutting down Security.", securityHandler.ShutDownSecurity));
+            securityHandler.StartSecurity(_settings.Services);
 
             //UNDONE: modernize TemplateManager
             // Set legacy collection from the new services collection and reset the
@@ -171,7 +215,9 @@ namespace SenseNet.ContentRepository
             }
             Providers.Instance.RepositoryStatus?.SetStatus("  Starting IndexingEngine");
             ConsoleWriteLine(true, "Starting IndexingEngine.");
-            Providers.Instance.IndexManager.StartAsync(_settings.Console, CancellationToken.None).GetAwaiter().GetResult();
+            var indexManager = Providers.Instance.IndexManager;
+            _shutdownActions.Push(("Shutting down IndexingEngine.", indexManager.ShutDown));
+            indexManager.StartAsync(_settings.Console, CancellationToken.None).GetAwaiter().GetResult();
             Providers.Instance.SearchManager.SearchEngine.SetIndexingInfo(ContentTypeManager.Instance.IndexingInfo);
             ConsoleWriteLine(true, "IndexingEngine has started.");
         }
@@ -236,6 +282,8 @@ namespace SenseNet.ContentRepository
                 Providers.Instance.RepositoryStatus?.SetStatus("  Initializing message channel");
                 ConsoleWrite(false, "Starting message channel ... ");
                 channel = Providers.Instance.ClusterChannelProvider;
+                _shutdownActions.Push(($"Shutting down {channel.GetType().Name}.",
+                    () => channel.ShutDownAsync(CancellationToken.None).GetAwaiter().GetResult()));
                 channel.StartAsync(CancellationToken.None).GetAwaiter().GetResult();
                 ConsoleWriteLine(false, "ok.");
                 _logger.LogInformation($"Message channel started:  {channel.GetType().FullName}. " +
@@ -277,11 +325,10 @@ namespace SenseNet.ContentRepository
                 ConsoleWriteLine(false, "ok.");
                 SnTrace.System.Write("String resources loaded.");
 
-                _serviceInstances = _settings.Services.GetServices<ISnService>().ToList();
-
-                foreach (var service in _serviceInstances)
+                foreach (var service in _settings.Services.GetServices<ISnService>())
                 {
                     Providers.Instance.RepositoryStatus?.SetStatus("  Starting service: " + service.GetType().FullName);
+                    _shutdownActions.Push(($"Shutting down {service.GetType().Name}.", service.Shutdown));
                     service.Start();
                     ConsoleWriteLine(true, "Service started: " + service.GetType().Name);
                 }
@@ -293,14 +340,13 @@ namespace SenseNet.ContentRepository
             catch
             {
                 Providers.Instance.RepositoryStatus?.SetStatus("  Shutting down because of an error");
-                // If an error occurred, shut down the cluster channel.
-                channel?.ShutDownAsync(CancellationToken.None).GetAwaiter().GetResult();
-
                 throw;
             }
         }
 
-        private List<ISnService> _serviceInstances;
+        // Register cleanup before each start attempt so partial starts can be unwound too.
+        private readonly Stack<(string Name, Action Action)> _shutdownActions =
+            new Stack<(string Name, Action Action)>();
 
         private static void InitializeLogger()
         {
@@ -325,6 +371,8 @@ namespace SenseNet.ContentRepository
         {
             AppDomain appDomain = AppDomain.CurrentDomain;
             appDomain.UnhandledException += new UnhandledExceptionEventHandler(Domain_UnhandledException);
+            _shutdownActions.Push(("Unregistering AppDomain event handlers.",
+                () => appDomain.UnhandledException -= Domain_UnhandledException));
         }
 
         private void Domain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
@@ -362,14 +410,6 @@ namespace SenseNet.ContentRepository
 
         internal static void Shutdown()
         {
-            if (_instance == null)
-            {
-                _started = false;
-
-                SnLog.WriteWarning("Repository shutdown has already completed.");
-                return;
-            }
-
             lock (_startStopSync)
             {
                 if (_instance == null)
@@ -380,48 +420,83 @@ namespace SenseNet.ContentRepository
                     return;
                 }
 
-                SnTrace.Repository.Write("Sending a goodbye message.");
-
-                _instance.ConsoleWriteLine(false);
-
-                _instance.ConsoleWriteLine(true, "Sending a goodbye message.");
-                var channel = Providers.Instance.ClusterChannelProvider;
-                channel.ClusterMemberInfo.NeedToRecover = false;
-                var pingMessage = new PingMessage();
-                pingMessage.SendAsync(CancellationToken.None).GetAwaiter().GetResult();
-
-                foreach (var svc in _instance._serviceInstances)
+                var instance = _instance;
+                var errors = new List<Exception>();
+                void TryExecute(Action action)
                 {
-                    SnTrace.Repository.Write("Shutting down {0}", svc.GetType().Name);
-                    svc.Shutdown();
+                    try
+                    {
+                        action();
+                    }
+                    catch (Exception error)
+                    {
+                        _isReusable = false;
+                        errors.Add(error);
+                    }
+                }
+                void TryShutdown((string Name, Action Action) step)
+                {
+                    // Diagnostic failures must not prevent the cleanup action from running.
+                    TryExecute(() =>
+                    {
+                        if (instance._logger != null)
+                            instance._logger.LogInformation("{ShutdownAction}", step.Name);
+                        else
+                            SnTrace.Repository.Write(step.Name);
+                    });
+                    TryExecute(() => instance.ConsoleWriteLine(false, step.Name));
+                    TryExecute(step.Action);
                 }
 
-                SnTrace.Repository.Write("Shutting down {0}", channel.GetType().Name);
-                channel.ShutDownAsync(CancellationToken.None).GetAwaiter().GetResult();
+                try
+                {
+                    if (_started)
+                    {
+                        TryShutdown(("Sending a goodbye message.", () =>
+                        {
+                            var channel = Providers.Instance.ClusterChannelProvider;
+                            channel.ClusterMemberInfo.NeedToRecover = false;
+                            new PingMessage().SendAsync(CancellationToken.None).GetAwaiter().GetResult();
+                        }));
+                    }
 
-                SnTrace.Repository.Write("Shutting down Security.");
-                Providers.Instance.SecurityHandler.ShutDownSecurity();
+                    // Continue cleanup after individual failures and unwind partial startup.
+                    while (instance._shutdownActions.Count > 0)
+                        TryShutdown(instance._shutdownActions.Pop());
 
-                SnTrace.Repository.Write("Shutting down IndexingEngine.");
-                Providers.Instance.IndexManager.ShutDown();
+                    TryShutdown(("Resetting ContextHandler.", ContextHandler.Reset));
+                    TryShutdown(("Updating repository status.", () =>
+                    {
+                        var status = Providers.Instance.RepositoryStatus;
+                        if (status != null)
+                            status.IsRunning = false;
+                    }));
+                    TryShutdown(("Writing shutdown summary.", () =>
+                    {
+                        var t = DateTime.UtcNow - instance._startupInfo.Starting;
+                        var msg = $"Repository has stopped. Running time: {t.Days}.{t.Hours:d2}:{t.Minutes:d2}:{t.Seconds:d2}";
 
-                ContextHandler.Reset();
+                        if (instance._logger != null)
+                            instance._logger.LogInformation(msg);
+                        else
+                            SnTrace.Repository.Write(msg);
 
-                var t = DateTime.UtcNow - _instance._startupInfo.Starting;
-                var msg = $"Repository has stopped. Running time: {t.Days}.{t.Hours:d2}:{t.Minutes:d2}:{t.Seconds:d2}";
+                        SnTrace.Flush();
+                        instance.ConsoleWriteLine(false, msg);
+                        instance.ConsoleWriteLine(false);
+                    }));
+                }
+                finally
+                {
+                    instance._disposed = true;
+                    _instance = null;
+                    _started = false;
+                }
 
-                if (_instance._logger != null)
-                    _instance._logger.LogInformation(msg);
-                else
-                    SnTrace.Repository.Write(msg);
-
-                SnTrace.Flush();
-
-                _instance.ConsoleWriteLine(false, msg);
-                _instance.ConsoleWriteLine(false);
-
-                _instance = null;
-                _started = false;
+                if (errors.Count == 1)
+                    ExceptionDispatchInfo.Capture(errors[0]).Throw();
+                if (errors.Count > 1)
+                    throw new AggregateException("Repository shutdown failed.", errors);
             }
         }
 

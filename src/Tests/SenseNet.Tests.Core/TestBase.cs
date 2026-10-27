@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -286,9 +286,11 @@ namespace SenseNet.Tests.Core
         {
             IServiceProvider services;
 
-            var reusesRepository = (bool)(TestContext.Properties["ReusesRepository"] ?? false);
-            if (!reusesRepository || Providers.Instance == null)
+            var reusesRepository = (bool)(TestContext.Properties["ReusesRepository"] ?? false)
+                                   && Providers.Instance != null && RepositoryInstance.IsReusable;
+            if (!reusesRepository)
             {
+                RepositoryInstance.InvalidateReuse();
                 services = CreateServiceProviderForTest(modifyServices: modifyServices);
                 Providers.Instance = new Providers(services);
             }
@@ -298,17 +300,18 @@ namespace SenseNet.Tests.Core
             }
 
             Cache.Reset();
-            Providers.Instance.ResetBlobProviders(new ConnectionStringOptions());
+            if (!reusesRepository)
+                Providers.Instance.ResetBlobProviders(new ConnectionStringOptions());
 
             var builder = new RepositoryBuilder(services)
                 .UseLogger(new DebugWriteLoggerAdapter())
                 .UseAccessProvider(new DesktopAccessProvider())
-                .UseInitialData(GetInitialData())
+                .UseInitialData(reusesRepository ? null : GetInitialData())
                 .UseTestingDataProvider(services.GetRequiredService<ITestingDataProvider>())
                 .UseBlobProviderStore(services.GetRequiredService<IBlobProviderStore>())
                 .UseBlobMetaDataProvider(services.GetRequiredService<IBlobStorageMetaDataProvider>())
                 .UseBlobProviderSelector(services.GetRequiredService<IBlobProviderSelector>())
-                .UseSearchEngine(new InMemorySearchEngine(GetInitialIndex()))
+                .UseSearchEngine(reusesRepository ? Providers.Instance.SearchEngine : new InMemorySearchEngine(GetInitialIndex()))
                 .UseTraceCategories("Test", "Event", "Custom") as RepositoryBuilder;
 
             ContentTypeManager.Reset();
