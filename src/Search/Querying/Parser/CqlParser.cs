@@ -266,6 +266,13 @@ namespace SenseNet.Search.Querying.Parser
             if (_lexer.CurrentToken != CqlLexer.Token.RParen)
                 throw ParserError("Missing ')'");
             _lexer.NextToken();
+
+            // A single required clause is equivalent to its predicate inside a group.
+            // Its MUST occurrence must not become a requirement of the enclosing query.
+            if (clauses is LogicalPredicate group && group.Clauses.Count == 1 &&
+                group.Clauses[0].Occur == Occurence.Must)
+                return group.Clauses[0].Predicate;
+
             return clauses;
         }
 

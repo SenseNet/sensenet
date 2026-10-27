@@ -159,7 +159,7 @@ namespace SenseNet.ContentRepository.Storage
         }
         protected virtual QueryResult QueryChildrenFromIndex(int thisId)
         {
-            var q = $"ParentId:{thisId}";
+            var q = $"+ParentId:{thisId}";
             if (_filter != null)
                 q += $" +({_filter})";
             return Providers.Instance.SearchManager.ExecuteContentQuery(q, QuerySettings.AdminSettings);
