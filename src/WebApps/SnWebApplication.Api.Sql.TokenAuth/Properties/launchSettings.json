@@ -14,8 +14,10 @@
       "launchBrowser": true,
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development",
-        "ConnectionStrings__SnCrMsSql": "Data Source=localhost,9998;Initial Catalog=sensenet-insql-cdb-vs-sndb;User ID=sa;Password=SuP3rS3CuR3P4sSw0Rd;TrustServerCertificate=True",
-        "sensenet__apikeys__healthcheckeruser": "supaS3CUp4ss",
+        //"ConnectionStrings__SnCrMsSql": "Data Source=localhost,9998;Initial Catalog=sensenet-insql-cdb-vs-sndb;User ID=sa;Password=SuP3rS3CuR3P4sSw0Rd;TrustServerCertificate=True",
+        //"sensenet__apikeys__healthcheckeruser": "supaS3CUp4ss",
+        "ConnectionStrings__SnCrMsSql": "Data Source=SNPC001;Initial Catalog=SnWebApplication.Api.Sql.TokenAuth;Integrated Security=SSPI;Persist Security Info=False;TrustServerCertificate=True",
+        "sensenet__apikeys__healthcheckeruser": "kXztrTVzeopDimB5kBg8yrzfRNSCAsZg",
         "sensenet__authentication__repositoryUrl": "https://localhost:44362",
         "sensenet__authentication__authority": "https://localhost:44311",
         "sensenet__authentication__authServerType": "IdentityServer",
