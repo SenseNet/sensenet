@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using SenseNet.Configuration;
 using SenseNet.Events;
 using SenseNet.Security;
+using SenseNet.Security.Messaging.SecurityMessages;
 
 namespace SenseNet.ContentRepository.Storage.Security
 {
@@ -276,6 +277,8 @@ namespace SenseNet.ContentRepository.Storage.Security
                         SnLog.WriteWarning("Invalid ACL: " + msg, EventId.Security);
                     }
 
+                    var invalidEntries = RemoveInvalidIdentitySettings();
+
                     var relatedEntities = new List<int>();
                     // collect related aces
                     var originalAces = new List<string>();
@@ -327,7 +330,20 @@ namespace SenseNet.ContentRepository.Storage.Security
                     var customData = args1.GetCustomData();
 
                     // main operation
-                    await base.ApplyAsync(cancel).ConfigureAwait(false);
+                    if (invalidEntries.Count == 0)
+                    {
+                        await base.ApplyAsync(cancel).ConfigureAwait(false);
+                    }
+                    else
+                    {
+                        // Use the same security activity as the base editor, with explicit removals
+                        // so legacy invalid entries are removed from both storage and every cache.
+                        var activity = new SetAclActivity(_acls.Values.ToArray(), _breaks, _unBreaks)
+                        {
+                            EntriesToRemove = invalidEntries
+                        };
+                        await activity.ExecuteAsync(Context, cancel).ConfigureAwait(false);
+                    }
 
                     // collect new values
                     changedData[0].Value = relatedEntities.Select(x => AcesToString(x, this.Context.GetExplicitEntries(x))).ToList();
@@ -368,6 +384,37 @@ namespace SenseNet.ContentRepository.Storage.Security
             var broken = !this.Context.IsEntityInherited(entityId);
             return (broken ? "-" : "+") + "(" + entityId + ")|" + String.Join(",", aces);
         }
+
+        private List<StoredAce> RemoveInvalidIdentitySettings()
+        {
+            var entriesToRemove = new List<StoredAce>();
+            foreach (var acl in _acls.Values)
+            {
+                if (!acl.Entries.Any(ace => ace.IdentityId <= 0))
+                    continue;
+
+                // The security component treats an empty ACL as removal of the whole cached ACL.
+                // Preserve entries from other categories before filtering, including when all
+                // remaining settings are deletions, to keep storage and cache consistent.
+                foreach (var original in Context.GetExplicitEntries(acl.EntityId))
+                    if (!acl.Entries.Any(ace => ace.EntryType == original.EntryType &&
+                        ace.IdentityId == original.IdentityId && ace.LocalOnly == original.LocalOnly))
+                        acl.Entries.Add(original);
+
+                foreach (var ace in acl.Entries.Where(ace => ace.IdentityId <= 0))
+                    entriesToRemove.Add(new StoredAce
+                    {
+                        EntityId = acl.EntityId,
+                        EntryType = ace.EntryType,
+                        IdentityId = ace.IdentityId,
+                        LocalOnly = ace.LocalOnly
+                    });
+
+                acl.Entries.RemoveAll(ace => ace.IdentityId <= 0);
+            }
+            return entriesToRemove;
+        }
+
         private string Validate(Dictionary<int, SenseNet.Security.AclInfo> acls)
         {
             foreach (var item in acls)

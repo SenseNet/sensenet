@@ -225,6 +225,7 @@ namespace SenseNet.Tests.Core.Implementations
                     OwnerId = nodeDoc.OwnerId,
                     SavingState = nodeDoc.SavingState,
                     Timestamp = nodeDoc.Timestamp,
+                    RowGuid = nodeDoc.RowGuid,
                 };
 
                 return Task.FromResult(result);
@@ -250,6 +251,7 @@ namespace SenseNet.Tests.Core.Implementations
                     ModifiedById = versionDoc.ModifiedById,
                     ChangedData = versionDoc.ChangedData,
                     Timestamp = versionDoc.Timestamp,
+                    RowGuid = versionDoc.RowGuid,
                 };
                 return Task.FromResult(result);
             }

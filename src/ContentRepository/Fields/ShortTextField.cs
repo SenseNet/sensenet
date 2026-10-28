@@ -12,6 +12,17 @@ namespace SenseNet.ContentRepository.Fields
 	[DefaultFieldControl("SenseNet.Portal.UI.Controls.ShortText")]
 	public class ShortTextField : Field
 	{
+        public override object GetData(bool localized)
+        {
+            // Row identifiers may change after the first save or when selecting another version.
+            // Read their computed properties instead of retaining a previous value in the field cache.
+            if (Content.ContentHandler is GenericContent &&
+                FieldSetting.Name is nameof(GenericContent.NodeGuidText) or nameof(GenericContent.VersionGuidText))
+                return ReadProperties();
+
+            return base.GetData(localized);
+        }
+
 		protected override bool HasExportData { get { return true; } }
         protected override void ExportData(System.Xml.XmlWriter writer, ExportContext context)
         {

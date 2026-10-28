@@ -773,7 +773,7 @@ namespace SenseNet.OData
                     continue;
 
                 // readonly properties: skip if not enough permissions
-                if (prop.Name is "CreationDate" or "VersionCreationDate")
+                if (prop.Name is "CreationDate" or "VersionCreationDate" or "Password")
                 {
                     if (!User.Current.IsOperator)
                     {

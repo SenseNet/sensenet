@@ -18,12 +18,12 @@ namespace SenseNet.ContentRepository.Security.ApiKeys
     /// Default implementation of <see cref="IApiKeyManager"/> that uses the <see cref="AccessTokenVault"/>
     /// api to manage api keys.
     /// </summary>
-    internal class ApiKeyManager : IApiKeyManager
+    internal class ApiKeyManager : IApiKeyManager, IApiKeyCacheInvalidator
     {
         private const string FeatureName = "apikey";
         private readonly ILogger _logger;
-        // ReSharper disable once PrivateFieldCanBeConvertedToLocalVariable
         private readonly ApiKeysOptions _apiKeys;
+        private readonly AccessToken _healthCheckerToken;
 
         public ApiKeyManager(ILogger<ApiKeyManager> logger, IOptions<ApiKeysOptions> apiKeys)
         {
@@ -34,18 +34,14 @@ namespace SenseNet.ContentRepository.Security.ApiKeys
             var apiKey = _apiKeys.HealthCheckerUser;
             if (!string.IsNullOrEmpty(apiKey))
             {
-                _apiKeyCache.Set(apiKey, new AccessToken
+                _healthCheckerToken = new AccessToken
                 {
                     Id = -1,
                     UserId = -3,
                     ExpirationDate = now.AddYears(1),
                     CreationDate = now,
                     Feature = "/health"
-                }, new MemoryCacheEntryOptions
-                {
-                    AbsoluteExpiration = new DateTimeOffset(now.AddYears(1)),
-                    Size = 1
-                });
+                };
             }
         }
 
@@ -54,27 +50,9 @@ namespace SenseNet.ContentRepository.Security.ApiKeys
             if (string.IsNullOrEmpty(apiKey))
                 return null;
 
-            MemoryCache cache;
-            lock (_cacheLock)
-                cache = _apiKeyCache;
-
-            if (!cache.TryGetValue<AccessToken>(apiKey, out var token))
-            {
-                token = await AccessTokenVault.GetTokenAsync(apiKey, 0, FeatureName, cancel).ConfigureAwait(false);
-                
-                // check if expired
-                if (token != null && token.ExpirationDate < DateTime.UtcNow)
-                    token = null;
-
-                // cache for 2 minutes
-                if (token != null)
-                    cache.Set(apiKey, token, new MemoryCacheEntryOptions
-                    {
-                        AbsoluteExpiration = new DateTimeOffset(DateTime.UtcNow.AddMinutes(2)),
-                        Size = 1
-                    });
-            }
-
+            var token = apiKey == _apiKeys.HealthCheckerUser
+                ? _healthCheckerToken
+                : await GetTokenAsync(apiKey, cancel).ConfigureAwait(false);
 
             if (token == null || token.UserId == 0 || token.ExpirationDate <= DateTime.UtcNow)
                 return null;
@@ -131,7 +109,6 @@ namespace SenseNet.ContentRepository.Security.ApiKeys
             AssertPermissions(token.UserId);
 
             await AccessTokenVault.DeleteTokenAsync(apiKey, cancel).ConfigureAwait(false);
-            ResetCache();
         }
 
         public async System.Threading.Tasks.Task DeleteApiKeysByUserAsync(int userId, CancellationToken cancel)
@@ -141,8 +118,7 @@ namespace SenseNet.ContentRepository.Security.ApiKeys
 
             AssertPermissions(userId);
             
-            await AccessTokenVault.DeleteTokensAsync(userId, 0, FeatureName, cancel);
-            ResetCache();
+            await AccessTokenVault.DeleteTokensAsync(userId, 0, FeatureName, cancel).ConfigureAwait(false);
         }
 
         public async System.Threading.Tasks.Task DeleteApiKeysAsync(CancellationToken cancel)
@@ -151,8 +127,7 @@ namespace SenseNet.ContentRepository.Security.ApiKeys
             if (Math.Abs(User.Current.Id) != 1)
                 throw new SenseNetSecurityException("Only administrators may delete all api keys.");
 
-            await AccessTokenVault.DeleteTokensByFeatureAsync(FeatureName, cancel);
-            ResetCache();
+            await AccessTokenVault.DeleteTokensByFeatureAsync(FeatureName, cancel).ConfigureAwait(false);
         }
 
         private void AssertPermissions(int userId)
@@ -177,12 +152,50 @@ namespace SenseNet.ContentRepository.Security.ApiKeys
 
         private readonly object _cacheLock = new();
         private MemoryCache _apiKeyCache = CreateCache();
+        private long _cacheGeneration;
 
         private static MemoryCache CreateCache() => new(new MemoryCacheOptions { SizeLimit = 1024 });
 
-        private void ResetCache()
+        private async Task<AccessToken> GetTokenAsync(string apiKey, CancellationToken cancel)
         {
-            new ApiKeyManagerCacheResetDistributedAction().ExecuteAsync(CancellationToken.None).GetAwaiter().GetResult();
+            while (true)
+            {
+                cancel.ThrowIfCancellationRequested();
+
+                long generation;
+                AccessToken token;
+                lock (_cacheLock)
+                {
+                    if (_apiKeyCache.TryGetValue(apiKey, out token))
+                        return token;
+
+                    generation = _cacheGeneration;
+                }
+
+                token = await AccessTokenVault.GetTokenAsync(apiKey, 0, FeatureName, cancel).ConfigureAwait(false);
+
+                lock (_cacheLock)
+                {
+                    // A reset may have invalidated the result while the database read was in flight.
+                    if (generation != _cacheGeneration)
+                        continue;
+
+                    if (token == null || token.ExpirationDate <= DateTime.UtcNow)
+                        return null;
+
+                    _apiKeyCache.Set(apiKey, token, new MemoryCacheEntryOptions
+                    {
+                        AbsoluteExpiration = new DateTimeOffset(DateTime.UtcNow.AddMinutes(2)),
+                        Size = 1
+                    });
+                    return token;
+                }
+            }
+        }
+
+        public System.Threading.Tasks.Task InvalidateCacheAsync(CancellationToken cancellationToken)
+        {
+            return new ApiKeyManagerCacheResetDistributedAction().ExecuteAsync(cancellationToken);
         }
         private void ResetCachePrivate()
         {
@@ -191,6 +204,7 @@ namespace SenseNet.ContentRepository.Security.ApiKeys
             {
                 oldCache = _apiKeyCache;
                 _apiKeyCache = CreateCache();
+                _cacheGeneration++;
             }
             oldCache.Dispose();
         }

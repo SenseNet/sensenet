@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using SenseNet.Configuration;
+using SenseNet.ContentRepository.Security.ApiKeys;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.Diagnostics;
 // ReSharper disable CheckNamespace
@@ -27,16 +28,17 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// </summary>
         public static void DeleteAllAccessTokens()
         {
-            Storage.DeleteAllAccessTokensAsync(CancellationToken.None).GetAwaiter().GetResult();
+            DeleteAllAccessTokensAsync(CancellationToken.None).GetAwaiter().GetResult();
         }
         /// <summary>
         /// Deletes all AccessTokens even if they are still valid.
         /// </summary>
         /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation.</returns>
-        public static Task DeleteAllAccessTokensAsync(CancellationToken cancellationToken)
+        public static async Task DeleteAllAccessTokensAsync(CancellationToken cancellationToken)
         {
-            return Storage.DeleteAllAccessTokensAsync(cancellationToken);
+            await Storage.DeleteAllAccessTokensAsync(cancellationToken).ConfigureAwait(false);
+            await InvalidateApiKeyCacheAsync().ConfigureAwait(false);
         }
 
         /// <summary>
@@ -401,7 +403,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <exception cref="InvalidAccessTokenException"></exception>
         public static void UpdateToken(string tokenValue, DateTime expirationDate)
         {
-            Storage.UpdateAccessTokenAsync(tokenValue, expirationDate, CancellationToken.None).GetAwaiter().GetResult();
+            UpdateTokenAsync(tokenValue, expirationDate, CancellationToken.None).GetAwaiter().GetResult();
         }
         /// <summary>
         /// Updates the expiration date of the specified token.
@@ -412,10 +414,11 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <exception cref="InvalidAccessTokenException"></exception>
         /// <returns>A Task that represents the asynchronous operation.</returns>
-        public static Task UpdateTokenAsync(string tokenValue, DateTime expirationDate,
+        public static async Task UpdateTokenAsync(string tokenValue, DateTime expirationDate,
             CancellationToken cancellationToken)
         {
-            return Storage.UpdateAccessTokenAsync(tokenValue, expirationDate, cancellationToken);
+            await Storage.UpdateAccessTokenAsync(tokenValue, expirationDate, cancellationToken).ConfigureAwait(false);
+            await InvalidateApiKeyCacheAsync().ConfigureAwait(false);
         }
 
         /// <summary>
@@ -424,7 +427,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <param name="tokenValue">The value of the original token.</param>
         public static void DeleteToken(string tokenValue)
         {
-            Storage.DeleteAccessTokenAsync(tokenValue, CancellationToken.None).GetAwaiter().GetResult();
+            DeleteTokenAsync(tokenValue, CancellationToken.None).GetAwaiter().GetResult();
         }
         /// <summary>
         /// Deletes the specified token regardless of expiration date.
@@ -432,9 +435,10 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <param name="tokenValue">The value of the original token.</param>
         /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation.</returns>
-        public static Task DeleteTokenAsync(string tokenValue, CancellationToken cancellationToken)
+        public static async Task DeleteTokenAsync(string tokenValue, CancellationToken cancellationToken)
         {
-            return Storage.DeleteAccessTokenAsync(tokenValue, cancellationToken);
+            await Storage.DeleteAccessTokenAsync(tokenValue, cancellationToken).ConfigureAwait(false);
+            await InvalidateApiKeyCacheAsync().ConfigureAwait(false);
         }
 
         /// <summary>
@@ -443,7 +447,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <param name="userId">The token owner ID.</param>
         public static void DeleteTokensByUser(int userId)
         {
-            Storage.DeleteAccessTokensByUserAsync(userId, CancellationToken.None).GetAwaiter().GetResult();
+            DeleteTokensByUserAsync(userId, CancellationToken.None).GetAwaiter().GetResult();
         }
         /// <summary>
         /// Deletes all tokens of the provided user regardless of expiration date.
@@ -451,9 +455,10 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <param name="userId">The token owner ID.</param>
         /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation.</returns>
-        public static Task DeleteTokensByUserAsync(int userId, CancellationToken cancellationToken)
+        public static async Task DeleteTokensByUserAsync(int userId, CancellationToken cancellationToken)
         {
-            return Storage.DeleteAccessTokensByUserAsync(userId, cancellationToken);
+            await Storage.DeleteAccessTokensByUserAsync(userId, cancellationToken).ConfigureAwait(false);
+            await InvalidateApiKeyCacheAsync().ConfigureAwait(false);
         }
 
         /// <summary>
@@ -462,7 +467,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <param name="contentId">The associated content id.</param>
         public static void DeleteTokensByContent(int contentId)
         {
-            Storage.DeleteAccessTokensByContentAsync(contentId, CancellationToken.None).GetAwaiter().GetResult();
+            DeleteTokensByContentAsync(contentId, CancellationToken.None).GetAwaiter().GetResult();
         }
         /// <summary>
         /// Deletes the tokens associated with the specified contentId regardless of expiration date.
@@ -470,18 +475,27 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <param name="contentId">The associated content id.</param>
         /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation.</returns>
-        public static Task DeleteTokensByContentAsync(int contentId, CancellationToken cancellationToken)
+        public static async Task DeleteTokensByContentAsync(int contentId, CancellationToken cancellationToken)
         {
-            return Storage.DeleteAccessTokensByContentAsync(contentId, cancellationToken);
+            await Storage.DeleteAccessTokensByContentAsync(contentId, cancellationToken).ConfigureAwait(false);
+            await InvalidateApiKeyCacheAsync().ConfigureAwait(false);
         }
 
         public static Task DeleteTokensByFeatureAsync(string feature, CancellationToken cancellationToken)
         {
-            return Storage.DeleteAccessTokensAsync(0, 0, feature, cancellationToken);
+            return DeleteTokensAsync(0, 0, feature, cancellationToken);
         }
-        public static Task DeleteTokensAsync(int userId, int contentId, string feature, CancellationToken cancellationToken)
+        public static async Task DeleteTokensAsync(int userId, int contentId, string feature, CancellationToken cancellationToken)
         {
-            return Storage.DeleteAccessTokensAsync(userId, contentId, feature, cancellationToken);
+            await Storage.DeleteAccessTokensAsync(userId, contentId, feature, cancellationToken).ConfigureAwait(false);
+            await InvalidateApiKeyCacheAsync().ConfigureAwait(false);
+        }
+
+        private static Task InvalidateApiKeyCacheAsync()
+        {
+            // Once storage has changed, invalidation must outlive cancellation of the request.
+            return (Providers.Instance.Services.GetService<IApiKeyManager>() as IApiKeyCacheInvalidator)
+                ?.InvalidateCacheAsync(CancellationToken.None) ?? Task.CompletedTask;
         }
 
         /// <summary>

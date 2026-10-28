@@ -107,6 +107,38 @@ namespace SenseNet.ContentRepository.Tests
                         "+TypeIs:task +(Id:0 Manager:1) .TOP:3");
                 });
         }
+        [TestMethod]
+        public void ContentQueryTemplateReplacer_PropertyChain_MissingStep_QueryIntegration_Bug2136()
+        {
+            Test(
+                true,
+                builder => { builder.UseTraceCategories("Query"); },
+                () =>
+                {
+                    AddRootAccessibilityToAdmin();
+                    var testRoot = new SystemFolder(Repository.Root) { Name = "TemplateReplacerTests" };
+                    testRoot.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
+                    var task = new Task(testRoot) { Name = "TemplateReplacerTask" };
+                    task.SaveAsync(CancellationToken.None).GetAwaiter().GetResult();
+
+                    var tasks = ContentQuery.QueryAsync("TypeIs:Task", QuerySettings.AdminSettings, CancellationToken.None)
+                        .ConfigureAwait(false).GetAwaiter().GetResult();
+                    Assert.IsTrue(tasks.Identifiers.Contains(task.Id));
+
+                    // Reproduce https://github.com/SenseNet/sensenet/issues/2136:
+                    // the current user has no Manager, so the property chain cannot be resolved.
+                    const string queryText = "TypeIs:Task +CreationDate:<@@CurrentUser.Manager.CreationDate@@";
+                    var actualResolution = TemplateManager.Replace(typeof(ContentQueryTemplateReplacer), queryText);
+                    Assert.AreEqual($"TypeIs:Task +CreationDate:<{SnQuery.NotResolvedTemplateText}", actualResolution);
+
+                    var result = ContentQuery.QueryAsync(queryText, QuerySettings.AdminSettings, CancellationToken.None)
+                        .ConfigureAwait(false).GetAwaiter().GetResult();
+
+                    Assert.AreEqual(0, result.Count);
+                    Assert.IsFalse(result.Identifiers.Any());
+                });
+        }
+
         private void PropertyChain_MissingStep_Test(string queryText, string expectedResolution, string expectedCql)
         {
             var actualResolution = TemplateManager.Replace(typeof(ContentQueryTemplateReplacer), queryText);

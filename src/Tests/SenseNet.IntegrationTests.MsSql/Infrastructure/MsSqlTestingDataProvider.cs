@@ -202,6 +202,7 @@ ALTER TABLE [Versions] CHECK CONSTRAINT ALL
                         OwnerId = reader.GetSafeInt32("OwnerId"),
                         SavingState = reader.GetSavingState("SavingState"),
                         Timestamp = reader.GetSafeLongFromBytes("Timestamp"),
+                        RowGuid = reader.GetGuid(reader.GetOrdinal("RowGuid")),
                     };
                 });
             }
@@ -231,6 +232,7 @@ ALTER TABLE [Versions] CHECK CONSTRAINT ALL
                         ModifiedById = reader.GetSafeInt32("ModifiedById"),
                         ChangedData = reader.GetChangedData("ChangedData"),
                         Timestamp = reader.GetSafeLongFromBytes("Timestamp"),
+                        RowGuid = reader.GetGuid(reader.GetOrdinal("RowGuid")),
                     };
                 });
             }

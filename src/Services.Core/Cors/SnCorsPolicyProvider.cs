@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Cors.Infrastructure;
 using Microsoft.AspNetCore.Http;
@@ -73,30 +73,116 @@ namespace SenseNet.Services.Core.Cors
 
         internal static string GetAllowedDomain(string originDomain, IEnumerable<string> allowedDomains)
         {
+            if (!TrySplitDomain(originDomain, false, out var originScheme, out var host, out var originPort))
+                return null;
+
             bool TemplateMatch(string template)
             {
-                if (string.Equals(template, originDomain, StringComparison.InvariantCultureIgnoreCase))
+                if (template == CorsConstants.AnyOrigin)
                     return true;
 
-                if (string.IsNullOrEmpty(template))
+                if (!TrySplitDomain(template, true, out var scheme, out var templateHost, out var port))
                     return false;
 
-                // If there is a port wildcard, we will match all ports,
-                // including the not present default port.
-                if (template.EndsWith(":*"))
-                    template = template.Replace(":*", "(:[\\d]+){0,1}");
-
-                // subdomain wildcard
-                template = template.Replace("*", "[\\da-z.-]+");
-
-                // template prefix: optional schema (http or https) is acceptable
-                var regex = new Regex($"^([\\w]+:\\/\\/){{0,1}}{template}$", RegexOptions.Singleline | RegexOptions.IgnoreCase);
-                return regex.IsMatch(originDomain);
+                return (scheme == null || string.Equals(scheme, originScheme, StringComparison.OrdinalIgnoreCase)) &&
+                       (port == "*" || port == originPort) &&
+                       MatchesDomain(templateHost, host);
             }
 
-            return allowedDomains?.FirstOrDefault(d =>
-                d == CorsConstants.AnyOrigin ||
-                TemplateMatch(d));
+            return allowedDomains?.FirstOrDefault(TemplateMatch);
+        }
+
+        private static bool TrySplitDomain(string value, bool allowWildcards, out string scheme,
+            out string[] hostParts, out string port)
+        {
+            scheme = null;
+            hostParts = null;
+            port = null;
+            if (string.IsNullOrEmpty(value) || value.Any(char.IsWhiteSpace) ||
+                (!allowWildcards && string.Equals(value, "null", StringComparison.OrdinalIgnoreCase)))
+                return false;
+
+            // Preserve scheme-less domain settings and callers; explicit schemes must be HTTP(S).
+            var schemeEnd = value.IndexOf("://", StringComparison.Ordinal);
+            if (schemeEnd >= 0)
+            {
+                scheme = value.Substring(0, schemeEnd);
+                if (!string.Equals(scheme, Uri.UriSchemeHttp, StringComparison.OrdinalIgnoreCase) &&
+                    !string.Equals(scheme, Uri.UriSchemeHttps, StringComparison.OrdinalIgnoreCase))
+                    return false;
+                value = value.Substring(schemeEnd + 3);
+            }
+
+            // A bracketed IPv6 address may contain colons; its port follows the closing bracket.
+            var ipv6 = value.StartsWith("[", StringComparison.Ordinal);
+            var hostEnd = ipv6 ? value.IndexOf(']') + 1 : value.IndexOf(':');
+            if (hostEnd == 0)
+                return false;
+            if (hostEnd < 0)
+                hostEnd = value.Length;
+
+            var host = value.Substring(0, hostEnd);
+            if (host.Length == 0 || host.Length > 253)
+                return false;
+            if (hostEnd < value.Length)
+            {
+                if (value[hostEnd] != ':')
+                    return false;
+                port = value.Substring(hostEnd + 1);
+                if (!(allowWildcards && port == "*") &&
+                    (!int.TryParse(port, NumberStyles.None, CultureInfo.InvariantCulture, out var portNumber) ||
+                     portNumber > 65535))
+                    return false;
+            }
+
+            // Keep explicit ports distinct from omitted ones, including default ports.
+            // A configured :* matches either form.
+            hostParts = ipv6 ? new[] { host } : host.Split('.');
+            if (hostParts.Any(p => p.Length == 0 ||
+                                   (p.Contains('*') && !(allowWildcards && p == "*"))))
+                return false;
+
+            // Validate wildcard templates using a single valid label in place of each wildcard.
+            var hostType = Uri.CheckHostName(string.Join(".", hostParts.Select(p => p == "*" ? "a" : p)));
+            return ipv6 ? hostType == UriHostNameType.IPv6 :
+                hostType == UriHostNameType.Dns || hostType == UriHostNameType.IPv4;
+        }
+
+        private static bool MatchesDomain(string[] template, string[] host)
+        {
+            int x = 0, y = 0;
+            int starX = -1, starEnd = -1;
+
+            while (y < host.Length)
+            {
+                if (x < template.Length && template[x] == "*")
+                {
+                    // Each wildcard initially consumes one complete domain label.
+                    starX = x;
+                    starEnd = y + 1;
+                    x++;
+                    y = starEnd;
+                }
+                else if (x < template.Length &&
+                         string.Equals(template[x], host[y], StringComparison.OrdinalIgnoreCase))
+                {
+                    x++;
+                    y++;
+                }
+                else if (starX >= 0 && starEnd < host.Length)
+                {
+                    // Extend the last wildcard and retry the following template labels.
+                    starEnd++;
+                    x = starX + 1;
+                    y = starEnd;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+
+            return x == template.Length;
         }
     }
 }

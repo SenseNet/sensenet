@@ -167,6 +167,8 @@ pwsh -NoProfile -File ./tests/Test-DeploymentSmoke.ps1 -Scenario Parallel
 pwsh -NoProfile -File ./tests/Test-DeploymentSmoke.ps1 -Scenario InMemory -LegacyPorts
 ```
 
+For repeatable PostgreSQL SQL-contract, fresh-install and baseline-to-current upgrade checks, see [PostgreSQL provider validation](../docs/postgres-provider-validation.md).
+
 For an already running IdentityServer demo, test the exact repository URL and Admin UI origin involved in a login failure:
 
 ```powershell

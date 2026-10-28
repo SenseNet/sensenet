@@ -23,18 +23,39 @@ namespace SenseNet.ContentRepository.Storage.Data.PgSqlClient
         //   Version: @MajorNumber, @MinorNumber, @Status,
         //         @VersionCreationDate, @VersionCreatedById, @VersionModificationDate, @VersionModifiedById,
         //         @DynamicProperties, @ContentListProperties
-        // Result (by name): NodeId, NodeTimestamp, LastMajorVersionId, LastMinorVersionId, VersionId, VersionTimestamp
+        // Allocate the version id first so both rows can be inserted atomically without
+        // changing the installed legacy insert function on an existing database.
+        // RowGuids come from the database defaults, never from the incoming DTOs.
         protected override string InsertNodeAndVersionScript => @"-- PgSqlDataProvider.InsertNodeAndVersion
-SELECT * FROM sn_insert_node_and_version(
-    @NodeTypeId, @ContentListTypeId, @ContentListId, @CreatingInProgress, @IsDeleted, @IsInherited,
-    @ParentNodeId, @Name, @DisplayName, @Path, @Index, @Locked, @LockedById,
-    @ETag, @LockType, @LockTimeout, @LockDate, @LockToken, @LastLockUpdate,
-    @NodeCreationDate, @NodeCreatedById, @NodeModificationDate, @NodeModifiedById,
-    @IsSystem, @OwnerId, @SavingState,
-    @MajorNumber, @MinorNumber, @Status, @ChangedData,
-    @VersionCreationDate, @VersionCreatedById, @VersionModificationDate, @VersionModifiedById,
-    @DynamicProperties, @ContentListProperties
-);
+WITH version_id AS (
+    SELECT nextval(pg_get_serial_sequence('""Versions""', 'VersionId'))::INT AS id
+), inserted_node AS (
+    INSERT INTO ""Nodes""
+        (""NodeTypeId"", ""ContentListTypeId"", ""ContentListId"", ""CreatingInProgress"", ""IsDeleted"", ""IsInherited"",
+         ""ParentNodeId"", ""Name"", ""DisplayName"", ""Path"", ""Index"", ""Locked"", ""LockedById"",
+         ""ETag"", ""LockType"", ""LockTimeout"", ""LockDate"", ""LockToken"", ""LastLockUpdate"",
+         ""CreationDate"", ""CreatedById"", ""ModificationDate"", ""ModifiedById"",
+         ""IsSystem"", ""OwnerId"", ""SavingState"", ""LastMajorVersionId"", ""LastMinorVersionId"", ""Timestamp"")
+    SELECT @NodeTypeId, @ContentListTypeId, @ContentListId, @CreatingInProgress, @IsDeleted, @IsInherited,
+        @ParentNodeId, @Name, @DisplayName, @Path, @Index, @Locked, @LockedById,
+        @ETag, @LockType, @LockTimeout, @LockDate, @LockToken, @LastLockUpdate,
+        @NodeCreationDate, @NodeCreatedById, @NodeModificationDate, @NodeModifiedById,
+        @IsSystem, @OwnerId, @SavingState, CASE WHEN @Status = 1 THEN id ELSE NULL END, id, 1
+    FROM version_id
+    RETURNING ""NodeId"", ""Timestamp"" AS ""NodeTimestamp"", ""RowGuid"" AS ""NodeGuid"",
+        ""LastMajorVersionId"", ""LastMinorVersionId"", ""Path""
+), inserted_version AS (
+    INSERT INTO ""Versions""
+        (""VersionId"", ""NodeId"", ""MajorNumber"", ""MinorNumber"", ""Status"", ""ChangedData"",
+         ""CreationDate"", ""CreatedById"", ""ModificationDate"", ""ModifiedById"",
+         ""DynamicProperties"", ""ContentListProperties"")
+    SELECT version_id.id, inserted_node.""NodeId"", @MajorNumber, @MinorNumber, @Status, @ChangedData,
+        @VersionCreationDate, @VersionCreatedById, @VersionModificationDate, @VersionModifiedById,
+        @DynamicProperties, @ContentListProperties
+    FROM version_id CROSS JOIN inserted_node
+    RETURNING ""VersionId"", ""Timestamp"" AS ""VersionTimestamp"", ""RowGuid"" AS ""VersionGuid""
+)
+SELECT inserted_node.*, inserted_version.* FROM inserted_node CROSS JOIN inserted_version;
 ";
         #endregion
 
@@ -77,7 +98,7 @@ WHERE COALESCE(@ReferredNodeIds{0}, '') <> '';
         // Base class params: @VersionId, @NodeId, @MajorNumber, @MinorNumber, @Status,
         //   @CreationDate, @CreatedById, @ModificationDate, @ModifiedById,
         //   @ChangedData, @DynamicProperties, @ContentListProperties
-        // Return: ExecuteScalar -> single Timestamp value
+        // Returns the timestamp and immutable stored version GUID.
         protected override string UpdateVersionScript => @"-- PgSqlDataProvider.UpdateVersion
 UPDATE ""Versions"" SET
     ""NodeId"" = @NodeId,
@@ -92,7 +113,7 @@ UPDATE ""Versions"" SET
     ""DynamicProperties"" = @DynamicProperties,
     ""ContentListProperties"" = @ContentListProperties
 WHERE ""VersionId"" = @VersionId
-RETURNING ""Timestamp""
+RETURNING ""Timestamp"", ""RowGuid"" AS ""VersionGuid""
 ";
         #endregion
 
@@ -102,7 +123,7 @@ RETURNING ""Timestamp""
         //   @Index, @Locked, @LockedById, @ETag, @LockType, @LockTimeout, @LockDate, @LockToken, @LastLockUpdate,
         //   @CreationDate, @CreatedById, @ModificationDate, @ModifiedById,
         //   @IsSystem, @OwnerId, @SavingState, @NodeTimestamp (binary)
-        // Return: ExecuteScalar -> single Timestamp value
+        // Returns the timestamp and immutable stored node GUID.
         protected override string UpdateNodeScript => @"-- PgSqlDataProvider.UpdateNode
 UPDATE ""Nodes"" SET
     ""NodeTypeId"" = @NodeTypeId,
@@ -132,7 +153,7 @@ UPDATE ""Nodes"" SET
     ""OwnerId"" = @OwnerId,
     ""SavingState"" = @SavingState
 WHERE ""NodeId"" = @NodeId AND ""Timestamp"" = @NodeTimestamp
-RETURNING ""Timestamp""
+RETURNING ""Timestamp"", ""RowGuid"" AS ""NodeGuid""
 ";
         #endregion
 
@@ -210,11 +231,14 @@ INSERT INTO ""LongTextProperties""
         //   @NodeId, @MajorNumber, @MinorNumber, @Status,
         //   @CreationDate, @CreatedById, @ModificationDate, @ModifiedById,
         //   @ChangedData, @DynamicProperties, @ContentListProperties
-        // Result set 1 (by name): VersionId, Timestamp
+        // Result set 1 (by name): VersionId, Timestamp, VersionGuid
         // Result set 2 (by name): BinaryPropertyId, PropertyTypeId
         protected override string CopyVersionAndUpdateScript => @"-- PgSqlDataProvider.CopyVersionAndUpdate
 -- Set older locked versions to Draft
-UPDATE ""Versions"" SET ""Status"" = 4 WHERE ""NodeId"" = @NodeId AND ""Status"" = 2;
+UPDATE ""Versions"" SET ""Status"" = 4 WHERE ""NodeId"" = @NodeId AND ""Status"" = 2
+    AND EXISTS (SELECT 1 FROM ""Versions"" WHERE ""VersionId"" = @PreviousVersionId)
+    AND (@DestinationVersionId IS NULL OR EXISTS (
+        SELECT 1 FROM ""Versions"" WHERE ""VersionId"" = @DestinationVersionId));
 
 -- Insert new version if @DestinationVersionId is NULL
 INSERT INTO ""Versions""
@@ -225,7 +249,8 @@ SELECT
     @NodeId, @MajorNumber, @MinorNumber, @CreationDate, @CreatedById,
     @ModificationDate, @ModifiedById, @Status, @ChangedData,
     @DynamicProperties, @ContentListProperties
-WHERE @DestinationVersionId IS NULL;
+WHERE @DestinationVersionId IS NULL
+    AND EXISTS (SELECT 1 FROM ""Versions"" WHERE ""VersionId"" = @PreviousVersionId);
 
 -- If @DestinationVersionId is not NULL, update existing version
 UPDATE ""Versions"" SET
@@ -241,27 +266,48 @@ UPDATE ""Versions"" SET
     ""DynamicProperties"" = @DynamicProperties,
     ""ContentListProperties"" = @ContentListProperties
 WHERE ""VersionId"" = @DestinationVersionId AND @DestinationVersionId IS NOT NULL
+    AND EXISTS (SELECT 1 FROM ""Versions"" WHERE ""VersionId"" = @PreviousVersionId)
 ;
 
 -- Return version info (result set 1)
-SELECT ""VersionId"", ""Timestamp"" FROM ""Versions""
-WHERE ""VersionId"" = COALESCE(@DestinationVersionId, currval('""Versions_VersionId_seq""'));
+SELECT ""VersionId"", ""Timestamp"", ""RowGuid"" AS ""VersionGuid"" FROM ""Versions""
+WHERE ""VersionId"" = CASE
+    WHEN EXISTS (SELECT 1 FROM ""Versions"" WHERE ""VersionId"" = @PreviousVersionId)
+    THEN COALESCE(@DestinationVersionId, currval('""Versions_VersionId_seq""'))
+    ELSE NULL END;
+
+-- Replacing an existing destination keeps its row/GUID and replaces its properties.
+DELETE FROM ""BinaryProperties"" WHERE ""VersionId"" = @DestinationVersionId AND @DestinationVersionId <> @PreviousVersionId
+    AND EXISTS (SELECT 1 FROM ""Versions"" WHERE ""VersionId"" = @PreviousVersionId);
+DELETE FROM ""ReferenceProperties"" WHERE ""VersionId"" = @DestinationVersionId AND @DestinationVersionId <> @PreviousVersionId
+    AND EXISTS (SELECT 1 FROM ""Versions"" WHERE ""VersionId"" = @PreviousVersionId);
+DELETE FROM ""LongTextProperties"" WHERE ""VersionId"" = @DestinationVersionId AND @DestinationVersionId <> @PreviousVersionId
+    AND EXISTS (SELECT 1 FROM ""Versions"" WHERE ""VersionId"" = @PreviousVersionId);
 
 -- Copy properties from previous version
 INSERT INTO ""BinaryProperties"" (""VersionId"", ""PropertyTypeId"", ""FileId"")
     SELECT COALESCE(@DestinationVersionId, currval('""Versions_VersionId_seq""')), ""PropertyTypeId"", ""FileId""
-    FROM ""BinaryProperties"" WHERE ""VersionId"" = @PreviousVersionId;
+    FROM ""BinaryProperties"" WHERE ""VersionId"" = @PreviousVersionId
+        AND (@DestinationVersionId IS NULL OR (@DestinationVersionId <> @PreviousVersionId AND EXISTS (
+            SELECT 1 FROM ""Versions"" WHERE ""VersionId"" = @DestinationVersionId)));
 INSERT INTO ""ReferenceProperties"" (""VersionId"", ""PropertyTypeId"", ""ReferredNodeId"")
     SELECT COALESCE(@DestinationVersionId, currval('""Versions_VersionId_seq""')), ""PropertyTypeId"", ""ReferredNodeId""
-    FROM ""ReferenceProperties"" WHERE ""VersionId"" = @PreviousVersionId;
+    FROM ""ReferenceProperties"" WHERE ""VersionId"" = @PreviousVersionId
+        AND (@DestinationVersionId IS NULL OR (@DestinationVersionId <> @PreviousVersionId AND EXISTS (
+            SELECT 1 FROM ""Versions"" WHERE ""VersionId"" = @DestinationVersionId)));
 INSERT INTO ""LongTextProperties"" (""VersionId"", ""PropertyTypeId"", ""Length"", ""Value"")
     SELECT COALESCE(@DestinationVersionId, currval('""Versions_VersionId_seq""')), ""PropertyTypeId"", ""Length"", ""Value""
-    FROM ""LongTextProperties"" WHERE ""VersionId"" = @PreviousVersionId;
+    FROM ""LongTextProperties"" WHERE ""VersionId"" = @PreviousVersionId
+        AND (@DestinationVersionId IS NULL OR (@DestinationVersionId <> @PreviousVersionId AND EXISTS (
+            SELECT 1 FROM ""Versions"" WHERE ""VersionId"" = @DestinationVersionId)));
 
 -- Return binary properties info (result set 2)
 SELECT B.""BinaryPropertyId"", B.""PropertyTypeId"" FROM ""BinaryProperties"" B
     JOIN ""Files"" F ON B.""FileId"" = F.""FileId""
-WHERE B.""VersionId"" = COALESCE(@DestinationVersionId, currval('""Versions_VersionId_seq""'))
+WHERE B.""VersionId"" = CASE
+    WHEN EXISTS (SELECT 1 FROM ""Versions"" WHERE ""VersionId"" = @PreviousVersionId)
+    THEN COALESCE(@DestinationVersionId, currval('""Versions_VersionId_seq""'))
+    ELSE NULL END
     AND F.""Staging"" IS NULL
 ";
         #endregion
@@ -304,10 +350,10 @@ SELECT N.""NodeId"", N.""NodeTypeId"", N.""ContentListTypeId"", N.""ContentListI
     N.""ModificationDate"" AS ""NodeModificationDate"", N.""ModifiedById"" AS ""NodeModifiedById"",
     N.""IsSystem"", N.""OwnerId"",
     N.""SavingState"", V.""ChangedData"",
-    N.""Timestamp"" AS ""NodeTimestamp"",
+    N.""Timestamp"" AS ""NodeTimestamp"", N.""RowGuid"" AS ""NodeGuid"",
     V.""VersionId"", V.""MajorNumber"", V.""MinorNumber"", V.""CreationDate"", V.""CreatedById"",
     V.""ModificationDate"", V.""ModifiedById"", V.""Status"",
-    V.""Timestamp"" AS ""VersionTimestamp"",
+    V.""Timestamp"" AS ""VersionTimestamp"", V.""RowGuid"" AS ""VersionGuid"",
     V.""DynamicProperties"", V.""ContentListProperties""
 FROM ""Nodes"" N
     INNER JOIN ""Versions"" V ON N.""NodeId"" = V.""NodeId""
@@ -385,6 +431,11 @@ WHERE ""VersionId"" = @VersionId AND ""PropertyTypeId"" IN ({0})
 SELECT CASE WHEN EXISTS (SELECT 1 FROM ""Nodes"" WHERE ""Path"" = @Path) THEN 1 ELSE 0 END
 ";
         #endregion
+
+        protected override string GetNodeIdByGuidScript =>
+            "SELECT \"NodeId\" FROM \"Nodes\" WHERE \"RowGuid\" = @RowGuid";
+        protected override string GetVersionIdByGuidScript =>
+            "SELECT \"VersionId\" FROM \"Versions\" WHERE \"RowGuid\" = @RowGuid";
 
         #region LoadNodeHeadByPathScript
         protected override string LoadNodeHeadByPathScript => @"-- PgSqlDataProvider.LoadNodeHeadByPath

@@ -47,6 +47,11 @@ namespace SenseNet.ContentRepository
         /// <returns></returns>
         public static RepositoryInstance Start(RepositoryStartSettings settings)
         {
+            return RepositoryInstance.RunStartup(() => StartCore(settings));
+        }
+
+        private static RepositoryInstance StartCore(RepositoryStartSettings settings)
+        {
             if (!settings.ExecutingPatches)
             {
                 // Switch ON this flag so that inner repository start operations
@@ -62,6 +67,11 @@ namespace SenseNet.ContentRepository
             return instance;
         }
         public static RepositoryInstance Start(RepositoryBuilder builder)
+        {
+            return RepositoryInstance.RunStartup(() => StartCore(builder));
+        }
+
+        private static RepositoryInstance StartCore(RepositoryBuilder builder)
         {
             var repositoryStatus = Providers.Instance.RepositoryStatus;
             var connectionStrings = builder.Services?.GetRequiredService<IOptions<ConnectionStringOptions>>();
@@ -91,7 +101,7 @@ namespace SenseNet.ContentRepository
                 patchManager.ExecutePatchesOnBeforeStart();
 
                 repositoryStatus?.SetStatus("Calling Repository.Start");
-                repositoryInstance = Start((RepositoryStartSettings)builder);
+                repositoryInstance = StartCore((RepositoryStartSettings)builder);
 
                 var permissions = initialData?.Permissions;
                 if (permissions != null && permissions.Count > 0)

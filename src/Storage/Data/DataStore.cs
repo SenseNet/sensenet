@@ -159,6 +159,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                     // Write back the version level changed values
                     nodeData.VersionId = versionData.VersionId;
                     nodeData.VersionTimestamp = versionData.Timestamp;
+                    nodeData.VersionGuid = versionData.RowGuid;
                 }
                 else
                 {
@@ -171,6 +172,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                 settings.LastMajorVersionIdAfter = lastMajorVersionId;
                 settings.LastMinorVersionIdAfter = lastMinorVersionId;
                 nodeData.NodeTimestamp = nodeHeadData.Timestamp;
+                nodeData.NodeGuid = nodeHeadData.RowGuid;
 
                 // Cache manipulations
                 if (!isNewNode)
@@ -429,6 +431,26 @@ namespace SenseNet.ContentRepository.Storage.Data
             }
 
             return item;
+        }
+        public async Task<NodeHead> LoadNodeHeadAsync(Guid nodeGuid, CancellationToken cancellationToken)
+        {
+            var nodeId = await DataProvider.GetNodeIdByGuidAsync(nodeGuid, cancellationToken).ConfigureAwait(false);
+            cancellationToken.ThrowIfCancellationRequested();
+            return nodeId == 0
+                ? null
+                : await LoadNodeHeadAsync(nodeId, cancellationToken).ConfigureAwait(false);
+        }
+        public async Task<NodeHead> LoadNodeHeadByVersionGuidAsync(Guid versionGuid, CancellationToken cancellationToken)
+        {
+            var versionId = await GetVersionIdByGuidAsync(versionGuid, cancellationToken).ConfigureAwait(false);
+            cancellationToken.ThrowIfCancellationRequested();
+            return versionId == 0
+                ? null
+                : await LoadNodeHeadByVersionIdAsync(versionId, cancellationToken).ConfigureAwait(false);
+        }
+        public Task<int> GetVersionIdByGuidAsync(Guid versionGuid, CancellationToken cancellationToken)
+        {
+            return DataProvider.GetVersionIdByGuidAsync(versionGuid, cancellationToken);
         }
         public Task<NodeHead> LoadNodeHeadByVersionIdAsync(int versionId, CancellationToken cancellationToken)
         {

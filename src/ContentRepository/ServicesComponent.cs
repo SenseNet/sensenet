@@ -4,6 +4,7 @@ using System.Data;
 using System.IO;
 using System.Linq;
 using System.Threading;
+using System.Xml.Linq;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -29,7 +30,7 @@ namespace SenseNet.ContentRepository
         // This value has to change if there were database, content
         // or configuration changes since the last release that
         // should be enforced using an upgrade patch.
-        public override Version SupportedVersion => new Version(7, 8, 0);
+        public override Version SupportedVersion => new Version(7, 8, 2);
 
         public override void AddPatches(PatchBuilder builder)
         {
@@ -1583,6 +1584,56 @@ namespace SenseNet.ContentRepository
 
             builder.Patch("7.8.0", "7.8.1", "2025-03-07", "Upgrades sensenet content repository.")
                 .Action(Patch_7_8_1);
+
+            builder.Patch("7.8.1", "7.8.2", "2026-10-21", "Exposes read-only, non-indexed row GUID fields.")
+                .Action(_ => AddRowGuidFields());
+        }
+
+        internal static void AddRowGuidFields()
+        {
+            var contentType = ContentType.GetByName("GenericContent");
+            using var stream = contentType.Binary.GetStream();
+            var definition = XDocument.Load(stream);
+            var ns = definition.Root.Name.Namespace;
+            var fields = definition.Root.Element(ns + "Fields")
+                ?? throw new InvalidOperationException("GenericContent has no Fields element.");
+            var changed = false;
+
+            foreach (var (name, precedingField) in new[]
+                     {
+                         (nameof(GenericContent.NodeGuidText), "Id"),
+                         (nameof(GenericContent.VersionGuidText), "VersionId")
+                     })
+            {
+                var field = new XElement(ns + "Field",
+                    new XAttribute("name", name), new XAttribute("type", "ShortText"),
+                    new XElement(ns + "Indexing",
+                        new XElement(ns + "Mode", "No"), new XElement(ns + "Store", "No")),
+                    new XElement(ns + "Configuration",
+                        new XElement(ns + "ReadOnly", "true"),
+                        new XElement(ns + "VisibleBrowse", "Hide"),
+                        new XElement(ns + "VisibleEdit", "Hide"),
+                        new XElement(ns + "VisibleNew", "Hide")));
+                var existing = fields.Elements(ns + "Field").SingleOrDefault(f => (string)f.Attribute("name") == name);
+                if (XNode.DeepEquals(existing, field))
+                    continue;
+
+                if (existing != null)
+                    existing.ReplaceWith(field);
+                else
+                {
+                    var preceding = fields.Elements(ns + "Field")
+                        .SingleOrDefault(f => (string)f.Attribute("name") == precedingField);
+                    if (preceding != null)
+                        preceding.AddAfterSelf(field);
+                    else
+                        fields.Add(field);
+                }
+                changed = true;
+            }
+
+            if (changed)
+                ContentTypeInstaller.InstallContentType(definition.ToString());
         }
 
         private void Patch_7_7_29(PatchExecutionContext context)

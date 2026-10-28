@@ -107,11 +107,13 @@ namespace SenseNet.ContentRepository.Storage.Data
                         {
                             nodeHeadData.NodeId = reader.GetInt32("NodeId");
                             nodeHeadData.Timestamp = reader.GetSafeLongFromBytes("NodeTimestamp");
+                            nodeHeadData.RowGuid = reader.GetGuid(reader.GetOrdinal("NodeGuid"));
                             nodeHeadData.LastMajorVersionId = reader.GetSafeInt32("LastMajorVersionId");
                             nodeHeadData.LastMinorVersionId = reader.GetInt32("LastMinorVersionId");
                             versionData.VersionId = reader.GetInt32("VersionId");
                             versionData.NodeId = nodeHeadData.NodeId;
                             versionData.Timestamp = reader.GetSafeLongFromBytes("VersionTimestamp");
+                            versionData.RowGuid = reader.GetGuid(reader.GetOrdinal("VersionGuid"));
                         }
                         else
                         {
@@ -276,7 +278,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                     var versionId = versionData.VersionId;
 
                     // Update version
-                    var rawVersionTimestamp = await ctx.ExecuteScalarAsync(UpdateVersionScript, cmd =>
+                    await ctx.ExecuteReaderAsync(UpdateVersionScript, cmd =>
                     {
                         cmd.Parameters.AddRange(new[]
                         {
@@ -295,15 +297,18 @@ namespace SenseNet.ContentRepository.Storage.Data
                             ctx.CreateParameter("@ContentListProperties", DbType.String, int.MaxValue,
                                 SerializeDynamicProperties(dynamicData.ContentListProperties)),
                         });
+                    }, async (reader, cancel) =>
+                    {
+                        if (!await reader.ReadAsync(cancel).ConfigureAwait(false))
+                            throw new ContentNotFoundException(
+                                $"Version not found. VersionId: {versionData.VersionId} NodeId: {nodeHeadData.NodeId}, path: {nodeHeadData.Path}.");
+                        versionData.Timestamp = reader.GetSafeLongFromBytes("Timestamp");
+                        versionData.RowGuid = reader.GetGuid(reader.GetOrdinal("VersionGuid"));
+                        return true;
                     }).ConfigureAwait(false);
-                    var versionTimestamp = ConvertTimestampToInt64(rawVersionTimestamp);
-                    if(versionTimestamp == 0L)
-                        throw new ContentNotFoundException(
-                            $"Version not found. VersionId: {versionData.VersionId} NodeId: {nodeHeadData.NodeId}, path: {nodeHeadData.Path}.");
-                    versionData.Timestamp = versionTimestamp;
 
                     // Update Node
-                    var rawNodeTimestamp = await ctx.ExecuteScalarAsync(UpdateNodeScript, cmd =>
+                    await ctx.ExecuteReaderAsync(UpdateNodeScript, cmd =>
                     {
                         cmd.Parameters.AddRange(new[]
                         {
@@ -338,8 +343,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                             ctx.CreateParameter("@NodeTimestamp", DbType.Binary, ConvertInt64ToTimestamp(nodeHeadData.Timestamp)),
                             #endregion
                         });
-                    }).ConfigureAwait(false);
-                    nodeHeadData.Timestamp = ConvertTimestampToInt64(rawNodeTimestamp);
+                    }, (reader, cancel) => ReadUpdatedNodeAsync(reader, cancel, nodeHeadData)).ConfigureAwait(false);
 
                     // Update subtree if needed
                     if (originalPath != null)
@@ -445,6 +449,16 @@ namespace SenseNet.ContentRepository.Storage.Data
         }
         protected abstract string UpdateVersionScript { get; }
         protected abstract string UpdateNodeScript { get; }
+
+        private static async Task<bool> ReadUpdatedNodeAsync(DbDataReader reader, CancellationToken cancellationToken,
+            NodeHeadData nodeHeadData)
+        {
+            if (!await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                throw new DataException("Node was not saved. The UpdateNode script returned nothing.");
+            nodeHeadData.Timestamp = reader.GetSafeLongFromBytes("Timestamp");
+            nodeHeadData.RowGuid = reader.GetGuid(reader.GetOrdinal("NodeGuid"));
+            return true;
+        }
         protected abstract string UpdateSubTreePathScript { get; }
         protected abstract string ManageLastVersionsScript { get; }
         protected virtual async Task UpdateReferencePropertiesAsync(IDictionary<PropertyType, List<int>> referenceProperties, int versionId, SnDataContext ctx)
@@ -540,12 +554,12 @@ namespace SenseNet.ContentRepository.Storage.Data
                     }, async (reader, cancel) =>
                     {
                         cancel.ThrowIfCancellationRequested();
-                        while (await reader.ReadAsync(cancel).ConfigureAwait(false))
-                        {
-                            cancel.ThrowIfCancellationRequested();
-                            versionData.VersionId = reader.GetInt32("VersionId");
-                            versionData.Timestamp = reader.GetSafeLongFromBytes("Timestamp");
-                        }
+                        if (!await reader.ReadAsync(cancel).ConfigureAwait(false))
+                            throw new ContentNotFoundException(
+                                $"Destination version not found. VersionId: {expectedVersionId} NodeId: {nodeHeadData.NodeId}.");
+                        versionData.VersionId = reader.GetInt32("VersionId");
+                        versionData.Timestamp = reader.GetSafeLongFromBytes("Timestamp");
+                        versionData.RowGuid = reader.GetGuid(reader.GetOrdinal("VersionGuid"));
                         cancel.ThrowIfCancellationRequested();
                         if (await reader.NextResultAsync(cancel).ConfigureAwait(false))
                         {
@@ -563,7 +577,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                     }).ConfigureAwait(false);
 
                     // Update Node
-                    var rawNodeTimestamp = await ctx.ExecuteScalarAsync(UpdateNodeScript, cmd =>
+                    await ctx.ExecuteReaderAsync(UpdateNodeScript, cmd =>
                     {
                         cmd.Parameters.AddRange(new[]
                         {
@@ -598,8 +612,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                             ctx.CreateParameter("@NodeTimestamp", DbType.Binary, ConvertInt64ToTimestamp(nodeHeadData.Timestamp)),
                             #endregion
                         });
-                    }).ConfigureAwait(false);
-                    nodeHeadData.Timestamp = ConvertTimestampToInt64(rawNodeTimestamp);
+                    }, (reader, cancel) => ReadUpdatedNodeAsync(reader, cancel, nodeHeadData)).ConfigureAwait(false);
 
                     // Update subtree if needed
                     if (originalPath != null)
@@ -661,7 +674,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                 {
                     using var transaction = ctx.BeginTransaction();
                     // Update Node
-                    var rawNodeTimestamp = await ctx.ExecuteScalarAsync(UpdateNodeScript, cmd =>
+                    await ctx.ExecuteReaderAsync(UpdateNodeScript, cmd =>
                     {
                         cmd.Parameters.AddRange(new[]
                         {
@@ -696,8 +709,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                         ctx.CreateParameter("@NodeTimestamp", DbType.Binary, ConvertInt64ToTimestamp(nodeHeadData.Timestamp)),
                         #endregion
                         });
-                    }).ConfigureAwait(false);
-                    nodeHeadData.Timestamp = ConvertTimestampToInt64(rawNodeTimestamp);
+                    }, (reader, cancel) => ReadUpdatedNodeAsync(reader, cancel, nodeHeadData)).ConfigureAwait(false);
 
                     // Delete unnecessary versions and update last versions
                     await ManageLastVersionsAsync(versionIdsToDelete, nodeHeadData, ctx).ConfigureAwait(false);
@@ -852,6 +864,8 @@ namespace SenseNet.ContentRepository.Storage.Data
                         VersionModificationDate = reader.GetDateTimeUtc("ModificationDate"),
                         VersionModifiedById = reader.GetInt32("ModifiedById"),
                         VersionTimestamp = reader.GetSafeLongFromBytes("VersionTimestamp"),
+                        NodeGuid = reader.GetGuid(reader.GetOrdinal("NodeGuid")),
+                        VersionGuid = reader.GetGuid(reader.GetOrdinal("VersionGuid")),
                     };
 
                     var dynamicPropertySource = reader.GetSafeString("DynamicProperties");
@@ -1151,6 +1165,40 @@ namespace SenseNet.ContentRepository.Storage.Data
         protected abstract string NodeExistsScript { get; }
 
         /* =============================================================================================== NodeHead */
+
+        /// <inheritdoc />
+        public override Task<int> GetNodeIdByGuidAsync(Guid nodeGuid, CancellationToken cancellationToken)
+        {
+            return GetIdByGuidAsync(GetNodeIdByGuidScript, nodeGuid, cancellationToken);
+        }
+        protected abstract string GetNodeIdByGuidScript { get; }
+
+        /// <inheritdoc />
+        public override Task<int> GetVersionIdByGuidAsync(Guid versionGuid, CancellationToken cancellationToken)
+        {
+            return GetIdByGuidAsync(GetVersionIdByGuidScript, versionGuid, cancellationToken);
+        }
+        protected abstract string GetVersionIdByGuidScript { get; }
+
+        private async Task<int> GetIdByGuidAsync(string script, Guid guid, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            if (guid == Guid.Empty)
+                return 0;
+
+            using var op = SnTrace.Database.StartOperation("RelationalDataProviderBase: GetIdByGuid(guid: {0})", guid);
+            var result = await RetryAsync(async () =>
+            {
+                using var ctx = CreateDataContext(cancellationToken);
+                var value = await ctx.ExecuteScalarAsync(script, cmd =>
+                {
+                    cmd.Parameters.Add(ctx.CreateParameter("@RowGuid", DbType.Guid, guid));
+                }).ConfigureAwait(false);
+                return value == null || value == DBNull.Value ? 0 : (int)value;
+            }, cancellationToken).ConfigureAwait(false);
+            op.Successful = true;
+            return result;
+        }
 
         /// <inheritdoc />
         public override async Task<NodeHead> LoadNodeHeadAsync(string path, CancellationToken cancellationToken)

@@ -102,6 +102,24 @@ namespace SenseNet.Search.Tests
             TestError("");
             TestError(".TOP:10");
         }
+        [DataTestMethod]
+        [DataRow("(+Name:a) Name:b", "Name:a Name:b")]
+        [DataRow("Name:a (+Name:b)", "Name:a Name:b")]
+        [DataRow("(+Name:a) (+Name:b)", "Name:a Name:b")]
+        [DataRow("((+Name:a)) Name:b", "Name:a Name:b")]
+        [DataRow("+(+Name:a) +Name:b", "+Name:a +Name:b")]
+        [DataRow("Name:a +(+Name:b)", "Name:a +Name:b")]
+        [DataRow("-(+Name:a) Name:b", "-Name:a Name:b")]
+        [DataRow("(+Name:a +Id:1) Name:b", "(+Name:a +Id:1) Name:b")]
+        [DataRow("Name:a +Name:b", "Name:a +Name:b")]
+        [DataRow("(+Name:a^2) Name:b", "Name:a^2 Name:b")]
+        [DataRow("(+Name:a)^2 Name:b", "Name:a^2 Name:b")]
+        public void SnQuery_Parser_GroupedMust_PreservesOuterOccurrence(string input, string expected)
+        {
+            var query = Test(input, expected);
+            Test(query.ToString(), expected);
+        }
+
         [TestMethod, TestCategory("IR")]
         public void SnQuery_Parser_AstToString_StringDelimiters()
         {

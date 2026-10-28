@@ -5,9 +5,24 @@ using System.Collections.Generic;
 namespace SenseNet.Diagnostics;
 
 /// <summary>
-/// Ensures that an audit event is logged when the block is disposed.
-/// WARNING: writes event only if the code exit unexpectedly from the using block (Successful == false).
-/// The successful block must be performed with explicit audit writing.
+/// Automatically logs failures on disposal when <see cref="Successful"/> is false (the default).
+/// Successful operations require an explicit audit write:
+/// <code>
+/// var auditEvent = new AuditEvent("MyOperation", 500001);
+/// using (var audit = new AuditBlock(auditEvent, "Operation", properties))
+/// {
+///     PerformOperation();
+///     SnLog.WriteAudit(auditEvent, properties); // Explicit success audit.
+///     audit.Successful = true;
+/// }
+/// </code>
+/// Example failure entry if <c>PerformOperation()</c> throws (selected fields):
+/// <code>
+/// EventId: 500001
+/// Title: UNSUCCESSFUL MyOperation
+/// Message: Operation
+/// ExtendedProperties.Execution: UNSUCCESSFUL
+/// </code>
 /// </summary>
 public class AuditBlock : IDisposable
 {

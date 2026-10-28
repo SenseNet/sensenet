@@ -268,7 +268,7 @@ namespace SenseNet.Search
                         _text = MoveSettingsToTheEnd($"+({Text}) +({text})").Trim();
                         break;
                     case LogicalOperator.Or:
-                        _text = MoveSettingsToTheEnd($"({Text}) {text}");
+                        _text = MoveSettingsToTheEnd($"({Text}) ({text})");
                         break;
                 }
             }
@@ -349,7 +349,7 @@ namespace SenseNet.Search
                     queryText = MoveSettingsToTheEnd($"+({originalText}) +({addition})").Trim();
                     break;
                 case LogicalOperator.Or:
-                    queryText = MoveSettingsToTheEnd($"({originalText}) {addition}");
+                    queryText = MoveSettingsToTheEnd($"({originalText}) ({addition})");
                     break;
             }
 

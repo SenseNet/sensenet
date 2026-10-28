@@ -129,6 +129,89 @@ You can change versioning or approving mode on any container type (like a list o
 
 <img src="https://raw.githubusercontent.com/SenseNet/sensenet/master/docs/images/approval/versioning-change.png" style="margin: 20px auto" />
 
+### Node and version row identifiers (.NET API)
+
+`Node.NodeGuid` identifies the stored node row; `Node.VersionGuid` identifies the version row selected by `Node.VersionId`.
+Both are read-only `Guid` properties, also available on `NodeData`. Before the first successful save they are `Guid.Empty`;
+after saving they contain the stored identifiers without requiring a reload. The database column names remain `Nodes.RowGuid`
+and `Versions.RowGuid`.
+
+Each GUID is assigned only when its row is inserted and remains unchanged for that row's lifetime. Updating, renaming,
+moving or changing the status or version number of an existing row preserves its GUID. Creating a new version preserves
+`NodeGuid` and gives the new version row a new GUID. Overwriting an existing destination version preserves the destination's
+GUID. Copying content to a new node creates new node and version GUIDs. Loading another version returns that row's GUID;
+the previously loaded row's identifier does not change.
+
+The asynchronous loading APIs also accept these GUIDs:
+
+```csharp
+var node = await Node.LoadNodeAsync(nodeGuid, cancellationToken);
+var published = await Node.LoadNodeAsync(nodeGuid, VersionNumber.LastMajor, cancellationToken);
+var file = await Node.LoadAsync<File>(nodeGuid, cancellationToken);
+var fileVersion = await Node.LoadAsync<File>(nodeGuid, versionNumber, cancellationToken);
+var exactVersion = await Node.LoadNodeByVersionGuidAsync(versionGuid, cancellationToken);
+var head = await NodeHead.GetAsync(nodeGuid, cancellationToken);
+var ownerHead = await NodeHead.GetByVersionGuidAsync(versionGuid, cancellationToken);
+```
+
+Node GUID lookups use the same permission checks, default version selection and caches as node-id lookups.
+`Node.LoadNodeByVersionGuidAsync` selects the exact stored version and requires `Open` and `RecallOldVersion`,
+just like `LoadNodeByVersionIdAsync`. `NodeHead.GetByVersionGuidAsync` returns the owning node's **current**
+head, not a historical snapshot, and follows the existing `NodeHead.GetByVersionIdAsync` access behavior.
+Empty, unknown and deleted GUIDs return `null`. All these APIs accept cancellation tokens.
+
+#### OData fields
+
+`GenericContent` exposes `NodeGuidText` and `VersionGuidText` as read-only `ShortText` fields. JSON responses contain
+the identifiers in the hyphenated `D` format, and the OData metadata describes them as `Edm.String`.
+For example, add `$select=Id,NodeGuidText,VersionGuidText` to a content request. The fields also work on collections,
+expanded contents and individual property requests. A content link exposes its own row identifiers.
+
+Both fields explicitly disable indexing and index storage (`Mode=No`, `Store=No`). They do not provide
+index-based GUID filtering or ordering. The existing GUID loading methods resolve the identifiers through
+the data provider.
+
+POST, PUT, PATCH and import ignore values supplied for these read-only fields. New rows receive identifiers
+from the provider, and existing rows retain theirs. A user with only `See` permission cannot read the fields.
+The `Node` and `NodeData` properties remain typed as `Guid`; the `NodeGuidText` and `VersionGuidText` properties
+only provide their current string representation and do not persist another copy. The fields have the same
+names as these properties, so their CTD definitions do not require explicit bindings.
+
+Fresh installations include the fields in the base content type. The services patch from `7.8.1` to `7.8.2`
+adds them to existing repositories while preserving other fields in `GenericContent`.
+
+#### Compatibility for data provider implementers
+
+All `DataProvider` implementations must preserve these identities, including during object replacement and transaction
+rollback. Incoming `NodeHeadData.RowGuid` and `VersionData.RowGuid` values are ignored as write inputs. Successful insert,
+update and copy operations return the actual stored values in those DTOs. Loading or cloning an existing row must never
+generate an identifier. In-memory `NodeDoc` and `VersionDoc` constructors now require an explicit non-empty GUID; their
+read-only `RowGuid` properties and `Clone()` methods preserve the logical row identity.
+
+Providers must implement `GetNodeIdByGuidAsync` and `GetVersionIdByGuidAsync`, resolving the stored `RowGuid`
+to the corresponding numeric id without modifying any data. Both return `0` for empty or unknown GUIDs and
+honor cancellation. Relational providers supply `GetNodeIdByGuidScript` and `GetVersionIdByGuidScript`, each
+returning a single numeric id using a `DbType.Guid` parameter named `@RowGuid`. These are new abstract members;
+custom providers must implement them when updating. Run the shared `DP_GuidLoads_*` cases for every provider.
+Custom `IDataStore` implementations must also implement the GUID overload of `LoadNodeHeadAsync`,
+`LoadNodeHeadByVersionGuidAsync` and `GetVersionIdByGuidAsync`.
+
+Custom `RelationalDataProviderBase` implementations must update their result sets along with their provider binaries:
+
+| Script | Additional result columns |
+| --- | --- |
+| `LoadNodesScript` (base data), `InsertNodeAndVersionScript` | `NodeGuid`, `VersionGuid` |
+| `CopyVersionAndUpdateScript` (first result set) | `VersionGuid` |
+| `UpdateNodeScript` | `NodeGuid`, alongside `Timestamp` |
+| `UpdateVersionScript` | `VersionGuid`, alongside `Timestamp` |
+
+These columns must contain the stored, non-null GUIDs. The update scripts must never assign `RowGuid`, and an explicitly
+requested destination version must exist. Run the shared `DP_RowGuids_*` integration test cases for every provider.
+SQL Server uses its existing `DEFAULT NEWID()` on insertion; no schema migration or regeneration of existing GUIDs is needed.
+
+For an isolated integration-test run, `SENSENET_TEST_ConnectionStrings__SnCrMsSql` overrides the configured connection string
+without editing user secrets. Point it at a disposable test database: the SQL test platform reinitializes its schema.
+
 ### Example/Tutorials
 
 In this section you can see examples of how content version numbers change if you work with the content. If you want to see the actions you can perform in particular state of a content, check [Enabled versioning actions](#enable).

@@ -6,6 +6,11 @@ namespace SenseNet.ContentRepository.Storage.DataModel
     public class NodeHeadData : IDataModel
     {
         public int NodeId;
+        /// <summary>
+        /// The immutable Nodes row identifier. Providers ignore this as write input and return
+        /// the stored value after a successful save. Only insertion creates a new identifier.
+        /// </summary>
+        public Guid RowGuid;
         public int NodeTypeId;
         public int ContentListTypeId;
         public int ContentListId;

@@ -17,6 +17,16 @@ namespace SenseNet.ContentRepository.InMemory
     {
         public int Id => NodeId;
 
+        /// <summary>The identifier assigned when this logical row was inserted.</summary>
+        public Guid RowGuid { get; }
+
+        public NodeDoc(Guid rowGuid)
+        {
+            if (rowGuid == Guid.Empty)
+                throw new ArgumentException("A stored row must have an identifier.", nameof(rowGuid));
+            RowGuid = rowGuid;
+        }
+
         private int _nodeId;
         private int _nodeTypeId;
         private int _contentListTypeId;
@@ -335,7 +345,7 @@ namespace SenseNet.ContentRepository.InMemory
 
         public NodeDoc Clone()
         {
-            return new NodeDoc
+            return new NodeDoc(RowGuid)
             {
                 _nodeId = _nodeId,
                 _nodeTypeId = _nodeTypeId,
@@ -373,6 +383,16 @@ namespace SenseNet.ContentRepository.InMemory
     public class VersionDoc : IDataDocument
     {
         public int Id => VersionId;
+
+        /// <summary>The identifier assigned when this logical row was inserted.</summary>
+        public Guid RowGuid { get; }
+
+        public VersionDoc(Guid rowGuid)
+        {
+            if (rowGuid == Guid.Empty)
+                throw new ArgumentException("A stored row must have an identifier.", nameof(rowGuid));
+            RowGuid = rowGuid;
+        }
 
         private int _versionId;
         private int _nodeId;
@@ -500,7 +520,7 @@ namespace SenseNet.ContentRepository.InMemory
         }
         public VersionDoc Clone()
         {
-            return new VersionDoc
+            return new VersionDoc(RowGuid)
             {
                 _versionId = _versionId,
                 _nodeId = _nodeId,
