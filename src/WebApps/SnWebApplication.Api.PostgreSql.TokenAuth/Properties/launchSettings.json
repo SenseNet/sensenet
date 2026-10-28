@@ -1,0 +1,42 @@
+{
+  "$schema": "http://json.schemastore.org/launchsettings.json",
+  "profiles": {
+    "SnWebApplication.Api.PostgreSql.TokenAuth": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "ConnectionStrings__SensenetRepository": "Host=localhost;Database=sensenet-sndb;Username=postgres;Password=SuP3rS3CuR3P4sSw0Rd",
+        "sensenet__apikeys__healthcheckeruser": "supaS3CUp4ss",
+        "sensenet__authentication__repositoryUrl": "https://localhost:44362",
+        "sensenet__authentication__authority": "https://localhost:44311",
+        "sensenet__authentication__authServerType": "SNAuth",
+        "sensenet__authentication__AddJwtCookie": "false",
+        "sensenet__identityManagement__UserProfilesEnabled": "false",
+        "sensenet__install__postgres__EnableFirstInstallDB": "true"
+      },
+      "applicationUrl": "https://localhost:44362"
+    },
+    "Docker": {
+      "commandName": "Docker",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "ConnectionStrings__SensenetRepository": "Host=sensenet-postgres;Database=sensenet-sndb;Username=postgres;Password=SuP3rS3CuR3P4sSw0Rd",
+        "sensenet__apikeys__healthcheckeruser": "supaS3CUp4ss",
+        "sensenet__authentication__repositoryUrl": "https://localhost:44362",
+        "sensenet__authentication__authority": "https://localhost:44311",
+        "sensenet__authentication__authServerType": "SNAuth",
+        "sensenet__authentication__AddJwtCookie": "false",
+        "sensenet__identityManagement__UserProfilesEnabled": "false",
+        "sensenet__authentication__metadatahost": "http://sensenet-snis",
+        "sensenet__repository__Authentication__ApiKey": "pr3Gen3R4Tedpr3Gen3R4Tedpr3Gen3R4Tedpr3Gen3R4Tedpr3Gen3R4Tedpr3Gen3R4Tedpr3Gen3R4Ted",
+        "sensenet__install__postgres__EnableFirstInstallDB": "true"
+      },
+      "launchBrowser": true,
+      "launchUrl": "{Scheme}://{ServiceHost}:{ServicePort}",
+      "publishAllPorts": true,
+      "useSSL": true,
+      "sslPort": 44362
+    }
+  }
+}

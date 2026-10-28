@@ -320,6 +320,76 @@ internal class HealthHandler : IHealthHandler
     }
     private async Task<HealthResult> GetIdentityHealthAsync(AuthenticationOptions options, CancellationToken cancel)
     {
+        if (options.AuthServerType == AuthenticationServerType.SNAuth)
+            return await GetSNAuthHealthAsync(options, cancel);
+
+        return await GetIdentityServerHealthAsync(options, cancel);
+    }
+
+    private async Task<HealthResult> GetSNAuthHealthAsync(AuthenticationOptions options, CancellationToken cancel)
+    {
+        var timeout = TimeSpan.FromSeconds(4);
+        var combinedCancel = CancellationTokenSource.CreateLinkedTokenSource(
+            new CancellationTokenSource(timeout).Token, cancel).Token;
+
+        HttpResponseMessage response = null;
+        string error = null;
+        TimeSpan? elapsed = null;
+        var timer = Stopwatch.StartNew();
+
+        var baseUrl = (!string.IsNullOrEmpty(options.MetadataHost)
+            ? options.MetadataHost
+            : options.Authority).TrimEnd('/');
+
+        try
+        {
+            var url = baseUrl + "/";
+            var client = _httpClientFactory.CreateClient();
+            response = await client.GetAsync(url, combinedCancel).ConfigureAwait(false);
+            elapsed = timer.Elapsed;
+        }
+        catch (TaskCanceledException ee)
+        {
+            elapsed = timer.Elapsed;
+            error = elapsed > timeout ? $"Response timeout reached ({timeout})." : ee.Message;
+        }
+        catch (Exception e)
+        {
+            error = e.Message;
+        }
+        timer.Stop();
+
+        if (response == null || error != null)
+        {
+            return new HealthResult
+            {
+                Color = HealthColor.Red,
+                Reason = $"{(response == null ? "No response. " : string.Empty)}Error: '{error}'",
+                Method = "Trying to reach SNAuth server."
+            };
+        }
+
+        if (response.StatusCode == HttpStatusCode.OK)
+        {
+            return new HealthResult
+            {
+                Color = HealthColor.Green,
+                ResponseTime = elapsed,
+                Method = "Checking SNAuth server availability."
+            };
+        }
+
+        return new HealthResult
+        {
+            Color = HealthColor.Yellow,
+            ResponseTime = elapsed,
+            Reason = $"Response status is {(int)response.StatusCode} {response.StatusCode}, expected: {(int)HttpStatusCode.OK} {HttpStatusCode.OK}",
+            Method = "Checking SNAuth server availability."
+        };
+    }
+
+    private async Task<HealthResult> GetIdentityServerHealthAsync(AuthenticationOptions options, CancellationToken cancel)
+    {
         var timeout = TimeSpan.FromSeconds(4);
         var combinedCancel = CancellationTokenSource.CreateLinkedTokenSource(
             new CancellationTokenSource(timeout).Token, cancel).Token;
@@ -331,7 +401,10 @@ internal class HealthHandler : IHealthHandler
 
         try
         {
-            var url = options.Authority.TrimEnd('/') + "/.well-known/openid-configuration";
+            var baseUrl = (!string.IsNullOrEmpty(options.MetadataHost)
+                ? options.MetadataHost
+                : options.Authority).TrimEnd('/');
+            var url = baseUrl + "/.well-known/openid-configuration";
             var client = _httpClientFactory.CreateClient();
             response = await client.GetAsync(url, combinedCancel).ConfigureAwait(false);
             elapsed = timer.Elapsed;

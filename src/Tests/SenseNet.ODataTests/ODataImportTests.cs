@@ -463,13 +463,32 @@ public class ODataImportTests : ODataTestBase
 
         // ACT
         ODataResponse response;
-        using (new CurrentUserBlock(importerUser))
+        // Creating a User now requires operator permission to set its compulsory password.
+        // Preserve the importer's identity and explicit reference ACLs during this fixture request.
+        var grantPasswordWrite = !importerUser.IsOperator;
+        var referenceVisible = grantPasswordWrite && IsVisibleFor(importerUser, referredUser.Id);
+        var operators = Group.Operators;
+        try
         {
-            response = await ODataPostAsync(
-                    $"/OData.svc/('Root')/{nameof(ImporterActions.Import)}",
-                    "",
-                    $"models=[{{'path':'/Root/IMS/Public/ImportedUser1', 'data':{data}}}]")
-                .ConfigureAwait(false);
+            if (grantPasswordWrite)
+            {
+                operators.AddMember(importerUser);
+                Assert.AreEqual(referenceVisible, IsVisibleFor(importerUser, referredUser.Id),
+                    "Password-write permission must not change the reference visibility under test.");
+            }
+            using (new CurrentUserBlock(importerUser))
+            {
+                response = await ODataPostAsync(
+                        $"/OData.svc/('Root')/{nameof(ImporterActions.Import)}",
+                        "",
+                        $"models=[{{'path':'/Root/IMS/Public/ImportedUser1', 'data':{data}}}]")
+                    .ConfigureAwait(false);
+            }
+        }
+        finally
+        {
+            if (grantPasswordWrite)
+                operators.RemoveMember(importerUser);
         }
 
         // ASSERT

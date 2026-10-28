@@ -86,7 +86,9 @@ Param (
 ##    Variables section     #
 #############################
 $AppEnvironment="Development"
-if ($WebApp -eq "PostgreSql") { throw "The PostgreSQL demo is inactive until its provider is integrated into develop. Use Standard, Preview or LocalAuth for now." }
+if ($WebApp -eq "PostgreSql" -and -not (Test-Path -LiteralPath "$PSScriptRoot/../src/WebApps/SnWebApplication.Api.PostgreSql.TokenAuth/Dockerfile" -PathType Leaf)) {
+	throw "The PostgreSQL demo is inactive on this checkout: its provider source is missing. Use Standard, Preview or LocalAuth for now."
+}
 if ($InMemPlatform -and $WebApp -ne "Standard") { throw "InMemPlatform supports the Standard webapp only." }
 if ($WebApp -in "LocalAuth", "PostgreSql" -and $SearchService) { throw "$WebApp does not have a SearchService webapp." }
 if ($WebApp -eq "LocalAuth" -and $UseAuth) { throw "The LocalAuth demo uses InternalOnly mode, without an external auth server." }

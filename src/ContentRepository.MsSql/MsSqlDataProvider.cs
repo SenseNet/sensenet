@@ -331,6 +331,20 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
         {
             using var op = SnTrace.Database.StartOperation("MsSqlDataProvider: InstallDatabaseAsync().");
 
+            if (!_dbInstallerOptions.EnableFirstInstallDB)
+            {
+                _logger.LogTrace("EnableFirstInstallDB is disabled. Skipping database installation.");
+                op.Successful = true;
+                return;
+            }
+
+            if (await IsDatabaseAlreadyInstalledAsync(cancellationToken).ConfigureAwait(false))
+            {
+                _logger.LogWarning("Database already contains data. Skipping installation to prevent data loss.");
+                op.Successful = true;
+                return;
+            }
+
             if (!string.IsNullOrEmpty(_dbInstallerOptions.DatabaseName))
             {
                 _logger.LogTrace($"Executing installer for database {_dbInstallerOptions.DatabaseName}.");
@@ -552,6 +566,35 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
                 timestamp = timestamp >> 8;
             }
             return bytes;
+        }
+
+        /// <summary>
+        /// Checks whether the database has already been installed by detecting the presence of
+        /// the Nodes table and at least one row. Used as a safety guard to prevent accidental
+        /// reinstallation and data loss.
+        /// </summary>
+        private async STT.Task<bool> IsDatabaseAlreadyInstalledAsync(CancellationToken cancellationToken)
+        {
+            try
+            {
+                using var ctx = CreateDataContext(cancellationToken);
+                var result = await ctx.ExecuteScalarAsync(@"
+                    IF EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'Nodes')
+                        SELECT COUNT(1) FROM Nodes
+                    ELSE
+                        SELECT 0").ConfigureAwait(false);
+
+                var count = Convert.ToInt32(result);
+                if (count > 0)
+                    _logger.LogTrace($"IsDatabaseAlreadyInstalledAsync: Nodes table contains {count} rows, database is already installed.");
+
+                return count > 0;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "IsDatabaseAlreadyInstalledAsync: Could not determine database state. Assuming not installed.");
+                return false;
+            }
         }
 
         /// <summary>

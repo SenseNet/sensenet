@@ -3,22 +3,28 @@
 Param (
     [ValidateSet('WithAuth','LocalAuth','Postgres','Search','InMemory','Parallel')][string]$Scenario='WithAuth',
     [switch]$LegacyPorts,
+    [switch]$UseVolume,
     [int]$TimeoutSeconds=300
 )
 $ErrorActionPreference = 'Stop'
 $PSNativeCommandUseErrorActionPreference = $False
-if ($Scenario -eq 'Postgres') { throw 'The PostgreSQL demo is inactive until its provider is integrated into develop.' }
+if ($Scenario -eq 'Postgres' -and -not (Test-Path -LiteralPath "$PSScriptRoot/../../src/WebApps/SnWebApplication.Api.PostgreSql.TokenAuth/Dockerfile" -PathType Leaf)) {
+    throw 'The PostgreSQL demo is inactive on this checkout: its provider source is missing.'
+}
 if ($LegacyPorts -and $Scenario -eq 'Parallel') { throw 'Legacy LocalAuth/SNAuth demos share ports. Test parallel demos with default ports.' }
 $deployment = Split-Path -Parent $PSScriptRoot
+if ($UseVolume -and $Scenario -ne 'Postgres') { throw 'UseVolume currently tests the persistent PostgreSQL demo only.' }
 $files = @{
     WithAuth='docker-compose.with-auth.yml'; LocalAuth='docker-compose.local-auth.yml'
     Search='docker-compose.with-search-auth.yml'
+    Postgres='docker-compose.demo-postgres.yml'
     InMemory='docker-compose.in-memory-auth.yml'
 }
+if ($UseVolume) { $files.Postgres = 'docker-compose.demo-postgres-volume.yml' }
 $selected = $(if ($Scenario -eq 'Parallel') { @('LocalAuth','WithAuth') } else { @($Scenario) })
 $run = 'codex-deployment-smoke-' + [Guid]::NewGuid().ToString('N').Substring(0,8)
 $temporary = Join-Path ([IO.Path]::GetTempPath()) $run
-$variables = @('CERT_FOLDER','LOCAL_AUTH_KEY_FOLDER','CERT_PASSWORD','COMPOSE_PROJECT_NAME','REPOSITORY_PORT','AUTH_PORT','SEARCH_PORT','SQL_PORT','POSTGRES_PORT','RABBIT_PORT')
+$variables = @('CERT_FOLDER','LOCAL_AUTH_KEY_FOLDER','CERT_PASSWORD','COMPOSE_PROJECT_NAME','REPOSITORY_PORT','AUTH_PORT','SEARCH_PORT','SQL_PORT','POSTGRES_PORT','RABBIT_PORT','POSTGRES_IMAGE')
 $variables += @(Get-ChildItem Env: | Where-Object Name -like 'LEGACY_*_PORT' | ForEach-Object Name)
 $previous = @{}
 $demos = @()
@@ -34,20 +40,35 @@ function Wait-Repository($demo, [int]$timeout) {
     throw "$($demo.Scenario) did not initialize OData within $timeout seconds."
 }
 function Test-AdminRead($demo) {
-    $admin = Invoke-RestMethod "$($demo.Url)/odata.svc/Root/IMS/BuiltIn/Portal('Admin')?`$select=Id,Name" -Headers $demo.Headers -SkipCertificateCheck -TimeoutSec 15
+    $admin = Invoke-RestMethod "$($demo.Url)/odata.svc/Root/IMS/BuiltIn/Portal('Admin')?`$select=Id,Name" -Headers $demo.Headers -SkipCertificateCheck -TimeoutSec 15 -ResponseHeadersVariable adminHeaders
     if ($admin.d.Id -ne 1) { throw "Authenticated Admin read failed for $($demo.Scenario)." }
+    if ($demo.Headers.Origin -and $demo.Headers.Origin -notin $adminHeaders['Access-Control-Allow-Origin'] -and '*' -notin $adminHeaders['Access-Control-Allow-Origin']) {
+        throw 'Authenticated repository read is not accessible from the Admin UI Origin.'
+    }
 }
 function Test-Login($demo) {
+    $originHeaders = @{}
     if ($demo.Scenario -eq 'LocalAuth') {
         $body = @{username='admin';password='admin'} | ConvertTo-Json
         $loginUrl = "$($demo.Url)/authentication/local/login"
     } else {
         $body = @{loginName='admin';password='admin';siteUrl=$demo.Url} | ConvertTo-Json
         $loginUrl = "https://localhost:$($demo.Config.services.snis.ports[0].published)/api/auth/login"
+        if ($demo.Scenario -eq 'Postgres') {
+            $origin = $demo.Config.services.snis.environment.Application__AllowedHosts__0
+            $originHeaders.Origin = $origin
+            $pageUrl = "https://localhost:$($demo.Config.services.snis.ports[0].published)/login?redirectUrl=$([Uri]::EscapeDataString($origin))&callbackUri=%2Fauthentication%2Fcallback"
+            $page = Invoke-WebRequest $pageUrl -SkipCertificateCheck -TimeoutSec 15
+            if ($page.Content -notmatch 'name="LoginName"') { throw 'SNAuth refused the configured Admin UI redirect origin.' }
+            $preflight = Invoke-WebRequest $loginUrl -Method Options -Headers @{Origin=$origin;'Access-Control-Request-Method'='POST';'Access-Control-Request-Headers'='content-type'} -SkipCertificateCheck -TimeoutSec 15
+            if ($origin -notin $preflight.Headers['Access-Control-Allow-Origin']) { throw 'SNAuth login preflight rejected the Admin UI Origin.' }
+        }
     }
-    $login = Invoke-RestMethod $loginUrl -Method Post -ContentType application/json -Body $body -SkipCertificateCheck -TimeoutSec 30
+    $login = Invoke-RestMethod $loginUrl -Method Post -ContentType application/json -Body $body -Headers $originHeaders -SkipCertificateCheck -TimeoutSec 30 -ResponseHeadersVariable loginHeaders
     if (-not $login.accessToken) { throw "$($demo.Scenario) login returned no access token." }
+    if ($originHeaders.Origin -and $originHeaders.Origin -notin $loginHeaders['Access-Control-Allow-Origin']) { throw 'SNAuth login response rejected the Admin UI Origin.' }
     $demo.Headers = @{Authorization="Bearer $($login.accessToken)"}
+    if ($originHeaders.Origin) { $demo.Headers.Origin = $originHeaders.Origin }
     Test-AdminRead $demo
     Write-Host "PASS: $($demo.Scenario) OData, admin login and authenticated Admin read at $($demo.Url)."
 }
@@ -61,6 +82,7 @@ try {
     $env:CERT_FOLDER = $temporary
     $env:LOCAL_AUTH_KEY_FOLDER = $temporary
     $env:CERT_PASSWORD = 'SuP3rS3CuR3P4sSw0Rd'
+    if ($Scenario -eq 'Postgres') { $env:POSTGRES_IMAGE = "local/sn-api-postgre:$run" }
     # The test certificate never changes the user's trust store.
     $rsa = [Security.Cryptography.RSA]::Create(3072)
     try {
@@ -116,6 +138,16 @@ try {
     }
     foreach ($demo in $demos) { Wait-Repository $demo $TimeoutSeconds; Test-Login $demo }
     foreach ($demo in $demos) {
+        if ($UseVolume) {
+            $markerName = 'smoke-' + [guid]::NewGuid().ToString('N')
+            $model = @{__ContentType='SystemFolder';Name=$markerName} | ConvertTo-Json -Compress
+            $created = Invoke-RestMethod "$($demo.Url)/odata.svc/Root?`$select=Id,Path" -Method Post -ContentType application/json -Body $model -Headers $demo.Headers -SkipCertificateCheck -TimeoutSec 30
+            $markerId = $created.d.Id
+            if ($markerId -le 0 -or $created.d.Path -ne "/Root/$markerName") { throw 'Persistence marker was not created at the expected path.' }
+            $markerUrl = "$($demo.Url)/odata.svc/content($markerId)?`$select=Id,Path"
+            $marker = Invoke-RestMethod $markerUrl -Headers $demo.Headers -SkipCertificateCheck -TimeoutSec 15
+            if ($marker.d.Id -ne $markerId) { throw 'Persistence marker could not be read.' }
+        }
         $others = @($demos | Where-Object { $_ -ne $demo })
         $started = @{}
         foreach ($other in $others) {
@@ -126,10 +158,19 @@ try {
         & docker @($demo.Arguments) stop -t 5 snapp
         if ($LASTEXITCODE -ne 0) { throw 'Could not stop the isolated application.' }
         foreach ($other in $others) { Test-AdminRead $other }
-        & docker @($demo.Arguments) up -d --no-build
+        $restartArguments = @('up','-d','--no-build')
+        if ($UseVolume) { $restartArguments += '--force-recreate' }
+        & docker @($demo.Arguments) @restartArguments
         if ($LASTEXITCODE -ne 0) { throw 'Repeated Compose up failed.' }
         Wait-Repository $demo 90
-        Test-AdminRead $demo
+        if ($UseVolume) {
+            # SNAuth stores active tokens in memory; a recreated auth server needs
+            # a new login. Verify repository data independently of that session.
+            Test-Login $demo
+            $marker = Invoke-RestMethod $markerUrl -Headers $demo.Headers -SkipCertificateCheck -TimeoutSec 15
+            if ($marker.d.Id -ne $markerId) { throw 'PostgreSQL content did not survive full container recreation.' }
+            Write-Host 'PASS: the same PostgreSQL content Id survived full stack recreation with named volumes.'
+        } else { Test-AdminRead $demo }
         foreach ($other in $others) {
             Test-AdminRead $other
             $container = $other.Config.services.snapp.container_name

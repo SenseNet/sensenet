@@ -52,7 +52,18 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <param name="index">The index of the column to find.</param>
         public static bool GetSafeBooleanFromByte(this IDataReader reader, int index)
         {
-            return !reader.IsDBNull(index) && Convert.ToBoolean(reader.GetByte(index));
+            if (reader.IsDBNull(index))
+                return false;
+            var value = reader.GetValue(index);
+            return value switch
+            {
+                byte b => b != 0,
+                short s => s != 0,
+                int i => i != 0,
+                long l => l != 0,
+                bool b => b,
+                _ => Convert.ToBoolean(value)
+            };
         }
         /// <summary>
         /// Converts a Boolean DB column value to a .NET bool value safely.
@@ -91,7 +102,12 @@ namespace SenseNet.ContentRepository.Storage.Data
             if (reader.IsDBNull(index))
                 return 0L;
 
-            return Tools.Utility.Convert.BytesToLong((byte[]) reader[index]);
+            var value = reader[index];
+            if (value is long l)
+                return l;
+            if (value is int i)
+                return i;
+            return Tools.Utility.Convert.BytesToLong((byte[]) value);
         }
 
         public static DateTime GetDateTimeUtc(this IDataReader reader, int ordinal)
@@ -102,7 +118,16 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         public static byte[] GetSafeByteArray(this IDataReader reader, int index)
         {
-            return reader.IsDBNull(index) ? null : (byte[])reader.GetValue(index);
+            if (reader.IsDBNull(index)) return null;
+            var value = reader.GetValue(index);
+            if (value is byte[] bytes)
+                return bytes;
+            // PostgreSQL returns BIGINT timestamps as long instead of byte[]
+            if (value is long l)
+                return BitConverter.GetBytes(System.Net.IPAddress.HostToNetworkOrder(l));
+            if (value is int i)
+                return BitConverter.GetBytes(System.Net.IPAddress.HostToNetworkOrder((long)i));
+            return (byte[])value;
         }
 
         /* ============================================================================= */

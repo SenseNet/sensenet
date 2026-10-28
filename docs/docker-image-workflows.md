@@ -14,6 +14,11 @@ repositories must be built by workflows in those repositories.
 All Dockerfiles in the audited definitions expect the repository's `src`
 directory as their Docker build context.
 
+Before building an image whose Dockerfile does not create the embedded install
+package itself, the workflow creates the real package with the repository's
+`CompressInstall.ps1` script. The SQL and PostgreSQL Dockerfiles already create
+it themselves, while the InMem image does not reference the install project.
+
 ## Image inventory
 
 | Image | Source | Dockerfile | Build condition |

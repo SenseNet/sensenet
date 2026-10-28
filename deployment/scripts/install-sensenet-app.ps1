@@ -193,7 +193,8 @@ if ($WebApp -eq "PostgreSql") {
 	$params += "-e", "ConnectionStrings__SensenetRepository=Host=$DataSource;Database=$SqlDbName;Username=$SqlUser;Password=$SqlPsw", "eol",
 	"-e", "sensenet__install__postgres__EnableFirstInstallDB=true", "eol"
 } elseif ($SnType -eq "InSql") {
-	$params += "-e", "ConnectionStrings__SnCrMsSql=Persist Security Info=False;Initial Catalog=$($SqlDbName);Data Source=$($DataSource);User ID=$($SqlUser);Password=$($SqlPsw);TrustServerCertificate=true", "eol"
+	$params += "-e", "ConnectionStrings__SnCrMsSql=Persist Security Info=False;Initial Catalog=$($SqlDbName);Data Source=$($DataSource);User ID=$($SqlUser);Password=$($SqlPsw);TrustServerCertificate=true", "eol",
+	"-e", "sensenet__install__mssql__EnableFirstInstallDB=true", "eol"
 }
 
 if ($SnType -eq "InSql" -and $SearchService) {

@@ -25,6 +25,14 @@ namespace SenseNet.Storage.Data.MsSqlClient
     public class MsSqlDatabaseInstallationOptions
     {
         /// <summary>
+        /// Allows the application to install the database schema and initial data on first run.
+        /// Default is false to prevent accidental data loss in production environments.
+        /// Set to true only when deploying a brand new instance.
+        /// In appsettings.json: sensenet:install:mssql:EnableFirstInstallDB
+        /// As environment variable: sensenet__install__mssql__EnableFirstInstallDB=true
+        /// </summary>
+        public bool EnableFirstInstallDB { get; set; } = false;
+        /// <summary>
         /// Database server name.
         /// </summary>
         public string Server { get; set; }

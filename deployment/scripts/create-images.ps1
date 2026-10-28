@@ -22,7 +22,9 @@ Param (
 )
 . "$PSScriptRoot/helper-functions.ps1"
 if ($ImageType -eq 'InPostgres') { $WebApp = 'PostgreSql' }
-if ($WebApp -eq 'PostgreSql') { throw 'The PostgreSQL demo is inactive until its provider is integrated into develop.' }
+if ($WebApp -eq 'PostgreSql' -and -not (Test-Path -LiteralPath "$PSScriptRoot/../../src/WebApps/SnWebApplication.Api.PostgreSql.TokenAuth/Dockerfile" -PathType Leaf)) {
+    throw 'The PostgreSQL demo is inactive on this checkout: its provider source is missing.'
+}
 Test-Docker
 if (-not $SensenetFolderPath) {
     if ($LocalSn) { $SensenetFolderPath = "$PSScriptRoot/../.." }

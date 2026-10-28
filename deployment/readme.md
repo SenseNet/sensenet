@@ -1,6 +1,6 @@
 # Local Docker demos: Compose or PowerShell
 
-These are local demos for trying sensenet. Each active `docker-compose*.yml` file is a complete scenario selected with one `-f` argument. The 24 active scenarios have distinct default project names and published ports, so different demos can run side by side without configuration. Databases, networks, RabbitMQ and named volumes belong to their own project. Host-database scenarios still require an existing SQL server. PostgreSQL scaffolds are inactive until their provider is integrated into `develop`.
+These are local demos for trying sensenet. The 26 demo scenarios in the tables below each use one `-f` argument and have distinct default project names and published ports, so different demos can run side by side without configuration. Databases, networks, RabbitMQ and named volumes belong to their own project. Host-database scenarios still require an existing SQL server. This provider checkout includes two PostgreSQL demos; the older `docker-compose.postgres.yml` and `docker-compose.mssql.yml` developer stacks are separate and retain their existing ports and reset/tools workflows (see the final section).
 
 The files share service definitions through `compose.services.yml`; no generator or installer script runs when Compose starts. Docker Compose v2.24 or newer is required. Published ports bind to `127.0.0.1`. The PowerShell installer's historical ports are available through the optional `legacy-ports.env` file.
 
@@ -45,6 +45,8 @@ Start commands for PowerShell (run from `deployment/`). Each row is one independ
 | SQL + search service + document previews + SNAuth | `docker compose -f docker-compose.preview-search.yml up -d --pull always` | 18206 |
 | SQL + LocalAuth | `docker compose -f docker-compose.local-auth.yml up -d --build` | 18216 |
 | SQL + LocalAuth, persistent data | `docker compose -f docker-compose.local-auth-volume.yml up -d --build` | 18226 |
+| PostgreSQL + SNAuth, local source | `docker compose -f docker-compose.demo-postgres.yml up -d --build` | 18256 |
+| PostgreSQL + SNAuth, persistent data, local source | `docker compose -f docker-compose.demo-postgres-volume.yml up -d --build` | 18266 |
 
 The following demos use an existing SQL server. Set `DATASOURCE`, `SQL_USER` and `SQL_PASSWORD` in `.env` before starting one:
 
@@ -95,6 +97,8 @@ All default service ports (each scenario can run alongside the other scenarios):
 | `docker-compose.local-auth-volume.yml` | 18226 | Internal | - | 18229 | - |
 | `docker-compose.local-auth-host-db.yml` | 18236 | Internal | - | Host | - |
 | `docker-compose.local-auth-host-db-volume.yml` | 18246 | Internal | - | Host | - |
+| `docker-compose.demo-postgres.yml` | 18256 | 18257 | - | 18259 | - |
+| `docker-compose.demo-postgres-volume.yml` | 18266 | 18267 | - | 18269 | - |
 
 Each scenario reserves a ten-port block: repository at `+6`, auth at `+7`, search at `+8`, container DB at `+9`, RabbitMQ management at `+5`. AMQP stays inside the Compose network. Optional `REPOSITORY_PORT`, `AUTH_PORT`, `SEARCH_PORT`, `SQL_PORT` and `RABBIT_PORT` overrides also update the application/auth URLs. Leave these unset in a shared `.env` to retain the non-conflicting defaults. To run multiple copies of the *same* scenario, use distinct `-p` project names and distinct overrides for all its published ports.
 
@@ -140,7 +144,7 @@ docker compose -f docker-compose.local-auth.yml up -d --build
 
 This demo enables `InternalOnly`, bearer transport, the built-in admin user (Id=1), and private/loopback client networks. It explicitly disables mandatory MFA for the demo account. The login page is `/authentication/local/login`; never reuse the generated signing key or these demo settings for a hosted installation. Data persistence does not control key persistence: keep the same ignored key when restarting an existing demo.
 
-PostgreSQL is pending: its provider is not integrated into `develop`, so it is not offered as a runnable demo here. The prepared `docker-compose.postgres.yml.disabled` and `docker-compose.postgres-volume.yml.disabled` files are retained for later integration and are excluded from the active startup/port tables. The installer, image builder and smoke test reject PostgreSQL selection before using Docker or fetching another branch. After this deployment PR is merged, update `postgres-provider` from `develop`, then complete and validate its integration before enabling these demos. LocalAuth search-service combinations are also unavailable and are rejected.
+PostgreSQL demos are available when this checkout contains `SnWebApplication.Api.PostgreSql.TokenAuth`. The separate `docker-compose.demo-postgres*.yml` files support local source builds, use ports 18256/18266 for the API, and keep the original `docker-compose.postgres.yml` developer entry point intact. Use `--build` to test local changes without publishing an image; `POSTGRES_IMAGE` controls its local image tag. The PowerShell equivalent is `./install-sensenet.ps1 -WebApp PostgreSql -CreateImages -LocalSn`. A checkout without the PostgreSQL webapp rejects PostgreSQL selection before Docker/Git operations. PostgreSQL host-database/search-service and LocalAuth search-service combinations remain unavailable.
 
 `-WebApp Preview` selects the `sn-api-sql-prv` / `sn-api-nlb-prv` images. `-ImageTag` defaults to `preview` and is used consistently for local build and run. `-SensenetDockerImage` selects an explicit application image. `-CreateImages` also builds the selected external auth server (SNAuth or IdentityServer), and the installer reuses those builds without pulling over them. Repeated installation starts an existing stopped container and keeps a running container. Changed image/environment/volume settings require explicit recreation; repeated installation does not silently replace existing configuration or delete unusual container states.
 
@@ -150,16 +154,20 @@ Validate the deployment changes without starting services:
 pwsh -NoProfile -File ./tests/Test-Deployment.ps1
 ```
 
-Opt-in runtime tests create isolated, randomly named Compose projects, a temporary certificate/key without changing the trust store, and fresh databases. They validate OData, admin login, an authenticated admin read, repeated `up`, and restart, then remove only their own containers/volumes. `Parallel` starts LocalAuth and SNAuth together on their default ports, checks that either can restart while the other keeps serving authenticated requests, and verifies missing-key/certificate startup errors. The selected scenarios' default ports must be free:
+Opt-in runtime tests create isolated, randomly named Compose projects, a temporary certificate/key without changing the trust store, and fresh databases. They validate OData, admin login, an authenticated admin read, repeated `up`, and restart, then remove only their own containers/volumes. `Parallel` starts LocalAuth and SNAuth together on their default ports, checks that either can restart while the other keeps serving authenticated requests, and verifies missing-key/certificate startup errors. The PostgreSQL volume test also checks the configured Admin UI Origin and recreates the whole stack, signs in again (SNAuth sessions are in memory), and verifies that a created content item keeps the same Id. The selected scenarios' default ports must be free:
 
 ```powershell
 pwsh -NoProfile -File ./tests/Test-DeploymentSmoke.ps1 -Scenario WithAuth
 pwsh -NoProfile -File ./tests/Test-DeploymentSmoke.ps1 -Scenario LocalAuth
+pwsh -NoProfile -File ./tests/Test-DeploymentSmoke.ps1 -Scenario Postgres
+pwsh -NoProfile -File ./tests/Test-DeploymentSmoke.ps1 -Scenario Postgres -UseVolume
 pwsh -NoProfile -File ./tests/Test-DeploymentSmoke.ps1 -Scenario Search
 pwsh -NoProfile -File ./tests/Test-DeploymentSmoke.ps1 -Scenario Parallel
 # Optional historical-port runtime check; historical ports must be free:
 pwsh -NoProfile -File ./tests/Test-DeploymentSmoke.ps1 -Scenario InMemory -LegacyPorts
 ```
+
+For repeatable PostgreSQL SQL-contract, fresh-install and baseline-to-current upgrade checks, see [PostgreSQL provider validation](../docs/postgres-provider-validation.md).
 
 For an already running IdentityServer demo, test the exact repository URL and Admin UI origin involved in a login failure:
 
@@ -291,3 +299,268 @@ This switch can be used to see what processes would be executed but without actu
 ### Verbose
 
 The output is reduced by default to decrease the amount of install information. With the `-Verbose` switch all the additional technical information will be shown. For example the actual Docker command is shown that can be useful if you need to customize the installation.
+
+---
+
+## Docker Compose Setup (Linux / macOS)
+
+In addition to the PowerShell installer above, there are two **docker-compose** files for running sensenet locally with either **PostgreSQL** or **MSSQL**. These are self-contained and don't require the PowerShell scripts.
+
+### Prerequisites
+
+- Docker & Docker Compose v2+
+- A dev certificate at `./volumes/certificates/snapp.pfx` (generated once):
+
+```bash
+mkdir -p ./volumes/certificates
+dotnet dev-certs https -ep ./volumes/certificates/snapp.pfx -p SuP3rS3CuR3P4sSw0Rd
+dotnet dev-certs https --trust   # Linux: may need manual trust
+```
+
+---
+
+### PostgreSQL Stack
+
+**File:** `docker-compose.postgres.yml`
+
+| Service | Description | Host Port |
+|---------|-------------|-----------|
+| `postgres` | PostgreSQL 16 | `localhost:5532` |
+| `pgadmin` | pgAdmin 4 web UI | `http://localhost:5433` |
+| `snauth` | SnAuth identity / JWT server | `https://localhost:44311` |
+| `snapp` | sensenet API (built from local source) | `https://localhost:44362` |
+
+#### Start
+
+```bash
+docker compose -f docker-compose.postgres.yml up -d
+```
+
+The first start builds the `snapp` image from `../src` and runs the sensenet installer automatically (schema + initial content). This takes 1–3 minutes.
+
+#### Stop
+
+```bash
+docker compose -f docker-compose.postgres.yml down
+```
+
+#### Get Admin API Key
+
+```bash
+docker compose -f docker-compose.postgres.yml run --rm apikey
+```
+
+This starts a one-shot container that queries the database and prints the current admin API key:
+
+```
+══════════════════════════════════════════════════
+  🔑  Admin API Key (PostgreSQL)
+══════════════════════════════════════════════════
+  NJ1AFRTz8L1FbsJ0qyq1hToTfUiPYFh65CVIcd5kb4L...
+══════════════════════════════════════════════════
+```
+
+> **Note:** The admin API key is regenerated on every `snapp` restart.
+
+---
+
+### MSSQL Stack
+
+**File:** `docker-compose.mssql.yml`
+
+| Service | Description | Host Port |
+|---------|-------------|-----------|
+| `mssql` | SQL Server 2022 Express | `localhost:9999` |
+| `mssql-init` | Creates the `sensenet-sndb` database (runs once) | — |
+| `snauth` | SnAuth identity / JWT server | `https://localhost:44311` |
+| `snapp` | sensenet API (built from local source) | `https://localhost:44362` |
+
+#### Start
+
+```bash
+docker compose -f docker-compose.mssql.yml up -d
+```
+
+#### Stop
+
+```bash
+docker compose -f docker-compose.mssql.yml down
+```
+
+#### Get Admin API Key
+
+```bash
+docker compose -f docker-compose.mssql.yml run --rm apikey
+```
+
+---
+
+### Full Reset (DB + Index)
+
+Both compose files include a `db-reset` service under the `reset` Docker Compose profile. Running it drops the database, recreates it empty, and clears the Lucene index so that the next `snapp` start performs a fresh install.
+
+#### Manual reset (PostgreSQL)
+
+```bash
+# 1. Stop everything
+docker compose -f docker-compose.postgres.yml down
+
+# 2. Run the reset profile (drops + recreates DB, clears index)
+docker compose -f docker-compose.postgres.yml --profile reset up db-reset --abort-on-container-exit
+
+# 3. Stop reset containers
+docker compose -f docker-compose.postgres.yml --profile reset down
+
+# 4. Start fresh
+docker compose -f docker-compose.postgres.yml up -d
+```
+
+#### Manual reset (MSSQL)
+
+```bash
+docker compose -f docker-compose.mssql.yml down
+docker compose -f docker-compose.mssql.yml --profile reset up db-reset --abort-on-container-exit
+docker compose -f docker-compose.mssql.yml --profile reset down
+docker compose -f docker-compose.mssql.yml up -d
+```
+
+---
+
+## Shell Scripts (Linux / macOS)
+
+All bash scripts are in the `deployment/scripts-linux/` directory. You can run
+them from anywhere — they resolve paths relative to their own location.
+
+```bash
+cd deployment/scripts-linux
+```
+
+### Start
+
+| Script | Description |
+|--------|-------------|
+| `./start-postgres.sh` | Start the PostgreSQL stack |
+| `./start-mssql.sh` | Start the MSSQL stack |
+
+```bash
+./start-postgres.sh              # start (rebuild if image doesn't exist)
+./start-postgres.sh --build      # force rebuild snapp image
+./start-postgres.sh --no-build   # skip building, use existing image
+```
+
+Both start scripts wait up to 3 minutes for sensenet to respond with HTTP 200,
+then print all service URLs and how to get the API key.
+
+### Stop
+
+| Script | Description |
+|--------|-------------|
+| `./stop-postgres.sh` | Stop the PostgreSQL stack (data preserved) |
+| `./stop-mssql.sh` | Stop the MSSQL stack (data preserved) |
+
+```bash
+./stop-postgres.sh               # stop containers, keep database data
+./stop-postgres.sh --clean       # stop + remove Docker volumes (⚠ deletes DB!)
+```
+
+### Reset (full reinstall)
+
+| Script | Description |
+|--------|-------------|
+| `./reset-postgres.sh` | Stop → drop DB → clear index → rebuild → start |
+| `./reset-mssql.sh` | Stop → drop DB → clear index → rebuild → start |
+
+```bash
+./reset-postgres.sh              # full reset + rebuild snapp image
+./reset-postgres.sh --no-build   # reset without rebuilding the image
+```
+
+The reset scripts perform these steps:
+
+1. **Stop** all containers (including the `reset` profile)
+2. **Drop & recreate** the database via the `db-reset` container
+3. **Clear** the Lucene index (`App_Data/LocalIndex`)
+4. **Rebuild** the `snapp` Docker image from source (skip with `--no-build`)
+5. **Start** the full stack
+6. **Wait** up to 3 minutes for sensenet to respond with HTTP 200 on `/odata.svc/Root`
+
+### API Key
+
+The admin API key is **regenerated on every `snapp` restart**. Use these scripts
+to read the current key from the database:
+
+| Script | Description |
+|--------|-------------|
+| `./apikey-postgres.sh` | Read the admin API key from PostgreSQL |
+| `./apikey-mssql.sh` | Read the admin API key from MSSQL |
+
+```bash
+./apikey-postgres.sh             # print the key
+./apikey-postgres.sh --copy      # print + copy to clipboard
+./apikey-postgres.sh --bench     # print + update SnBenchmark appsettings.json
+```
+
+The `--bench` flag automatically writes the key into
+`tools/SnBenchmark/appsettings.json` so you can run the benchmark tool right
+away without manual copy-paste.
+
+> You can also use the docker-compose one-shot container:
+> `docker compose -f docker-compose.postgres.yml run --rm apikey`
+
+### Quick Reference
+
+```bash
+cd deployment/scripts-linux
+
+# ── PostgreSQL ──────────────────────────────────
+./start-postgres.sh          # start
+./stop-postgres.sh           # stop
+./reset-postgres.sh          # full reset
+./apikey-postgres.sh         # get API key
+./apikey-postgres.sh --bench # get API key + update benchmark config
+
+# ── MSSQL ───────────────────────────────────────
+./start-mssql.sh             # start
+./stop-mssql.sh              # stop
+./reset-mssql.sh             # full reset
+./apikey-mssql.sh            # get API key
+./apikey-mssql.sh --bench    # get API key + update benchmark config
+```
+
+---
+
+## Default Credentials
+
+| Service | User | Password |
+|---------|------|----------|
+| sensenet admin UI | `admin` | `admin` |
+| PostgreSQL | `postgres` | `SuP3rS3CuR3P4sSw0Rd` |
+| pgAdmin | `admin@sensenet.com` | `admin` |
+| MSSQL SA | `sa` | `SuP3rS3CuR3P4sSw0Rd` |
+
+---
+
+## File Overview
+
+```
+deployment/
+├── docker-compose.postgres.yml   PostgreSQL stack (postgres, pgadmin, snauth, snapp)
+├── docker-compose.mssql.yml      MSSQL stack (mssql, snauth, snapp)
+├── install-sensenet.ps1          Legacy PowerShell installer
+├── readme.md                     This file
+├── App_Data/                     Mounted into snapp (Lucene index, logs)
+├── scripts-linux/                Bash scripts for Linux / macOS
+│   ├── start-postgres.sh         Start the PostgreSQL stack
+│   ├── stop-postgres.sh          Stop the PostgreSQL stack
+│   ├── reset-postgres.sh         Full reset (drop DB + clear index + restart)
+│   ├── apikey-postgres.sh        Read admin API key from PostgreSQL
+│   ├── start-mssql.sh            Start the MSSQL stack
+│   ├── stop-mssql.sh             Stop the MSSQL stack
+│   ├── reset-mssql.sh            Full reset (drop DB + clear index + restart)
+│   └── apikey-mssql.sh           Read admin API key from MSSQL
+├── scripts/                      PowerShell helper scripts
+├── volumes/
+│   ├── certificates/             Dev TLS certificate (snapp.pfx)
+│   └── pgadmin/                  pgAdmin server config
+└── ...
+```

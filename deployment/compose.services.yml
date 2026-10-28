@@ -41,6 +41,8 @@ services:
     environment:
       <<: *runtime
       sensenet__identityManagement__UserProfilesEnabled: "false"
+      # Local demos must initialize an empty SQL database on provider checkouts too.
+      sensenet__install__mssql__EnableFirstInstallDB: "true"
       sensenet__apikeys__healthcheckeruser: ${HEALTH_CHECK_USER:-s3Cur3P4Ss}
       sensenet__repository__Authentication__ApiKey: ${REPOSITORY_API_KEY:-pr3Gen3R4Tedpr3Gen3R4Tedpr3Gen3R4Tedpr3Gen3R4Tedpr3Gen3R4Tedpr3Gen3R4Tedpr3Gen3R4Ted}
     volumes:

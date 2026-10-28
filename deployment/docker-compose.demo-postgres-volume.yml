@@ -1,5 +1,5 @@
-# INACTIVE scaffold: enable and validate after the PostgreSQL provider joins develop.
-# Kept outside the active *.yml demo suite; see readme.md.
+# Independent PostgreSQL demo with persistent data; separate from the developer stack.
+# Local source: docker compose -f docker-compose.demo-postgres-volume.yml up -d --build
 name: "sensenet-demo-postgres-volume"
 services:
   prerequisites:
@@ -11,6 +11,9 @@ services:
       file: "compose.services.yml"
       service: "repository"
     image: "${POSTGRES_IMAGE:-sensenetcsp/sn-api-postgre:postgres-provider}"
+    build:
+      context: "../src"
+      dockerfile: "WebApps/SnWebApplication.Api.PostgreSql.TokenAuth/Dockerfile"
     environment:
       sensenet__authentication__repositoryUrl: "https://localhost:${REPOSITORY_PORT:-${LEGACY_VOLUME_REPOSITORY_PORT:-18266}}"
       ConnectionStrings__SensenetRepository: "Host=snsql;Database=${COMPOSE_PROJECT_NAME}-sndb;Username=postgres;Password=${SQL_PASSWORD:-SuP3rS3CuR3P4sSw0Rd}"
