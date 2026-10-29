@@ -139,6 +139,9 @@ namespace SnWebApplication.Api.Sql.LocalAuth
 
             app.UseRouting();
 
+            // [sensenet]: cached health before repository-dependent middleware
+            app.UseSenseNetHealthEarly();
+
             // [sensenet]: custom CORS policy
             app.UseSenseNetCors();
             // [sensenet]: use Authentication and set User.Current

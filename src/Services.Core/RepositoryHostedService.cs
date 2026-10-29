@@ -11,6 +11,7 @@ using SenseNet.Diagnostics;
 using SenseNet.Events;
 using SenseNet.Extensions.DependencyInjection;
 using SenseNet.Storage.Diagnostics;
+using SenseNet.Services.Core.Diagnostics;
 using Exception = System.Exception;
 using Task = System.Threading.Tasks.Task;
 
@@ -23,6 +24,10 @@ namespace SenseNet.Services.Core
     public class RepositoryHostedService : IHostedService, IDisposable
     {
         private readonly ILogger<RepositoryHostedService> _logger;
+        private readonly object _repositorySync = new();
+        private readonly HealthRepositoryLifecycle _healthLifecycle;
+        private readonly HealthChangeSignal _healthSignal;
+        private bool _stopping;
 
         private IServiceProvider Services { get; }
         private RepositoryInstance Repository { get; set; }
@@ -40,6 +45,8 @@ namespace SenseNet.Services.Core
             OnRepositoryStartedAsync = onRepositoryStartedAsync;
             RepositoryStatus = provider.GetService<ISenseNetStatus>();
             _logger = provider.GetService<ILogger<RepositoryHostedService>>();
+            _healthLifecycle = provider.GetRequiredService<HealthRepositoryLifecycle>();
+            _healthSignal = provider.GetRequiredService<HealthChangeSignal>();
         }
 
         public RepositoryBuilder BuildProviders()
@@ -69,28 +76,53 @@ namespace SenseNet.Services.Core
         {
             RepositoryStatus.SetStatus(SenseNetStatus.Starting);
 
-            var repositoryBuilder = BuildProviders();
-
-            try
+            _startupTask = Task.Run(async () =>
             {
-                _startupTask = Task.Run(
-                    async () =>
+                try
+                {
+                    var repositoryBuilder = BuildProviders();
+                    var repository = ContentRepository.Repository.Start(repositoryBuilder);
+                    var keepRepository = false;
+                    lock (_repositorySync)
                     {
-                        Repository = ContentRepository.Repository.Start(repositoryBuilder);
+                        if (!_stopping && !_healthLifecycle.FailedOrStopping)
+                        {
+                            Repository = repository;
+                            keepRepository = true;
+                        }
+                    }
+                    if (!keepRepository)
+                    {
+                        repository.Dispose();
+                        RepositoryStatus.IsRunning = false;
+                        return;
+                    }
+                    if (OnRepositoryStartedAsync != null)
+                        await OnRepositoryStartedAsync.Invoke(repository, Services).ConfigureAwait(false);
 
-                        if (OnRepositoryStartedAsync != null)
-                            await OnRepositoryStartedAsync.Invoke(Repository, Services);
-
+                    lock (_repositorySync)
+                    {
+                        if (_stopping || _healthLifecycle.FailedOrStopping)
+                        {
+                            RepositoryStatus.IsRunning = false;
+                            return;
+                        }
+                        _healthLifecycle.SetReady();
                         RepositoryStatus.IsRunning = true;
                         RepositoryStatus.SetStatus(SenseNetStatus.Started);
-                        _logger.LogDebug("STARTUP: Repository started");
-                    }, cancellationToken);
-            }
-            catch (Exception ex)
-            {
-                SnLog.WriteException(ex, $"Error during repository start: {ex.Message}");
-                throw;
-            }
+                    }
+                    _logger.LogDebug("STARTUP: Repository started");
+                }
+                catch (Exception ex)
+                {
+                    _healthLifecycle.Stop();
+                    RepositoryStatus.IsRunning = false;
+                    lock (_repositorySync)
+                        RepositoryStatus.SetStatus(_stopping ? SenseNetStatus.Stopped : "Startup failed");
+                    _logger.LogError(ex, "Error during repository start.");
+                }
+                _healthSignal.Notify();
+            }, cancellationToken);
 
             return Task.CompletedTask;
         }
@@ -99,15 +131,22 @@ namespace SenseNet.Services.Core
 
         public Task StopAsync(CancellationToken cancellationToken)
         {
-            if (Repository != null)
+            RepositoryInstance repository;
+            lock (_repositorySync)
+            {
+                _stopping = true;
+                _healthLifecycle.Stop();
+                repository = Repository;
+                Repository = null;
+            }
+            _healthSignal.Notify();
+            if (repository != null)
             {
                 RepositoryStatus.IsRunning = false;
                 RepositoryStatus.SetStatus(SenseNetStatus.Stopping);
 
                 // shut down the repository
-                Repository?.Dispose();
-
-                Repository = null;
+                repository.Dispose();
             }
 
             RepositoryStatus.SetStatus(SenseNetStatus.Stopped);
@@ -128,7 +167,15 @@ namespace SenseNet.Services.Core
 
             if (disposing)
             {
-                Repository?.Dispose();
+                RepositoryInstance repository;
+                lock (_repositorySync)
+                {
+                    _stopping = true;
+                    _healthLifecycle.Stop();
+                    repository = Repository;
+                    Repository = null;
+                }
+                repository?.Dispose();
             }
 
             _disposed = true;
