@@ -276,6 +276,74 @@ public class HealthTests
     }
 
     [TestMethod]
+    public async Task Health_CustomCollectorParticipatesInPublicDetailsAndExpiry()
+    {
+        var clock = new HealthTestClock();
+        var options = Settings();
+        options.CustomComponents["Example"] = new ComponentHealthOptions
+        {
+            Interval = TimeSpan.FromSeconds(1), Timeout = TimeSpan.FromSeconds(1), MaxAge = TimeSpan.FromSeconds(10)
+        };
+        var collector = new TestCollector("Example", _ => Task.FromResult(new HealthResult
+        {
+            Color = HealthColor.Green, Method = "custom private method", Reason = "custom private diagnostic"
+        }));
+        var collectors = HealthComponents.Names.Select(name => (IComponentHealthCollector)new TestCollector(name,
+            _ => Task.FromResult(new HealthResult()))).Append(collector);
+        var lifecycle = new HealthRepositoryLifecycle(); lifecycle.SetReady();
+        var status = new SenseNetStatus { IsRunning = true }; status.SetStatus(SenseNetStatus.Started);
+        var publisher = new HealthSnapshotPublisher(clock, Options.Create(options), status, lifecycle, collectors);
+        Assert.AreEqual(HealthCheckState.Unknown, publisher.Current.Repository.Components["Example"].State);
+        var initial = Context();
+        await publisher.Current.WriteAsync(initial, false, clock);
+        Assert.AreEqual("Yellow", (string)Body(initial)["Health"]["Example"]["Color"]);
+
+        var monitor = new ComponentHealthMonitor(collector, options, clock, new HealthChangeSignal(), lifecycle, NullLogger.Instance);
+        await monitor.MeasureAsync(CancellationToken.None);
+        publisher.Publish(Fresh(clock).Append(monitor.Current));
+        var publicContext = Context();
+        await publisher.Current.WriteAsync(publicContext, false, clock);
+        var publicBody = Body(publicContext);
+        Assert.AreEqual("Green", (string)publicBody["Health"]["Color"]);
+        CollectionAssert.AreEqual(new[] { "Color" }, ((JObject)publicBody["Health"]["Example"]).Properties().Select(p => p.Name).ToArray());
+        Assert.IsFalse(publicBody.ToString().Contains("custom private"));
+        var detailedContext = Context();
+        await publisher.Current.WriteAsync(detailedContext, true, clock);
+        Assert.AreEqual("custom private method", (string)Body(detailedContext)["Health"]["Example"]["Method"]);
+
+        clock.Advance(TimeSpan.FromSeconds(10));
+        publisher.Publish(Fresh(clock).Append(monitor.Current));
+        Assert.AreEqual(HealthCheckState.Stale, publisher.Current.Repository.Components["Example"].State);
+        Assert.AreEqual(HealthColor.Red, publisher.Current.Repository.Color);
+        await monitor.MeasureAsync(CancellationToken.None);
+        publisher.Publish(Fresh(clock).Append(monitor.Current));
+        Assert.AreEqual(HealthColor.Green, publisher.Current.Repository.Color);
+        clock.Advance(options.PublisherMaxAge);
+        var expired = Context();
+        await publisher.Current.WriteAsync(expired, false, clock);
+        Assert.AreEqual("Red", (string)Body(expired)["Health"]["Example"]["Color"]);
+        Assert.AreEqual(2, collector.Calls, "Reading cached responses must not trigger custom collection.");
+    }
+
+    [TestMethod]
+    public void Health_CustomCollectorNamesAndOptionsAreValidated()
+    {
+        foreach (var name in new[] { "", " ", "Color", "color", "HealthServiceStatus", "Repository_StatusHistory", "PublishedAtUtc", "database" })
+            Assert.ThrowsException<ArgumentException>(() => HealthComponents.ValidateNames(HealthComponents.Names.Append(name)), name);
+        Assert.ThrowsException<ArgumentException>(() => HealthComponents.ValidateNames(HealthComponents.Names.Append("Example").Append("example")));
+        Assert.ThrowsException<ArgumentException>(() => HealthComponents.ValidateNames(new[] { "Example" }));
+        HealthComponents.ValidateNames(HealthComponents.Names.Append("Example"));
+
+        var options = Settings();
+        options.Validate(new[] { "Example" });
+        options.CustomComponents["Example"] = new ComponentHealthOptions { MaxAge = TimeSpan.FromSeconds(1) };
+        Assert.ThrowsException<ArgumentException>(() => options.Validate());
+        options.CustomComponents.Clear();
+        options.CustomComponents["Color"] = new ComponentHealthOptions();
+        Assert.ThrowsException<ArgumentException>(() => options.Validate());
+    }
+
+    [TestMethod]
     public void Health_OptionsRejectUnsafeDurations()
     {
         Settings().Validate();

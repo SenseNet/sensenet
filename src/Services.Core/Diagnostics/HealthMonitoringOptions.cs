@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace SenseNet.Services.Core.Diagnostics;
 
@@ -12,6 +14,9 @@ public sealed class HealthMonitoringOptions
     {
         Interval = TimeSpan.FromSeconds(30), Timeout = TimeSpan.FromSeconds(4), MaxAge = TimeSpan.FromSeconds(90)
     };
+    /// <summary>Optional overrides by custom collector name. Unlisted custom collectors use component defaults.</summary>
+    public Dictionary<string, ComponentHealthOptions> CustomComponents { get; set; } = new(StringComparer.Ordinal);
+    private readonly ComponentHealthOptions _customDefaults = new();
     public TimeSpan PublishInterval { get; set; } = TimeSpan.FromSeconds(1);
     public TimeSpan PublisherMaxAge { get; set; } = TimeSpan.FromSeconds(5);
     public TimeSpan StartupGracePeriod { get; set; } = TimeSpan.FromSeconds(60);
@@ -27,10 +32,10 @@ public sealed class HealthMonitoringOptions
     internal ComponentHealthOptions For(string name) => name switch
     {
         "Database" => Database, "BlobStorage" => BlobStorage, "Search" => Search, "Identity" => Identity,
-        _ => throw new ArgumentException("Unknown health component: " + name)
+        _ => CustomComponents.TryGetValue(name, out var options) ? options : _customDefaults
     };
 
-    internal void Validate()
+    internal void Validate(IEnumerable<string> registeredNames = null)
     {
         static void Positive(TimeSpan value, string name)
         {
@@ -47,7 +52,11 @@ public sealed class HealthMonitoringOptions
         if (InitialJitter < TimeSpan.Zero || InitialJitter.TotalMilliseconds > int.MaxValue ||
             double.IsNaN(JitterRatio) || JitterRatio < 0 || JitterRatio > 0.5 || PublisherMaxAge <= PublishInterval)
             throw new ArgumentException("HealthMonitoring: invalid jitter or publisher lifetime.");
-        foreach (var name in HealthComponents.Names)
+        if (CustomComponents == null || CustomComponents.Keys.Any(name => HealthComponents.IsReserved(name) ||
+                HealthComponents.Names.Contains(name, StringComparer.OrdinalIgnoreCase)))
+            throw new ArgumentException("HealthMonitoring: CustomComponents must use non-reserved custom collector names.");
+        foreach (var name in HealthComponents.Names.Concat(CustomComponents.Keys)
+                     .Concat(registeredNames ?? Array.Empty<string>()).Distinct(StringComparer.Ordinal))
         {
             var component = For(name) ?? throw new ArgumentException("Missing health options: " + name);
             Positive(component.Interval, name + ".Interval");

@@ -82,15 +82,18 @@ public class HealthAccessTests : TestBase
     public Task Health_HostedCollectorsRunWithoutRequestsAndPublishShutdown()
     {
         var clock = new HealthTestClock();
+        var custom = new HealthTests.TestCollector("CustomExample", _ => Task.FromResult(new HealthResult { Color = HealthColor.Green }));
         return Test2(services =>
         {
             services.AddSingleton<TimeProvider>(clock);
+            services.AddSingleton<IComponentHealthCollector>(custom);
             services.Configure<HealthMonitoringOptions>(options => { options.InitialJitter = TimeSpan.Zero; options.JitterRatio = 0; });
         }, async () =>
         {
             var services = Providers.Instance.Services;
             services.GetRequiredService<HealthRepositoryLifecycle>().SetReady();
             var store = services.GetRequiredService<IHealthSnapshotStore>();
+            Assert.AreEqual(HealthCheckState.Unknown, store.Current.Repository.Components["CustomExample"].State);
             var worker = services.GetServices<IHostedService>().OfType<HealthMonitoringHostedService>().Single();
             await worker.StartAsync(CancellationToken.None);
             try
@@ -98,6 +101,8 @@ public class HealthAccessTests : TestBase
                 await HealthTests.Until(() => store.Current.Repository.Components.Values.All(c => c.CheckedAtUtc.HasValue));
                 Assert.AreEqual(HealthCheckState.Available, store.Current.Repository.Components["Database"].State);
                 Assert.AreEqual(HealthCheckState.NotApplicable, store.Current.Repository.Components["Identity"].State);
+                Assert.AreEqual(HealthColor.Green, store.Current.Repository.Components["CustomExample"].Color);
+                Assert.AreEqual(1, custom.Calls, "The registered custom collector must run without HTTP requests.");
                 await HealthTests.Until(() => store.Current.Repository.Components["Database"].DetailsCheckedAtUtc.HasValue);
                 var previous = store.Current.Repository.Components["Database"].CheckedAtUtc;
                 // Ensure the monitor has scheduled its next interval before moving manual time.

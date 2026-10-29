@@ -22,9 +22,9 @@ flowchart TD
     Store --> Write[HealthResponseSnapshot.WriteAsync]
 ```
 
-[ServicesExtensions](../src/Services.Core/ServicesExtensions.cs#L156) registers the four collectors, publisher and access evaluator as singletons. The health hosted service is registered after `RepositoryHostedService`. Its constructor validates that there is exactly one collector named `Database`, `BlobStorage`, `Search` and `Identity`.
+[ServicesExtensions](../src/Services.Core/ServicesExtensions.cs#L156) registers the four built-in collectors, publisher and access evaluator as singletons. Applications can register additional `IComponentHealthCollector` implementations. The health hosted service is registered after `RepositoryHostedService`. Registration validation requires exactly one collector named `Database`, `BlobStorage`, `Search` and `Identity`, and allows additional unique names.
 
-[HealthMonitoringHostedService.StartAsync](../src/Services.Core/Diagnostics/HealthMonitoringHostedService.cs#L42) publishes an initial snapshot and starts a worker for each component, a publication loop, and a Developers group resolution loop. These workers start once per host and run without incoming health requests. The monitors wait for the readiness flag set by [RepositoryHostedService.StartAsync](../src/Services.Core/RepositoryHostedService.cs#L75) after repository initialization and the startup callback complete.
+[HealthMonitoringHostedService.StartAsync](../src/Services.Core/Diagnostics/HealthMonitoringHostedService.cs#L40) publishes an initial snapshot and starts a worker for each component, a publication loop, and a Developers group resolution loop. These workers start once per host and run without incoming health requests. The monitors wait for the readiness flag set by [RepositoryHostedService.StartAsync](../src/Services.Core/RepositoryHostedService.cs#L75) after repository initialization and the startup callback complete.
 
 ## Common measurement call sites
 
@@ -103,18 +103,18 @@ Details collection runs after the component's status measurement when due, using
 
 ## Snapshot publication and HTTP delivery
 
-[ComponentHealthMonitor.Publish](../src/Services.Core/Diagnostics/ComponentHealthMonitor.cs#L39) atomically replaces the component's immutable snapshot and signals the publication loop. [HealthMonitoringHostedService.PublishAsync](../src/Services.Core/Diagnostics/HealthMonitoringHostedService.cs#L56) waits for a signal or the configured `PublishInterval` before its next publication attempt.
+[ComponentHealthMonitor.Publish](../src/Services.Core/Diagnostics/ComponentHealthMonitor.cs#L39) atomically replaces the component's immutable snapshot and signals the publication loop. [HealthMonitoringHostedService.PublishAsync](../src/Services.Core/Diagnostics/HealthMonitoringHostedService.cs#L54) waits for a signal or the configured `PublishInterval` before its next publication attempt.
 
-[HealthSnapshotPublisher.Publish](../src/Services.Core/Diagnostics/HealthSnapshotPublisher.cs#L51) reads completed component snapshots, applies freshness rules, copies repository status/history, and derives the overall color. It creates a `HealthResponseSnapshot` before replacing `IHealthSnapshotStore.Current`. A publication sequence and compare/exchange prevent an older, slower publication from replacing a newer one, including a shutdown snapshot.
+[HealthSnapshotPublisher.Publish](../src/Services.Core/Diagnostics/HealthSnapshotPublisher.cs#L52) reads completed component snapshots, applies freshness rules, copies repository status/history, and derives the overall color. It creates a `HealthResponseSnapshot` before replacing `IHealthSnapshotStore.Current`. A publication sequence and compare/exchange prevent an older, slower publication from replacing a newer one, including a shutdown snapshot.
 
-The [HealthResponseSnapshot constructor](../src/Services.Core/Diagnostics/HealthSnapshots.cs#L101) serializes four UTF-8 responses: public, detailed, expired public, and expired detailed. The public DTO explicitly contains only the overall color and the four component colors. Adding a diagnostic field cannot implicitly expose it through the public DTO.
+The [HealthResponseSnapshot constructor](../src/Services.Core/Diagnostics/HealthSnapshots.cs#L114) serializes four UTF-8 responses: public, detailed, expired public, and expired detailed. The public response contains only the overall color and one `PublicHealthComponent` containing `Color` for each registered collector. Adding a diagnostic field cannot implicitly expose it through the public response. Custom collectors are included from the initial unknown snapshot onward, including the expiry fallback.
 
 The two HTTP branches use the same store:
 
 - [HealthEarlyMiddleware.InvokeAsync](../src/Services.Core/Diagnostics/HealthEarlyMiddleware.cs#L17) serves anonymous requests and the recognized dedicated health key before repository-dependent middleware. Ordinary credentials continue to normal authentication when the repository is ready.
 - [HealthMiddleware.InvokeAsync](../src/Services.Core/Diagnostics/HealthMiddleware.cs#L10) asks `IHealthAccessEvaluator` which response is visible, then calls the snapshot's writer.
 
-[HealthResponseSnapshot.WriteAsync](../src/Services.Core/Diagnostics/HealthSnapshots.cs#L119) checks publication expiry using the monotonic clock, selects a prepared byte array, sets response headers and writes it. It does not call collectors, providers or a JSON serializer. The HTTP request still has normal CPU/network costs, and the authenticated branch retains the cost of normal authentication.
+[HealthResponseSnapshot.WriteAsync](../src/Services.Core/Diagnostics/HealthSnapshots.cs#L132) checks publication expiry using the monotonic clock, selects a prepared byte array, sets response headers and writes it. It does not call collectors, providers or a JSON serializer. The HTTP request still has normal CPU/network costs, and the authenticated branch retains the cost of normal authentication.
 
 [HealthAccessEvaluator.CanReadDetails](../src/Services.Core/Diagnostics/HealthAccessEvaluator.cs#L29) uses the authenticated user captured in [UseSenseNetUser](../src/Services.Core/IdentityExtensions.cs#L140), before later middleware can elevate `User.Current`. It grants details to `HealthCheckerUser`, Administrators and Developers, including indirect membership. The Developers group ID is resolved by [RefreshDeveloperGroup](../src/Services.Core/Diagnostics/HealthAccessEvaluator.cs#L46) in the hosted service's background loop and stored with cache dependencies; the request does not resolve its repository path.
 
@@ -131,13 +131,25 @@ The two HTTP branches use the same store:
 
 ## Changing a collector
 
-The public contracts are [IComponentHealthCollector and IComponentHealthDetailsCollector](../src/Services.Core/Diagnostics/HealthSnapshots.cs#L39). `CollectAsync` returns a `SenseNet.Diagnostics.HealthResult` with color, optional response time, reason and method. Implement `CollectDetailsAsync` only when additional diagnostics are needed; its result can also contribute a color and reason.
+The public contracts are [IComponentHealthCollector and IComponentHealthDetailsCollector](../src/Services.Core/Diagnostics/HealthSnapshots.cs#L54). `CollectAsync` returns a `SenseNet.Diagnostics.HealthResult` with color, optional response time, reason and method. Implement `CollectDetailsAsync` only when additional diagnostics are needed; its result can also contribute a color and reason.
 
 For a change to an existing built-in component, keep its exact `ComponentName` and replace the corresponding singleton registration in [ServicesExtensions](../src/Services.Core/ServicesExtensions.cs#L163). Do not append a second collector with the same name. The built-in collector classes are internal; consumers outside this assembly implement the public interfaces rather than inheriting those classes.
 
 Collectors must pass cancellation tokens to I/O, avoid unbounded retries, and return detached data. Singleton collectors should create an operation scope for scoped services, as `ScopedHealthCollector` does. Keep expensive configuration retrieval in details collection. Never add provider calls to `Current` getters, access checks, response serialization or middleware callbacks.
 
-Adding a fifth component requires changes to the fixed component list, options mapping, public response DTO, collector registrations and tests. Registering another collector alone is rejected by the hosted service.
+To add another component, register its implementation as a singleton `IComponentHealthCollector` after `AddSenseNet`. Give it a non-empty name that is unique ignoring case. The response field names `Color`, `HealthServiceStatus`, `Repository_StatusHistory` and `PublishedAtUtc` are reserved. No changes to the publisher or response DTOs are needed.
+
+Custom collectors use the default component timing (10-second interval, 3-second timeout, 30-second maximum age). Override it under `sensenet:HealthMonitoring:CustomComponents:<ComponentName>` with the same `ComponentHealthOptions` properties as a built-in component. Use the collector's exact name; built-in settings remain under their existing keys. These settings do not register a collector by themselves.
+
+### Single file middleware example
+
+[HelloWorldComponent.cs](../src/WebApps/SnWebApplication.Api.Sql.TokenAuth/HelloWorldComponent.cs) in `SnWebApplication.Api.Sql.TokenAuth` implements both `IMiddleware` and `IComponentHealthCollector`. Its `GET /hello` endpoint returns the literal `hello wolrd` as plain text. Other paths and methods continue through the pipeline. The endpoint is registered before authentication and requires no credentials.
+
+Call `/hello?color=yellow`, `/hello?color=red` or `/hello?color=green` to select the color returned by subsequent `CollectAsync` calls. Color names are case-insensitive. The initial color is green; calls without `color`, including the collector's internal probe, preserve the current selection. Invalid or multiple color values return HTTP 400 and leave the selection unchanged. The state is held in memory by this application's singleton and resets on restart. `/health` reflects a change after the next background collection and publication; the query does not trigger collection. A failed middleware response check still returns red regardless of the selected color.
+
+The application's `Startup` registers one singleton and exposes that same instance as `IComponentHealthCollector`, then adds it with `UseMiddleware<HelloWorldComponent>()`. The other sample applications do not register it. The background collector invokes its own middleware with an in-memory `HttpContext` and checks the status and body; it does not send a loopback network request or exercise the rest of the application's HTTP pipeline.
+
+After repository startup and collection, `/health` includes `Health.HelloWorld.Color`. Diagnostic access also reveals the measurement method and response time. The sample relies on the default custom-component timing and needs no details collector.
 
 ## Debugging and tests
 

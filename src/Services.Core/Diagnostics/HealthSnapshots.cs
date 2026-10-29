@@ -16,6 +16,21 @@ namespace SenseNet.Services.Core.Diagnostics;
 internal static class HealthComponents
 {
     internal static readonly string[] Names = { "Database", "BlobStorage", "Search", "Identity" };
+
+    private static readonly string[] ReservedNames = { "Color", "HealthServiceStatus", "Repository_StatusHistory", "PublishedAtUtc" };
+
+    internal static bool IsReserved(string name) => string.IsNullOrWhiteSpace(name) ||
+        ReservedNames.Contains(name, StringComparer.OrdinalIgnoreCase);
+
+    internal static string[] ValidateNames(IEnumerable<string> names)
+    {
+        var result = names.ToArray();
+        if (result.Any(IsReserved) || result.Distinct(StringComparer.OrdinalIgnoreCase).Count() != result.Length)
+            throw new ArgumentException("Health collector names must be non-empty, unique and must not use reserved response field names.");
+        if (Names.Except(result, StringComparer.Ordinal).Any())
+            throw new ArgumentException("Register exactly one health collector for each built-in component, in addition to custom collectors.");
+        return result;
+    }
 }
 
 public enum HealthCheckState { Unknown, Available, Error, TimedOut, Missing, NotApplicable, Disabled, Stale }
@@ -81,9 +96,7 @@ public sealed class RepositoryHealthSnapshot
 
 // Separate public DTOs prevent future detailed fields from leaking into anonymous responses.
 internal sealed record PublicHealthComponent(HealthColor Color);
-internal sealed record PublicHealthColors(HealthColor Color, PublicHealthComponent Database,
-    PublicHealthComponent BlobStorage, PublicHealthComponent Search, PublicHealthComponent Identity);
-internal sealed record PublicHealthResponse(PublicHealthColors Health);
+internal sealed record PublicHealthResponse(IReadOnlyDictionary<string, object> Health);
 
 /// <summary>Both visibility levels and their expiry responses are serialized before publication.</summary>
 public sealed class HealthResponseSnapshot
@@ -132,9 +145,10 @@ public sealed class HealthResponseSnapshot
 
     private static PublicHealthResponse Public(RepositoryHealthSnapshot snapshot, bool expired)
     {
-        PublicHealthComponent Component(string name) => new(expired ? HealthColor.Red : snapshot.Components[name].Color);
-        return new(new(expired ? HealthColor.Red : snapshot.Color, Component("Database"), Component("BlobStorage"),
-            Component("Search"), Component("Identity")));
+        var health = new Dictionary<string, object> { ["Color"] = expired ? HealthColor.Red : snapshot.Color };
+        foreach (var component in snapshot.Components.Values)
+            health.Add(component.ComponentName, new PublicHealthComponent(expired ? HealthColor.Red : component.Color));
+        return new(health);
     }
 
     private object Details(RepositoryHealthSnapshot snapshot, bool expired)

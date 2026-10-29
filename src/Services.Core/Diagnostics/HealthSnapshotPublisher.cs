@@ -36,15 +36,16 @@ internal sealed class HealthSnapshotPublisher : IHealthSnapshotStore
     public HealthResponseSnapshot Current => Volatile.Read(ref _current);
 
     public HealthSnapshotPublisher(TimeProvider clock, IOptions<HealthMonitoringOptions> options,
-        ISenseNetStatus status, HealthRepositoryLifecycle lifecycle)
+        ISenseNetStatus status, HealthRepositoryLifecycle lifecycle, IEnumerable<IComponentHealthCollector> collectors = null)
     {
         _clock = clock;
         _options = options.Value;
-        _options.Validate();
+        var names = HealthComponents.ValidateNames(collectors?.Select(c => c.ComponentName) ?? HealthComponents.Names);
+        _options.Validate(names);
         _status = status;
         _lifecycle = lifecycle;
         _startedAt = clock.GetTimestamp();
-        Publish(HealthComponents.Names.Select(name => new ComponentHealthSnapshot(name, HealthCheckState.Unknown,
+        Publish(names.Select(name => new ComponentHealthSnapshot(name, HealthCheckState.Unknown,
             HealthColor.Yellow, Reason: "Waiting for the first measurement.")));
     }
 

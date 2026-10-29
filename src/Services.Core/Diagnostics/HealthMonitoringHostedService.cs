@@ -32,10 +32,8 @@ internal sealed class HealthMonitoringHostedService : IHostedService, IDisposabl
     {
         _publisher = publisher; _access = access; _signal = signal; _clock = clock;
         _options = options.Value; _logger = logger; _status = status as SenseNetStatus; _lifecycle = lifecycle;
-        _options.Validate();
         var sources = collectors.ToArray();
-        if (!sources.Select(c => c.ComponentName).OrderBy(n => n).SequenceEqual(HealthComponents.Names.OrderBy(n => n)))
-            throw new ArgumentException("Register exactly one health collector for each built-in component.");
+        _options.Validate(HealthComponents.ValidateNames(sources.Select(c => c.ComponentName)));
         _monitors = sources.Select(c => new ComponentHealthMonitor(c, _options, clock, signal, lifecycle, logger)).ToArray();
     }
 

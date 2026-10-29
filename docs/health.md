@@ -6,7 +6,7 @@ For implementation details and the exact component measurement call sites, see [
 
 ## Visibility
 
-Anonymous callers and authenticated users without diagnostic access receive only the overall color and four component colors:
+Anonymous callers and authenticated users without diagnostic access receive only the overall color and component colors. With the four built-in collectors, the response is:
 
 ```json
 {
@@ -64,6 +64,8 @@ Unmeasured components start yellow and turn red after the startup grace period. 
 
 Publication runs on component/status changes and at least once per second. If publication stops, or a result reaches a color-changing expiry before the next publication, the request selects an already prepared `SnapshotExpired` response. All colors in that fallback are red because current health is unknown. A new publication restores the ordinary response.
 
+Custom collectors appear alongside the built-in components in both visibility levels and contribute to the overall color. Their public entry also contains only `Color`.
+
 The snapshot is local to the application instance. In NLB deployments, a response describes the instance that handled that request. The blob check verifies metadata access, not every external provider's ability to read and write blob bytes.
 
 ## Configuration
@@ -78,6 +80,7 @@ All values are under `sensenet:HealthMonitoring` and take effect after restart. 
       "BlobStorage": { "Enabled": true, "Required": true, "Interval": "00:00:10", "Timeout": "00:00:03", "MaxAge": "00:00:30" },
       "Search": { "Enabled": true, "Required": true, "Interval": "00:00:10", "Timeout": "00:00:03", "MaxAge": "00:00:30" },
       "Identity": { "Enabled": true, "Required": true, "Interval": "00:00:30", "Timeout": "00:00:04", "MaxAge": "00:01:30" },
+      "CustomComponents": {},
       "PublishInterval": "00:00:01",
       "PublisherMaxAge": "00:00:05",
       "StartupGracePeriod": "00:01:00",
@@ -100,6 +103,7 @@ All values are under `sensenet:HealthMonitoring` and take effect after restart. 
 | Component `Interval` | Delay between completed collection cycles, before jitter. |
 | Component `Timeout` | Maximum time to accept a measurement result. Does not forcibly terminate a provider. |
 | Component `MaxAge` | Maximum age of an accepted measurement before it turns red. |
+| `CustomComponents` | Optional settings keyed by custom collector name. Unlisted custom collectors use `Enabled: true`, `Required: true`, 10 s interval, 3 s timeout and 30 s maximum age. Configuration alone does not register a collector. |
 | `PublishInterval` | Maximum normal wait between publications; change notifications may publish sooner. |
 | `PublisherMaxAge` | Maximum permitted publication age before the cached expiry response is used. |
 | `StartupGracePeriod` | Time allowed for the first measurement and full repository startup. |
@@ -115,7 +119,7 @@ Durations must be positive, except `InitialJitter`, which may be zero. `Publishe
 
 ## Extension and migration
 
-The passive interfaces are `IComponentHealthSource` and `IHealthSnapshotStore`. Active work belongs to `IComponentHealthCollector`, optionally with `IComponentHealthDetailsCollector`. Register exactly one collector for each of Database, BlobStorage, Search and Identity. Replace the corresponding collector registration rather than adding a second collector with the same name. Collectors must honor cancellation and return bounded, detached diagnostic data; the monitor copies results before publication.
+The passive interfaces are `IComponentHealthSource` and `IHealthSnapshotStore`. Active work belongs to `IComponentHealthCollector`, optionally with `IComponentHealthDetailsCollector`. Register exactly one collector for each of Database, BlobStorage, Search and Identity; additional collectors can use their own unique names. Names must be non-empty and unique ignoring case. `Color`, `HealthServiceStatus`, `Repository_StatusHistory` and `PublishedAtUtc` are reserved. Replace a built-in collector's registration rather than adding a second collector with the same name. Collectors must honor cancellation and return bounded, detached diagnostic data; the monitor copies results before publication.
 
 The built-in collectors create a scope for each operation. Custom singleton collectors must not capture request-scoped services. Configuration data is serialized and credential fields are redacted in the background. Custom provider text should never contain secrets in the first place.
 
