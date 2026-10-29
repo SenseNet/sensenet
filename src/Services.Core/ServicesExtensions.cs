@@ -3,6 +3,7 @@ using System.Linq;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
 using SenseNet.BackgroundOperations;
 using SenseNet.Communication.Messaging;
@@ -64,6 +65,7 @@ namespace SenseNet.Extensions.DependencyInjection
             services.Configure<TaskManagementOptions>(configuration.GetSection("sensenet:TaskManagement"));
             services.Configure<RegistrationOptions>(configuration.GetSection("sensenet:Registration"));
             services.Configure<AuthenticationOptions>(configuration.GetSection("sensenet:Authentication"));
+            services.Configure<HealthMonitoringOptions>(configuration.GetSection("sensenet:HealthMonitoring"));
             services.Configure<ClientStoreOptions>(configuration.GetSection("sensenet:Authentication"));
             services.Configure<ClientRequestOptions>(configuration.GetSection("sensenet:ClientRequest"));
             services.Configure<HttpRequestOptions>(configuration.GetSection("sensenet:HttpRequest"));
@@ -135,6 +137,7 @@ namespace SenseNet.Extensions.DependencyInjection
                 //.AddSingleton<IMaintenanceTask, ReindexBinariesTask>()
 
                 .AddHostedService(provider => new RepositoryHostedService(provider, buildRepository, onRepositoryStartedAsync))
+                .AddHostedService<HealthMonitoringHostedService>()
                 .AddHostedService<SnMaintenance>();
 
             // add sn components defined in the content repository layer
@@ -149,6 +152,18 @@ namespace SenseNet.Extensions.DependencyInjection
         public static IServiceCollection AddPlatformIndependentServices(this IServiceCollection services, 
             IConfiguration configuration)
         {
+            services.TryAddSingleton(TimeProvider.System);
+            services.AddOptions<HealthMonitoringOptions>();
+            services.AddSingleton<HealthRepositoryLifecycle>();
+            services.AddSingleton<HealthChangeSignal>();
+            services.AddSingleton<HealthSnapshotPublisher>();
+            services.AddSingleton<IHealthSnapshotStore>(provider => provider.GetRequiredService<HealthSnapshotPublisher>());
+            services.AddSingleton<HealthAccessEvaluator>();
+            services.AddSingleton<IHealthAccessEvaluator>(provider => provider.GetRequiredService<HealthAccessEvaluator>());
+            services.AddSingleton<IComponentHealthCollector, DatabaseHealthCollector>();
+            services.AddSingleton<IComponentHealthCollector, BlobStorageHealthCollector>();
+            services.AddSingleton<IComponentHealthCollector, SearchHealthCollector>();
+            services.AddSingleton<IComponentHealthCollector, IdentityHealthCollector>();
             services
                 .AddSenseNetDefaultRepositoryServices()
                 .AddDefaultNodeObservers()
@@ -336,7 +351,8 @@ namespace SenseNet.Extensions.DependencyInjection
         }
 
         /// <summary>
-        /// Registers the sensenet health middleware in the pipeline if the request contains the 'health' prefix.
+        /// Registers the cached health response after authentication. Also call UseSenseNetHealthEarly
+        /// before repository-dependent middleware for anonymous and dedicated health-key requests.
         /// </summary>
         /// <param name="builder">IApplicationBuilder instance.</param>
         /// <param name="buildAppBranchBefore">Optional builder method. Use this when you want to add
@@ -352,6 +368,13 @@ namespace SenseNet.Extensions.DependencyInjection
                 buildAppBranchAfter, true);
 
             return builder;
+        }
+
+        /// <summary>Serves anonymous and dedicated health-key requests before CORS, authentication,
+        /// membership and application middleware. Other credentials continue to normal authentication.</summary>
+        public static IApplicationBuilder UseSenseNetHealthEarly(this IApplicationBuilder builder)
+        {
+            return builder.UseMiddleware<HealthEarlyMiddleware>();
         }
     }
 }
