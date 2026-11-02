@@ -4,8 +4,8 @@ using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.Diagnostics;
 using System;
-using System.Globalization;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -365,14 +365,6 @@ namespace SenseNet.ContentRepository
             if (string.IsNullOrEmpty(displayName))
                 return displayName;
 
-            var removeDiacritics = ContentNaming.RemoveDiacritics;
-            var replaceWhitespace = ContentNaming.ReplaceWhitespace;
-            if (removeDiacritics || replaceWhitespace)
-            {
-                originalName = NormalizeName(originalName, removeDiacritics, replaceWhitespace);
-                displayName = NormalizeName(displayName, removeDiacritics, replaceWhitespace);
-            }
-
             // note: original extension is kept!
 
             // get original extension
@@ -389,6 +381,10 @@ namespace SenseNet.ContentRepository
             // convert the displayname to name: if extensions are equal, only filename is to be transformed. extension is added at the end
             var nameToConvert = origext == newext ? displayNameWithoutExtension : displayName;
 
+            // Only transform the candidate for Name; keep both source arguments unchanged.
+            if (ContentNaming.RemoveDiacritics)
+                nameToConvert = RemoveDiacritics(nameToConvert);
+
             string newName = RemoveInvalidCharacters(nameToConvert);
 
             // attach original extension
@@ -396,37 +392,29 @@ namespace SenseNet.ContentRepository
 
             return newName.TrimEnd('.', replacementChar);
         }
-        private static string NormalizeName(string name, bool removeDiacritics, bool replaceWhitespace)
+        private static string RemoveDiacritics(string name)
         {
-            if (string.IsNullOrEmpty(name))
-                return name;
-
-            var normalizedName = removeDiacritics ? name.Normalize(NormalizationForm.FormD) : name;
-            var result = new StringBuilder(normalizedName.Length);
-            foreach (var rune in normalizedName.EnumerateRunes())
+            var result = new StringBuilder(name.Length);
+            foreach (var rune in name.Normalize(NormalizationForm.FormD).EnumerateRunes())
             {
-                if (removeDiacritics)
-                {
-                    var category = Rune.GetUnicodeCategory(rune);
-                    if (category == UnicodeCategory.NonSpacingMark ||
-                        category == UnicodeCategory.SpacingCombiningMark ||
-                        category == UnicodeCategory.EnclosingMark)
-                        continue;
-                }
-
-                if (replaceWhitespace && Rune.IsWhiteSpace(rune))
-                    result.Append(replacementChar);
-                else
+                var category = Rune.GetUnicodeCategory(rune);
+                if (category != UnicodeCategory.NonSpacingMark &&
+                    category != UnicodeCategory.SpacingCombiningMark &&
+                    category != UnicodeCategory.EnclosingMark)
                     result.Append(rune.ToString());
             }
 
-            var normalized = result.ToString();
-            return removeDiacritics ? normalized.Normalize(NormalizationForm.FormC) : normalized;
+            return result.ToString().Normalize(NormalizationForm.FormC);
         }
 
         private string RemoveInvalidCharacters(string name)
         {
-            name = Regex.Replace(name, ContentNaming.InvalidNameCharsPattern, replacementString);
+            // Keep the configured validation pattern unchanged. This option only
+            // extends character replacement while generating the Name field value.
+            var pattern = ContentNaming.ReplaceWhitespace
+                ? "(?:" + ContentNaming.InvalidNameCharsPattern + @")|\s"
+                : ContentNaming.InvalidNameCharsPattern;
+            name = Regex.Replace(name, pattern, replacementString);
 
             var doubleReplacement = new string(replacementChar, 2);
             var length = name.Length;

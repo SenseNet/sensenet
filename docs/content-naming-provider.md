@@ -81,12 +81,18 @@ image must contain a sensenet version that implements these options; adding
 environment variables to an older image does not add the feature. No custom
 provider registration or content type change is required.
 
-Normalization preserves letter case and runs on both the original name and the
-display name before the existing extension comparison. The original extension
-is therefore kept in its normalized form: original `régi.dóc` and display name
-`Új név.dóc` produce `Uj-nev.doc`, without duplicating the extension. Existing
-replacement-character collapsing and trailing-character trimming still apply;
-this feature does not add leading-character trimming or lowercase conversion.
+Normalization only transforms the candidate used for the returned `Name` value;
+the source arguments and the stored `DisplayName` field are not modified. Letter
+case and the existing extension comparison are preserved. If an original name is
+provided, its extension is appended unchanged: original `régi.dóc` and display
+name `Új név.dóc` produce `Uj-nev.dóc`. Without an original name, the complete
+candidate is normalized, so `Új név.dóc` produces `Uj-nev.doc`.
+
+Whitespace can already be replaced by including it in `InvalidNameCharsPattern`.
+`ReplaceWhitespace` extends the existing generation regex with whitespace; it
+does not change that shared validation pattern or introduce a second replacement
+algorithm. Existing replacement-character collapsing and trailing-character
+trimming still apply; no leading-character trimming or lowercase conversion is added.
 
 Diacritic removal uses canonical Unicode decomposition and removes combining
 marks, including supplementary Unicode marks. It is not full ASCII

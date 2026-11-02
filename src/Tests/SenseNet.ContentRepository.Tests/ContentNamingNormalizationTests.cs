@@ -42,7 +42,8 @@ namespace SenseNet.ContentRepository.Tests
         [DataRow("régi.txt", "Új név", "Uj-nev.txt")]
         [DataRow("régi.txt", "Új név.txt", "Uj-nev.txt")]
         [DataRow("régi.txt", "Új név.doc", "Uj-nev.doc.txt")]
-        [DataRow("régi.dóc", "Új név.dóc", "Uj-nev.doc")]
+        [DataRow("régi.dóc", "Új név.dóc", "Uj-nev.dóc")]
+        [DataRow(null, "Új név.dóc", "Uj-nev.doc")]
         [DataRow(null, "東京 café", "東京-cafe")]
         [DataRow(null, "Straße smør", "Straße-smør")]
         [DataRow(null, "😀 Árvíz", "😀-Arviz")]
@@ -88,6 +89,31 @@ namespace SenseNet.ContentRepository.Tests
             Assert.AreEqual("A\u0301rvi\u0301z-tu\u0308ko\u0308r",
                 new CharReplacementContentNamingProvider().GenerateNameFromDisplayName(null,
                     "A\u0301rvi\u0301z tu\u0308ko\u0308r"));
+        }
+
+        [TestMethod]
+        public void Normalization_ExistingPatternCanAlreadyReplaceWhitespace()
+        {
+            using var diacritics = new Swindler<bool>(false,
+                () => ContentNaming.RemoveDiacritics, value => ContentNaming.RemoveDiacritics = value);
+            using var whitespace = new Swindler<bool>(false,
+                () => ContentNaming.ReplaceWhitespace, value => ContentNaming.ReplaceWhitespace = value);
+            using var pattern = new Swindler<string>(@"[\s/]",
+                () => ContentNaming.InvalidNameCharsPattern, value => ContentNaming.InvalidNameCharsPattern = value);
+
+            Assert.AreEqual("Árvíz-tükör",
+                new CharReplacementContentNamingProvider().GenerateNameFromDisplayName(null, "Árvíz tükör"));
+        }
+
+        [TestMethod]
+        public void Normalization_WhitespaceOptionDoesNotChangeNameValidation()
+        {
+            using var whitespace = new Swindler<bool>(true,
+                () => ContentNaming.ReplaceWhitespace, value => ContentNaming.ReplaceWhitespace = value);
+
+            var provider = new CharReplacementContentNamingProvider();
+            provider.AssertNameIsValid("Árvíz tükör");
+            Assert.AreEqual("Árvíz-tükör", provider.GenerateNameFromDisplayName(null, "Árvíz tükör"));
         }
 
         [TestMethod]
