@@ -4,6 +4,7 @@ using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.Diagnostics;
 using System;
+using System.Globalization;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -364,6 +365,14 @@ namespace SenseNet.ContentRepository
             if (string.IsNullOrEmpty(displayName))
                 return displayName;
 
+            var removeDiacritics = ContentNaming.RemoveDiacritics;
+            var replaceWhitespace = ContentNaming.ReplaceWhitespace;
+            if (removeDiacritics || replaceWhitespace)
+            {
+                originalName = NormalizeName(originalName, removeDiacritics, replaceWhitespace);
+                displayName = NormalizeName(displayName, removeDiacritics, replaceWhitespace);
+            }
+
             // note: original extension is kept!
 
             // get original extension
@@ -387,6 +396,34 @@ namespace SenseNet.ContentRepository
 
             return newName.TrimEnd('.', replacementChar);
         }
+        private static string NormalizeName(string name, bool removeDiacritics, bool replaceWhitespace)
+        {
+            if (string.IsNullOrEmpty(name))
+                return name;
+
+            var normalizedName = removeDiacritics ? name.Normalize(NormalizationForm.FormD) : name;
+            var result = new StringBuilder(normalizedName.Length);
+            foreach (var rune in normalizedName.EnumerateRunes())
+            {
+                if (removeDiacritics)
+                {
+                    var category = Rune.GetUnicodeCategory(rune);
+                    if (category == UnicodeCategory.NonSpacingMark ||
+                        category == UnicodeCategory.SpacingCombiningMark ||
+                        category == UnicodeCategory.EnclosingMark)
+                        continue;
+                }
+
+                if (replaceWhitespace && Rune.IsWhiteSpace(rune))
+                    result.Append(replacementChar);
+                else
+                    result.Append(rune.ToString());
+            }
+
+            var normalized = result.ToString();
+            return removeDiacritics ? normalized.Normalize(NormalizationForm.FormC) : normalized;
+        }
+
         private string RemoveInvalidCharacters(string name)
         {
             name = Regex.Replace(name, ContentNaming.InvalidNameCharsPattern, replacementString);

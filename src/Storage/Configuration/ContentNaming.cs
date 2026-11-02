@@ -18,5 +18,19 @@ namespace SenseNet.Configuration
 
         public static char ReplacementChar { get; internal set; } = GetString(SECTIONNAME,
             "ReplacementChar", "-").FirstOrDefault();
+
+        /// <summary>
+        /// Removes decomposable Unicode diacritics when generating a name from a display name.
+        /// Default: false.
+        /// </summary>
+        public static bool RemoveDiacritics { get; internal set; } =
+            GetValue<bool>(SECTIONNAME, nameof(RemoveDiacritics), false);
+
+        /// <summary>
+        /// Replaces Unicode whitespace with ReplacementChar when generating a name from a display name.
+        /// Default: false.
+        /// </summary>
+        public static bool ReplaceWhitespace { get; internal set; } =
+            GetValue<bool>(SECTIONNAME, nameof(ReplaceWhitespace), false);
     }
 }
