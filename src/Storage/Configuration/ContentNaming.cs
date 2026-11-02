@@ -25,12 +25,5 @@ namespace SenseNet.Configuration
         /// </summary>
         public static bool RemoveDiacritics { get; internal set; } =
             GetValue<bool>(SECTIONNAME, nameof(RemoveDiacritics), false);
-
-        /// <summary>
-        /// Replaces Unicode whitespace with ReplacementChar when generating a name from a display name.
-        /// Default: false.
-        /// </summary>
-        public static bool ReplaceWhitespace { get; internal set; } =
-            GetValue<bool>(SECTIONNAME, nameof(ReplaceWhitespace), false);
     }
 }

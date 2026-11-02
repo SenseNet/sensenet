@@ -381,7 +381,6 @@ namespace SenseNet.ContentRepository
             // convert the displayname to name: if extensions are equal, only filename is to be transformed. extension is added at the end
             var nameToConvert = origext == newext ? displayNameWithoutExtension : displayName;
 
-            // Only transform the candidate for Name; keep both source arguments unchanged.
             if (ContentNaming.RemoveDiacritics)
                 nameToConvert = RemoveDiacritics(nameToConvert);
 
@@ -409,12 +408,7 @@ namespace SenseNet.ContentRepository
 
         private string RemoveInvalidCharacters(string name)
         {
-            // Keep the configured validation pattern unchanged. This option only
-            // extends character replacement while generating the Name field value.
-            var pattern = ContentNaming.ReplaceWhitespace
-                ? "(?:" + ContentNaming.InvalidNameCharsPattern + @")|\s"
-                : ContentNaming.InvalidNameCharsPattern;
-            name = Regex.Replace(name, pattern, replacementString);
+            name = Regex.Replace(name, ContentNaming.InvalidNameCharsPattern, replacementString);
 
             var doubleReplacement = new string(replacementChar, 2);
             var length = name.Length;

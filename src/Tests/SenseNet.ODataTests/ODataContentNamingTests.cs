@@ -13,23 +13,17 @@ namespace SenseNet.ODataTests
     public class ODataContentNamingTests : ODataTestBase
     {
         [DataTestMethod]
-        [DataRow(false, false, null, "Árvíz tükör")]
-        [DataRow(true, false, null, "Arviz tukor")]
-        [DataRow(false, true, null, "Árvíz-tükör")]
-        [DataRow(true, true, null, "Arviz-tukor")]
-        [DataRow(false, false, "Kézi név", "Kézi név")]
-        [DataRow(true, false, "Kézi név", "Kezi nev")]
-        [DataRow(false, true, "Kézi név", "Kézi-név")]
-        [DataRow(true, true, "Kézi név", "Kezi-nev")]
-        public async Task OD_POST_NormalizationOnlyChangesName(
-            bool removeDiacritics, bool replaceWhitespace, string explicitName, string expectedName)
+        [DataRow(false, null, "Árvíz tükör")]
+        [DataRow(true, null, "Arviz tukor")]
+        [DataRow(false, "Kézi név", "Kézi név")]
+        [DataRow(true, "Kézi név", "Kezi nev")]
+        public async Task OD_POST_DiacriticRemovalOnlyChangesName(
+            bool removeDiacritics, string explicitName, string expectedName)
         {
             await ODataTestAsync(async () =>
             {
                 using var diacritics = new Swindler<bool>(removeDiacritics,
                     () => ContentNaming.RemoveDiacritics, value => ContentNaming.RemoveDiacritics = value);
-                using var whitespace = new Swindler<bool>(replaceWhitespace,
-                    () => ContentNaming.ReplaceWhitespace, value => ContentNaming.ReplaceWhitespace = value);
 
                 const string displayName = "Árvíz tükör";
                 var root = CreateTestRoot("ODataNamingTestRoot");
@@ -49,10 +43,8 @@ namespace SenseNet.ODataTests
                 var saved = Content.Load(entity.Id);
                 Assert.AreEqual(expectedName, entity.Name);
                 Assert.AreEqual(expectedName, saved.Name);
-                Assert.AreEqual(displayName, saved.DisplayName,
-                    "Generating Name must not normalize the stored DisplayName.");
+                Assert.AreEqual(displayName, saved.DisplayName);
 
-                // Updating DisplayName later must neither normalize its value nor rename the content.
                 const string updatedDisplayName = "Új cím — őű";
                 var update = new JObject { ["DisplayName"] = updatedDisplayName };
                 response = await ODataPatchAsync("/OData.svc" + saved.Path, "",
