@@ -124,6 +124,10 @@ Pattern must start with '[' and end with ']'. -->
 - **ReplacementChar**: defines the character used to replace invalid characters.
 - **RemoveDiacritics**: optional diacritic removal for generated names, `false` by default. See [optional name normalization](content-naming-provider.md#optional-name-normalization) for configuration and behavior.
 - **Lowercase**: optional invariant lowercasing of generated names, `false` by default. See [optional name normalization](content-naming-provider.md#optional-name-normalization).
+- **Transliterate**: optional AnyAscii Unicode-to-ASCII transliteration, `false` by default.
+- **ApplyCustomReplacements**: optional ordered literal replacements, `false` by default. `ReplacementSources` and `ReplacementTargets` are paired string arrays.
+
+All four normalization switches can be disabled at runtime through global `ContentNaming.settings`; Settings cannot enable a switch disabled in host config. See [runtime Settings overrides](content-naming-provider.md#runtime-settings-overrides).
 
 > Note that changing InvalidNameCharsPattern will affect path validation logic in the whole Content Repository. It is therefore desired to change validation messages when changing invalid characters pattern, see [Invalid names and error messages](#Invalid-names-and-error-messages) below.
 

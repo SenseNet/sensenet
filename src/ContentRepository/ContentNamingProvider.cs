@@ -1,4 +1,5 @@
-﻿using SenseNet.ApplicationModel;
+﻿using AnyAscii;
+using SenseNet.ApplicationModel;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
@@ -381,10 +382,16 @@ namespace SenseNet.ContentRepository
             // convert the displayname to name: if extensions are equal, only filename is to be transformed. extension is added at the end
             var nameToConvert = origext == newext ? displayNameWithoutExtension : displayName;
 
-            if (ContentNaming.RemoveDiacritics)
+            if (IsEnabled(nameof(ContentNaming.ApplyCustomReplacements), ContentNaming.ApplyCustomReplacements))
+                nameToConvert = ApplyCustomReplacements(nameToConvert);
+
+            if (IsEnabled(nameof(ContentNaming.RemoveDiacritics), ContentNaming.RemoveDiacritics))
                 nameToConvert = RemoveDiacritics(nameToConvert);
 
-            if (ContentNaming.Lowercase)
+            if (IsEnabled(nameof(ContentNaming.Transliterate), ContentNaming.Transliterate))
+                nameToConvert = nameToConvert.Transliterate();
+
+            if (IsEnabled(nameof(ContentNaming.Lowercase), ContentNaming.Lowercase))
                 nameToConvert = nameToConvert.ToLowerInvariant();
 
             string newName = RemoveInvalidCharacters(nameToConvert);
@@ -394,6 +401,27 @@ namespace SenseNet.ContentRepository
 
             return newName.TrimEnd('.', replacementChar);
         }
+        private static bool IsEnabled(string optionName, bool configuredValue)
+        {
+            // Repository settings can veto a configured feature, never enable a disabled one.
+            return configuredValue && (!Repository.Started() ||
+                Settings.GetValue("ContentNaming", optionName, defaultValue: true));
+        }
+
+        private static string ApplyCustomReplacements(string name)
+        {
+            var sources = ContentNaming.ReplacementSources;
+            var targets = ContentNaming.ReplacementTargets;
+            if (sources.Length != targets.Length || sources.Any(string.IsNullOrEmpty) || targets.Any(t => t == null))
+                throw new InvalidOperationException("ContentNaming ReplacementSources and ReplacementTargets must have " +
+                    "the same length, with non-empty sources and non-null targets.");
+
+            for (var i = 0; i < sources.Length; i++)
+                name = name.Replace(sources[i], targets[i], StringComparison.Ordinal);
+
+            return name;
+        }
+
         private static string RemoveDiacritics(string name)
         {
             var result = new StringBuilder(name.Length);

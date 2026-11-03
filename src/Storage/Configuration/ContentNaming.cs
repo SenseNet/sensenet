@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Collections.Generic;
 
 namespace SenseNet.Configuration
 {
@@ -32,5 +33,41 @@ namespace SenseNet.Configuration
         /// </summary>
         public static bool Lowercase { get; internal set; } =
             GetValue<bool>(SECTIONNAME, nameof(Lowercase), false);
+
+        /// <summary>
+        /// Transliterates generated names to ASCII using AnyAscii. Default: false.
+        /// </summary>
+        public static bool Transliterate { get; internal set; } =
+            GetValue<bool>(SECTIONNAME, nameof(Transliterate), false);
+
+        /// <summary>
+        /// Applies the ordered ReplacementSources/ReplacementTargets pairs to generated names. Default: false.
+        /// </summary>
+        public static bool ApplyCustomReplacements { get; internal set; } =
+            GetValue<bool>(SECTIONNAME, nameof(ApplyCustomReplacements), false);
+
+        /// <summary>
+        /// Literal, case-sensitive source strings for custom replacements, in application order.
+        /// </summary>
+        public static string[] ReplacementSources { get; internal set; } =
+            GetReplacementArray(nameof(ReplacementSources));
+
+        /// <summary>
+        /// Replacement strings paired by index with ReplacementSources. Empty strings remove matches.
+        /// </summary>
+        public static string[] ReplacementTargets { get; internal set; } =
+            GetReplacementArray(nameof(ReplacementTargets));
+
+        private static string[] GetReplacementArray(string key)
+        {
+            var values = new List<string>();
+            for (var index = 0; ; index++)
+            {
+                var value = GetString(SECTIONNAME, key + ":" + index);
+                if (value == null)
+                    return values.ToArray();
+                values.Add(value);
+            }
+        }
     }
 }

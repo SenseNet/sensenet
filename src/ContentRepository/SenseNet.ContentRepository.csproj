@@ -36,6 +36,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<PackageReference Include="AnyAscii" Version="0.3.3" />
 		<PackageReference Include="GoogleAuthenticator" Version="3.2.0" />
 		<PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.3.0" />
 		<PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
@@ -54,6 +55,12 @@
 		<ProjectReference Include="..\Common\SenseNet.Common.csproj" />
 		<ProjectReference Include="..\Search\SenseNet.Search.csproj" />
 		<ProjectReference Include="..\Storage\SenseNet.Storage.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<Content Include="ThirdPartyNotices/AnyAscii.txt" CopyToOutputDirectory="PreserveNewest"
+		         CopyToPublishDirectory="PreserveNewest" Pack="true"
+		         PackagePath="contentFiles/any/any/ThirdPartyNotices/" PackageCopyToOutput="true" />
 	</ItemGroup>
 
 </Project>

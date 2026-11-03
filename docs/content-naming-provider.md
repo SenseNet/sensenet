@@ -35,47 +35,117 @@ Duplicated 'ReplacementChar' characters are replaced by a single character (so a
 
 ### Optional name normalization
 
-The following independent settings support consistent generated names, for example
-when content names form part of public URLs. Both default to `false`:
+The following independent `sensenet:contentNaming` switches all default to `false`.
+They affect `CharReplacementContentNamingProvider` only.
 
-- `sensenet:contentNaming:RemoveDiacritics`: removes decomposable Unicode diacritics.
-- `sensenet:contentNaming:Lowercase`: converts letters using invariant casing.
+| Setting | Effect |
+| --- | --- |
+| `ApplyCustomReplacements` | Applies the configured literal replacement pairs in array order. |
+| `RemoveDiacritics` | Removes decomposable Unicode diacritics using canonical decomposition. |
+| `Transliterate` | Uses AnyAscii 0.3.3 to transliterate Unicode text to ASCII. |
+| `Lowercase` | Converts letters using invariant casing. |
+
+The pipeline is custom replacements, diacritic removal, transliteration, lowercase,
+then the existing invalid-character replacement. Each step can be enabled separately.
+When all four switches are absent or `false`, name generation remains unchanged.
+Transliteration itself removes many diacritics. To preserve accents, disable both
+`RemoveDiacritics` and `Transliterate` and avoid custom replacements that remove them.
+A Settings veto disables its step; other enabled steps can still have overlapping effects.
+
+For example, this configuration generates `arvizturo-tukorfurogep` from
+`Árvíztűrő tükörfúrógép` while preserving the original stored `DisplayName`:
 
 ```json
 {
   "sensenet": {
     "contentNaming": {
       "RemoveDiacritics": true,
-      "Lowercase": true
+      "Lowercase": true,
+      "Transliterate": true,
+      "ApplyCustomReplacements": true,
+      "ReplacementSources": [
+        "ä",
+        "&",
+        " "
+      ],
+      "ReplacementTargets": [
+        "ae",
+        "and",
+        "-"
+      ]
     }
   }
 }
 ```
 
-For Docker, set `sensenet__contentNaming__RemoveDiacritics=true` and/or
-`sensenet__contentNaming__Lowercase=true`. Restart the repository host after
-changing these settings; its package/image version must contain the options.
+The replacement arrays are paired by index. Entries are case-sensitive literal
+strings, not regular expressions, and can contain multiple characters. An empty
+target string deletes a match. Sources must be non-empty strings and both arrays
+must have the same length; invalid pairs throw when custom replacement is enabled.
+Empty arrays perform no replacements. Use string values, not JSON null values.
+Pairs run in order and may cascade: `a -> b`, then `b -> c`, turns `ab` into `cc`.
+Custom replacement runs first, so `ä -> ae` can override the usual `ä -> a`.
 
-For example, enabling both converts `Árvíz tükör` to `arviz tukor`. Normalization
-runs on the selected Name candidate before the existing invalid-character
-replacement. Whitespace continues to follow the existing `InvalidNameCharsPattern`
-and `ReplacementChar` settings. To generate `arvizturo-tukorfurogep` from
-`Árvíztűrő tükörfúrógép`, enable both options and include whitespace in the existing
-invalid-character pattern with `ReplacementChar` set to `-`.
+For Docker, the four switches are environment variables such as
+`sensenet__contentNaming__Transliterate=true`. Array elements use consecutive,
+zero-based indexes, for example `sensenet__contentNaming__ReplacementSources__0=ä`
+and `sensenet__contentNaming__ReplacementTargets__0=ae`. Do not leave gaps: array
+loading stops at the first missing index. The host package/image must contain
+these features; changing host configuration or replacement arrays requires a restart.
 
-The stored `DisplayName`, original extension handling, and name validation are
-unchanged. An extension retained from `originalName` is appended unchanged, even
-with `Lowercase` enabled (`NEW.TXT` with original name `old.TXT` becomes `new.TXT`).
-Changing naming configuration does not rename existing content; this is the
-standard content naming behavior. Neither option changes the encoding provider.
+### Runtime Settings overrides
 
-Diacritic removal uses canonical Unicode decomposition and removes combining
-marks in all scripts. It is not full ASCII transliteration: Latin characters
-without a canonical decomposition (such as `æ`, `ø`, and `ß`) remain, as do
-Chinese, Cyrillic, and other non-Latin letters. Lowercase can still change the
-case of letters in those scripts. Different names can produce the same result,
-and combining-mark-only input can become empty; existing duplicate-name handling
-and validation apply. These options only affect `CharReplacementContentNamingProvider`.
+Operators can disable any configured step without restarting the repository by
+saving the global `/Root/System/Settings/ContentNaming.settings` content. Use the
+existing Settings content editing/management APIs and permissions. For example,
+this disables only transliteration:
+
+```json
+{
+  "Transliterate": false
+}
+```
+
+Use the same four switch names in the settings file. Settings are checked during
+name generation on the running repository and use the existing Settings cache
+invalidation. The rules are:
+
+| Host config | Settings value | Effective behavior |
+| --- | --- | --- |
+| `false` | Any value or absent | Disabled |
+| `true` | Absent or `true` | Enabled |
+| `true` | `false` | Disabled |
+
+Settings cannot enable a feature disabled by host configuration. Removing the
+override restores the configured behavior. Replacement arrays and the existing
+`InvalidNameCharsPattern`/`ReplacementChar` are not overridden by these settings.
+This is a global override; the naming API does not receive a content context path.
+
+### Preserved behavior and Unicode scope
+
+The stored `DisplayName`, input parameters, original extension handling, and name
+validation are unchanged. An extension retained from `originalName` is appended
+unchanged, even with normalization enabled (`NEW.TXT` with original name `old.TXT`
+becomes `new.TXT` with `Lowercase`). Changing naming configuration or Settings does
+not rename existing content; this is the standard content naming behavior.
+
+The existing `InvalidNameCharsPattern` and `ReplacementChar` still control invalid
+character and whitespace replacement. Custom replacements can replace a space
+with `-` without changing the global validation pattern. Changing the existing
+invalid-character pattern separately still affects repository-wide Name/Path validation.
+
+`RemoveDiacritics` removes combining marks in all scripts after canonical
+decomposition. It leaves `æ`, `ø`, `ß` and non-Latin letters that have no relevant
+decomposition. `Transliterate` additionally handles such Latin letters (`Æ -> Ae`,
+`Œ -> Oe`, `ß -> ss`) and other writing systems and symbols. AnyAscii works without
+language context; its output is not guaranteed to match language-specific spelling.
+It can expand symbols, introduce punctuation, or remove unsupported characters.
+The existing invalid-character replacement runs afterward. Transliteration does
+not lowercase ASCII letters; the separate `Lowercase` option controls that.
+
+Different input names can produce the same result or an empty name. Existing
+duplicate-name handling and validation apply. AnyAscii is distributed under the
+ISC license; its notice is included in the package and copied to output/publish.
 
 ## Underscore5FContentNamingProvider
 
