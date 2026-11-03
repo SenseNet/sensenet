@@ -22,27 +22,13 @@ namespace SenseNet.ContentRepository.Security.ApiKeys
     {
         private const string FeatureName = "apikey";
         private readonly ILogger _logger;
-        private readonly ApiKeysOptions _apiKeys;
-        private readonly AccessToken _healthCheckerToken;
+        private readonly HealthCheckerKeyValidator _healthKey;
 
-        public ApiKeyManager(ILogger<ApiKeyManager> logger, IOptions<ApiKeysOptions> apiKeys)
+        public ApiKeyManager(ILogger<ApiKeyManager> logger, IOptions<ApiKeysOptions> apiKeys,
+            HealthCheckerKeyValidator healthKey = null)
         {
             _logger = logger;
-            _apiKeys = apiKeys?.Value ?? new ApiKeysOptions();
-
-            var now = DateTime.UtcNow;
-            var apiKey = _apiKeys.HealthCheckerUser;
-            if (!string.IsNullOrEmpty(apiKey))
-            {
-                _healthCheckerToken = new AccessToken
-                {
-                    Id = -1,
-                    UserId = -3,
-                    ExpirationDate = now.AddYears(1),
-                    CreationDate = now,
-                    Feature = "/health"
-                };
-            }
+            _healthKey = healthKey ?? new HealthCheckerKeyValidator(apiKeys);
         }
 
         public async Task<IUser> GetUserByApiKeyAsync(string apiKey, CancellationToken cancel)
@@ -50,15 +36,13 @@ namespace SenseNet.ContentRepository.Security.ApiKeys
             if (string.IsNullOrEmpty(apiKey))
                 return null;
 
-            var token = apiKey == _apiKeys.HealthCheckerUser
-                ? _healthCheckerToken
-                : await GetTokenAsync(apiKey, cancel).ConfigureAwait(false);
+            if (_healthKey.Matches(apiKey))
+                return _healthKey.IsValid(apiKey) ? HealthCheckerUser.Instance : null;
+
+            var token = await GetTokenAsync(apiKey, cancel).ConfigureAwait(false);
 
             if (token == null || token.UserId == 0 || token.ExpirationDate <= DateTime.UtcNow)
                 return null;
-            if(token.Id == -1 && token.UserId == -3 && token.Feature == "/health")
-                return HealthCheckerUser.Instance;
-
             AssertPermissions(token.UserId);
 
             return await Node.LoadAsync<User>(token.UserId, cancel);

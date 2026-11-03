@@ -9,6 +9,7 @@ using SenseNet.ContentRepository.Security.ApiKeys;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Services.Core.Authentication;
+using SenseNet.Services.Core.Diagnostics;
 
 // ReSharper disable once CheckNamespace
 namespace SenseNet.Extensions.DependencyInjection
@@ -135,6 +136,9 @@ namespace SenseNet.Extensions.DependencyInjection
                     }
                 }
 
+                if (context.Request.Path.StartsWithSegments("/health"))
+                    HealthAccessEvaluator.SetAuthenticatedUser(context, user);
+
                 User.Current = user ?? User.DefaultUser;
 
                 if (next != null)
@@ -146,7 +150,7 @@ namespace SenseNet.Extensions.DependencyInjection
 
         private const string ApiKeyName = "apikey";
 
-        private static string GetApiKey(this HttpContext context)
+        internal static string GetApiKey(this HttpContext context)
         {
             if (context?.Request == null)
                 return null;

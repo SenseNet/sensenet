@@ -373,6 +373,7 @@ namespace WebAppTests
                 {typeof(ClientStore), typeof(ClientStore)},
                 {typeof(IClientManager), typeof(DefaultClientManager)},
                 {typeof(IApiKeyManager), typeof(ApiKeyManager)},
+                {typeof(HealthCheckerKeyValidator), typeof(HealthCheckerKeyValidator)},
                 {typeof(IEmailTemplateManager), typeof(RepositoryEmailTemplateManager)},
                 {typeof(IEmailSender), typeof(EmailSender)},
                 {typeof(ICryptoServiceProvider), typeof(DefaultCryptoServiceProvider)},
@@ -402,6 +403,7 @@ namespace WebAppTests
                 }},
                 {typeof(IHostedService), new[] {
                     typeof(RepositoryHostedService),
+                    typeof(HealthMonitoringHostedService),
                     typeof(SnMaintenance),
                 }},
                 {typeof(ISnService), Array.Empty<Type>() },
@@ -434,6 +436,15 @@ namespace WebAppTests
                 {typeof(DistributedMessageType), typeof(DistributedMessageType)},
                 {typeof(IMultiFactorAuthenticationProvider), typeof(DefaultMultiFactorProvider)},
                 {typeof(IHealthHandler), typeof(HealthHandler)},
+                {typeof(HealthRepositoryLifecycle), typeof(HealthRepositoryLifecycle)},
+                {typeof(HealthChangeSignal), typeof(HealthChangeSignal)},
+                {typeof(HealthSnapshotPublisher), typeof(HealthSnapshotPublisher)},
+                {typeof(IHealthSnapshotStore), typeof(HealthSnapshotPublisher)},
+                {typeof(HealthAccessEvaluator), typeof(HealthAccessEvaluator)},
+                {typeof(IHealthAccessEvaluator), typeof(HealthAccessEvaluator)},
+                {typeof(IComponentHealthCollector), new[] {
+                    typeof(DatabaseHealthCollector), typeof(BlobStorageHealthCollector),
+                    typeof(SearchHealthCollector), typeof(IdentityHealthCollector) }},
                 {typeof(ISenseNetStatus), typeof(SenseNetStatus)},
             };
         }

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Reflection;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Email;
@@ -145,6 +146,7 @@ namespace SenseNet.Extensions.DependencyInjection
         /// </summary>
         public static IServiceCollection AddSenseNetApiKeys(this IServiceCollection services)
         {
+            services.TryAddSingleton<HealthCheckerKeyValidator>();
             return services.AddSenseNetApiKeyManager<ApiKeyManager>();
         }
 

@@ -22,10 +22,24 @@ public class SenseNetStatus : ISenseNetStatus
     public static readonly string Stopped = "Stopped";
 
     private readonly List<string> _history;
+    private readonly object _sync = new();
+    private string _current;
+    private bool _isRunning;
+    private bool _isInstallerRunning;
 
-    public string Current { get; private set; }
-    public bool IsRunning { get; set; }
-    public bool IsInstallerRunning { get; set; }
+    /// <summary>Signals an in-memory status change. Subscribers must not perform blocking work.</summary>
+    public event EventHandler Changed;
+    public string Current { get { lock (_sync) return _current; } }
+    public bool IsRunning
+    {
+        get { lock (_sync) return _isRunning; }
+        set { lock (_sync) _isRunning = value; Changed?.Invoke(this, EventArgs.Empty); }
+    }
+    public bool IsInstallerRunning
+    {
+        get { lock (_sync) return _isInstallerRunning; }
+        set { lock (_sync) _isInstallerRunning = value; }
+    }
 
     public SenseNetStatus()
     {
@@ -35,9 +49,21 @@ public class SenseNetStatus : ISenseNetStatus
 
     public void SetStatus(string status)
     {
-        Current = status;
-        _history.Add($"{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss.ffff} {status}");
+        lock (_sync)
+        {
+            _current = status;
+            _history.Add($"{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss.ffff} {status}");
+        }
+        Changed?.Invoke(this, EventArgs.Empty);
     }
 
-    public string[] GetLog() => _history.ToArray();
+    public string[] GetLog() { lock (_sync) return _history.ToArray(); }
+
+    /// <summary>Copies the current state and history consistently for background diagnostics.</summary>
+    public SenseNetStatusSnapshot GetSnapshot()
+    {
+        lock (_sync) return new SenseNetStatusSnapshot(_isRunning, _current, _history.ToArray());
+    }
 }
+
+public sealed record SenseNetStatusSnapshot(bool Running, string Status, string[] History);
