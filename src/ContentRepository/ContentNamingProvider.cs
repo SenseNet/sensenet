@@ -384,6 +384,9 @@ namespace SenseNet.ContentRepository
             if (ContentNaming.RemoveDiacritics)
                 nameToConvert = RemoveDiacritics(nameToConvert);
 
+            if (ContentNaming.Lowercase)
+                nameToConvert = nameToConvert.ToLowerInvariant();
+
             string newName = RemoveInvalidCharacters(nameToConvert);
 
             // attach original extension

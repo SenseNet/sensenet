@@ -1,3 +1,4 @@
+using System.Globalization;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.Configuration;
 using SenseNet.Testing;
@@ -9,9 +10,10 @@ namespace SenseNet.ContentRepository.Tests
     public class ContentNamingNormalizationTests
     {
         [TestMethod]
-        public void DiacriticRemoval_IsDisabledByDefault()
+        public void Normalization_IsDisabledByDefault()
         {
             Assert.IsFalse(ContentNaming.RemoveDiacritics);
+            Assert.IsFalse(ContentNaming.Lowercase);
         }
 
         [DataTestMethod]
@@ -67,13 +69,64 @@ namespace SenseNet.ContentRepository.Tests
         }
 
         [TestMethod]
-        public void DiacriticRemoval_DoesNotChangeTheEncodingProvider()
+        public void Normalization_DoesNotChangeTheEncodingProvider()
         {
             using var diacritics = new Swindler<bool>(true,
                 () => ContentNaming.RemoveDiacritics, value => ContentNaming.RemoveDiacritics = value);
 
+            using var lowercase = new Swindler<bool>(true,
+                () => ContentNaming.Lowercase, value => ContentNaming.Lowercase = value);
+
             Assert.AreEqual("Árvíz tükör",
                 new Underscore5FContentNamingProvider().GenerateNameFromDisplayName(null, "Árvíz tükör"));
+        }
+
+        [DataTestMethod]
+        [DataRow(false, false, "Árvíz tükör")]
+        [DataRow(true, false, "Arviz tukor")]
+        [DataRow(false, true, "árvíz tükör")]
+        [DataRow(true, true, "arviz tukor")]
+        public void Normalization_OptionsAreIndependent(bool removeDiacritics, bool lowercase, string expected)
+        {
+            using var diacritics = new Swindler<bool>(removeDiacritics,
+                () => ContentNaming.RemoveDiacritics, value => ContentNaming.RemoveDiacritics = value);
+            using var casing = new Swindler<bool>(lowercase,
+                () => ContentNaming.Lowercase, value => ContentNaming.Lowercase = value);
+
+            Assert.AreEqual(expected,
+                new CharReplacementContentNamingProvider().GenerateNameFromDisplayName(null, "Árvíz tükör"));
+        }
+
+        [DataTestMethod]
+        [DataRow(null, "ÁRVÍZ  TÜKÖR", "árvíz  tükör")]
+        [DataRow(null, "NEW.TXT", "new.txt")]
+        [DataRow("old.TXT", "NEW.TXT", "new.TXT")]
+        [DataRow("old.TXT", "NEW", "new.TXT")]
+        [DataRow("old.TXT", "NEW.DOC", "new.doc.TXT")]
+        [DataRow(null, "東京 CAFÉ 😀", "東京 café 😀")]
+        [DataRow(null, "", "")]
+        [DataRow("old.TXT", null, null)]
+        public void Lowercase_PreservesExistingNamingRules(string originalName, string displayName, string expected)
+        {
+            using var casing = new Swindler<bool>(true,
+                () => ContentNaming.Lowercase, value => ContentNaming.Lowercase = value);
+
+            Assert.AreEqual(expected,
+                new CharReplacementContentNamingProvider().GenerateNameFromDisplayName(originalName, displayName));
+        }
+
+        [TestMethod]
+        public void Lowercase_UsesInvariantCasingBeforeInvalidCharacterReplacement()
+        {
+            using var casing = new Swindler<bool>(true,
+                () => ContentNaming.Lowercase, value => ContentNaming.Lowercase = value);
+            using var culture = new Swindler<CultureInfo>(new CultureInfo("tr-TR"),
+                () => CultureInfo.CurrentCulture, value => CultureInfo.CurrentCulture = value);
+            using var pattern = new Swindler<string>("[^a-z]",
+                () => ContentNaming.InvalidNameCharsPattern, value => ContentNaming.InvalidNameCharsPattern = value);
+
+            Assert.AreEqual("file",
+                new CharReplacementContentNamingProvider().GenerateNameFromDisplayName(null, "FILE"));
         }
     }
 }

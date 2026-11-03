@@ -13,19 +13,32 @@ namespace SenseNet.ODataTests
     public class ODataContentNamingTests : ODataTestBase
     {
         [DataTestMethod]
-        [DataRow(false, null, "Árvíz tükör")]
-        [DataRow(true, null, "Arviz tukor")]
-        [DataRow(false, "Kézi név", "Kézi név")]
-        [DataRow(true, "Kézi név", "Kezi nev")]
-        public async Task OD_POST_DiacriticRemovalOnlyChangesName(
-            bool removeDiacritics, string explicitName, string expectedName)
+        [DataRow(false, false, false, null, "Árvíztűrő tükörfúrógép")]
+        [DataRow(true, false, false, null, "Arvizturo tukorfurogep")]
+        [DataRow(false, true, false, null, "árvíztűrő tükörfúrógép")]
+        [DataRow(true, true, false, null, "arvizturo tukorfurogep")]
+        [DataRow(false, false, false, "Kézi név", "Kézi név")]
+        [DataRow(true, false, false, "Kézi név", "Kezi nev")]
+        [DataRow(false, true, false, "Kézi név", "kézi név")]
+        [DataRow(true, true, false, "Kézi név", "kezi nev")]
+        [DataRow(true, true, true, null, "arvizturo-tukorfurogep")]
+        [DataRow(true, true, true, "Kézi név", "kezi-nev")]
+        public async Task OD_POST_NormalizationOnlyChangesName(
+            bool removeDiacritics, bool lowercase, bool replaceWhitespace, string explicitName, string expectedName)
         {
             await ODataTestAsync(async () =>
             {
                 using var diacritics = new Swindler<bool>(removeDiacritics,
                     () => ContentNaming.RemoveDiacritics, value => ContentNaming.RemoveDiacritics = value);
 
-                const string displayName = "Árvíz tükör";
+                using var casing = new Swindler<bool>(lowercase,
+                    () => ContentNaming.Lowercase, value => ContentNaming.Lowercase = value);
+                using var pattern = new Swindler<string>(replaceWhitespace
+                        ? ContentNaming.InvalidNameCharsPattern.Insert(ContentNaming.InvalidNameCharsPattern.Length - 1, @"\s")
+                        : ContentNaming.InvalidNameCharsPattern,
+                    () => ContentNaming.InvalidNameCharsPattern, value => ContentNaming.InvalidNameCharsPattern = value);
+
+                const string displayName = "Árvíztűrő tükörfúrógép";
                 var root = CreateTestRoot("ODataNamingTestRoot");
                 var model = new JObject
                 {

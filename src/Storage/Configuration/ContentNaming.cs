@@ -25,5 +25,12 @@ namespace SenseNet.Configuration
         /// </summary>
         public static bool RemoveDiacritics { get; internal set; } =
             GetValue<bool>(SECTIONNAME, nameof(RemoveDiacritics), false);
+
+        /// <summary>
+        /// Converts generated names to lowercase using invariant casing.
+        /// The original extension is preserved. Default: false.
+        /// </summary>
+        public static bool Lowercase { get; internal set; } =
+            GetValue<bool>(SECTIONNAME, nameof(Lowercase), false);
     }
 }

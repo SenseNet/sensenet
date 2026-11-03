@@ -33,35 +33,49 @@ We offer the following predefined naming providers. You may choose either one of
 
 Duplicated 'ReplacementChar' characters are replaced by a single character (so after the conversion the name may contain less characters than the display name). This conversion is very simple but there is a chance of non-unique name creation. The original file extension will be kept.
 
-### Optional diacritic removal
+### Optional name normalization
 
-Set `sensenet:contentNaming:RemoveDiacritics` to `true` to remove decomposable
-Unicode diacritics from generated `Name` values. The default is `false`.
+The following independent settings support consistent generated names, for example
+when content names form part of public URLs. Both default to `false`:
+
+- `sensenet:contentNaming:RemoveDiacritics`: removes decomposable Unicode diacritics.
+- `sensenet:contentNaming:Lowercase`: converts letters using invariant casing.
 
 ```json
 {
   "sensenet": {
     "contentNaming": {
-      "RemoveDiacritics": true
+      "RemoveDiacritics": true,
+      "Lowercase": true
     }
   }
 }
 ```
 
-For Docker, set `sensenet__contentNaming__RemoveDiacritics=true`. Restart the
-repository host after changing this setting; its package/image version must
-contain this option.
+For Docker, set `sensenet__contentNaming__RemoveDiacritics=true` and/or
+`sensenet__contentNaming__Lowercase=true`. Restart the repository host after
+changing these settings; its package/image version must contain the options.
 
-For example, `Árvíz tükör` becomes `Arviz tukor`. Whitespace and invalid characters
-continue to follow the existing `InvalidNameCharsPattern` and `ReplacementChar`
-settings. Letter case, extension handling, and the stored `DisplayName` are
-preserved. Existing content is not renamed, and name validation is unchanged.
+For example, enabling both converts `Árvíz tükör` to `arviz tukor`. Normalization
+runs on the selected Name candidate before the existing invalid-character
+replacement. Whitespace continues to follow the existing `InvalidNameCharsPattern`
+and `ReplacementChar` settings. To generate `arvizturo-tukorfurogep` from
+`Árvíztűrő tükörfúrógép`, enable both options and include whitespace in the existing
+invalid-character pattern with `ReplacementChar` set to `-`.
 
-Removal uses canonical Unicode decomposition and removes combining marks in all
-scripts; it is not full ASCII transliteration (`ø`, `ß`, and non-Latin letters
-remain). Different names can produce the same result, and combining-mark-only
-input can become empty; existing duplicate-name handling and validation apply.
-This option only affects `CharReplacementContentNamingProvider`.
+The stored `DisplayName`, original extension handling, and name validation are
+unchanged. An extension retained from `originalName` is appended unchanged, even
+with `Lowercase` enabled (`NEW.TXT` with original name `old.TXT` becomes `new.TXT`).
+Changing naming configuration does not rename existing content; this is the
+standard content naming behavior. Neither option changes the encoding provider.
+
+Diacritic removal uses canonical Unicode decomposition and removes combining
+marks in all scripts. It is not full ASCII transliteration: Latin characters
+without a canonical decomposition (such as `æ`, `ø`, and `ß`) remain, as do
+Chinese, Cyrillic, and other non-Latin letters. Lowercase can still change the
+case of letters in those scripts. Different names can produce the same result,
+and combining-mark-only input can become empty; existing duplicate-name handling
+and validation apply. These options only affect `CharReplacementContentNamingProvider`.
 
 ## Underscore5FContentNamingProvider
 
