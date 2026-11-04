@@ -14,18 +14,12 @@ public interface ILocalAuthenticationUsers
     Task<bool> IsAllowedAsync(int userId, CancellationToken cancellationToken);
 }
 
-internal sealed class RepositoryLocalUsers(LocalAuthenticationOptions options, LocalAuthenticationPolicy policy) : ILocalAuthenticationUsers
+internal sealed class RepositoryLocalUsers(LocalAuthenticationOptions options) : ILocalAuthenticationUsers
 {
     public async Task<int?> ValidateAsync(HttpContext context, string username, string password, string? twoFactorCode)
     {
         try
         {
-            using (new SystemAccount())
-            {
-                var candidate = User.Load(username);
-                if (candidate != null && !policy.TryAttempt(context, "id:" + candidate.Id))
-                    return null;
-            }
             var result = IdentityOperations.ValidateCredentials(null!, context, username, password);
             return await SystemAccount.ExecuteAsync(async () =>
             {

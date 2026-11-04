@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using System;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using SenseNet.Services.Core.Authentication;
 
 // ReSharper disable once CheckNamespace
@@ -20,6 +21,21 @@ namespace SenseNet.Extensions.DependencyInjection
 
     public static class AuthenticationExtensions
     {
+        /// <summary>Registers the shared, per-application password validation limiter.</summary>
+        public static IServiceCollection AddSenseNetPasswordValidation(this IServiceCollection services,
+            Action<PasswordValidationOptions> configure = null)
+        {
+            services.AddOptions<PasswordValidationOptions>()
+                .Validate(options => options.AttemptsPerMinutePerAccount > 0,
+                    "The password attempt limit must be positive.")
+                .ValidateOnStart();
+            if (configure != null)
+                services.Configure(configure);
+            services.TryAddSingleton(TimeProvider.System);
+            services.TryAddSingleton<PasswordValidationLimiter>();
+            return services;
+        }
+
         /// <summary>
         /// Adds the sensenet user registration feature to the service collection.
         /// </summary>

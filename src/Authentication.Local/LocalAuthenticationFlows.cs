@@ -49,7 +49,6 @@ internal sealed class LocalAuthenticationFlows(LocalAuthenticationOptions option
                     var id = await users.ValidateAsync(context, username, password, code).ConfigureAwait(false);
                     return id.HasValue ? await sessions.CreateAsync(id.Value, cancel).ConfigureAwait(false) : null;
                 }
-                if (!policy.TryAttempt(context, "id:" + candidate.Id)) return null;
                 var credentials = IdentityOperations.ValidateCredentials(null!, context, username, password);
                 var user = await Node.LoadAsync<User>(credentials.Id, cancel).ConfigureAwait(false);
                 if (!Listed(user) || (RequiresMfa(user) && !user.EffectiveMultiFactorEnabled)) return null;

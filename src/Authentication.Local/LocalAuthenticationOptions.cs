@@ -33,5 +33,6 @@ public sealed class LocalAuthenticationOptions
     public int[] AllowedGroupIds { get; set; } = Array.Empty<int>();
     public bool RequireMultiFactor { get; set; } = true;
     public int AttemptsPerMinutePerIp { get; set; } = 30;
+    /// <summary>Also configures the shared password-check budget used by the OData credential actions.</summary>
     public int AttemptsPerMinutePerAccount { get; set; } = 5;
 }

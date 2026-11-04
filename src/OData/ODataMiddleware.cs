@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -26,6 +27,7 @@ using SenseNet.ContentRepository;
 using SenseNet.OData.Writers;
 using SenseNet.Security;
 using SenseNet.Services.Core.Configuration;
+using SenseNet.Services.Core.Authentication;
 using SenseNet.Services.Core.Diagnostics;
 using File = SenseNet.ContentRepository.File;
 using Task = System.Threading.Tasks.Task;
@@ -375,6 +377,10 @@ namespace SenseNet.OData
         {
             switch (e)
             {
+                case PasswordValidationThrottledException throttled:
+                    httpContext.Response.Headers.RetryAfter = throttled.RetryAfterSeconds.ToString(CultureInfo.InvariantCulture);
+                    httpContext.Response.Headers.CacheControl = "no-store";
+                    return new ODataException(ODataExceptionCode.TooManyRequests, throttled);
                 case TargetInvocationException targetInvocationException:
                     return targetInvocationException.InnerException == null
                         ? new ODataException(ODataExceptionCode.NotSpecified, targetInvocationException)

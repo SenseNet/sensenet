@@ -47,7 +47,9 @@ namespace SenseNet.OData
         /// <summary>The current user has not enough permission for accessing the requested resource. The equivalent HTTP status code: 403.</summary>
         Forbidden,
         /// <summary>User is not authorized. The equivalent HTTP status code: 401.</summary>
-        Unauthorized
+        Unauthorized,
+        /// <summary>Too many requests. The equivalent HTTP status code: 429.</summary>
+        TooManyRequests
     }
 
     /// <summary>
@@ -106,6 +108,7 @@ namespace SenseNet.OData
         private const string HTTPERROR401 = "401 Unauthorized";
         private const string HTTPERROR403 = "403 Forbidden";
         private const string HTTPERROR404 = "404 Not Found";
+        private const string HTTPERROR429 = "429 Too Many Requests";
         private const string HTTPERROR500 = "500 Internal Server Error";
         private void Initialize(ODataExceptionCode exceptionCode)
         {
@@ -129,6 +132,7 @@ namespace SenseNet.OData
                 case ODataExceptionCode.CannotConvertToJSON:              HttpStatusCode = 500; HttpStatus = HTTPERROR500; break;
                 case ODataExceptionCode.Forbidden:                        HttpStatusCode = 403; HttpStatus = HTTPERROR403; break;
                 case ODataExceptionCode.Unauthorized:                     HttpStatusCode = 401; HttpStatus = HTTPERROR401; break;
+                case ODataExceptionCode.TooManyRequests:                  HttpStatusCode = 429; HttpStatus = HTTPERROR429; break;
                 default:                                                  HttpStatusCode = 500; HttpStatus = HTTPERROR500; break;
             }
         }

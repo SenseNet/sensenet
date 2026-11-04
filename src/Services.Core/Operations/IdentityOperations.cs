@@ -137,6 +137,7 @@ namespace SenseNet.Services.Core.Operations
 
                 if (user != null)
                 {
+                    context.RequestServices.GetRequiredService<PasswordValidationLimiter>().CheckAttempt(user.Id);
                     if (user.CheckPasswordMatch(password))
                     {
                         logger.LogTrace($"Password validation success for {userName}");

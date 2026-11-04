@@ -37,7 +37,7 @@ public partial class LocalAuthenticationTests : TestBase
 
     private static TestServer CreateServer(RsaSecurityKey key,
         Action<LocalAuthenticationOptions>? configure = null, string? ip = "127.0.0.1",
-        Action<IServiceCollection>? services = null)
+        Action<IServiceCollection>? services = null, Action<IApplicationBuilder>? configurePipeline = null)
     {
         return new TestServer(new WebHostBuilder()
             .ConfigureServices(s =>
@@ -63,6 +63,7 @@ public partial class LocalAuthenticationTests : TestBase
                 });
                 app.UseSenseNetLocalAuthentication();
                 app.UseSenseNetAuthentication();
+                configurePipeline?.Invoke(app);
                 app.Run(async context =>
                 {
                     context.Response.StatusCode = context.User.Identity?.IsAuthenticated == true ? 200 : 401;

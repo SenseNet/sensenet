@@ -24,6 +24,7 @@ namespace SenseNet.Services.Core.Tests
 
                 services.Configure<RegistrationOptions>(options => { })
                     .AddLogging()
+                    .AddSenseNetPasswordValidation()
                     .AddSenseNetRegistration();
 
                 var provider = services.BuildServiceProvider();

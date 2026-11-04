@@ -122,9 +122,25 @@ No default loopback proxy is implicitly trusted. Unconsumed forwarded headers ar
 the local policy; a proxy must remove client-supplied forwarding headers before creating its own.
 Do not enable a separate middleware or hosting setting that trusts forwarding from every peer.
 
-IP/account limits default to 30/5 attempts per minute. Username variants are also limited by
-resolved repository user ID. The bounded limiter is per application process. For multiple replicas,
-enforce aggregate limits at the trusted ingress too; restarting a process resets its counters.
+IP/account limits default to 30/5 attempts per minute. Password checks share a single account
+budget with the `ValidateCredentials` and `ValidateCredentialsWithTwoFactorCode` OData actions,
+including the progressive MFA login path. The account key is the resolved repository user ID,
+so changing the username format or source IP does not reset the budget. Each password check,
+successful or failed, consumes one slot in a sliding 60-second window. Rejected attempts do not
+check the password or extend the window; they return HTTP 429 with `Retry-After` in seconds.
+The local IP, MFA-code and password-recovery limits remain separate.
+
+The password limiter is enabled in standard repository hosts even without the local authentication
+module. Configure its positive `AttemptsPerMinutePerAccount` value under
+`sensenet:Authentication:PasswordValidation`. When local authentication is enabled, its existing
+`Local:AttemptsPerMinutePerAccount` setting configures this shared budget too (register local
+authentication after the repository services). Custom service collections that call the credential
+operations directly must register `AddSenseNetPasswordValidation()` once.
+
+Counters are in memory per application instance, and restarting an instance resets them.
+Two instances therefore allow up to 10 checks per account per 60 seconds with the default settings.
+This deliberately accepts a per-instance limit; deployments requiring a global limit need an
+additional shared limiter, for example at the trusted ingress. No database migration is needed.
 
 ## API and client contract
 
