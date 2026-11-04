@@ -48,7 +48,7 @@ internal sealed class LocalAuthenticationFlows(LocalAuthenticationOptions option
                     var id = await users.ValidateAsync(context, username, password, code).ConfigureAwait(false);
                     return id == candidate.Id ? await sessions.CreateAsync(id.Value, cancel).ConfigureAwait(false) : null;
                 }
-                var user = await RepositoryLocalUsers.ValidatePasswordAsync(username, password, cancel).ConfigureAwait(false);
+                var user = await RepositoryLocalUsers.ValidatePasswordAsync(context, username, password, cancel).ConfigureAwait(false);
                 if (user.Id != candidate.Id || !Listed(user) || (RequiresMfa(user) && !user.EffectiveMultiFactorEnabled)) return null;
                 if (!user.EffectiveMultiFactorEnabled)
                     return await sessions.CreateAsync(user.Id, cancel).ConfigureAwait(false);

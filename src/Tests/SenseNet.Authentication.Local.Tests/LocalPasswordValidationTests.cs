@@ -59,6 +59,24 @@ public partial class LocalAuthenticationTests
         }
     });
 
+    [DataTestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public Task SuccessfulLoginsConsumeOnePasswordAttempt(bool challenge) => Test(async () =>
+    {
+        using var rsa = RSA.Create(2048);
+        using var server = CreateServer(new RsaSecurityKey(rsa) { KeyId = "test" },
+            options => options.AttemptsPerMinutePerAccount = 2);
+        using var client = Client(server);
+        for (var attempt = 0; attempt < 3; attempt++)
+        {
+            using var response = await client.PostAsJsonAsync("/authentication/local/login",
+                new { username = "builtin\\admin", password = "admin", requestMfaChallenge = challenge });
+            Assert.AreEqual(attempt < 2 ? HttpStatusCode.OK : HttpStatusCode.TooManyRequests,
+                response.StatusCode, $"Unexpected status for password attempt {attempt + 1}.");
+        }
+    });
+
     [TestMethod]
     public Task PasswordBudgetIsLocalToEachApplicationInstance() => Test(async () =>
     {
