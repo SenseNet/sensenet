@@ -22,11 +22,10 @@ public sealed record LocalMfaChallenge(string ChallengeToken, int ExpiresIn,
 /// <summary>Interactive login and recovery; all usable tokens remain outside persistent storage.</summary>
 internal sealed class LocalAuthenticationFlows(LocalAuthenticationOptions options, LocalAuthenticationPolicy policy,
     IAccessTokenDataProvider storage, ILocalAuthenticationUsers users, LocalAuthenticationSessions sessions,
-    ILogger<LocalAuthenticationFlows> logger, ILocalAuthenticationUserLock locks)
+    ILogger<LocalAuthenticationFlows> logger)
 {
     private const string MfaFeature = "local-auth-mfa";
     private const string ResetFeature = "local-auth-reset";
-    private const string SessionFeature = "local-auth-session";
     private static readonly TimeSpan MfaLifetime = TimeSpan.FromMinutes(5);
 
     private bool Listed(User? user) => user is { Enabled: true } && user.Id > 0 && user.Id != User.Visitor.Id &&
@@ -47,12 +46,11 @@ internal sealed class LocalAuthenticationFlows(LocalAuthenticationOptions option
                 if (!challenge || !string.IsNullOrEmpty(code))
                 {
                     var id = await users.ValidateAsync(context, username, password, code).ConfigureAwait(false);
-                    return id.HasValue ? await sessions.CreateAsync(id.Value, cancel).ConfigureAwait(false) : null;
+                    return id == candidate.Id ? await sessions.CreateAsync(id.Value, cancel).ConfigureAwait(false) : null;
                 }
                 if (!policy.TryAttempt(context, "id:" + candidate.Id)) return null;
-                var credentials = IdentityOperations.ValidateCredentials(null!, context, username, password);
-                var user = await Node.LoadAsync<User>(credentials.Id, cancel).ConfigureAwait(false);
-                if (!Listed(user) || (RequiresMfa(user) && !user.EffectiveMultiFactorEnabled)) return null;
+                var user = await RepositoryLocalUsers.ValidatePasswordAsync(username, password, cancel).ConfigureAwait(false);
+                if (user.Id != candidate.Id || !Listed(user) || (RequiresMfa(user) && !user.EffectiveMultiFactorEnabled)) return null;
                 if (!user.EffectiveMultiFactorEnabled)
                     return await sessions.CreateAsync(user.Id, cancel).ConfigureAwait(false);
                 // Emergency Secondary-mode access still requires prior MFA enrollment.
@@ -81,7 +79,7 @@ internal sealed class LocalAuthenticationFlows(LocalAuthenticationOptions option
             record = await Load(token, MfaFeature, cancel).ConfigureAwait(false);
             if (record == null || !policy.TryAttempt(context, "id:" + record.UserId)) return null;
             using var account = new SystemAccount();
-            var user = await Node.LoadAsync<User>(record.UserId, cancel).ConfigureAwait(false);
+            var user = await User.LoadForAuthenticationAsync(record.UserId, cancel).ConfigureAwait(false);
             if (!Listed(user) || !user.EffectiveMultiFactorEnabled) return null;
             try
             {
@@ -151,13 +149,12 @@ internal sealed class LocalAuthenticationFlows(LocalAuthenticationOptions option
             record = await Load(token, ResetFeature, cancel).ConfigureAwait(false);
             if (record == null) return null;
             using var account = new SystemAccount();
-            var user = await Node.LoadAsync<User>(record.UserId, cancel).ConfigureAwait(false);
+            var user = await User.LoadForAuthenticationAsync(record.UserId, cancel).ConfigureAwait(false);
             if (!Listed(user)) return null;
             // Consume before changing the password; failures require a new email, never replay.
             await storage.DeleteAccessTokenAsync(record.Value, cancel).ConfigureAwait(false);
             try
             {
-                await DeleteFeatureTokens(user.Id, cancel, ResetFeature, MfaFeature, SessionFeature).ConfigureAwait(false);
                 await IdentityOperations.ChangePassword(Content.Create(user), context, password).ConfigureAwait(false);
                 return new object();
             }
@@ -199,12 +196,15 @@ internal sealed class LocalAuthenticationFlows(LocalAuthenticationOptions option
         Func<CancellationToken, Task<T?>> action) where T : class
     {
         var original = context.RequestAborted;
-        using var bounded = CancellationTokenSource.CreateLinkedTokenSource(original);
-        bounded.CancelAfter(TimeSpan.FromSeconds(30));
-        await using var held = await locks.TryAcquireAsync(userId, bounded.Token).ConfigureAwait(false);
-        if (held == null) return null;
-        context.RequestAborted = bounded.Token;
-        try { return await action(bounded.Token).ConfigureAwait(false); }
+        try
+        {
+            return await UserAuthenticationScope.ExecuteAsync(userId, async cancel =>
+            {
+                context.RequestAborted = cancel;
+                return await action(cancel).ConfigureAwait(false);
+            }, original).ConfigureAwait(false);
+        }
+        catch (UserAuthenticationLockException) { return null; }
         finally { context.RequestAborted = original; }
     }
 }

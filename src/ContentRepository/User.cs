@@ -675,8 +675,13 @@ namespace SenseNet.ContentRepository
             // Migration: generating a new hash with the configured provider and salt.
             this.PasswordHash = PasswordHashProvider.EncodePassword(passwordInClearText, this);
 
-            using (new SystemAccount())
-                SaveAsync(SavingMode.KeepVersion, CancellationToken.None).GetAwaiter().GetResult();
+            _migratingPasswordHash = true;
+            try
+            {
+                using (new SystemAccount())
+                    SaveAsync(SavingMode.KeepVersion, CancellationToken.None).GetAwaiter().GetResult();
+            }
+            finally { _migratingPasswordHash = false; }
 
             return true;
         }
@@ -1003,7 +1008,38 @@ namespace SenseNet.ContentRepository
 
         }
 
+        private bool _migratingPasswordHash;
+
+        /// <summary>Bypasses node caches so authentication sees committed credential changes on other hosts.</summary>
+        public static async System.Threading.Tasks.Task<User> LoadForAuthenticationAsync(int userId, CancellationToken cancel)
+        {
+            return await LoadNodeFromStorageAsync(userId, cancel).ConfigureAwait(false) as User;
+        }
+
         public override async System.Threading.Tasks.Task SaveAsync(NodeSaveSettings settings, CancellationToken cancel)
+        {
+            if (Id > 0 && (_password != null || IsPropertyChanged(nameof(PasswordHash))))
+            {
+                Security.Assert(PermissionType.Save);
+                await UserAuthenticationScope.ExecuteAsync(Id, async token =>
+                {
+                    if (!_migratingPasswordHash || _password != null)
+                    {
+                        // Revoke before persistence: a revocation failure must prevent a password change.
+                        // Preserve permanent MFA secrets and machine/API credentials.
+                        foreach (var feature in new[] { "local-auth-session", "local-auth-mfa", "local-auth-reset" })
+                            await AccessTokenVault.DeleteTokensAsync(Id, 0, feature, token).ConfigureAwait(false);
+                        LastLoggedOut = DateTime.UtcNow;
+                    }
+                    await SaveUserAsync(settings, token).ConfigureAwait(false);
+                    return true;
+                }, cancel).ConfigureAwait(false);
+                return;
+            }
+            await SaveUserAsync(settings, cancel).ConfigureAwait(false);
+        }
+
+        private async System.Threading.Tasks.Task SaveUserAsync(NodeSaveSettings settings, CancellationToken cancel)
         {
             if (_inactivating)
             {
@@ -1032,6 +1068,7 @@ namespace SenseNet.ContentRepository
 
             // AD Sync
             SynchUser(originalId);
+            _password = null;
 
             if (originalId == 0)
             {

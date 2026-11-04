@@ -6,6 +6,7 @@ using System.Threading;
 using Microsoft.Extensions.DependencyInjection;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
+using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.ContentRepository.Components;
 using SenseNet.ContentRepository.InMemory;
 using SenseNet.ContentRepository.Storage;
@@ -93,6 +94,7 @@ namespace SenseNet.Extensions.DependencyInjection
                 .AddSingleton<IBlobProvider, InMemoryBlobProvider>()
                 .AddSingleton<IBlobProviderSelector, InMemoryBlobProviderSelector>()
                 .AddSingleton<IAccessTokenDataProvider, InMemoryAccessTokenDataProvider>()
+                .AddSingleton<IUserAuthenticationLock, InMemoryUserAuthenticationLock>()
                 .AddSingleton<ElevatedModificationVisibilityRule>()
                 .AddSingleton<IPackagingDataProvider, InMemoryPackageStorageProvider>()
                 .AddSenseNetBlobStorageMetaDataProvider<InMemoryBlobStorageMetaDataProvider>()

@@ -90,8 +90,8 @@ public static class LocalAuthenticationExtensions
         var options = app.ApplicationServices.GetRequiredService<LocalAuthenticationOptions>();
         if (options.Mode != LocalAuthenticationMode.Disabled)
         {
-            if (app.ApplicationServices.GetService<ILocalAuthenticationUserLock>() == null)
-                throw new InvalidOperationException("Register a repository-wide ILocalAuthenticationUserLock before enabling local authentication.");
+            if (app.ApplicationServices.GetService<SenseNet.ContentRepository.Storage.Security.IUserAuthenticationLock>() == null)
+                throw new InvalidOperationException("Register a repository-wide IUserAuthenticationLock before enabling local authentication.");
             var repositoryAuth = app.ApplicationServices.GetService<Microsoft.Extensions.Options.IOptions<
                 Services.Core.Authentication.AuthenticationOptions>>()?.Value;
             if (repositoryAuth?.AddJwtCookie == true)

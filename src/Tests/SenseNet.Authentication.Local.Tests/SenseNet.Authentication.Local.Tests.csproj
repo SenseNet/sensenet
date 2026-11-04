@@ -11,6 +11,7 @@
     <PackageReference Include="MSTest.TestAdapter" Version="3.7.1" />
     <PackageReference Include="MSTest.TestFramework" Version="3.7.1" />
     <ProjectReference Include="../../Authentication.Local/SenseNet.Authentication.Local.csproj" />
+    <ProjectReference Include="../../ContentRepository.MsSql/SenseNet.ContentRepository.MsSql.csproj" />
     <ProjectReference Include="../SenseNet.Tests.Core/SenseNet.Tests.Core.csproj" />
   </ItemGroup>
   <ItemGroup>
