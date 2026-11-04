@@ -6,6 +6,7 @@ using SenseNet.ContentRepository.Security.Clients;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Data.MsSqlClient;
+using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Storage.Data.MsSqlClient;
 using SenseNet.Tools;
 
@@ -26,6 +27,7 @@ namespace SenseNet.Extensions.DependencyInjection
                     .AddSingleton<ISharedLockDataProvider, MsSqlSharedLockDataProvider>()
                     .AddSingleton<IExclusiveLockDataProvider, MsSqlExclusiveLockDataProvider>()
                     .AddSingleton<IAccessTokenDataProvider, MsSqlAccessTokenDataProvider>()
+                    .AddSingleton<IUserAuthenticationLock, MsSqlUserAuthenticationLock>()
                     .AddSingleton<IPackagingDataProvider, MsSqlPackagingDataProvider>()
                     .AddSenseNetMsSqlStatisticalDataProvider()
                     .AddDatabaseAuditEventWriter()
