@@ -21,9 +21,10 @@ internal sealed class RepositoryLocalUsers(LocalAuthenticationOptions options) :
         try
         {
             var result = IdentityOperations.ValidateCredentials(null!, context, username, password);
+            var result = IdentityOperations.ValidateCredentials(null!, context, username, password);
             return await SystemAccount.ExecuteAsync(async () =>
             {
-                var user = await Node.LoadAsync<User>(result.Id, context.RequestAborted).ConfigureAwait(false);
+                var user = await ValidatePasswordAsync(username, password, context.RequestAborted).ConfigureAwait(false);
                 if (!IsAllowed(user))
                     return (int?)null;
                 if (RequiresMfa(user) || user.EffectiveMultiFactorEnabled)
@@ -44,6 +45,17 @@ internal sealed class RepositoryLocalUsers(LocalAuthenticationOptions options) :
     public Task<bool> IsAllowedAsync(int userId, CancellationToken cancellationToken) =>
         SystemAccount.ExecuteAsync(async () =>
             IsAllowed(await Node.LoadAsync<User>(userId, cancellationToken).ConfigureAwait(false)));
+
+    internal static async Task<User> ValidatePasswordAsync(string username, string password, CancellationToken cancel)
+    {
+        var candidate = User.Load(username);
+        var user = candidate == null ? null : await User.LoadForAuthenticationAsync(candidate.Id, cancel).ConfigureAwait(false);
+        if (user is not { Enabled: true } ||
+            !string.Equals(candidate!.LoginName, user.LoginName, StringComparison.OrdinalIgnoreCase) ||
+            !user.CheckPasswordMatch(password))
+            throw new SenseNetSecurityException("Invalid username or password.");
+        return user;
+    }
 
     private bool RequiresMfa(User user) => options.RequireMultiFactor ||
         (options.Mode == LocalAuthenticationMode.Secondary &&

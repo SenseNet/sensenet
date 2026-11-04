@@ -14,8 +14,10 @@ Its checked-in mode is `Disabled`; enable it explicitly in deployment configurat
 
 For a custom host, reference the module and call
 `services.AddSenseNetLocalAuthentication(configuration)` **after** registering the external
-scheme. Register an ILocalAuthenticationUserLock implementation that serializes each user
-across all replicas of the repository. Missing lock registration fails startup. Call `app.UseSenseNetLocalAuthentication()` after CORS and before
+scheme. `AddSenseNetMsSqlProviders` registers `IUserAuthenticationLock`, which serializes each user
+across all replicas of the repository, including hosts that only change passwords. Custom storage
+providers must register an equivalent lock in the repository service collection (replace older
+`ILocalAuthenticationUserLock` registrations). Missing lock registration fails startup. Call `app.UseSenseNetLocalAuthentication()` after CORS and before
 `app.UseSenseNetAuthentication()`.
 
 Example configuration (replace paths, identifiers and networks with deployment values):
@@ -271,11 +273,24 @@ must already be enrolled.
 
 Challenges are hashed in persistent storage and can be completed on another repository
 replica. Consumption, enrollment and password changes are serialized with the repository's
-`ILocalAuthenticationUserLock`; the dedicated SQL host uses database-scoped sp_getapplock
+`IUserAuthenticationLock`; the SQL provider uses database-scoped sp_getapplock
 on a dedicated unpooled connection, released by disconnect. It does not use the legacy
 ExclusiveLocks provider/table. Custom hosts must register an equivalent cross-replica lock. Each challenge succeeds
 once. Account/IP throttling applies to MFA attempts as well. Existing single-request
 username/password/twoFactorCode clients remain compatible.
+
+Every existing-user password change through `User.SaveAsync`, including the `ChangePassword`
+action, direct field saves and hash replacement, revokes all local sessions and pending MFA/reset
+challenges. Permanent MFA secrets, enrollment and API keys are preserved. New-user creation,
+metadata saves and password hash algorithm migration do not revoke sessions. Credential checks
+read the committed user data directly from storage while holding the same per-user lock.
+
+Revocation precedes password persistence under that lock. If token storage fails, the password
+change fails; if the subsequent user save fails, sessions may already have been revoked and the
+user must sign in again with the unchanged password. Lock contention fails the operation; retry
+the complete operation with fresh data. An already-running request may finish, but any access token
+returned by a racing refresh refers to the deleted session and cannot authenticate another request.
+Deploy this change on every host that can issue local sessions or save user passwords.
 
 ### Manual acceptance checks
 
@@ -345,7 +360,7 @@ must additionally run the lifecycle against its disposable
 database. PostgreSQL provider sources are not on the develop base used for this feature.
 Admin UI and .NET client integration are separate parts of SB-167 and are not provided by this package.
 
-Set SB167_TEST_SQL to a disposable SQL Server connection string to run the SQL lock test
-and all auth flows with the dedicated host's real application lock implementation.
-Without it, auth tests use an in-process test lock and the SQL-specific test is skipped.
+Set SB167_TEST_SQL to a disposable SQL Server connection string to run the SQL lock integration test.
+Authentication flow tests use the in-memory repository and its per-user lock, shared by the test hosts.
+Without the environment variable, the SQL-specific test is skipped.
 Never point these tests at a shared/live repository database.

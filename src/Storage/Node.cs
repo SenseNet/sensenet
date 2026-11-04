@@ -2645,6 +2645,22 @@ namespace SenseNet.ContentRepository.Storage
             return node;
         }
 
+        /// <summary>Loads the latest data directly from storage for credential-sensitive operations.</summary>
+        protected static async Task<Node> LoadNodeFromStorageAsync(int nodeId, CancellationToken cancellationToken)
+        {
+            var provider = Providers.Instance.DataProvider;
+            var head = await provider.LoadNodeHeadAsync(nodeId, cancellationToken).ConfigureAwait(false);
+            if (head == null)
+                return null;
+            Providers.Instance.SecurityHandler.Assert(head, PermissionType.Open, PermissionType.OpenMinor);
+            var data = (await provider.LoadNodesAsync(new[] { head.LastMinorVersionId }, cancellationToken)
+                .ConfigureAwait(false)).FirstOrDefault();
+            if (data == null)
+                return null;
+            return CreateTargetClass(new NodeToken(head.Id, head.NodeTypeId, head.ContentListId,
+                head.ContentListTypeId, head.LastMinorVersionId, null) { NodeHead = head, NodeData = data });
+        }
+
         /// <summary>
         /// Returns a cached value by the provided name. You can store any instance-related cacheable
         /// object using the <see cref="SetCachedData"/> method.
