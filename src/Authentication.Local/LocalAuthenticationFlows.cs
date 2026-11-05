@@ -46,12 +46,14 @@ internal sealed class LocalAuthenticationFlows(LocalAuthenticationOptions option
             if (candidate == null) return null;
             return await InUserLock<object>(candidate.Id, context, async cancel =>
             {
+                // Reserve once before either the built-in or a custom validator checks the password.
+                context.RequestServices.GetRequiredService<PasswordValidationLimiter>().CheckAttempt(candidate.Id);
                 if (!challenge || !string.IsNullOrEmpty(code))
                 {
                     var id = await users.ValidateAsync(context, username, password, code).ConfigureAwait(false);
                     return id == candidate.Id ? await sessions.CreateAsync(id.Value, cancel).ConfigureAwait(false) : null;
                 }
-                var user = await RepositoryLocalUsers.ValidatePasswordAsync(context, username, password, cancel).ConfigureAwait(false);
+                var user = await RepositoryLocalUsers.ValidatePasswordAsync(username, password, cancel).ConfigureAwait(false);
                 if (user.Id != candidate.Id || !Listed(user) || (RequiresMfa(user) && !user.EffectiveMultiFactorEnabled)) return null;
                 if (!user.EffectiveMultiFactorEnabled)
                     return await sessions.CreateAsync(user.Id, cancel).ConfigureAwait(false);

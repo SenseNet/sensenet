@@ -90,17 +90,32 @@ public partial class LocalAuthenticationTests
     });
 
     [DataTestMethod]
-    [DataRow(false)]
-    [DataRow(true)]
-    public Task ODataAndLocalLoginSharePasswordBudget(bool challenge) => Test2(services => services.AddSenseNetOData(), async () =>
+    [DataRow(false, null, false, true)]
+    [DataRow(true, null, false, true)]
+    [DataRow(false, null, false, false)]
+    [DataRow(true, null, false, false)]
+    [DataRow(false, null, true, true)]
+    [DataRow(false, null, true, false)]
+    [DataRow(false, "provided-code", true, true)]
+    [DataRow(false, "provided-code", true, false)]
+    [DataRow(true, "provided-code", true, true)]
+    [DataRow(true, "provided-code", true, false)]
+    public Task ODataAndLocalLoginSharePasswordBudget(bool challenge, string? code, bool customValidator,
+        bool odataFirst) => Test2(services => services.AddSenseNetOData(), async () =>
     {
         await Providers.Instance.SecurityHandler.CreateAclEditor()
             .Allow(Repository.Root.Id, User.Visitor.Id, false, PermissionType.See, PermissionType.Open)
             .ApplyAsync(CancellationToken.None);
         using var rsa = RSA.Create(2048);
+        var customUsers = customValidator ? new CountingPasswordUsers() : null;
         using var server = CreateServer(new RsaSecurityKey(rsa) { KeyId = "test" },
             options => options.AttemptsPerMinutePerAccount = 2,
-            services: services => services.AddSenseNetOData(),
+            services: services =>
+            {
+                services.AddSenseNetOData();
+                if (customUsers != null)
+                    services.AddSingleton<ILocalAuthenticationUsers>(customUsers);
+            },
             configurePipeline: app =>
             {
                 var odata = new ODataMiddleware(null, null, null, NullLogger<ODataMiddleware>.Instance);
@@ -114,15 +129,28 @@ public partial class LocalAuthenticationTests
             });
         using var client = Client(server);
         const string odataPath = "/OData.svc/('Root')/ValidateCredentials";
-        var odataAttempt = await client.PostAsJsonAsync(odataPath, new { userName = "builtin\\admin", password = "wrong" });
-        Assert.AreEqual(HttpStatusCode.Forbidden, odataAttempt.StatusCode, await odataAttempt.Content.ReadAsStringAsync());
-        var localAttempt = await client.PostAsJsonAsync("/authentication/local/login",
-            new { username = "BuiltIn\\Admin", password = "wrong", requestMfaChallenge = challenge });
-        Assert.AreEqual(HttpStatusCode.Unauthorized, localAttempt.StatusCode);
+        // Failed and successful password checks both consume the shared account budget.
+        foreach (var password in new[] { "wrong", "admin" })
+        {
+            using var attempt = odataFirst
+                ? await client.PostAsJsonAsync(odataPath, new { userName = "builtin\\admin", password })
+                : await client.PostAsJsonAsync("/authentication/local/login",
+                    new { username = "BuiltIn\\Admin", password, requestMfaChallenge = challenge, twoFactorCode = code });
+            var expected = password == "admin" ? HttpStatusCode.OK :
+                odataFirst ? HttpStatusCode.Forbidden : HttpStatusCode.Unauthorized;
+            Assert.AreEqual(expected, attempt.StatusCode, await attempt.Content.ReadAsStringAsync());
+        }
 
-        var localBlocked = await client.PostAsJsonAsync("/authentication/local/login",
-            new { username = "builtin\\admin", password = "admin", requestMfaChallenge = challenge });
-        var odataBlocked = await client.PostAsJsonAsync(odataPath, new { userName = "builtin\\admin", password = "admin" });
+        using var localBlocked = await client.PostAsJsonAsync("/authentication/local/login",
+            new { username = "builtin\\admin", password = "admin", requestMfaChallenge = challenge, twoFactorCode = code });
+        using var odataBlocked = await client.PostAsJsonAsync(odataPath, new { userName = "builtin\\admin", password = "admin" });
+        if (customUsers != null)
+        {
+            Assert.AreEqual(odataFirst ? 0 : 2, customUsers.ValidationCalls,
+                "An exhausted account budget must prevent calling the custom validator.");
+            if (!odataFirst)
+                Assert.AreEqual(code, customUsers.LastTwoFactorCode);
+        }
         Assert.AreEqual(HttpStatusCode.Unauthorized, localBlocked.StatusCode);
         Assert.AreEqual(HttpStatusCode.Forbidden, odataBlocked.StatusCode);
         foreach (var response in new[] { localBlocked, odataBlocked })
@@ -163,4 +191,25 @@ public partial class LocalAuthenticationTests
             Assert.AreEqual(HttpStatusCode.Unauthorized, (await Login(client)).StatusCode);
         }
     });
+
+    // Deliberately leaves rate limiting to the common login flow.
+    private sealed class CountingPasswordUsers : ILocalAuthenticationUsers
+    {
+        public int ValidationCalls { get; private set; }
+        public string? LastTwoFactorCode { get; private set; }
+
+        public async Task<int?> ValidateAsync(HttpContext context, string username, string password, string? twoFactorCode)
+        {
+            ValidationCalls++;
+            LastTwoFactorCode = twoFactorCode;
+            using var account = new SystemAccount();
+            var candidate = User.Load(username);
+            var user = candidate == null ? null :
+                await User.LoadForAuthenticationAsync(candidate.Id, context.RequestAborted);
+            return user is { Enabled: true } && user.CheckPasswordMatch(password) ? user.Id : null;
+        }
+
+        public Task<bool> IsAllowedAsync(int userId, CancellationToken cancellationToken) =>
+            Task.FromResult(userId == User.Administrator.Id);
+    }
 }

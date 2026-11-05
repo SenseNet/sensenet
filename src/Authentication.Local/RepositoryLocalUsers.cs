@@ -1,9 +1,7 @@
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.DependencyInjection;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Security;
-using SenseNet.Services.Core.Authentication;
 using SenseNet.Services.Core.Operations;
 using Task = System.Threading.Tasks.Task;
 
@@ -12,6 +10,10 @@ namespace SenseNet.Authentication.Local;
 /// <summary>Repository credentials and authorization policy used by the local issuer.</summary>
 public interface ILocalAuthenticationUsers
 {
+    /// <summary>
+    /// Validates credentials after the local login flow has reserved a shared password attempt.
+    /// Implementations must not reserve another attempt from the shared account budget.
+    /// </summary>
     Task<int?> ValidateAsync(HttpContext context, string username, string password, string? twoFactorCode);
     Task<bool> IsAllowedAsync(int userId, CancellationToken cancellationToken);
 }
@@ -24,7 +26,7 @@ internal sealed class RepositoryLocalUsers(LocalAuthenticationOptions options) :
         {
             return await SystemAccount.ExecuteAsync(async () =>
             {
-                var user = await ValidatePasswordAsync(context, username, password, context.RequestAborted).ConfigureAwait(false);
+                var user = await ValidatePasswordAsync(username, password, context.RequestAborted).ConfigureAwait(false);
                 if (!IsAllowed(user))
                     return (int?)null;
                 if (RequiresMfa(user) || user.EffectiveMultiFactorEnabled)
@@ -46,7 +48,7 @@ internal sealed class RepositoryLocalUsers(LocalAuthenticationOptions options) :
         SystemAccount.ExecuteAsync(async () =>
             IsAllowed(await Node.LoadAsync<User>(userId, cancellationToken).ConfigureAwait(false)));
 
-    internal static async Task<User> ValidatePasswordAsync(HttpContext context, string username, string password,
+    internal static async Task<User> ValidatePasswordAsync(string username, string password,
         CancellationToken cancel)
     {
         var candidate = User.Load(username);
@@ -55,7 +57,6 @@ internal sealed class RepositoryLocalUsers(LocalAuthenticationOptions options) :
             !string.Equals(candidate!.LoginName, user.LoginName, StringComparison.OrdinalIgnoreCase))
             throw new SenseNetSecurityException("Invalid username or password.");
 
-        context.RequestServices.GetRequiredService<PasswordValidationLimiter>().CheckAttempt(user.Id);
         if (!user.CheckPasswordMatch(password))
             throw new SenseNetSecurityException("Invalid username or password.");
         return user;
