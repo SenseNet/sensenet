@@ -48,24 +48,46 @@ namespace SenseNet.Configuration
 
         /// <summary>
         /// Literal, case-sensitive source strings for custom replacements, in application order.
+        /// Defaults to common European Latin letters without canonical decomposition.
+        /// Configured indexed pairs replace the complete preset.
         /// </summary>
         public static string[] ReplacementSources { get; internal set; } =
-            GetReplacementArray(nameof(ReplacementSources));
+            GetReplacementArray(nameof(ReplacementSources), new[]
+            {
+                "ß", "ẞ",
+                "æ", "Æ", "œ", "Œ", "ø", "Ø", "ł", "Ł",
+                "đ", "Đ", "ð", "Ð", "þ", "Þ", "ħ", "Ħ",
+                "ı", "ĳ", "Ĳ", "ŋ", "Ŋ", "ŧ", "Ŧ", "ſ", "ŀ", "Ŀ"
+            });
 
         /// <summary>
         /// Replacement strings paired by index with ReplacementSources. Empty strings remove matches.
         /// </summary>
         public static string[] ReplacementTargets { get; internal set; } =
-            GetReplacementArray(nameof(ReplacementTargets));
+            GetReplacementArray(nameof(ReplacementTargets), new[]
+            {
+                "ss", "SS",
+                "ae", "AE", "oe", "OE", "o", "O", "l", "L",
+                "d", "D", "d", "D", "th", "TH", "h", "H",
+                "i", "ij", "IJ", "n", "N", "t", "T", "s", "l", "L"
+            });
 
-        private static string[] GetReplacementArray(string key)
+        private static string[] GetReplacementArray(string key, string[] defaultValues)
         {
             var values = new List<string>();
             for (var index = 0; ; index++)
             {
                 var value = GetString(SECTIONNAME, key + ":" + index);
                 if (value == null)
-                    return values.ToArray();
+                {
+                    // Use the preset only when neither indexed array is configured.
+                    // A missing half of a custom pair must still fail validation when enabled.
+                    return values.Count == 0 &&
+                           GetString(SECTIONNAME, nameof(ReplacementSources) + ":0") == null &&
+                           GetString(SECTIONNAME, nameof(ReplacementTargets) + ":0") == null
+                        ? defaultValues
+                        : values.ToArray();
+                }
                 values.Add(value);
             }
         }

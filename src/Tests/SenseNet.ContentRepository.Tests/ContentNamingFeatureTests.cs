@@ -10,12 +10,54 @@ namespace SenseNet.ContentRepository.Tests
     public class ContentNamingFeatureTests
     {
         [TestMethod]
-        public void NewOptions_AreDisabledAndMappingsEmptyByDefault()
+        public void NewOptions_AreDisabledAndEuropeanMappingsPreparedByDefault()
         {
+            Assert.IsFalse(ContentNaming.RemoveDiacritics);
+            Assert.IsFalse(ContentNaming.Lowercase);
             Assert.IsFalse(ContentNaming.Transliterate);
             Assert.IsFalse(ContentNaming.ApplyCustomReplacements);
-            Assert.AreEqual(0, ContentNaming.ReplacementSources.Length);
-            Assert.AreEqual(0, ContentNaming.ReplacementTargets.Length);
+            Assert.AreEqual(28, ContentNaming.ReplacementSources.Length);
+            Assert.AreEqual(ContentNaming.ReplacementSources.Length, ContentNaming.ReplacementTargets.Length);
+            CollectionAssert.AllItemsAreUnique(ContentNaming.ReplacementSources);
+
+            const string original = "Ärger Straße Ærø Œuvre Łódź Þór Ħobż";
+            Assert.AreEqual(original,
+                new CharReplacementContentNamingProvider().GenerateNameFromDisplayName(null, original));
+        }
+
+        [DataTestMethod]
+        [DataRow("Fähre Straße Übergröße", "Fahre Strasse Ubergrosse")]
+        [DataRow("Ægir Œuvre Øresund", "AEgir OEuvre Oresund")]
+        [DataRow("Łódź Đakovo", "Lodz Dakovo")]
+        [DataRow("Þór Ðóra", "THor Dora")]
+        [DataRow("Ħobż ıslak İstanbul", "Hobz islak Istanbul")]
+        [DataRow("Ĳssel Ŋŋ Ŧŧ ſ ŀĿ", "IJssel Nn Tt s lL")]
+        [DataRow("Őrült tükörfúrógép", "Orult tukorfurogep")]
+        [DataRow("Ärger Öl Über", "Arger Ol Uber")]
+        [DataRow("A\u0308rger O\u0308l U\u0308ber", "Arger Ol Uber")]
+        public void PreparedEuropeanReplacements_ComplementDiacriticRemovalWithoutAnyAscii(string input, string expected)
+        {
+            using var replacement = new Swindler<bool>(true,
+                () => ContentNaming.ApplyCustomReplacements, value => ContentNaming.ApplyCustomReplacements = value);
+            using var diacritics = new Swindler<bool>(true,
+                () => ContentNaming.RemoveDiacritics, value => ContentNaming.RemoveDiacritics = value);
+
+            Assert.AreEqual(expected,
+                new CharReplacementContentNamingProvider().GenerateNameFromDisplayName(null, input));
+        }
+
+        [TestMethod]
+        public void PreparedEuropeanReplacements_KeepOriginalExtensionAndEncodingProvider()
+        {
+            using var replacement = new Swindler<bool>(true,
+                () => ContentNaming.ApplyCustomReplacements, value => ContentNaming.ApplyCustomReplacements = value);
+            using var casing = new Swindler<bool>(true,
+                () => ContentNaming.Lowercase, value => ContentNaming.Lowercase = value);
+
+            Assert.AreEqual("strasse.DÓC",
+                new CharReplacementContentNamingProvider().GenerateNameFromDisplayName("old.DÓC", "Straße.DÓC"));
+            Assert.AreEqual("Straße.DÓC",
+                new Underscore5FContentNamingProvider().GenerateNameFromDisplayName(null, "Straße.DÓC"));
         }
 
         [DataTestMethod]

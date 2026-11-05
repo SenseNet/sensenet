@@ -78,11 +78,52 @@ For example, this configuration generates `arvizturo-tukorfurogep` from
 }
 ```
 
+### Prepared European Latin replacements
+
+When neither indexed replacement array is configured, the following preset is
+available. **All four feature switches still default to `false`**: preparing these
+pairs does not enable replacement or change existing name generation.
+
+| Sources | Targets |
+| --- | --- |
+| `ß`, `ẞ` | `ss`, `SS` |
+| `æ`, `Æ`, `œ`, `Œ` | `ae`, `AE`, `oe`, `OE` |
+| `ø`, `Ø`, `ł`, `Ł` | `o`, `O`, `l`, `L` |
+| `đ`, `Đ`, `ð`, `Ð`, `þ`, `Þ` | `d`, `D`, `d`, `D`, `th`, `TH` |
+| `ħ`, `Ħ`, `ı`, `ĳ`, `Ĳ` | `h`, `H`, `i`, `ij`, `IJ` |
+| `ŋ`, `Ŋ`, `ŧ`, `Ŧ`, `ſ`, `ŀ`, `Ŀ` | `n`, `N`, `t`, `T`, `s`, `l`, `L` |
+
+Uppercase expansions stay uppercase; enable `Lowercase` for lowercase URLs.
+These non-decomposing Latin letter fallbacks follow the
+[Unicode CLDR Latin-ASCII conventions](https://github.com/unicode-org/cldr/blob/main/common/transforms/Latin-ASCII.xml).
+Ordinary accented letters, including `ä`, `ö` and `ü`, are handled by
+`RemoveDiacritics` (`a`, `o`, `u`). Language-specific German `ae`/`oe`/`ue`
+spellings can be supplied as custom pairs, as in the earlier `ä -> ae` example;
+they are not global defaults because the same letters occur in other languages.
+
+To use the preset with ordinary accented Latin letters, enable
+`ApplyCustomReplacements` and `RemoveDiacritics`; no replacement arrays are needed.
+For example, `Fähre Straße Łódź` becomes `Fahre Strasse Lodz`. `Transliterate`
+can remain `false`; lowercase is an independent choice.
+
+These are configurable fallbacks for common Latin-script European text, not a
+guarantee for every European language or language-specific spelling. Greek,
+Cyrillic and other scripts require the separate `Transliterate` option for ASCII
+transliteration. The preset does not replace spaces or punctuation.
+
+### Configuring replacement pairs
+
+Supplying both indexed arrays **replaces the complete preset**, rather than
+appending to it. To retain a preset pair alongside your own pairs, include it
+in your configuration. A missing half of a custom mapping still fails validation
+when enabled. Empty JSON arrays supply no indexed pairs, so they select the
+preset; use `ApplyCustomReplacements: false` to disable custom replacement.
+
 The replacement arrays are paired by index. Entries are case-sensitive literal
 strings, not regular expressions, and can contain multiple characters. An empty
 target string deletes a match. Sources must be non-empty strings and both arrays
 must have the same length; invalid pairs throw when custom replacement is enabled.
-Empty arrays perform no replacements. Use string values, not JSON null values.
+Use string values, not JSON null values.
 Pairs run in order and may cascade: `a -> b`, then `b -> c`, turns `ab` into `cc`.
 Custom replacement runs first, so `ä -> ae` can override the usual `ä -> a`.
 
