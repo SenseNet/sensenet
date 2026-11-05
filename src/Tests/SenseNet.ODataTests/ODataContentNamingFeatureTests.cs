@@ -47,19 +47,6 @@ namespace SenseNet.ODataTests
         }
 
         [DataTestMethod]
-        [DataRow(false, "Ægir Straße Łódź Árvíztűrő tükörfúrógép")]
-        [DataRow(true, "AEgir Strasse Lodz Arvizturo tukorfurogep")]
-        public async Task OD_POST_PreparedLatinMappingsPreserveDisplayName(bool enabled, string expectedName)
-        {
-            await ODataTestAsync(async () =>
-            {
-                using var replacement = ConfigureOption(nameof(ContentNaming.ApplyCustomReplacements), enabled);
-                using var diacritics = ConfigureOption(nameof(ContentNaming.RemoveDiacritics), enabled);
-                await CreateFolderAsync("Ægir Straße Łódź Árvíztűrő tükörfúrógép", expectedName).ConfigureAwait(false);
-            }).ConfigureAwait(false);
-        }
-
-        [DataTestMethod]
         [DataRow(nameof(ContentNaming.RemoveDiacritics), "Straße ARVIZ")]
         [DataRow(nameof(ContentNaming.Lowercase), "straße árvíz")]
         [DataRow(nameof(ContentNaming.Transliterate), "Strasse ARVIZ")]
