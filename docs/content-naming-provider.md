@@ -66,14 +66,14 @@ fallbacks in the provider or the configuration reader:
       "Transliterate": false,
       "ApplyCustomReplacements": false,
       "ReplacementSources": [
-        "ä", "Ä", "ß", "ẞ",
+        "ä", "Ä", "ö", "Ö", "ü", "Ü", "ß", "ẞ",
         "æ", "Æ", "œ", "Œ", "ø", "Ø", "ł", "Ł",
         "đ", "Đ", "ð", "Ð", "þ", "Þ", "ħ", "Ħ",
         "ı", "ĳ", "Ĳ", "ŋ", "Ŋ", "ŧ", "Ŧ", "ſ", "ŀ", "Ŀ",
         "&", " "
       ],
       "ReplacementTargets": [
-        "ae", "AE", "ss", "SS",
+        "ae", "AE", "oe", "OE", "ue", "UE", "ss", "SS",
         "ae", "AE", "oe", "OE", "o", "O", "l", "L",
         "d", "D", "d", "D", "th", "TH", "h", "H",
         "i", "ij", "IJ", "n", "N", "t", "T", "s", "l", "L",
@@ -84,17 +84,34 @@ fallbacks in the provider or the configuration reader:
 }
 ```
 
-The list covers common additional Latin letters used in European languages, plus
-`ä -> ae`, `& -> and` and spaces to hyphens. It is a starting point to customize for
-the repository's languages, not a guarantee of language-specific transliteration.
-For example, German `ö -> oe` and `ü -> ue` can be added explicitly; they are omitted
-so Hungarian `tükör` can still become `tukor` with `RemoveDiacritics`.
-Ordinary decomposable accented letters are handled by `RemoveDiacritics`;
-other scripts can be handled by the separate `Transliterate` option.
+The list covers common additional Latin letters used in European languages and
+includes German-style `ä -> ae`, `ö -> oe`, `ü -> ue`, `ß -> ss`, with uppercase
+counterparts, plus `& -> and` and spaces to hyphens. It is a starting point to
+customize for the repository's languages, not automatic language detection.
+Every configured pair applies to every input when custom replacement is enabled.
 
-With these prepared pairs, enable `ApplyCustomReplacements`, `RemoveDiacritics`
-and `Lowercase` to generate `arvizturo-tukorfurogep` from
-`Árvíztűrő tükörfúrógép`. `Transliterate` can remain `false`.
+- For Hungarian text, enable `RemoveDiacritics` and leave
+  `ApplyCustomReplacements` disabled. No custom Hungarian accent pairs are needed.
+- For German text, enable `ApplyCustomReplacements`. `RemoveDiacritics` can also
+  be enabled for other decomposable accents: custom replacement runs first, so
+  the German `ae`/`oe`/`ue` results are preserved.
+- For mixed-language content, the operator chooses the switches and customizes
+  the list. For example, the prepared `ö -> oe` and `ü -> ue` pairs also change
+  Hungarian `tükör` to `tuekoer` when custom replacement is enabled.
+
+With only `ApplyCustomReplacements` enabled, `Fähre & Straße schön kühl`
+becomes `Faehre-and-Strasse-schoen-kuehl`. The uppercase input `ÄÖÜẞ` becomes
+`AEOEUESS` with the prepared pairs.
+
+With `RemoveDiacritics` and `Lowercase` enabled and custom replacement disabled,
+`Árvíztűrő tükörfúrógép` becomes `arvizturo tukorfurogep`. Spaces remain under the
+default invalid-character pattern; the existing `InvalidNameCharsPattern` and
+`ReplacementChar` can be configured to replace whitespace with hyphens separately.
+If custom replacement is enabled as well, the prepared German pairs instead
+produce `arvizturo-tuekoerfurogep`.
+
+`RemoveDiacritics` alone maps `ä/ö/ü` to `a/o/u`; it does not change `ß` to `ss`.
+Other scripts can be handled by the separate `Transliterate` option.
 The original stored `DisplayName` is preserved.
 
 The replacement arrays are paired by index. Entries are case-sensitive literal
