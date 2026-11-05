@@ -52,37 +52,57 @@ Transliteration itself removes many diacritics. To preserve accents, disable bot
 `RemoveDiacritics` and `Transliterate` and avoid custom replacements that remove them.
 A Settings veto disables its step; other enabled steps can still have overlapping effects.
 
-For example, this configuration generates `arvizturo-tukorfurogep` from
-`Árvíztűrő tükörfúrógép` while preserving the original stored `DisplayName`:
+The Docker webapps include prepared replacement pairs in their base `appsettings.json`
+files. All four switches are explicitly `false`; the prepared list has no effect until
+`ApplyCustomReplacements` is enabled. These are configuration values, not built-in
+fallbacks in the provider or the configuration reader:
 
 ```json
 {
   "sensenet": {
     "contentNaming": {
-      "RemoveDiacritics": true,
-      "Lowercase": true,
-      "Transliterate": true,
-      "ApplyCustomReplacements": true,
+      "RemoveDiacritics": false,
+      "Lowercase": false,
+      "Transliterate": false,
+      "ApplyCustomReplacements": false,
       "ReplacementSources": [
-        "ä",
-        "&",
-        " "
+        "ä", "Ä", "ß", "ẞ",
+        "æ", "Æ", "œ", "Œ", "ø", "Ø", "ł", "Ł",
+        "đ", "Đ", "ð", "Ð", "þ", "Þ", "ħ", "Ħ",
+        "ı", "ĳ", "Ĳ", "ŋ", "Ŋ", "ŧ", "Ŧ", "ſ", "ŀ", "Ŀ",
+        "&", " "
       ],
       "ReplacementTargets": [
-        "ae",
-        "and",
-        "-"
+        "ae", "AE", "ss", "SS",
+        "ae", "AE", "oe", "OE", "o", "O", "l", "L",
+        "d", "D", "d", "D", "th", "TH", "h", "H",
+        "i", "ij", "IJ", "n", "N", "t", "T", "s", "l", "L",
+        "and", "-"
       ]
     }
   }
 }
 ```
 
+The list covers common additional Latin letters used in European languages, plus
+`ä -> ae`, `& -> and` and spaces to hyphens. It is a starting point to customize for
+the repository's languages, not a guarantee of language-specific transliteration.
+For example, German `ö -> oe` and `ü -> ue` can be added explicitly; they are omitted
+so Hungarian `tükör` can still become `tukor` with `RemoveDiacritics`.
+Ordinary decomposable accented letters are handled by `RemoveDiacritics`;
+other scripts can be handled by the separate `Transliterate` option.
+
+With these prepared pairs, enable `ApplyCustomReplacements`, `RemoveDiacritics`
+and `Lowercase` to generate `arvizturo-tukorfurogep` from
+`Árvíztűrő tükörfúrógép`. `Transliterate` can remain `false`.
+The original stored `DisplayName` is preserved.
+
 The replacement arrays are paired by index. Entries are case-sensitive literal
 strings, not regular expressions, and can contain multiple characters. An empty
 target string deletes a match. Sources must be non-empty strings and both arrays
 must have the same length; invalid pairs throw when custom replacement is enabled.
-Empty arrays perform no replacements. Use string values, not JSON null values.
+If no replacement entries are loaded, the custom step does nothing.
+Use string values, not JSON null values.
 Pairs run in order and may cascade: `a -> b`, then `b -> c`, turns `ab` into `cc`.
 Custom replacement runs first, so `ä -> ae` can override the usual `ä -> a`.
 
@@ -90,7 +110,10 @@ For Docker, the four switches are environment variables such as
 `sensenet__contentNaming__Transliterate=true`. Array elements use consecutive,
 zero-based indexes, for example `sensenet__contentNaming__ReplacementSources__0=ä`
 and `sensenet__contentNaming__ReplacementTargets__0=ae`. Do not leave gaps: array
-loading stops at the first missing index. The host package/image must contain
+loading stops at the first missing index. Configuration providers merge array
+entries by index: a shorter array in a later provider does not clear remaining
+entries from the base configuration. Edit the complete paired list in the base
+`appsettings.json` when removing prepared pairs. The host package/image must contain
 these features; changing host configuration or replacement arrays requires a restart.
 
 ### Runtime Settings overrides
