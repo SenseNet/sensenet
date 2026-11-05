@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.IdentityModel.Tokens;
+using SenseNet.Extensions.DependencyInjection;
 
 namespace SenseNet.Authentication.Local;
 
@@ -19,6 +20,8 @@ public static class LocalAuthenticationExtensions
         if (options.Mode == LocalAuthenticationMode.Disabled)
             return services;
         Validate(options);
+        services.AddSenseNetPasswordValidation(validation =>
+            validation.AttemptsPerMinutePerAccount = options.AttemptsPerMinutePerAccount);
         services.AddSingleton<LocalAuthenticationPolicy>();
         services.TryAddSingleton<ILocalAuthenticationUsers, RepositoryLocalUsers>();
         services.AddTransient<LocalAuthenticationSessions>();

@@ -65,6 +65,7 @@ namespace SenseNet.Extensions.DependencyInjection
             services.Configure<TaskManagementOptions>(configuration.GetSection("sensenet:TaskManagement"));
             services.Configure<RegistrationOptions>(configuration.GetSection("sensenet:Registration"));
             services.Configure<AuthenticationOptions>(configuration.GetSection("sensenet:Authentication"));
+            services.Configure<PasswordValidationOptions>(configuration.GetSection("sensenet:Authentication:PasswordValidation"));
             services.Configure<HealthMonitoringOptions>(configuration.GetSection("sensenet:HealthMonitoring"));
             services.Configure<ClientStoreOptions>(configuration.GetSection("sensenet:Authentication"));
             services.Configure<ClientRequestOptions>(configuration.GetSection("sensenet:ClientRequest"));
@@ -153,6 +154,7 @@ namespace SenseNet.Extensions.DependencyInjection
             IConfiguration configuration)
         {
             services.TryAddSingleton(TimeProvider.System);
+            services.AddSenseNetPasswordValidation();
             services.AddOptions<HealthMonitoringOptions>();
             services.AddSingleton<HealthRepositoryLifecycle>();
             services.AddSingleton<HealthChangeSignal>();

@@ -12,6 +12,7 @@ using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Services.Core.Operations;
+using SenseNet.Services.Core.Authentication;
 using Task = System.Threading.Tasks.Task;
 
 namespace SenseNet.Authentication.Local;
@@ -36,6 +37,8 @@ internal sealed class LocalAuthenticationFlows(LocalAuthenticationOptions option
     public async Task<object?> LoginAsync(HttpContext context, string username, string password,
         string? code, bool challenge)
     {
+        await using var timing = context.RequestServices.GetRequiredService<PasswordValidationTiming>()
+            .Begin(context.RequestAborted);
         try
         {
             using var account = new SystemAccount();
@@ -43,16 +46,24 @@ internal sealed class LocalAuthenticationFlows(LocalAuthenticationOptions option
             if (candidate == null) return null;
             return await InUserLock<object>(candidate.Id, context, async cancel =>
             {
+                // Reserve once before either the built-in or a custom validator checks the password.
+                var attempt = context.RequestServices.GetRequiredService<PasswordValidationLimiter>().CheckAttempt(candidate.Id);
                 if (!challenge || !string.IsNullOrEmpty(code))
                 {
                     var id = await users.ValidateAsync(context, username, password, code).ConfigureAwait(false);
-                    return id == candidate.Id ? await sessions.CreateAsync(id.Value, cancel).ConfigureAwait(false) : null;
+                    if (id != candidate.Id) return null;
+                    var session = await sessions.CreateAsync(id.Value, cancel).ConfigureAwait(false);
+                    attempt.CompleteSuccessfully();
+                    return session;
                 }
-                if (!policy.TryAttempt(context, "id:" + candidate.Id)) return null;
                 var user = await RepositoryLocalUsers.ValidatePasswordAsync(username, password, cancel).ConfigureAwait(false);
                 if (user.Id != candidate.Id || !Listed(user) || (RequiresMfa(user) && !user.EffectiveMultiFactorEnabled)) return null;
                 if (!user.EffectiveMultiFactorEnabled)
-                    return await sessions.CreateAsync(user.Id, cancel).ConfigureAwait(false);
+                {
+                    var session = await sessions.CreateAsync(user.Id, cancel).ConfigureAwait(false);
+                    attempt.CompleteSuccessfully();
+                    return session;
+                }
                 // Emergency Secondary-mode access still requires prior MFA enrollment.
                 if (options.Mode == LocalAuthenticationMode.Secondary && RequiresMfa(user) && !user.MultiFactorRegistered)
                     return null;
@@ -61,6 +72,7 @@ internal sealed class LocalAuthenticationFlows(LocalAuthenticationOptions option
                         string.IsNullOrWhiteSpace(user.Email) ? user.LoginName : user.Email, user.TwoFactorKey);
                 await DeleteFeatureTokens(user.Id, cancel, MfaFeature).ConfigureAwait(false);
                 var token = await Issue(user.Id, MfaFeature, MfaLifetime, cancel).ConfigureAwait(false);
+                attempt.CompleteSuccessfully();
                 return new LocalMfaChallenge(token, (int)MfaLifetime.TotalSeconds,
                     setup.EntryKey, setup.Url);
             }).ConfigureAwait(false);

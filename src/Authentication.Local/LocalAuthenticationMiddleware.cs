@@ -1,7 +1,9 @@
 using System.Text;
 using System.Text.Json;
+using System.Globalization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
+using SenseNet.Services.Core.Authentication;
 
 namespace SenseNet.Authentication.Local;
 
@@ -128,13 +130,18 @@ internal sealed class LocalAuthenticationMiddleware(
                 await FailAsync(context, operation, StatusCodes.Status401Unauthorized).ConfigureAwait(false);
                 return;
             }
-            if (!policy.TryAttempt(context, request.Username))
+            try
             {
-                await FailAsync(context, operation, StatusCodes.Status429TooManyRequests).ConfigureAwait(false);
+                response = await flows.LoginAsync(context, request.Username, request.Password, request.TwoFactorCode,
+                    request.RequestMfaChallenge).ConfigureAwait(false);
+            }
+            catch (PasswordValidationThrottledException)
+            {
+                // An account-specific 429 or Retry-After would reveal that this user exists.
+                await FailAsync(context, operation, StatusCodes.Status401Unauthorized)
+                    .ConfigureAwait(false);
                 return;
             }
-            response = await flows.LoginAsync(context, request.Username, request.Password, request.TwoFactorCode,
-                request.RequestMfaChallenge).ConfigureAwait(false);
         }
         else if (operation == "/mfa" && request?.ChallengeToken is { Length: 64 } challengeToken &&
                  request.TwoFactorCode is { Length: > 0 and <= 64 } code)
@@ -162,12 +169,12 @@ internal sealed class LocalAuthenticationMiddleware(
         await context.Response.WriteAsJsonAsync(response, context.RequestAborted).ConfigureAwait(false);
     }
 
-    private Task FailAsync(HttpContext context, string operation, int status)
+    private Task FailAsync(HttpContext context, string operation, int status, int retryAfterSeconds = 60)
     {
         logger.LogWarning("Local authentication {Operation} denied ({Status})", operation, status);
         context.Response.StatusCode = status;
         if (status == StatusCodes.Status429TooManyRequests)
-            context.Response.Headers.RetryAfter = "60";
+            context.Response.Headers.RetryAfter = retryAfterSeconds.ToString(CultureInfo.InvariantCulture);
         return context.Response.WriteAsJsonAsync(new { error = "Authentication failed." }, context.RequestAborted);
     }
 

@@ -10,22 +10,20 @@ namespace SenseNet.Authentication.Local;
 /// <summary>Repository credentials and authorization policy used by the local issuer.</summary>
 public interface ILocalAuthenticationUsers
 {
+    /// <summary>
+    /// Validates credentials after the local login flow has reserved a shared password attempt.
+    /// Implementations must not reserve another attempt from the shared account budget.
+    /// </summary>
     Task<int?> ValidateAsync(HttpContext context, string username, string password, string? twoFactorCode);
     Task<bool> IsAllowedAsync(int userId, CancellationToken cancellationToken);
 }
 
-internal sealed class RepositoryLocalUsers(LocalAuthenticationOptions options, LocalAuthenticationPolicy policy) : ILocalAuthenticationUsers
+internal sealed class RepositoryLocalUsers(LocalAuthenticationOptions options) : ILocalAuthenticationUsers
 {
     public async Task<int?> ValidateAsync(HttpContext context, string username, string password, string? twoFactorCode)
     {
         try
         {
-            using (new SystemAccount())
-            {
-                var candidate = User.Load(username);
-                if (candidate != null && !policy.TryAttempt(context, "id:" + candidate.Id))
-                    return null;
-            }
             return await SystemAccount.ExecuteAsync(async () =>
             {
                 var user = await ValidatePasswordAsync(username, password, context.RequestAborted).ConfigureAwait(false);
@@ -50,13 +48,16 @@ internal sealed class RepositoryLocalUsers(LocalAuthenticationOptions options, L
         SystemAccount.ExecuteAsync(async () =>
             IsAllowed(await Node.LoadAsync<User>(userId, cancellationToken).ConfigureAwait(false)));
 
-    internal static async Task<User> ValidatePasswordAsync(string username, string password, CancellationToken cancel)
+    internal static async Task<User> ValidatePasswordAsync(string username, string password,
+        CancellationToken cancel)
     {
         var candidate = User.Load(username);
         var user = candidate == null ? null : await User.LoadForAuthenticationAsync(candidate.Id, cancel).ConfigureAwait(false);
         if (user is not { Enabled: true } ||
-            !string.Equals(candidate!.LoginName, user.LoginName, StringComparison.OrdinalIgnoreCase) ||
-            !user.CheckPasswordMatch(password))
+            !string.Equals(candidate!.LoginName, user.LoginName, StringComparison.OrdinalIgnoreCase))
+            throw new SenseNetSecurityException("Invalid username or password.");
+
+        if (!user.CheckPasswordMatch(password))
             throw new SenseNetSecurityException("Invalid username or password.");
         return user;
     }

@@ -124,9 +124,47 @@ No default loopback proxy is implicitly trusted. Unconsumed forwarded headers ar
 the local policy; a proxy must remove client-supplied forwarding headers before creating its own.
 Do not enable a separate middleware or hosting setting that trusts forwarding from every peer.
 
-IP/account limits default to 30/5 attempts per minute. Username variants are also limited by
-resolved repository user ID. The bounded limiter is per application process. For multiple replicas,
-enforce aggregate limits at the trusted ingress too; restarting a process resets its counters.
+IP/account limits default to 30/5 attempts per minute. Password checks share a single account
+budget with the `ValidateCredentials` and `ValidateCredentialsWithTwoFactorCode` OData actions,
+including the progressive MFA login path. The account key is the resolved repository user ID,
+so changing the username format or source IP does not reset the budget. Each credential check
+reserves one slot in a sliding 60-second window before checking the password. Successful validation
+(including the MFA code when supplied) releases only its own slot; earlier failures remain counted.
+A successfully issued MFA challenge also releases its password-check slot. Failed and pending checks
+consume the budget, so a correct password cannot bypass an exhausted budget. Rejected attempts do not
+check the password or extend the window. An exhausted account budget returns the same generic
+credential failure as an unknown or disabled user or an incorrect password: HTTP 401 for local
+login and HTTP 403 for OData credential validation, without `Retry-After`. This prevents the limit
+from revealing whether an account exists. The local IP limit remains HTTP 429 with `Retry-After`,
+independently of the submitted user name. MFA-code and password-recovery limits remain separate.
+
+With the `NoDomain` policy, ambiguous names also receive the generic credential failure; callers
+can still specify a domain to select an account. The required-domain policy and disabled-account
+checks remain in effect.
+
+Credential validation chooses a fresh cryptographically random target duration of 900-1100 ms
+before looking up the user. It asynchronously waits only for the remaining time before returning
+or throwing, including unknown, disabled, ambiguous and throttled accounts. The local login wait
+runs after releasing the per-user authentication lock. Request cancellation interrupts the wait.
+Attempts that already exceed the target receive no additional delay; the range must be reviewed
+against measured lookup and hashing costs under load. This reduces timing differences within that
+budget, without guaranteeing identical end-to-end response times. Network/IP-policy rejections
+and malformed local requests are handled before credential validation and are not delayed.
+
+The HTTP contract is unchanged. Direct C# callers of `IdentityOperations.ValidateCredentials`
+must now await its `Task<CredentialValidationResult>` return value.
+
+The password limiter is enabled in standard repository hosts even without the local authentication
+module. Configure its positive `AttemptsPerMinutePerAccount` value under
+`sensenet:Authentication:PasswordValidation`. When local authentication is enabled, its existing
+`Local:AttemptsPerMinutePerAccount` setting configures this shared budget too (register local
+authentication after the repository services). Custom service collections that call the credential
+operations directly must register `AddSenseNetPasswordValidation()` once.
+
+Counters are in memory per application instance, and restarting an instance resets them.
+Two instances therefore allow up to 10 checks per account per 60 seconds with the default settings.
+This deliberately accepts a per-instance limit; deployments requiring a global limit need an
+additional shared limiter, for example at the trusted ingress. No database migration is needed.
 
 ## API and client contract
 

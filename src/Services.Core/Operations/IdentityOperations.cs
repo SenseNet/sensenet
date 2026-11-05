@@ -65,11 +65,13 @@ namespace SenseNet.Services.Core.Operations
         [ODataAction(Category = "Authentication")]
         [ContentTypes(N.CT.PortalRoot)]
         [AllowedRoles(N.R.All)]
-        public static CredentialValidationResult ValidateCredentials(Content content, HttpContext context,
+        public static async Task<CredentialValidationResult> ValidateCredentials(Content content, HttpContext context,
             string userName, string password)
 
         {
-            return ValidatePassword(context, userName, password);
+            var (result, attempt) = await ValidatePasswordAsync(context, userName, password).ConfigureAwait(false);
+            attempt.CompleteSuccessfully();
+            return result;
         }
 
         /// <summary>Validates the provided user credentials and two-factor code at the same time.</summary>
@@ -101,16 +103,21 @@ namespace SenseNet.Services.Core.Operations
             string userName, string password, string twoFactorCode)
 
         {
-            var passwordResult = ValidatePassword(context, userName, password);
+            var (passwordResult, attempt) = await ValidatePasswordAsync(context, userName, password).ConfigureAwait(false);
             var userContent = await Content.LoadAsync(passwordResult.Id, context.RequestAborted).ConfigureAwait(false);
 
             var result = await ValidateTwoFactorCode(userContent, context, twoFactorCode).ConfigureAwait(false);
 
+            attempt.CompleteSuccessfully();
             return result;
         }
 
-        private static CredentialValidationResult ValidatePassword(HttpContext context, string userName, string password)
+        private static async Task<(CredentialValidationResult Result, PasswordValidationLimiter.Attempt Attempt)>
+            ValidatePasswordAsync(HttpContext context, string userName, string password)
         {
+            await using var timing = context.RequestServices.GetRequiredService<PasswordValidationTiming>()
+                .Begin(context.RequestAborted);
+            context.Response.Headers.CacheControl = "no-store";
             if (userName == null)
                 throw new ArgumentNullException(nameof(userName));
             if (password == null)
@@ -137,21 +144,31 @@ namespace SenseNet.Services.Core.Operations
 
                 if (user != null)
                 {
-                    if (user.CheckPasswordMatch(password))
+                    PasswordValidationLimiter.Attempt attempt = null;
+                    try
+                    {
+                        attempt = context.RequestServices.GetRequiredService<PasswordValidationLimiter>().CheckAttempt(user.Id);
+                    }
+                    catch (PasswordValidationThrottledException)
+                    {
+                        // Exposing an account-specific limit would reveal that this user exists.
+                        logger.LogTrace($"Password validation limit reached for user: {userName}");
+                    }
+                    if (attempt != null && user.CheckPasswordMatch(password))
                     {
                         logger.LogTrace($"Password validation success for {userName}");
 
-                        return new CredentialValidationResult
+                        return (new CredentialValidationResult
                         {
                             Id = user.Id,
                             Email = user.Email,
                             Username = user.Username,
                             Name = user.Name,
                             LoginName = user.LoginName
-                        };
+                        }, attempt);
                     }
 
-                    logger.LogTrace($"Password match failed for user: {userName}");
+                    logger.LogTrace($"Password validation failed for user: {userName}");
                 }
             }
 
@@ -278,14 +295,8 @@ namespace SenseNet.Services.Core.Operations
             if (IdentityManagement.DomainUsagePolicy == DomainUsagePolicy.MandatoryDomain)
                 throw new MissingDomainException();
 
-            // "default domain" policy is ok 
-            if (IdentityManagement.DomainUsagePolicy != DomainUsagePolicy.NoDomain)
-                return;
-
-            // "no domain" policy: check user occurrence by name in all domains.
-            var users = Content.All.Where(c => c.InTree(Repository.ImsFolder) && c.Name == userName).ToArray();
-            if (users.Length > 1)
-                throw new MissingDomainException();
+            // User.Load already rejects ambiguous names. Use the same credential error as for
+            // unknown names instead of revealing that matching accounts exist in multiple domains.
         }
 
         public class CredentialValidationResult

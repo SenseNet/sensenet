@@ -30,7 +30,7 @@ namespace SenseNet.Services.Core.Tests
             });
         }
 
-        [TestMethod, ExpectedException(typeof(MissingDomainException))]
+        [TestMethod, ExpectedException(typeof(SenseNetSecurityException))]
         public void Login_NoDomain_BuiltIn_Admin_Err_WithAdminInPublic()
         {
             LoginTest(DomainUsagePolicy.NoDomain, BuiltIn, (services) =>
@@ -213,7 +213,7 @@ namespace SenseNet.Services.Core.Tests
                     RequestServices = services ?? new ServiceCollection().BuildServiceProvider()
                 },
                 userName,
-                password);
+                password).GetAwaiter().GetResult();
         }
 
         private void LoginTest(DomainUsagePolicy domainUsagePolicy, string defaultDomain, Action<IServiceProvider> callback)
