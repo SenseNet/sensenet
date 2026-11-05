@@ -11,6 +11,7 @@ using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.OData.IO;
+using SenseNet.Testing;
 using STT = System.Threading.Tasks;
 
 namespace SenseNet.ODataTests;
@@ -286,6 +287,11 @@ public class ODataImportTests : ODataTestBase
     {
         await ODataTestAsync(async () =>
         {
+            // Test reference visibility independently of the operator-only Password field.
+            // This imported fixture has no login credentials; restore the schema after the test.
+            var passwordSetting = ContentType.GetByName("User").FieldSettings.First(x => x.Name == "Password");
+            using var optionalPassword = new Swindler<bool?>(false,
+                () => passwordSetting.Compulsory, value => passwordSetting.Compulsory = value);
             var referredUser = await CreateUserAsync("AgentSmith", default).ConfigureAwait(false);
             var importerUser = await CreatePublicAdminUserAsync("Importer", default).ConfigureAwait(false);
 
@@ -306,6 +312,8 @@ public class ODataImportTests : ODataTestBase
             Assert.AreEqual(0, result.Messages.Length);
             var importedContent = Node.Load<User>(result.Path);
             Assert.IsNotNull(importedContent);
+            Assert.IsTrue(string.IsNullOrEmpty(importedContent.PasswordHash),
+                "A non-operator must not set a password through import.");
             // Assert for Admin
             Assert.AreEqual(null, importedContent.GetReference<User>("Manager"));
             // Assert for Importer

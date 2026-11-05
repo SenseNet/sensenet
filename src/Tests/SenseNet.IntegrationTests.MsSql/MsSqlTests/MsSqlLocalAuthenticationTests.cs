@@ -1,7 +1,4 @@
-using Microsoft.Extensions.Options;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SenseNet.Configuration;
-using SnWebApplication.Api.Sql.LocalAuth;
 using SenseNet.IntegrationTests.Infrastructure;
 using SenseNet.IntegrationTests.MsSql.Platforms;
 using SenseNet.IntegrationTests.TestCases;
@@ -14,10 +11,6 @@ namespace SenseNet.IntegrationTests.MsSql.MsSqlTests
     {
         [TestMethod]
         public Task IntT_MsSql_LocalAuthentication_LoginRefreshRevoke() =>
-            TestCase.LocalAuthentication_LoginRefreshRevoke(() =>
-                new SqlLocalAuthenticationUserLock(Options.Create(new ConnectionStringOptions
-                {
-                    Repository = Platform.RepositoryConnectionString
-                })));
+            TestCase.LocalAuthentication_LoginRefreshRevoke();
     }
 }

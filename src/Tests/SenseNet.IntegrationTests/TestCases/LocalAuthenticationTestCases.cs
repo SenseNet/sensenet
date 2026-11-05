@@ -15,6 +15,7 @@ using SenseNet.Authentication.Local;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage.Data;
+using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Extensions.DependencyInjection;
 using SenseNet.IntegrationTests.Infrastructure;
 using Task = System.Threading.Tasks.Task;
@@ -24,7 +25,7 @@ namespace SenseNet.IntegrationTests.TestCases
     /// <summary>Reusable by database platforms. Run only against a disposable integration repository.</summary>
     public class LocalAuthenticationTestCases : TestCaseBase
     {
-        public Task LocalAuthentication_LoginRefreshRevoke(Func<ILocalAuthenticationUserLock> createUserLock) => IntegrationTestAsync(async () =>
+        public Task LocalAuthentication_LoginRefreshRevoke() => IntegrationTestAsync(async () =>
         {
             var name = "local-auth-" + Guid.NewGuid().ToString("N");
             var user = new User(User.Administrator.Parent)
@@ -39,7 +40,7 @@ namespace SenseNet.IntegrationTests.TestCases
                     .ConfigureServices(services =>
                     {
                         services.AddLogging();
-                        services.AddSingleton(_ => createUserLock());
+                        services.AddSingleton(Providers.Instance.Services.GetRequiredService<IUserAuthenticationLock>());
                         services.AddSingleton(Providers.Instance.Services.GetRequiredService<IAccessTokenDataProvider>());
                         services.AddSenseNetLocalAuthentication(options =>
                         {

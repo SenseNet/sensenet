@@ -339,6 +339,8 @@ namespace WebAppTests
 
                 {typeof(IPasswordHashProvider), typeof(SenseNetPasswordHashProvider)},
                 {typeof(IPasswordHashProviderForMigration), typeof(Sha256PasswordHashProviderWithoutSalt)},
+                {typeof(PasswordValidationLimiter), typeof(PasswordValidationLimiter)},
+                {typeof(PasswordValidationTiming), typeof(PasswordValidationTiming)},
 
                 // Search
                 {typeof(ISearchManager), typeof(SearchManager)},
@@ -468,6 +470,7 @@ namespace WebAppTests
                 {typeof(ISharedLockDataProvider), typeof(InMemorySharedLockDataProvider)},
                 {typeof(IExclusiveLockDataProvider), typeof(InMemoryExclusiveLockDataProvider)},
                 {typeof(IAccessTokenDataProvider), typeof(InMemoryAccessTokenDataProvider)},
+                {typeof(IUserAuthenticationLock), typeof(InMemoryUserAuthenticationLock)},
                 {typeof(IPackagingDataProvider), typeof(InMemoryPackageStorageProvider)},
                 {typeof(IAuditEventWriter), typeof(InactiveAuditEventWriter)},
 
@@ -501,6 +504,7 @@ namespace WebAppTests
                 {typeof(ISharedLockDataProvider), typeof(MsSqlSharedLockDataProvider)},
                 {typeof(IExclusiveLockDataProvider), typeof(MsSqlExclusiveLockDataProvider)},
                 {typeof(IAccessTokenDataProvider), typeof(MsSqlAccessTokenDataProvider)},
+                {typeof(IUserAuthenticationLock), typeof(MsSqlUserAuthenticationLock)},
                 {typeof(IPackagingDataProvider), typeof(MsSqlPackagingDataProvider)},
                 {typeof(IAuditEventWriter), typeof(DatabaseAuditEventWriter)},
 
