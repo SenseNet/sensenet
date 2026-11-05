@@ -65,11 +65,13 @@ namespace SenseNet.Services.Core.Operations
         [ODataAction(Category = "Authentication")]
         [ContentTypes(N.CT.PortalRoot)]
         [AllowedRoles(N.R.All)]
-        public static Task<CredentialValidationResult> ValidateCredentials(Content content, HttpContext context,
+        public static async Task<CredentialValidationResult> ValidateCredentials(Content content, HttpContext context,
             string userName, string password)
 
         {
-            return ValidatePasswordAsync(context, userName, password);
+            var (result, attempt) = await ValidatePasswordAsync(context, userName, password).ConfigureAwait(false);
+            attempt.CompleteSuccessfully();
+            return result;
         }
 
         /// <summary>Validates the provided user credentials and two-factor code at the same time.</summary>
@@ -101,15 +103,17 @@ namespace SenseNet.Services.Core.Operations
             string userName, string password, string twoFactorCode)
 
         {
-            var passwordResult = await ValidatePasswordAsync(context, userName, password).ConfigureAwait(false);
+            var (passwordResult, attempt) = await ValidatePasswordAsync(context, userName, password).ConfigureAwait(false);
             var userContent = await Content.LoadAsync(passwordResult.Id, context.RequestAborted).ConfigureAwait(false);
 
             var result = await ValidateTwoFactorCode(userContent, context, twoFactorCode).ConfigureAwait(false);
 
+            attempt.CompleteSuccessfully();
             return result;
         }
 
-        private static async Task<CredentialValidationResult> ValidatePasswordAsync(HttpContext context, string userName, string password)
+        private static async Task<(CredentialValidationResult Result, PasswordValidationLimiter.Attempt Attempt)>
+            ValidatePasswordAsync(HttpContext context, string userName, string password)
         {
             await using var timing = context.RequestServices.GetRequiredService<PasswordValidationTiming>()
                 .Begin(context.RequestAborted);
@@ -140,29 +144,28 @@ namespace SenseNet.Services.Core.Operations
 
                 if (user != null)
                 {
-                    var attemptAllowed = true;
+                    PasswordValidationLimiter.Attempt attempt = null;
                     try
                     {
-                        context.RequestServices.GetRequiredService<PasswordValidationLimiter>().CheckAttempt(user.Id);
+                        attempt = context.RequestServices.GetRequiredService<PasswordValidationLimiter>().CheckAttempt(user.Id);
                     }
                     catch (PasswordValidationThrottledException)
                     {
                         // Exposing an account-specific limit would reveal that this user exists.
-                        attemptAllowed = false;
                         logger.LogTrace($"Password validation limit reached for user: {userName}");
                     }
-                    if (attemptAllowed && user.CheckPasswordMatch(password))
+                    if (attempt != null && user.CheckPasswordMatch(password))
                     {
                         logger.LogTrace($"Password validation success for {userName}");
 
-                        return new CredentialValidationResult
+                        return (new CredentialValidationResult
                         {
                             Id = user.Id,
                             Email = user.Email,
                             Username = user.Username,
                             Name = user.Name,
                             LoginName = user.LoginName
-                        };
+                        }, attempt);
                     }
 
                     logger.LogTrace($"Password validation failed for user: {userName}");

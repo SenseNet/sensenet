@@ -41,6 +41,41 @@ public class PasswordValidationTests : TestBase
     }
 
     [TestMethod]
+    public void SuccessReleasesOnlyItsOwnReservationAndIsIdempotent()
+    {
+        var limiter = new PasswordValidationLimiter(new HealthTestClock(),
+            Options.Create(new PasswordValidationOptions { AttemptsPerMinutePerAccount = 2 }));
+        limiter.CheckAttempt(1); // A failure at the same timestamp must remain counted.
+        var success = limiter.CheckAttempt(1);
+        Assert.ThrowsException<PasswordValidationThrottledException>(() => limiter.CheckAttempt(1));
+        Parallel.For(0, 100, _ => success.CompleteSuccessfully());
+        limiter.CheckAttempt(1);
+        Assert.ThrowsException<PasswordValidationThrottledException>(() => limiter.CheckAttempt(1));
+    }
+
+    [TestMethod]
+    public void ExpiredSuccessCannotReleaseNewerAttempts()
+    {
+        var clock = new HealthTestClock();
+        var limiter = new PasswordValidationLimiter(clock,
+            Options.Create(new PasswordValidationOptions { AttemptsPerMinutePerAccount = 1 }));
+        var expired = limiter.CheckAttempt(1);
+        clock.Advance(TimeSpan.FromSeconds(60));
+        limiter.CheckAttempt(1);
+        expired.CompleteSuccessfully();
+        Assert.ThrowsException<PasswordValidationThrottledException>(() => limiter.CheckAttempt(1));
+    }
+
+    [TestMethod]
+    public void SuccessfulAttemptsCanExceedTheLimit()
+    {
+        var limiter = new PasswordValidationLimiter(new HealthTestClock(),
+            Options.Create(new PasswordValidationOptions { AttemptsPerMinutePerAccount = 1 }));
+        for (var i = 0; i < 10; i++)
+            limiter.CheckAttempt(1).CompleteSuccessfully();
+    }
+
+    [TestMethod]
     public void SlidingWindowExpiresIndividualAttemptsAndRejectionsDoNotExtendIt()
     {
         var clock = new HealthTestClock();
@@ -127,6 +162,10 @@ public class PasswordValidationTests : TestBase
             Assert.AreEqual(1, hashes.CheckCount);
             Assert.AreEqual(user.Id, (await FinishTiming(IdentityOperations.ValidateCredentials(
                 null, context, "BuiltIn\\password-limit-alias", "Synthetic-Password-2026"))).Id);
+            Assert.AreEqual(user.Id, (await FinishTiming(IdentityOperations.ValidateCredentials(
+                null, context, "password-limit-alias", "Synthetic-Password-2026"))).Id);
+            await Assert.ThrowsExceptionAsync<SenseNetSecurityException>(() => FinishTiming(IdentityOperations.ValidateCredentials(
+                null, context, "BuiltIn\\password-limit-alias", "wrong")));
 
             context.Connection.RemoteIpAddress = IPAddress.Parse("192.0.2.1");
             await Assert.ThrowsExceptionAsync<SenseNetSecurityException>(() => FinishTiming(IdentityOperations.ValidateCredentials(
@@ -134,14 +173,40 @@ public class PasswordValidationTests : TestBase
             await Assert.ThrowsExceptionAsync<SenseNetSecurityException>(() =>
                 FinishTiming(IdentityOperations.ValidateCredentialsWithTwoFactorCode(null, context,
                     "builtin\\password-limit-alias", "Synthetic-Password-2026", "123456")));
-            Assert.AreEqual(2, hashes.CheckCount, "Rejected attempts must not evaluate the password hash.");
+            Assert.AreEqual(4, hashes.CheckCount, "Rejected attempts must not evaluate the password hash.");
 
             clock.Advance(TimeSpan.FromSeconds(60));
             Assert.AreEqual(user.Id, (await FinishTiming(IdentityOperations.ValidateCredentials(
                 null, context, "password-limit-alias", "Synthetic-Password-2026"))).Id);
-            Assert.AreEqual(3, hashes.CheckCount);
+            Assert.AreEqual(5, hashes.CheckCount);
         });
     }
+
+    [TestMethod]
+    public Task TwoFactorSuccessReleasesOnlyItsOwnPasswordAttempt() => Test2(services =>
+    {
+        services.AddMultiFactorAuthenticationProvider<TestMultiFactorProvider>();
+        services.Configure<PasswordValidationOptions>(options => options.AttemptsPerMinutePerAccount = 2);
+    }, async () =>
+    {
+        var user = User.Administrator;
+        user.MultiFactorEnabled = true;
+        await user.SaveAsync(CancellationToken.None);
+        user.MultiFactorRegistered = true;
+        await user.SaveAsync(CancellationToken.None);
+        var context = new DefaultHttpContext { RequestServices = Providers.Instance.Services };
+        foreach (var code in new[] { "wrong", "correctcode", "correctcode", "wrong" })
+        {
+            var pending = IdentityOperations.ValidateCredentialsWithTwoFactorCode(null, context,
+                "builtin\\admin", "admin", code);
+            if (code == "correctcode")
+                Assert.AreEqual(user.Id, (await pending).Id);
+            else
+                await Assert.ThrowsExceptionAsync<SenseNetSecurityException>(() => pending);
+        }
+        await Assert.ThrowsExceptionAsync<SenseNetSecurityException>(() =>
+            IdentityOperations.ValidateCredentialsWithTwoFactorCode(null, context, "builtin\\admin", "admin", "correctcode"));
+    });
 
     private sealed class CountingPasswordHashProvider : SenseNetPasswordHashProvider
     {

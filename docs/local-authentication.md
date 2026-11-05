@@ -127,8 +127,11 @@ Do not enable a separate middleware or hosting setting that trusts forwarding fr
 IP/account limits default to 30/5 attempts per minute. Password checks share a single account
 budget with the `ValidateCredentials` and `ValidateCredentialsWithTwoFactorCode` OData actions,
 including the progressive MFA login path. The account key is the resolved repository user ID,
-so changing the username format or source IP does not reset the budget. Each password check,
-successful or failed, consumes one slot in a sliding 60-second window. Rejected attempts do not
+so changing the username format or source IP does not reset the budget. Each credential check
+reserves one slot in a sliding 60-second window before checking the password. Successful validation
+(including the MFA code when supplied) releases only its own slot; earlier failures remain counted.
+A successfully issued MFA challenge also releases its password-check slot. Failed and pending checks
+consume the budget, so a correct password cannot bypass an exhausted budget. Rejected attempts do not
 check the password or extend the window. An exhausted account budget returns the same generic
 credential failure as an unknown or disabled user or an incorrect password: HTTP 401 for local
 login and HTTP 403 for OData credential validation, without `Retry-After`. This prevents the limit

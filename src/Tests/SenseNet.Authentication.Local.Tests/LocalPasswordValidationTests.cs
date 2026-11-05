@@ -129,8 +129,8 @@ public partial class LocalAuthenticationTests
             });
         using var client = Client(server);
         const string odataPath = "/OData.svc/('Root')/ValidateCredentials";
-        // Failed and successful password checks both consume the shared account budget.
-        foreach (var password in new[] { "wrong", "admin" })
+        // Successes release their own slots without clearing the earlier failure.
+        foreach (var password in new[] { "wrong", "admin", "admin", "wrong" })
         {
             using var attempt = odataFirst
                 ? await client.PostAsJsonAsync(odataPath, new { userName = "builtin\\admin", password })
@@ -146,7 +146,7 @@ public partial class LocalAuthenticationTests
         using var odataBlocked = await client.PostAsJsonAsync(odataPath, new { userName = "builtin\\admin", password = "admin" });
         if (customUsers != null)
         {
-            Assert.AreEqual(odataFirst ? 0 : 2, customUsers.ValidationCalls,
+            Assert.AreEqual(odataFirst ? 0 : 4, customUsers.ValidationCalls,
                 "An exhausted account budget must prevent calling the custom validator.");
             if (!odataFirst)
                 Assert.AreEqual(code, customUsers.LastTwoFactorCode);
@@ -158,21 +158,62 @@ public partial class LocalAuthenticationTests
     });
 
     [DataTestMethod]
-    [DataRow(false)]
-    [DataRow(true)]
-    public Task SuccessfulLoginsConsumeOnePasswordAttempt(bool challenge) => Test(async () =>
+    [DataRow(false, false)]
+    [DataRow(true, false)]
+    [DataRow(false, true)]
+    [DataRow(true, true)]
+    public Task SuccessfulLoginsDoNotConsumePasswordBudget(bool challenge, bool mfa) => Test2(
+        services => services.AddMultiFactorAuthenticationProvider<MfaProvider>(), async () =>
     {
+        if (mfa)
+        {
+            var admin = User.Administrator;
+            admin.MultiFactorEnabled = true;
+            await admin.SaveAsync(CancellationToken.None);
+            admin.MultiFactorRegistered = true;
+            await admin.SaveAsync(CancellationToken.None);
+        }
         using var rsa = RSA.Create(2048);
         using var server = CreateServer(new RsaSecurityKey(rsa) { KeyId = "test" },
-            options => options.AttemptsPerMinutePerAccount = 2);
+            options => options.AttemptsPerMinutePerAccount = 2,
+            services: services => services.AddMultiFactorAuthenticationProvider<MfaProvider>());
         using var client = Client(server);
-        for (var attempt = 0; attempt < 3; attempt++)
+        using var secondWindow = Client(server);
+        for (var attempt = 0; attempt < 4; attempt++)
         {
-            using var response = await client.PostAsJsonAsync("/authentication/local/login",
-                new { username = "builtin\\admin", password = "admin", requestMfaChallenge = challenge });
-            Assert.AreEqual(attempt < 2 ? HttpStatusCode.OK : HttpStatusCode.Unauthorized,
+            var window = attempt % 2 == 0 ? client : secondWindow;
+            using var response = await window.PostAsJsonAsync("/authentication/local/login", new
+            {
+                username = "builtin\\admin", password = "admin", requestMfaChallenge = challenge,
+                twoFactorCode = mfa && !challenge ? "correct" : null
+            });
+            Assert.AreEqual(mfa && challenge ? HttpStatusCode.Accepted : HttpStatusCode.OK,
                 response.StatusCode, $"Unexpected status for password attempt {attempt + 1}.");
         }
+    });
+
+    [TestMethod]
+    public Task FailedMfaChecksStillConsumePasswordBudget() => Test2(
+        services => services.AddMultiFactorAuthenticationProvider<MfaProvider>(), async () =>
+    {
+        var admin = User.Administrator;
+        admin.MultiFactorEnabled = true;
+        await admin.SaveAsync(CancellationToken.None);
+        admin.MultiFactorRegistered = true;
+        await admin.SaveAsync(CancellationToken.None);
+        using var rsa = RSA.Create(2048);
+        using var server = CreateServer(new RsaSecurityKey(rsa) { KeyId = "test" },
+            options => options.AttemptsPerMinutePerAccount = 2,
+            services: services => services.AddMultiFactorAuthenticationProvider<MfaProvider>());
+        using var client = Client(server);
+        foreach (var code in new[] { "wrong", "correct", "correct", "wrong" })
+        {
+            using var response = await Login(client, code: code);
+            Assert.AreEqual(code == "correct" ? HttpStatusCode.OK : HttpStatusCode.Unauthorized, response.StatusCode);
+        }
+        using var blocked = await Login(client, code: "correct");
+        Assert.AreEqual(HttpStatusCode.Unauthorized, blocked.StatusCode);
+        Assert.IsNull(blocked.Headers.RetryAfter);
     });
 
     [TestMethod]
