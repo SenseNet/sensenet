@@ -124,9 +124,9 @@ public class PasswordValidationTests : TestBase
                 null, context, "BuiltIn\\password-limit-alias", "Synthetic-Password-2026").Id);
 
             context.Connection.RemoteIpAddress = IPAddress.Parse("192.0.2.1");
-            Assert.ThrowsException<PasswordValidationThrottledException>(() => IdentityOperations.ValidateCredentials(
+            Assert.ThrowsException<SenseNetSecurityException>(() => IdentityOperations.ValidateCredentials(
                 null, context, "BUILTIN\\PASSWORD-LIMIT-ALIAS", "Synthetic-Password-2026"));
-            await Assert.ThrowsExceptionAsync<PasswordValidationThrottledException>(() =>
+            await Assert.ThrowsExceptionAsync<SenseNetSecurityException>(() =>
                 IdentityOperations.ValidateCredentialsWithTwoFactorCode(null, context,
                     "builtin\\password-limit-alias", "Synthetic-Password-2026", "123456"));
             Assert.AreEqual(2, hashes.CheckCount, "Rejected attempts must not evaluate the password hash.");

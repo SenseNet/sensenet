@@ -30,7 +30,7 @@ namespace SenseNet.Services.Core.Tests
             });
         }
 
-        [TestMethod, ExpectedException(typeof(MissingDomainException))]
+        [TestMethod, ExpectedException(typeof(SenseNetSecurityException))]
         public void Login_NoDomain_BuiltIn_Admin_Err_WithAdminInPublic()
         {
             LoginTest(DomainUsagePolicy.NoDomain, BuiltIn, (services) =>

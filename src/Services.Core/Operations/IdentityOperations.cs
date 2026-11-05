@@ -111,6 +111,7 @@ namespace SenseNet.Services.Core.Operations
 
         private static CredentialValidationResult ValidatePassword(HttpContext context, string userName, string password)
         {
+            context.Response.Headers.CacheControl = "no-store";
             if (userName == null)
                 throw new ArgumentNullException(nameof(userName));
             if (password == null)
@@ -137,8 +138,18 @@ namespace SenseNet.Services.Core.Operations
 
                 if (user != null)
                 {
-                    context.RequestServices.GetRequiredService<PasswordValidationLimiter>().CheckAttempt(user.Id);
-                    if (user.CheckPasswordMatch(password))
+                    var attemptAllowed = true;
+                    try
+                    {
+                        context.RequestServices.GetRequiredService<PasswordValidationLimiter>().CheckAttempt(user.Id);
+                    }
+                    catch (PasswordValidationThrottledException)
+                    {
+                        // Exposing an account-specific limit would reveal that this user exists.
+                        attemptAllowed = false;
+                        logger.LogTrace($"Password validation limit reached for user: {userName}");
+                    }
+                    if (attemptAllowed && user.CheckPasswordMatch(password))
                     {
                         logger.LogTrace($"Password validation success for {userName}");
 
@@ -152,7 +163,7 @@ namespace SenseNet.Services.Core.Operations
                         };
                     }
 
-                    logger.LogTrace($"Password match failed for user: {userName}");
+                    logger.LogTrace($"Password validation failed for user: {userName}");
                 }
             }
 
@@ -279,14 +290,8 @@ namespace SenseNet.Services.Core.Operations
             if (IdentityManagement.DomainUsagePolicy == DomainUsagePolicy.MandatoryDomain)
                 throw new MissingDomainException();
 
-            // "default domain" policy is ok 
-            if (IdentityManagement.DomainUsagePolicy != DomainUsagePolicy.NoDomain)
-                return;
-
-            // "no domain" policy: check user occurrence by name in all domains.
-            var users = Content.All.Where(c => c.InTree(Repository.ImsFolder) && c.Name == userName).ToArray();
-            if (users.Length > 1)
-                throw new MissingDomainException();
+            // User.Load already rejects ambiguous names. Use the same credential error as for
+            // unknown names instead of revealing that matching accounts exist in multiple domains.
         }
 
         public class CredentialValidationResult

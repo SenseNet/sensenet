@@ -129,8 +129,15 @@ budget with the `ValidateCredentials` and `ValidateCredentialsWithTwoFactorCode`
 including the progressive MFA login path. The account key is the resolved repository user ID,
 so changing the username format or source IP does not reset the budget. Each password check,
 successful or failed, consumes one slot in a sliding 60-second window. Rejected attempts do not
-check the password or extend the window; they return HTTP 429 with `Retry-After` in seconds.
-The local IP, MFA-code and password-recovery limits remain separate.
+check the password or extend the window. An exhausted account budget returns the same generic
+credential failure as an unknown or disabled user or an incorrect password: HTTP 401 for local
+login and HTTP 403 for OData credential validation, without `Retry-After`. This prevents the limit
+from revealing whether an account exists. The local IP limit remains HTTP 429 with `Retry-After`,
+independently of the submitted user name. MFA-code and password-recovery limits remain separate.
+
+With the `NoDomain` policy, ambiguous names also receive the generic credential failure; callers
+can still specify a domain to select an account. The required-domain policy and disabled-account
+checks remain in effect. Response-time differences are not addressed by this change.
 
 The password limiter is enabled in standard repository hosts even without the local authentication
 module. Configure its positive `AttemptsPerMinutePerAccount` value under

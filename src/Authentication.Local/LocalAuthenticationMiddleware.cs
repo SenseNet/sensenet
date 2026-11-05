@@ -135,9 +135,10 @@ internal sealed class LocalAuthenticationMiddleware(
                 response = await flows.LoginAsync(context, request.Username, request.Password, request.TwoFactorCode,
                     request.RequestMfaChallenge).ConfigureAwait(false);
             }
-            catch (PasswordValidationThrottledException exception)
+            catch (PasswordValidationThrottledException)
             {
-                await FailAsync(context, operation, StatusCodes.Status429TooManyRequests, exception.RetryAfterSeconds)
+                // An account-specific 429 or Retry-After would reveal that this user exists.
+                await FailAsync(context, operation, StatusCodes.Status401Unauthorized)
                     .ConfigureAwait(false);
                 return;
             }

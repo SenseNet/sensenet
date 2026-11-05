@@ -12,12 +12,83 @@ using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Extensions.DependencyInjection;
 using SenseNet.OData;
+using SenseNet.Testing;
 using Task = System.Threading.Tasks.Task;
 
 namespace SenseNet.Authentication.Local.Tests;
 
 public partial class LocalAuthenticationTests
 {
+    [DataTestMethod]
+    [DataRow(false, null)]
+    [DataRow(true, null)]
+    [DataRow(true, "invalid-code")]
+    public Task LoginFailuresDoNotRevealAccountExistence(bool challenge, string? code) => Test(async () =>
+    {
+        using var domainPolicy = new Swindler<DomainUsagePolicy>(DomainUsagePolicy.NoDomain,
+            () => IdentityManagement.DomainUsagePolicy, value => IdentityManagement.DomainUsagePolicy = value);
+        const string password = "Synthetic-Password-2026";
+        var disabled = new User(User.Administrator.Parent)
+        {
+            Name = "disabled-login-test", Enabled = false, Password = password
+        };
+        await disabled.SaveAsync(CancellationToken.None);
+        var domain = new Domain(Repository.ImsFolder) { Name = "LoginTestDomain" };
+        await domain.SaveAsync(CancellationToken.None);
+        foreach (var parent in new[] { domain, User.Administrator.Parent })
+        {
+            var user = new User(parent) { Name = "ambiguous-login-test", Enabled = true, Password = password };
+            await user.SaveAsync(CancellationToken.None);
+        }
+        using var rsa = RSA.Create(2048);
+        using var server = CreateServer(new RsaSecurityKey(rsa) { KeyId = "test" },
+            options => options.AttemptsPerMinutePerAccount = 2);
+        using var client = Client(server);
+        string? expectedBody = null;
+        string? expectedContentType = null;
+        foreach (var name in new[] { "builtin\\admin", "builtin\\" + disabled.LoginName,
+                     "builtin\\missing-login-test", "ambiguous-login-test" })
+        {
+            for (var attempt = 0; attempt < 4; attempt++)
+            {
+                // After two failures, even the correct admin password must be rejected generically.
+                var submittedPassword = name == "builtin\\admin" ? (attempt < 2 ? "wrong" : "admin") : password;
+                using var response = await client.PostAsJsonAsync("/authentication/local/login", new
+                {
+                    username = attempt % 2 == 0 ? name : name.ToUpperInvariant(),
+                    password = submittedPassword, requestMfaChallenge = challenge, twoFactorCode = code
+                });
+                var body = await response.Content.ReadAsStringAsync();
+                expectedBody ??= body;
+                expectedContentType ??= response.Content.Headers.ContentType?.ToString();
+                Assert.AreEqual(HttpStatusCode.Unauthorized, response.StatusCode, body);
+                Assert.AreEqual(expectedBody, body);
+                Assert.AreEqual(expectedContentType, response.Content.Headers.ContentType?.ToString());
+                Assert.IsNull(response.Headers.RetryAfter);
+                Assert.IsTrue(response.Headers.CacheControl?.NoStore == true);
+            }
+        }
+    });
+
+    [TestMethod]
+    public Task IpLimitStillReturns429IndependentlyOfUserName() => Test(async () =>
+    {
+        using var rsa = RSA.Create(2048);
+        using var server = CreateServer(new RsaSecurityKey(rsa) { KeyId = "test" },
+            options => options.AttemptsPerMinutePerIp = 2);
+        using var client = Client(server);
+        Assert.AreEqual(HttpStatusCode.Unauthorized, (await Login(client, "wrong")).StatusCode);
+        Assert.AreEqual(HttpStatusCode.Unauthorized, (await client.PostAsJsonAsync("/authentication/local/login",
+            new { username = "builtin\\missing-login-test", password = "wrong" })).StatusCode);
+        foreach (var name in new[] { "builtin\\admin", "builtin\\missing-login-test" })
+        {
+            using var response = await client.PostAsJsonAsync("/authentication/local/login",
+                new { username = name, password = "wrong" });
+            Assert.AreEqual(HttpStatusCode.TooManyRequests, response.StatusCode);
+            Assert.IsTrue(response.Headers.RetryAfter?.Delta is { TotalSeconds: > 0 and <= 60 });
+        }
+    });
+
     [DataTestMethod]
     [DataRow(false)]
     [DataRow(true)]
@@ -52,11 +123,10 @@ public partial class LocalAuthenticationTests
         var localBlocked = await client.PostAsJsonAsync("/authentication/local/login",
             new { username = "builtin\\admin", password = "admin", requestMfaChallenge = challenge });
         var odataBlocked = await client.PostAsJsonAsync(odataPath, new { userName = "builtin\\admin", password = "admin" });
+        Assert.AreEqual(HttpStatusCode.Unauthorized, localBlocked.StatusCode);
+        Assert.AreEqual(HttpStatusCode.Forbidden, odataBlocked.StatusCode);
         foreach (var response in new[] { localBlocked, odataBlocked })
-        {
-            Assert.AreEqual(HttpStatusCode.TooManyRequests, response.StatusCode, await response.Content.ReadAsStringAsync());
-            Assert.IsTrue(response.Headers.RetryAfter?.Delta is { TotalSeconds: > 0 and <= 60 });
-        }
+            Assert.IsNull(response.Headers.RetryAfter);
     });
 
     [DataTestMethod]
@@ -72,7 +142,7 @@ public partial class LocalAuthenticationTests
         {
             using var response = await client.PostAsJsonAsync("/authentication/local/login",
                 new { username = "builtin\\admin", password = "admin", requestMfaChallenge = challenge });
-            Assert.AreEqual(attempt < 2 ? HttpStatusCode.OK : HttpStatusCode.TooManyRequests,
+            Assert.AreEqual(attempt < 2 ? HttpStatusCode.OK : HttpStatusCode.Unauthorized,
                 response.StatusCode, $"Unexpected status for password attempt {attempt + 1}.");
         }
     });
@@ -90,7 +160,7 @@ public partial class LocalAuthenticationTests
         {
             Assert.AreEqual(HttpStatusCode.Unauthorized, (await Login(client, "wrong")).StatusCode);
             Assert.AreEqual(HttpStatusCode.Unauthorized, (await Login(client, "wrong")).StatusCode);
-            Assert.AreEqual(HttpStatusCode.TooManyRequests, (await Login(client)).StatusCode);
+            Assert.AreEqual(HttpStatusCode.Unauthorized, (await Login(client)).StatusCode);
         }
     });
 }

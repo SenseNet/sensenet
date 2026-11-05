@@ -10,7 +10,7 @@ namespace SenseNet.Configuration
     {
         /// <summary>
         /// The domain is optional if the login name is system-wide unique.
-        /// If not, <see cref="MissingDomainException"/>  will be thrown.
+        /// Otherwise login fails; specify the domain to select an account unambiguously.
         /// </summary>
         NoDomain,
         /// <summary>

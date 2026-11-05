@@ -173,7 +173,7 @@ public partial class LocalAuthenticationTests : TestBase
         using var client = Client(server);
         Assert.AreEqual(HttpStatusCode.Unauthorized, (await Login(client, "wrong")).StatusCode);
         Assert.AreEqual(HttpStatusCode.Unauthorized, (await Login(client, "wrong")).StatusCode);
-        Assert.AreEqual(HttpStatusCode.TooManyRequests, (await Login(client)).StatusCode);
+        Assert.AreEqual(HttpStatusCode.Unauthorized, (await Login(client)).StatusCode);
     });
 
     [TestMethod]
