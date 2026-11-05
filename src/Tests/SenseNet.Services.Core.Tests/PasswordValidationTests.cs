@@ -117,23 +117,28 @@ public class PasswordValidationTests : TestBase
             hashes.CheckCount = 0;
             var context = new DefaultHttpContext { RequestServices = Providers.Instance.Services };
             context.Connection.RemoteIpAddress = IPAddress.Loopback;
-            Assert.ThrowsException<SenseNetSecurityException>(() => IdentityOperations.ValidateCredentials(
-                null, context, "password-limit-alias", "wrong"));
+            async Task<T> FinishTiming<T>(Task<T> pending)
+            {
+                clock.Advance(TimeSpan.FromMilliseconds(1100));
+                return await pending;
+            }
+            await Assert.ThrowsExceptionAsync<SenseNetSecurityException>(() => FinishTiming(IdentityOperations.ValidateCredentials(
+                null, context, "password-limit-alias", "wrong")));
             Assert.AreEqual(1, hashes.CheckCount);
-            Assert.AreEqual(user.Id, IdentityOperations.ValidateCredentials(
-                null, context, "BuiltIn\\password-limit-alias", "Synthetic-Password-2026").Id);
+            Assert.AreEqual(user.Id, (await FinishTiming(IdentityOperations.ValidateCredentials(
+                null, context, "BuiltIn\\password-limit-alias", "Synthetic-Password-2026"))).Id);
 
             context.Connection.RemoteIpAddress = IPAddress.Parse("192.0.2.1");
-            Assert.ThrowsException<SenseNetSecurityException>(() => IdentityOperations.ValidateCredentials(
-                null, context, "BUILTIN\\PASSWORD-LIMIT-ALIAS", "Synthetic-Password-2026"));
+            await Assert.ThrowsExceptionAsync<SenseNetSecurityException>(() => FinishTiming(IdentityOperations.ValidateCredentials(
+                null, context, "BUILTIN\\PASSWORD-LIMIT-ALIAS", "Synthetic-Password-2026")));
             await Assert.ThrowsExceptionAsync<SenseNetSecurityException>(() =>
-                IdentityOperations.ValidateCredentialsWithTwoFactorCode(null, context,
-                    "builtin\\password-limit-alias", "Synthetic-Password-2026", "123456"));
+                FinishTiming(IdentityOperations.ValidateCredentialsWithTwoFactorCode(null, context,
+                    "builtin\\password-limit-alias", "Synthetic-Password-2026", "123456")));
             Assert.AreEqual(2, hashes.CheckCount, "Rejected attempts must not evaluate the password hash.");
 
             clock.Advance(TimeSpan.FromSeconds(60));
-            Assert.AreEqual(user.Id, IdentityOperations.ValidateCredentials(
-                null, context, "password-limit-alias", "Synthetic-Password-2026").Id);
+            Assert.AreEqual(user.Id, (await FinishTiming(IdentityOperations.ValidateCredentials(
+                null, context, "password-limit-alias", "Synthetic-Password-2026"))).Id);
             Assert.AreEqual(3, hashes.CheckCount);
         });
     }

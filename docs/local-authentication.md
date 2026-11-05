@@ -137,7 +137,19 @@ independently of the submitted user name. MFA-code and password-recovery limits 
 
 With the `NoDomain` policy, ambiguous names also receive the generic credential failure; callers
 can still specify a domain to select an account. The required-domain policy and disabled-account
-checks remain in effect. Response-time differences are not addressed by this change.
+checks remain in effect.
+
+Credential validation chooses a fresh cryptographically random target duration of 900-1100 ms
+before looking up the user. It asynchronously waits only for the remaining time before returning
+or throwing, including unknown, disabled, ambiguous and throttled accounts. The local login wait
+runs after releasing the per-user authentication lock. Request cancellation interrupts the wait.
+Attempts that already exceed the target receive no additional delay; the range must be reviewed
+against measured lookup and hashing costs under load. This reduces timing differences within that
+budget, without guaranteeing identical end-to-end response times. Network/IP-policy rejections
+and malformed local requests are handled before credential validation and are not delayed.
+
+The HTTP contract is unchanged. Direct C# callers of `IdentityOperations.ValidateCredentials`
+must now await its `Task<CredentialValidationResult>` return value.
 
 The password limiter is enabled in standard repository hosts even without the local authentication
 module. Configure its positive `AttemptsPerMinutePerAccount` value under

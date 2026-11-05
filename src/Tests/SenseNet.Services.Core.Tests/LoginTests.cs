@@ -213,7 +213,7 @@ namespace SenseNet.Services.Core.Tests
                     RequestServices = services ?? new ServiceCollection().BuildServiceProvider()
                 },
                 userName,
-                password);
+                password).GetAwaiter().GetResult();
         }
 
         private void LoginTest(DomainUsagePolicy domainUsagePolicy, string defaultDomain, Action<IServiceProvider> callback)

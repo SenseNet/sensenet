@@ -21,7 +21,7 @@ namespace SenseNet.Extensions.DependencyInjection
 
     public static class AuthenticationExtensions
     {
-        /// <summary>Registers the shared, per-application password validation limiter.</summary>
+        /// <summary>Registers shared password validation limits and response timing.</summary>
         public static IServiceCollection AddSenseNetPasswordValidation(this IServiceCollection services,
             Action<PasswordValidationOptions> configure = null)
         {
@@ -33,6 +33,7 @@ namespace SenseNet.Extensions.DependencyInjection
                 services.Configure(configure);
             services.TryAddSingleton(TimeProvider.System);
             services.TryAddSingleton<PasswordValidationLimiter>();
+            services.TryAddSingleton<PasswordValidationTiming>();
             return services;
         }
 

@@ -65,11 +65,11 @@ namespace SenseNet.Services.Core.Operations
         [ODataAction(Category = "Authentication")]
         [ContentTypes(N.CT.PortalRoot)]
         [AllowedRoles(N.R.All)]
-        public static CredentialValidationResult ValidateCredentials(Content content, HttpContext context,
+        public static Task<CredentialValidationResult> ValidateCredentials(Content content, HttpContext context,
             string userName, string password)
 
         {
-            return ValidatePassword(context, userName, password);
+            return ValidatePasswordAsync(context, userName, password);
         }
 
         /// <summary>Validates the provided user credentials and two-factor code at the same time.</summary>
@@ -101,7 +101,7 @@ namespace SenseNet.Services.Core.Operations
             string userName, string password, string twoFactorCode)
 
         {
-            var passwordResult = ValidatePassword(context, userName, password);
+            var passwordResult = await ValidatePasswordAsync(context, userName, password).ConfigureAwait(false);
             var userContent = await Content.LoadAsync(passwordResult.Id, context.RequestAborted).ConfigureAwait(false);
 
             var result = await ValidateTwoFactorCode(userContent, context, twoFactorCode).ConfigureAwait(false);
@@ -109,8 +109,10 @@ namespace SenseNet.Services.Core.Operations
             return result;
         }
 
-        private static CredentialValidationResult ValidatePassword(HttpContext context, string userName, string password)
+        private static async Task<CredentialValidationResult> ValidatePasswordAsync(HttpContext context, string userName, string password)
         {
+            await using var timing = context.RequestServices.GetRequiredService<PasswordValidationTiming>()
+                .Begin(context.RequestAborted);
             context.Response.Headers.CacheControl = "no-store";
             if (userName == null)
                 throw new ArgumentNullException(nameof(userName));

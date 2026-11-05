@@ -12,6 +12,7 @@ using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Services.Core.Operations;
+using SenseNet.Services.Core.Authentication;
 using Task = System.Threading.Tasks.Task;
 
 namespace SenseNet.Authentication.Local;
@@ -36,6 +37,8 @@ internal sealed class LocalAuthenticationFlows(LocalAuthenticationOptions option
     public async Task<object?> LoginAsync(HttpContext context, string username, string password,
         string? code, bool challenge)
     {
+        await using var timing = context.RequestServices.GetRequiredService<PasswordValidationTiming>()
+            .Begin(context.RequestAborted);
         try
         {
             using var account = new SystemAccount();

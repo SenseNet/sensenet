@@ -35,7 +35,7 @@ namespace SenseNet.Services.Core.Tests
                 var user = await IdentityOperations.CreateLocalUser(root, context, userName, userName, userName + "@example.com");
 
                 // check if the user can log in
-                var result = IdentityOperations.ValidateCredentials(root, context, "public\\" + userName, userName);
+                var result = await IdentityOperations.ValidateCredentials(root, context, "public\\" + userName, userName);
                 Assert.AreEqual(user.Id, result.Id);
 
                 // ACTION: disable the user
@@ -46,7 +46,7 @@ namespace SenseNet.Services.Core.Tests
                 try
                 {
                     // important to look for the user in the appropriate domain
-                    IdentityOperations.ValidateCredentials(root, context, "public\\" + userName, userName);
+                    await IdentityOperations.ValidateCredentials(root, context, "public\\" + userName, userName);
                 }
                 catch (SenseNetSecurityException)
                 {
