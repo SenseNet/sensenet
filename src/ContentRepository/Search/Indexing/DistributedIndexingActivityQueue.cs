@@ -121,31 +121,13 @@ namespace SenseNet.ContentRepository.Search.Indexing
                    _serializer.QueueLength >= Configuration.Indexing.IndexingActivityQueueMaxLength;
         }
 
-        public void Startup(System.IO.TextWriter consoleOut)
-        {
-            // initialize from index
-            var cud = Providers.Instance.SearchManager.SearchEngine.IndexingEngine.ReadActivityStatusFromIndexAsync(CancellationToken.None).GetAwaiter().GetResult();
-
-            var gapsLength = cud.Gaps?.Length ?? 0;
-
-            var lastDatabaseId = Providers.Instance.IndexManager.GetLastStoredIndexingActivityId();
-
-            using (var op = SnTrace.Index.StartOperation("IAQ: InitializeFromIndex. LastIndexedActivityId: {0}, LastDatabaseId: {1}, TotalUnprocessed: {2}"
-                , cud.LastActivityId, lastDatabaseId, lastDatabaseId - cud.LastActivityId + gapsLength))
-            {
-                Startup(lastDatabaseId, cud.LastActivityId, cud.Gaps, consoleOut);
-
-                op.Successful = true;
-            }
-
-            IndexHealthMonitor.Start(consoleOut);
-        }
-        private void Startup(int lastDatabaseId, int lastExecutedId, int[] gaps, System.IO.TextWriter consoleOut)
+        internal void ReplayUnprocessedActivities(int lastDatabaseId, int lastExecutedId, int[] gaps,
+            IEnumerable<IIndexingActivity> activities, System.IO.TextWriter consoleOut)
         {
             _serializer.Reset();
             _dependencyManager.Reset();
             _terminationHistory.Reset(lastExecutedId, gaps);
-            _serializer.Start(lastDatabaseId, lastExecutedId, gaps, consoleOut);
+            _serializer.ReplayUnprocessedActivities(lastDatabaseId, lastExecutedId, gaps, activities, consoleOut);
             _activityHistory.Reset();
         }
 
@@ -236,11 +218,8 @@ namespace SenseNet.ContentRepository.Search.Indexing
                     _lastQueued = lastQueued;
                 }
             }
-            /// <summary>
-            /// MUST BE SYNCHRON
-            /// GAPS MUST BE ORDERED
-            /// </summary>
-            internal void Start(int lastDatabaseId, int lastExecutedId, int[] gaps, System.IO.TextWriter consoleOut)
+            internal void ReplayUnprocessedActivities(int lastDatabaseId, int lastExecutedId, int[] gaps,
+                IEnumerable<IIndexingActivity> activities, System.IO.TextWriter consoleOut)
             {
                 consoleOut?.WriteLine("Executing unprocessed indexing activities. {0}-{1} {2}", lastExecutedId, lastDatabaseId, IndexingActivityStatus.GapsToString(gaps, 5, 3));
 
@@ -254,39 +233,18 @@ namespace SenseNet.ContentRepository.Search.Indexing
                 _dependencyManager.Start();
 
                 var count = 0;
-                if (gaps.Any())
+                foreach (var indexingActivity in activities)
                 {
-                    var loadedActivities = new IndexingActivityLoader(gaps, true, _indexingActivityFactory);
-                    foreach (var indexingActivity in loadedActivities)
-                    {
-                        var loadedActivity = (IndexingActivityBase) indexingActivity;
-                        // wait and start processing loaded activities in the meantime
-                        _activityQueue.WaitIfOverloaded(true);
+                    var loadedActivity = (IndexingActivityBase)indexingActivity;
+                    // Wait and start processing loaded activities in the meantime.
+                    _activityQueue.WaitIfOverloaded(true);
 
-                        SnTrace.IndexQueue.Write("IAQ: Startup: activity arrived from db: A{0}.", loadedActivity.Id);
+                    SnTrace.IndexQueue.Write("IAQ: Startup: activity arrived from db: A{0}.", loadedActivity.Id);
 
-                        _activityHistory.Arrive(loadedActivity);
-                        ArrivalQueue.Enqueue(loadedActivity);
-                        _lastQueued = loadedActivity.Id;
-                        count++;
-                    }
-                }
-                if (lastExecutedId < lastDatabaseId)
-                {
-                    var loadedActivities = new IndexingActivityLoader(lastExecutedId + 1, lastDatabaseId, true, _indexingActivityFactory);
-                    foreach (var indexingActivity in loadedActivities)
-                    {
-                        var loadedActivity = (IndexingActivityBase) indexingActivity;
-                        // wait and start processing loaded activities in the meantime
-                        _activityQueue.WaitIfOverloaded(true);
-
-                        SnTrace.IndexQueue.Write("IAQ: Startup: activity arrived from db: A{0}.", loadedActivity.Id);
-
-                        _activityHistory.Arrive(loadedActivity);
-                        ArrivalQueue.Enqueue(loadedActivity);
-                        _lastQueued = loadedActivity.Id;
-                        count++;
-                    }
+                    _activityHistory.Arrive(loadedActivity);
+                    ArrivalQueue.Enqueue(loadedActivity);
+                    _lastQueued = loadedActivity.Id;
+                    count++;
                 }
 
                 if (_lastQueued < lastExecutedId)

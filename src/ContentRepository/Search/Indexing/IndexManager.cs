@@ -24,7 +24,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
     {
         private readonly IDataStore _dataStore;
         private readonly ISearchManager _searchManager;
-        private readonly IIndexingActivityFactory _indexingActivityFactory;
+        private readonly IIndexCatchUpProvider _catchUpProvider;
         private readonly ILogger<IndexManager> _logger;
 
         internal DistributedIndexingActivityQueue DistributedIndexingActivityQueue { get; }
@@ -32,10 +32,17 @@ namespace SenseNet.ContentRepository.Search.Indexing
 
         public IndexManager(IDataStore dataStore, ISearchManager searchManager, IIndexingActivityFactory indexingActivityFactory,
             ILogger<IndexManager> logger)
+            : this(dataStore, searchManager, indexingActivityFactory, logger,
+                new LegacyIndexCatchUpProvider(dataStore, indexingActivityFactory))
+        {
+        }
+
+        internal IndexManager(IDataStore dataStore, ISearchManager searchManager,
+            IIndexingActivityFactory indexingActivityFactory, ILogger<IndexManager> logger, IIndexCatchUpProvider catchUpProvider)
         {
             _dataStore = dataStore;
             _searchManager = searchManager;
-            _indexingActivityFactory = indexingActivityFactory;
+            _catchUpProvider = catchUpProvider;
             _logger = logger;
             DistributedIndexingActivityQueue = new DistributedIndexingActivityQueue(this, indexingActivityFactory);
             CentralizedIndexingActivityQueue = new CentralizedIndexingActivityQueue(indexingActivityFactory);
@@ -75,7 +82,10 @@ namespace SenseNet.ContentRepository.Search.Indexing
             }
             else
             {
-                DistributedIndexingActivityQueue.Startup(consoleOut);
+                var status = await IndexingEngine.ReadActivityStatusFromIndexAsync(cancellationToken).ConfigureAwait(false);
+                await _catchUpProvider.CatchUpAsync(DistributedIndexingActivityQueue, status, consoleOut, cancellationToken)
+                    .ConfigureAwait(false);
+                IndexHealthMonitor.Start(consoleOut);
             }
         }
 

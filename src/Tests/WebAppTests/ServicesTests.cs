@@ -345,6 +345,7 @@ namespace WebAppTests
                 // Search
                 {typeof(ISearchManager), typeof(SearchManager)},
                 {typeof(IIndexManager), typeof(IndexManager)},
+                {typeof(IIndexCatchUpProvider), typeof(LegacyIndexCatchUpProvider)},
                 {typeof(IIndexPopulator), typeof(DocumentPopulator)},
                 {typeof(IIndexingActivityFactory), typeof(IndexingActivityFactory)},
 
