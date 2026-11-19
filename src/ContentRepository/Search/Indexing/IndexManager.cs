@@ -65,9 +65,18 @@ namespace SenseNet.ContentRepository.Search.Indexing
 
         public async STT.Task StartAsync(TextWriter consoleOut, CancellationToken cancellationToken)
         {
-            await IndexingEngine.StartAsync(consoleOut, cancellationToken).ConfigureAwait(false);
+            var searchEngine = _searchManager.SearchEngine;
+            var indexingEngine = searchEngine.IndexingEngine;
+            var bufferActivities = _catchUpProvider.BufferLiveActivities && !indexingEngine.IndexIsCentralized;
+            if (bufferActivities)
+            {
+                DistributedIndexingActivityQueue.BeginBuffering();
+                searchEngine.SetIndexingInfo(ContentTypeManager.Instance.IndexingInfo);
+            }
+            await indexingEngine.StartAsync(consoleOut, cancellationToken).ConfigureAwait(false);
 
-            CommitManager = IndexingEngine.IndexIsCentralized
+            var centralized = indexingEngine.IndexIsCentralized;
+            CommitManager = centralized
                 ? (ICommitManager)new NoDelayCommitManager(this)
                 : new NearRealTimeCommitManager(this);
 
@@ -75,16 +84,18 @@ namespace SenseNet.ContentRepository.Search.Indexing
 
             CommitManager.Start();
 
-            if (IndexingEngine.IndexIsCentralized)
+            if (centralized)
             {
                 RestoreIndexIfNeeded();
                 CentralizedIndexingActivityQueue.Startup(consoleOut);
             }
             else
             {
-                var status = await IndexingEngine.ReadActivityStatusFromIndexAsync(cancellationToken).ConfigureAwait(false);
-                await _catchUpProvider.CatchUpAsync(DistributedIndexingActivityQueue, status, consoleOut, cancellationToken)
+                var status = await indexingEngine.ReadActivityStatusFromIndexAsync(cancellationToken).ConfigureAwait(false);
+                await _catchUpProvider.CatchUpAsync(this, status, consoleOut, cancellationToken)
                     .ConfigureAwait(false);
+                if (bufferActivities)
+                    DistributedIndexingActivityQueue.ReleaseBufferedActivities();
                 IndexHealthMonitor.Start(consoleOut);
             }
         }

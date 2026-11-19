@@ -686,6 +686,23 @@ namespace SenseNet.ContentRepository.Storage.Data
             CancellationToken cancellationToken);
 
         /// <summary>
+        /// Reads activity log metadata from the inclusive ID range, ordered by ID.
+        /// </summary>
+        public virtual Task<IndexingActivityMetadata[]> LoadIndexingActivityMetadataAsync(
+            int fromId, int toId, int count, CancellationToken cancellationToken)
+        {
+            throw new NotSupportedException("This data provider does not support index catch-up metadata.");
+        }
+
+        /// <summary>
+        /// Reads the IDs of the current versions at the given path and below it.
+        /// </summary>
+        public virtual Task<int[]> LoadIndexingSubtreeVersionIdsAsync(string path, CancellationToken cancellationToken)
+        {
+            throw new NotSupportedException("This data provider does not support index catch-up subtree reads.");
+        }
+
+        /// <summary>
         /// Gets indexing activities between the two provided ids.
         /// </summary>
         /// <remarks>All three boundary parameters are necessary for the algorithm to work because we have to make sure

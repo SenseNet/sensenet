@@ -44,10 +44,10 @@ namespace SenseNet.ContentRepository.Tests
 
             public int CallCount { get; private set; }
 
-            public async STT.Task CatchUpAsync(DistributedIndexingActivityQueue queue, IndexingActivityStatus status,
+            public async STT.Task CatchUpAsync(IndexManager indexManager, IndexingActivityStatus status,
                 TextWriter consoleOut, CancellationToken cancellationToken)
             {
-                await _legacyProvider.CatchUpAsync(queue, status, consoleOut, cancellationToken).ConfigureAwait(false);
+                await _legacyProvider.CatchUpAsync(indexManager, status, consoleOut, cancellationToken).ConfigureAwait(false);
                 CallCount++;
             }
         }

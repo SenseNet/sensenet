@@ -203,6 +203,24 @@ namespace SenseNet.Extensions.DependencyInjection
         }
 
         /// <summary>
+        /// Uses execution frames for startup catch-up on a supported local index engine and data provider.
+        /// </summary>
+        public static IServiceCollection UseExecutionFrameIndexCatchUp(this IServiceCollection services)
+        {
+            services.RemoveAll<IIndexCatchUpProvider>();
+            return services.AddSingleton<IIndexCatchUpProvider, ExecutionFrameIndexCatchUpProvider>();
+        }
+
+        /// <summary>
+        /// Uses the legacy distributed activity queue for startup catch-up.
+        /// </summary>
+        public static IServiceCollection UseLegacyIndexCatchUp(this IServiceCollection services)
+        {
+            services.RemoveAll<IIndexCatchUpProvider>();
+            return services.AddSingleton<IIndexCatchUpProvider, LegacyIndexCatchUpProvider>();
+        }
+
+        /// <summary>
         /// Adds the provided custom <c>ISnTracer</c> implementation type to the service collection.
         /// Available built-in tracers: <c>SnDebugViewTracer</c>, <c>SnFileSystemTracer</c>, <c>SnILoggerTracer</c>
         /// </summary>

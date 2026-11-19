@@ -21,7 +21,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
             _activityFactory = activityFactory;
         }
 
-        public async STT.Task CatchUpAsync(DistributedIndexingActivityQueue queue, IndexingActivityStatus status,
+        public async STT.Task CatchUpAsync(IndexManager indexManager, IndexingActivityStatus status,
             TextWriter consoleOut, CancellationToken cancellationToken)
         {
             var lastDatabaseId = await _dataStore.GetLastIndexingActivityIdAsync(cancellationToken).ConfigureAwait(false);
@@ -39,7 +39,8 @@ namespace SenseNet.ContentRepository.Search.Indexing
                 activities = activities.Concat(new DistributedIndexingActivityQueue.IndexingActivityLoader(
                     lastExecutedId + 1, lastDatabaseId, true, _activityFactory));
 
-            queue.ReplayUnprocessedActivities(lastDatabaseId, lastExecutedId, gaps, activities, consoleOut);
+            indexManager.DistributedIndexingActivityQueue.ReplayUnprocessedActivities(
+                lastDatabaseId, lastExecutedId, gaps, activities, consoleOut);
             op.Successful = true;
         }
     }

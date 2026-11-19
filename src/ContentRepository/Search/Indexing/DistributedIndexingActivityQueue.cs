@@ -26,6 +26,8 @@ namespace SenseNet.ContentRepository.Search.Indexing
         private readonly DependencyManager _dependencyManager;
         private readonly IndexingActivityHistoryController _activityHistory;
         private readonly IIndexingActivityFactory _indexingActivityFactory;
+        private readonly object _bufferLock = new object();
+        private volatile List<IndexingActivityBase> _bufferedActivities;
 
         public DistributedIndexingActivityQueue(IndexManager indexManager, IIndexingActivityFactory indexingActivityFactory)
         {
@@ -134,6 +136,15 @@ namespace SenseNet.ContentRepository.Search.Indexing
         public void ShutDown()
         {
             SnTrace.IndexQueue.Write("Shutting down IndexingActivityQueue.");
+            lock (_bufferLock)
+            {
+                if (_bufferedActivities != null)
+                {
+                    foreach (var activity in _bufferedActivities)
+                        activity.Finish();
+                    _bufferedActivities = null;
+                }
+            }
             _serializer.ShutDown();
             IndexHealthMonitor.ShutDown();
         }
@@ -163,15 +174,61 @@ namespace SenseNet.ContentRepository.Search.Indexing
 
         public void ExecuteActivity(IndexingActivityBase activity)
         {
+            if (_bufferedActivities != null)
+            {
+                lock (_bufferLock)
+                {
+                    if (_bufferedActivities != null)
+                    {
+                        _bufferedActivities.Add(activity);
+                        return;
+                    }
+                }
+            }
             _serializer.EnqueueActivity(activity);
         }
 
+        internal void BeginBuffering()
+        {
+            lock (_bufferLock)
+                _bufferedActivities ??= new List<IndexingActivityBase>();
+        }
+
+        internal void ReleaseBufferedActivities()
+        {
+            while (true)
+            {
+                IndexingActivityBase[] activities;
+                lock (_bufferLock)
+                {
+                    if (_bufferedActivities == null || _bufferedActivities.Count == 0)
+                    {
+                        _bufferedActivities = null;
+                        return;
+                    }
+                    activities = _bufferedActivities.OrderBy(activity => activity.Id).ToArray();
+                    _bufferedActivities.Clear();
+                }
+
+                foreach (var activity in activities)
+                    _serializer.EnqueueActivity(activity);
+            }
+        }
+
+        internal void InitializeFromCatchUp(IndexingActivityStatus status)
+        {
+            ResetExecutionState(status);
+            _activityHistory.Reset();
+        }
+
         /// <summary>Only for tests</summary>
-        internal void _setCurrentExecutionState(IndexingActivityStatus state)
+        internal void _setCurrentExecutionState(IndexingActivityStatus state) => ResetExecutionState(state);
+
+        private void ResetExecutionState(IndexingActivityStatus state)
         {
             _serializer.Reset(state.LastActivityId);
             _dependencyManager.Reset();
-            _terminationHistory.Reset(state.LastActivityId, state.Gaps);
+            _terminationHistory.Reset(state.LastActivityId, state.Gaps ?? Array.Empty<int>());
         }
 
         internal class Serializer
