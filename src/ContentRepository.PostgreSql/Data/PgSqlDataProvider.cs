@@ -295,6 +295,142 @@ namespace SenseNet.ContentRepository.Storage.Data.PgSqlClient
 
         private IBlobStorage BlobStorage => Providers.Instance.BlobStorage;
 
+        public override async System.Threading.Tasks.Task DeleteNodeAsync(NodeHeadData nodeHeadData, int partitionSize,
+            CancellationToken cancellationToken)
+        {
+            try
+            {
+                var effectivePartitionSize = partitionSize > 0 ? partitionSize : 500;
+                using var op = SnTrace.Database.StartOperation("PgSqlDataProvider: " +
+                    "DeleteNode: NodeId: {0}, Path: {1}, partitionSize: {2}",
+                    nodeHeadData.NodeId, nodeHeadData.Path, effectivePartitionSize);
+
+                using (var ctx = CreateDataContext(cancellationToken))
+                {
+                    var transactionTimeout = TimeSpan.FromSeconds(_dataOptions?.LongTransactionTimeout
+                                                                   ?? new DataOptions().LongTransactionTimeout);
+                    using var transaction = ctx.BeginTransaction(timeout: transactionTimeout);
+
+                    var nodeInfo = await ctx.ExecuteReaderAsync(
+                        @"SELECT ""Path""::TEXT, ""Timestamp"" FROM ""Nodes"" WHERE ""NodeId"" = @NodeId",
+                        cmd => { cmd.Parameters.Add(ctx.CreateParameter("@NodeId", DbType.Int32, nodeHeadData.NodeId)); },
+                        async (reader, cancel) =>
+                        {
+                            if (!await reader.ReadAsync(cancel).ConfigureAwait(false))
+                                return null;
+
+                            return new
+                            {
+                                Path = reader.GetString(0),
+                                Timestamp = ConvertTimestampToInt64(reader.GetValue(1))
+                            };
+                        }).ConfigureAwait(false);
+
+                    if (nodeInfo != null)
+                    {
+                        if (nodeInfo.Timestamp != nodeHeadData.Timestamp)
+                            throw new NodeIsOutOfDateException(
+                                $"Node is out of date. Id: {nodeHeadData.NodeId}, path: {nodeInfo.Path}.");
+
+                        await InitializeDeleteTempTablesAsync(ctx, nodeInfo.Path).ConfigureAwait(false);
+
+                        while (true)
+                        {
+                            await ctx.ExecuteNonQueryAsync(@"TRUNCATE TABLE ""DeletePartitionNodeIds""")
+                                .ConfigureAwait(false);
+
+                            var partitionCount = Convert.ToInt32(await ctx.ExecuteScalarAsync(@"
+WITH partitioned AS (
+    INSERT INTO ""DeletePartitionNodeIds"" (""NodeId"")
+    SELECT ""NodeId"" FROM ""DeleteNodeIds"" ORDER BY ""Id"" LIMIT @PartitionSize
+    RETURNING 1
+)
+SELECT COUNT(1) FROM partitioned;
+", cmd =>
+                            {
+                                cmd.Parameters.Add(ctx.CreateParameter("@PartitionSize", DbType.Int32, effectivePartitionSize));
+                            }).ConfigureAwait(false));
+
+                            if (partitionCount == 0)
+                                break;
+
+                            await ctx.ExecuteNonQueryAsync(@"
+TRUNCATE TABLE ""DeleteVersionIds"";
+
+INSERT INTO ""DeleteVersionIds"" (""VersionId"")
+SELECT ""VersionId"" FROM ""Versions""
+WHERE ""NodeId"" IN (SELECT ""NodeId"" FROM ""DeletePartitionNodeIds"");
+
+DELETE FROM ""BinaryProperties""
+WHERE ""VersionId"" IN (SELECT ""VersionId"" FROM ""DeleteVersionIds"");
+
+DELETE FROM ""LongTextProperties""
+WHERE ""VersionId"" IN (SELECT ""VersionId"" FROM ""DeleteVersionIds"");
+
+DELETE FROM ""ReferenceProperties""
+WHERE ""VersionId"" IN (SELECT ""VersionId"" FROM ""DeleteVersionIds"")
+   OR ""ReferredNodeId"" IN (SELECT ""NodeId"" FROM ""DeletePartitionNodeIds"");
+
+DELETE FROM ""Versions""
+WHERE ""NodeId"" IN (SELECT ""NodeId"" FROM ""DeletePartitionNodeIds"");
+
+DELETE FROM ""Nodes""
+WHERE ""NodeId"" IN (SELECT ""NodeId"" FROM ""DeletePartitionNodeIds"");
+
+DELETE FROM ""DeleteNodeIds""
+WHERE ""NodeId"" IN (SELECT ""NodeId"" FROM ""DeletePartitionNodeIds"");
+").ConfigureAwait(false);
+                        }
+                    }
+
+                    transaction.Commit();
+                }
+
+                await BlobStorage.DeleteOrphanedFilesAsync(cancellationToken);
+
+                op.Successful = true;
+            }
+            catch (DataException)
+            {
+                throw;
+            }
+            catch (Exception e)
+            {
+                const string msg = "Node was not updated. For more details see the inner exception.";
+                var transformedException = GetException(e, msg);
+                if (transformedException != null)
+                    throw transformedException;
+                throw new DataException(msg, e);
+            }
+        }
+
+        private async System.Threading.Tasks.Task InitializeDeleteTempTablesAsync(SnDataContext ctx, string path)
+        {
+            await ctx.ExecuteNonQueryAsync(@"
+CREATE TEMP TABLE ""DeleteNodeIds"" (
+    ""Id"" INT GENERATED ALWAYS AS IDENTITY,
+    ""NodeId"" INT PRIMARY KEY
+) ON COMMIT DROP;
+
+CREATE TEMP TABLE ""DeletePartitionNodeIds"" (
+    ""NodeId"" INT PRIMARY KEY
+) ON COMMIT DROP;
+
+CREATE TEMP TABLE ""DeleteVersionIds"" (
+    ""VersionId"" INT PRIMARY KEY
+) ON COMMIT DROP;
+
+INSERT INTO ""DeleteNodeIds"" (""NodeId"")
+SELECT ""NodeId"" FROM ""Nodes""
+WHERE lower(""Path""::TEXT) = lower(@Path)
+   OR left(lower(""Path""::TEXT), length(CAST(@Path AS TEXT)) + 1) = lower(CAST(@Path AS TEXT) || '/')
+ORDER BY ""Path"" DESC;
+", cmd =>
+            {
+                cmd.Parameters.Add(ctx.CreateParameter("@Path", DbType.String, PathMaxLength, path));
+            }).ConfigureAwait(false);
+        }
+
         private async System.Threading.Tasks.Task<bool> IsDatabaseAlreadyInstalledAsync(CancellationToken cancellationToken)
         {
             try

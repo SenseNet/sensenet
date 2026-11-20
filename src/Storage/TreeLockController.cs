@@ -56,25 +56,89 @@ namespace SenseNet.ContentRepository.Storage
 
             SnTrace.ContentOperation.Write("TreeLock: Acquiring lock for {0}", string.Join(", ", paths));
 
-            var lockTasks = paths.Select(p => _dataStore.AcquireTreeLockAsync(p, cancellationToken));
-            var lockIds = await Task.WhenAll(lockTasks).ConfigureAwait(false);
+            var lockIds = new int[0];
+            Task<int>[] lockTasks = null;
 
-            for (var i = 0; i < lockIds.Length; i++)
+            try
             {
-                cancellationToken.ThrowIfCancellationRequested();
+                lockTasks = paths.Select(p => _dataStore.AcquireTreeLockAsync(p, CancellationToken.None)).ToArray();
+                lockIds = await Task.WhenAll(lockTasks).ConfigureAwait(false);
 
-                if (lockIds[i] == 0)
+                for (var i = 0; i < lockIds.Length; i++)
                 {
-                    await _dataStore.ReleaseTreeLockAsync(lockIds, cancellationToken).ConfigureAwait(false);
-                    var msg = "Cannot acquire a tree lock for " + paths[i];
-                    SnTrace.ContentOperation.Write("TreeLock: " + msg);
-                    throw new LockedTreeException(msg);
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    if (lockIds[i] == 0)
+                    {
+                        var msg = "Cannot acquire a tree lock for " + paths[i];
+                        await WriteBlockingLocksAsync(paths[i]).ConfigureAwait(false);
+                        SnTrace.ContentOperation.Write("TreeLock: " + msg);
+                        throw new LockedTreeException(msg);
+                    }
                 }
+            }
+            catch
+            {
+                if ((lockIds == null || lockIds.Length == 0) && lockTasks != null)
+                    lockIds = lockTasks
+                        .Where(task => task.IsCompletedSuccessfully)
+                        .Select(task => task.Result)
+                        .ToArray();
+
+                try
+                {
+                    await ReleaseLocksAsync(lockIds).ConfigureAwait(false);
+                }
+                catch (System.Exception e)
+                {
+                    _logger.LogWarning(e, "TreeLock cleanup failed after an unsuccessful acquire.");
+                }
+                throw;
             }
 
             var logOp = SnTrace.ContentOperation.StartOperation("TreeLock: {0} for {1}", lockIds, paths);
             return new TreeLock(logOp, _dataStore, lockIds);
         }
+
+        private async Task ReleaseLocksAsync(IEnumerable<int> lockIds)
+        {
+            var existingLockIds = lockIds?.Where(id => id != 0).ToArray();
+            if (existingLockIds == null || existingLockIds.Length == 0)
+                return;
+
+            await _dataStore.ReleaseTreeLockAsync(existingLockIds, CancellationToken.None).ConfigureAwait(false);
+        }
+
+        private async Task WriteBlockingLocksAsync(string path)
+        {
+            try
+            {
+                var locks = await _dataStore.LoadAllTreeLocksAsync(CancellationToken.None).ConfigureAwait(false);
+                var blockingLocks = locks
+                    .Where(x => IsBlocking(path, x.Value))
+                    .Select(x => $"{x.Key}:{x.Value}")
+                    .ToArray();
+
+                SnTrace.ContentOperation.Write("TreeLock: Blocking locks for {0}: {1}",
+                    path, blockingLocks.Length == 0 ? "[none]" : string.Join(", ", blockingLocks));
+            }
+            catch (System.Exception e)
+            {
+                _logger.LogWarning(e, "Could not load blocking tree locks for {Path}.", path);
+            }
+        }
+
+        private static bool IsBlocking(string requestedPath, string lockedPath)
+        {
+            return IsSameOrAncestor(requestedPath, lockedPath) || IsSameOrAncestor(lockedPath, requestedPath);
+        }
+
+        private static bool IsSameOrAncestor(string path, string ancestorPath)
+        {
+            return path.Equals(ancestorPath, System.StringComparison.OrdinalIgnoreCase) ||
+                   path.StartsWith(ancestorPath + "/", System.StringComparison.OrdinalIgnoreCase);
+        }
+
         public async Task AssertFreeAsync(CancellationToken cancellationToken, params string[] paths)
         {
             SnTrace.ContentOperation.Write("TreeLock: Checking {0}", string.Join(", ", paths));
