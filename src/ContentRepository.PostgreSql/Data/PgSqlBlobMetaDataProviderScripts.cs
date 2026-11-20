@@ -52,6 +52,19 @@ RETURNING ""BinaryPropertyId""
         private const string DeleteAndInsertBinaryPropertyWithKnownFileIdScript = DeleteBinaryPropertyScript + InsertBinaryPropertyWithKnownFileIdScript;
         #endregion
 
+        // The explicitly saved reference becomes the only reference for its version and field.
+        // Leave file rows to the existing orphan cleanup so references in other versions remain valid.
+        private const string CompleteBinaryPropertyUpdateScript = @",
+removed_duplicates AS (
+    DELETE FROM ""BinaryProperties"" sibling
+    USING updated_property saved
+    WHERE sibling.""VersionId"" = saved.""VersionId""
+        AND sibling.""PropertyTypeId"" = saved.""PropertyTypeId""
+        AND sibling.""BinaryPropertyId"" <> @BinaryPropertyId
+)
+SELECT ""FileId"" FROM updated_property;
+";
+
         #region UpdateBinaryPropertyNewFilerowScript
         private const string UpdateBinaryPropertyNewFilerowScript = @"-- PgSqlBlobMetaDataProvider.UpdateBinaryPropertyNewFilerow
 WITH inserted_file AS (
@@ -60,12 +73,12 @@ WITH inserted_file AS (
         CASE WHEN @Size <= 0 THEN NULL ELSE @Checksum END,
         CASE WHEN @Size <= 0 THEN NULL ELSE ''::bytea END)
     RETURNING ""FileId""
-)
-UPDATE ""BinaryProperties"" SET ""FileId"" = f.""FileId""
-FROM inserted_file f
-WHERE ""BinaryPropertyId"" = @BinaryPropertyId
-RETURNING f.""FileId"";
-";
+), updated_property AS (
+    UPDATE ""BinaryProperties"" bp SET ""FileId"" = f.""FileId""
+    FROM inserted_file f
+    WHERE bp.""BinaryPropertyId"" = @BinaryPropertyId
+    RETURNING bp.""FileId"", bp.""VersionId"", bp.""PropertyTypeId""
+)" + CompleteBinaryPropertyUpdateScript;
         #endregion
         #region UpdateBinaryPropertyScript
         // Check whether an existing built-in binary needs a new Files row.
@@ -89,19 +102,20 @@ SELECT
 
         // Update an existing Files row in-place (no new row needed).
         private const string UpdateBinaryPropertyInPlaceScript = @"-- PgSqlBlobMetaDataProvider.UpdateBinaryPropertyInPlace
-UPDATE ""Files"" f
-SET ""ContentType"" = @ContentType,
-    ""FileNameWithoutExtension"" = @FileNameWithoutExtension,
-    ""Extension"" = @Extension,
-    ""Size"" = @Size,
-    ""BlobProvider"" = @BlobProvider,
-    ""BlobProviderData"" = @BlobProviderData,
-    ""Checksum"" = CASE WHEN @Size <= 0 THEN NULL ELSE @Checksum END,
-    ""Stream"" = CASE WHEN @Size <= 0 THEN NULL ELSE ''::bytea END
-FROM ""BinaryProperties"" bp
-WHERE bp.""BinaryPropertyId"" = @BinaryPropertyId AND f.""FileId"" = bp.""FileId""
-RETURNING f.""FileId"";
-";
+WITH updated_property AS (
+    UPDATE ""Files"" f
+    SET ""ContentType"" = @ContentType,
+        ""FileNameWithoutExtension"" = @FileNameWithoutExtension,
+        ""Extension"" = @Extension,
+        ""Size"" = @Size,
+        ""BlobProvider"" = @BlobProvider,
+        ""BlobProviderData"" = @BlobProviderData,
+        ""Checksum"" = CASE WHEN @Size <= 0 THEN NULL ELSE @Checksum END,
+        ""Stream"" = CASE WHEN @Size <= 0 THEN NULL ELSE ''::bytea END
+    FROM ""BinaryProperties"" bp
+    WHERE bp.""BinaryPropertyId"" = @BinaryPropertyId AND f.""FileId"" = bp.""FileId""
+    RETURNING f.""FileId"", bp.""VersionId"", bp.""PropertyTypeId""
+)" + CompleteBinaryPropertyUpdateScript;
         #endregion
 
         #region DeleteBinaryPropertiesScript

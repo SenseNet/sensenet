@@ -12,9 +12,28 @@ function Invoke-Sql([string]$Sql) {
 }
 
 function Get-Sql([string]$Source, [string]$Boundary) {
-    $match = [regex]::Match($Source, $Boundary + '(?<sql>(?:[^"]|"")*)";')
+    $match = [regex]::Match($Source, $Boundary + '(?<sql>(?:[^"]|"")*)"(?: \+ (?<suffix>\w+))?;')
     if (-not $match.Success) { throw "Provider SQL not found: $Boundary" }
-    return $match.Groups['sql'].Value.Replace('""', '"').Trim().TrimEnd(';')
+    $sql = $match.Groups['sql'].Value.Replace('""', '"')
+    if ($match.Groups['suffix'].Success) {
+        $sql += Get-Sql $Source ('private const string ' + $match.Groups['suffix'].Value + ' = @"')
+    }
+    return $sql.Trim().TrimEnd(';')
+}
+
+function Get-EmptyUpdate([string]$Name, [int]$Id) {
+    $sql = Get-Sql $blobSource ('private const string ' + $Name + ' = @"')
+    $parameters = @{
+        BinaryPropertyId = $Id; Size = 0; ContentType = "'application/pdf'"
+        FileNameWithoutExtension = "'empty'"; Extension = "'pdf'"
+        BlobProvider = 'NULL'; BlobProviderData = 'NULL'; Checksum = 'NULL'
+    }
+    return [regex]::Replace($sql, '@\w+', [Text.RegularExpressions.MatchEvaluator]{
+        param($match)
+        $key = $match.Value.Substring(1)
+        if (!$parameters.ContainsKey($key)) { throw "Unknown update parameter: $key" }
+        [string]$parameters[$key]
+    })
 }
 
 function Assert-Rows([string]$Name, [string]$Sql, [string[]]$Expected) {
@@ -61,7 +80,9 @@ INSERT INTO "Files" ("FileId", "ContentType", "Extension", "Size", "Stream", "St
     (5, 'image/png', 'png', 4, decode('89504e47','hex'), NULL);
 INSERT INTO "BinaryProperties" ("BinaryPropertyId", "VersionId", "PropertyTypeId", "FileId") VALUES
     (10, 100, 1, 1), (12, 100, 1, 3), (11, 100, 1, 2), (13, 100, 1, 1), (14, 100, 1, 4),
-    (15, 100, 2, 5), (16, 101, 1, 1), (17, 100, 3, 4);
+    (15, 100, 2, 5), (16, 101, 1, 1), (17, 100, 3, 4),
+    (19, 102, 1, 5), (20, 102, 1, 2), (21, 103, 1, 2);
+SELECT setval(pg_get_serial_sequence('"Files"', 'FileId'), 5);
 '@ | Out-Null
 
     $property100 = $propertySql.Replace('@VersionId', '100').Replace('@PropertyTypeId', '1')
@@ -76,7 +97,22 @@ INSERT INTO "BinaryProperties" ("BinaryPropertyId", "VersionId", "PropertyTypeId
     Assert-Rows 'File ID for streaming above the cache threshold' ('SELECT "BinaryPropertyId", "FileId", "Size", "Stream" IS NULL FROM (' + $cacheLarge + ') s') @('12|3|4|t')
     Assert-Rows 'An empty file remains addressable' ('SELECT "BinaryPropertyId", "Size" FROM (' + $cacheEmpty + ') s') @('16|0')
     Assert-Rows 'A staging-only file remains invisible' $cacheStaging @()
-    Write-Host '6 PostgreSQL binary selection checks passed.'
+    $inPlace = Get-EmptyUpdate 'UpdateBinaryPropertyInPlaceScript' 12
+    Invoke-Sql "BEGIN; $inPlace; ROLLBACK;" | Out-Null
+    Assert-Rows 'Rollback preserves the original selection' ('SELECT "FileId","Size" FROM (' + $cache100 + ') s') @('3|4')
+    Assert-Rows 'Empty in-place overwrite keeps the selected FileId' $inPlace @('3')
+    Assert-Rows 'An in-place overwrite downloads zero bytes' ('SELECT "BinaryPropertyId","FileId","Size" FROM (' + $cache100 + ') s') @('12|3|0')
+    Assert-Rows 'Metadata reports the new empty file' ('SELECT "BinaryPropertyId","FileId","Size" FROM (' + $property100 + ') s') @('12|3|0')
+    Assert-Rows 'Binary updates preserve other fields and versions' ('SELECT "VersionId","PropertyTypeId","BinaryPropertyId","FileId" FROM (' + $nodeSql + ') s ORDER BY 1, 2, 3') @('100|1|12|3', '100|2|15|5', '101|1|16|1')
+    Assert-Rows 'Only the selected link remains in the overwritten field' 'SELECT "BinaryPropertyId" FROM "BinaryProperties" WHERE "VersionId"=100 AND "PropertyTypeId"=1' @('12')
+
+    $newFile = Get-EmptyUpdate 'UpdateBinaryPropertyNewFilerowScript' 20
+    Assert-Rows 'Empty overwrite allocates a FileId when the original is shared' $newFile @('6')
+    $cache102 = $cacheSql.Replace('@VersionId', '102').Replace('@PropertyTypeId', '1').Replace('@MaxSize', '5')
+    $cache103 = $cacheSql.Replace('@VersionId', '103').Replace('@PropertyTypeId', '1').Replace('@MaxSize', '5')
+    Assert-Rows 'An overwrite with a new FileId downloads zero bytes' ('SELECT "BinaryPropertyId","FileId","Size" FROM (' + $cache102 + ') s') @('20|6|0')
+    Assert-Rows 'The other version retains the original shared bytes' ('SELECT "BinaryPropertyId","FileId","Size",encode("Stream",''hex'') FROM (' + $cache103 + ') s') @('21|2|3|616263')
+    Write-Host '15 PostgreSQL binary selection and overwrite checks passed.'
 }
 finally {
     & docker stop $container | Out-Null
