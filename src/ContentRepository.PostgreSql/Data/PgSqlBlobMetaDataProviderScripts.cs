@@ -110,13 +110,17 @@ DELETE FROM ""BinaryProperties"" WHERE ""VersionId"" = ANY(string_to_array(@Vers
 ";
         #endregion
 
+        // Existing versions can reference an empty placeholder alongside the uploaded file.
+        // Keep both scalar lookups consistent with the binary fields returned by LoadNodesScript.
         #region LoadBinaryPropertyScript
         private const string LoadBinaryPropertyScript = @"-- PgSqlBlobMetaDataProvider.LoadBinaryProperty
 SELECT B.""BinaryPropertyId"", B.""VersionId"", B.""PropertyTypeId"", F.""FileId"", F.""ContentType"", F.""FileNameWithoutExtension"",
     F.""Extension"", F.""Size"", F.""Checksum"", NULL AS ""Stream"", 0 AS ""Loaded"", F.""Timestamp"", F.""BlobProvider"", F.""BlobProviderData"" 
 FROM ""BinaryProperties"" B
     JOIN ""Files"" F ON B.""FileId"" = F.""FileId""
-WHERE ""VersionId"" = @VersionId AND ""PropertyTypeId"" = @PropertyTypeId AND ""Staging"" IS NULL
+WHERE B.""VersionId"" = @VersionId AND B.""PropertyTypeId"" = @PropertyTypeId AND F.""Staging"" IS NULL
+ORDER BY (F.""Size"" > 0) DESC, B.""BinaryPropertyId"" DESC
+LIMIT 1
 ";
         #endregion
 
@@ -127,6 +131,8 @@ SELECT F.""Size"", B.""BinaryPropertyId"", F.""FileId"", F.""BlobProvider"", F."
 FROM ""BinaryProperties"" B
     JOIN ""Files"" F ON B.""FileId"" = F.""FileId""
 WHERE B.""VersionId"" = @VersionId AND B.""PropertyTypeId"" = @PropertyTypeId AND F.""Staging"" IS NULL
+ORDER BY (F.""Size"" > 0) DESC, B.""BinaryPropertyId"" DESC
+LIMIT 1
 ";
         #endregion
 

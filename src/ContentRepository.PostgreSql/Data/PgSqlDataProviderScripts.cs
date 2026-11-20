@@ -360,13 +360,16 @@ FROM ""Nodes"" N
 WHERE V.""VersionId"" = ANY(string_to_array(@VersionIds, ',')::int[]);
 
 -- BinaryProperties
-SELECT B.""BinaryPropertyId"", B.""VersionId"", B.""PropertyTypeId"",
+-- Use the same completed-file preference as the scalar binary lookups.
+SELECT DISTINCT ON (B.""VersionId"", B.""PropertyTypeId"")
+    B.""BinaryPropertyId"", B.""VersionId"", B.""PropertyTypeId"",
     F.""FileId"", F.""ContentType"", F.""FileNameWithoutExtension"",
     F.""Extension"", F.""Size"", F.""BlobProvider"", F.""BlobProviderData"",
     F.""Checksum"", NULL AS ""Stream"", 0 AS ""Loaded"", F.""Timestamp""
 FROM ""BinaryProperties"" B
     JOIN ""Files"" F ON B.""FileId"" = F.""FileId""
-WHERE B.""VersionId"" = ANY(string_to_array(@VersionIds, ',')::int[]) AND F.""Staging"" IS NULL;
+WHERE B.""VersionId"" = ANY(string_to_array(@VersionIds, ',')::int[]) AND F.""Staging"" IS NULL
+ORDER BY B.""VersionId"", B.""PropertyTypeId"", (F.""Size"" > 0) DESC, B.""BinaryPropertyId"" DESC;
 
 -- ReferenceProperties
 SELECT ""VersionId"", ""PropertyTypeId"", ""ReferredNodeId"" FROM ""ReferenceProperties""
