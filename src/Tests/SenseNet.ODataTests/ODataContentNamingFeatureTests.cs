@@ -113,6 +113,15 @@ namespace SenseNet.ODataTests
                 AssertNoError(response);
                 Assert.AreEqual("Created_Aspect", Content.Load(GetEntity(response).Id).Name);
 
+                const string displayName = "Named_Through&DisplayName";
+                var displayNameModel = new { __ContentType = "Aspect", DisplayName = displayName };
+                response = await ODataPostAsync("/OData.svc" + parent.Path, "",
+                    "models=" + JsonConvert.SerializeObject(new[] { displayNameModel })).ConfigureAwait(false);
+                AssertNoError(response);
+                var namedFromDisplayName = Content.Load(GetEntity(response).Id);
+                Assert.AreEqual("named_through-displayname", namedFromDisplayName.Name);
+                Assert.AreEqual(displayName, namedFromDisplayName.DisplayName);
+
                 const string importedName = "Imported_Aspect";
                 var path = RepositoryPath.Combine(parent.Path, importedName);
                 var importModel = new

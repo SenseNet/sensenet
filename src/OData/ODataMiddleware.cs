@@ -649,8 +649,9 @@ namespace SenseNet.OData
                 }
             }
 
-            contentName = ContentNamingProvider.GetNameForCreation(contentTypeName,
-                string.IsNullOrEmpty(contentName) ? displayName : contentName);
+            contentName = string.IsNullOrEmpty(contentName)
+                ? ContentNamingProvider.GetNameFromDisplayName(displayName)
+                : ContentNamingProvider.GetNameForCreation(contentTypeName, contentName);
 
             Content content;
             Node template = null;
