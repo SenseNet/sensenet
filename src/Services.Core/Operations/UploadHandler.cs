@@ -128,7 +128,7 @@ namespace SenseNet.Services.Core.Operations
         protected async Task<Content> GetContentAsync(Content parent, string fileName, string contentTypeName, bool overwrite,
             CancellationToken cancellationToken)
         {
-            var contentName = ContentNamingProvider.GetNameFromDisplayName(fileName);
+            var contentName = ContentNamingProvider.GetNameForCreation(contentTypeName, fileName);
             var path = RepositoryPath.Combine(parent.Path, contentName);
 
             Content content;
@@ -148,8 +148,10 @@ namespace SenseNet.Services.Core.Operations
             // create new content
             content = Content.CreateNew(contentTypeName, parent.ContentHandler, contentName);
 
-            // prevent autonaming feature in case of preview images
-            if (string.Compare(contentTypeName, DocumentPreviewProvider.PREVIEWIMAGE_CONTENTTYPE, StringComparison.InvariantCultureIgnoreCase) != 0)
+            // Schema definition names identify the definition and cannot get a numeric suffix.
+            if (contentTypeName is nameof(ContentType) or nameof(Aspect))
+                content.ContentHandler.AllowIncrementalNaming = false;
+            else if (string.Compare(contentTypeName, DocumentPreviewProvider.PREVIEWIMAGE_CONTENTTYPE, StringComparison.InvariantCultureIgnoreCase) != 0)
                 content.ContentHandler.AllowIncrementalNaming = true;
 
             SetPreviewGenerationPriority(content);
@@ -579,12 +581,11 @@ namespace SenseNet.Services.Core.Operations
             }
 
             var (parentName, name) = GetContentTypeInfo(ctd);
+            RepositoryPath.CheckValidName(name);
+            FileName = name;
             var parentType = ContentType.GetByName(parentName);
             if (parentType != null)
-            {
-                FileName = name;
                 return Content.Load(parentType.Id);
-            }
 
             return Content;
         }

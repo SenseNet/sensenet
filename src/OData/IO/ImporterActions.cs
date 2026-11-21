@@ -70,8 +70,9 @@ namespace SenseNet.OData.IO
         {
             var jData = data as JObject;
             var imported = new ImportedContent(jData);
+            var type = imported.Type;
             var requestedName = imported.Name;
-            var realName = ContentNamingProvider.GetNameFromDisplayName(requestedName);
+            var realName = ContentNamingProvider.GetNameForCreation(type, requestedName);
             string realPath;
             if (requestedName == realName)
             {
@@ -83,7 +84,6 @@ namespace SenseNet.OData.IO
                 SnTrace.ContentOperation.Write(()=>$"Content will be renamed from {requestedName} to {realName}.");
             }
 
-            var type = imported.Type;
             using var op = SnTrace.ContentOperation.StartOperation($"Import: {realPath}, {type}, {realName}");
             JObject model = imported.Fields;
             model.Remove("Name");
