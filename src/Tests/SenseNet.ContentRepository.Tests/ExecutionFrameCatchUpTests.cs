@@ -65,7 +65,7 @@ namespace SenseNet.ContentRepository.Tests
                     new IndexingActivityStatus { LastActivityId = lastActivityId, Gaps = new[] { gap } }, CancellationToken.None);
             });
 
-            await Test2(services => services.UseExecutionFrameIndexCatchUp(), fixture.Configure, async () =>
+            await Test2(services => services.AddSenseNetExecutionFrameIndexCatchUpProvider(), fixture.Configure, async () =>
             {
                 var engine = fixture.SearchEngine.IndexingEngine;
                 var state = await engine.ReadActivityStatusFromIndexAsync(CancellationToken.None);
@@ -82,7 +82,7 @@ namespace SenseNet.ContentRepository.Tests
                 lastActivityId = fixture.DataProvider.DB.IndexingActivities.Max(activity => activity.IndexingActivityId);
             });
 
-            await Test2(services => services.UseLegacyIndexCatchUp(), fixture.Configure, async () =>
+            await Test2(services => services.AddSenseNetLegacyIndexCatchUpProvider(), fixture.Configure, async () =>
             {
                 var state = await fixture.SearchEngine.IndexingEngine.ReadActivityStatusFromIndexAsync(CancellationToken.None);
                 Assert.AreEqual(lastActivityId, state.LastActivityId);
@@ -138,7 +138,7 @@ namespace SenseNet.ContentRepository.Tests
             fixture.SearchEngine.Index = checkpoint;
             await fixture.SearchEngine.IndexingEngine.WriteActivityStatusToIndexAsync(checkpointStatus, cancel);
 
-            Test2(services => services.UseExecutionFrameIndexCatchUp(), fixture.Configure, () =>
+            Test2(services => services.AddSenseNetExecutionFrameIndexCatchUpProvider(), fixture.Configure, () =>
             {
                 var engine = fixture.SearchEngine.IndexingEngine;
                 Assert.IsNull(engine.GetIndexDocumentByVersionId(withdrawnVersion));
@@ -180,7 +180,7 @@ namespace SenseNet.ContentRepository.Tests
             await fixture.SearchEngine.IndexingEngine.WriteActivityStatusToIndexAsync(checkpointStatus, CancellationToken.None);
 
             Assert.ThrowsException<AggregateException>(() =>
-                Test2(services => services.UseExecutionFrameIndexCatchUp(), fixture.Configure,
+                Test2(services => services.AddSenseNetExecutionFrameIndexCatchUpProvider(), fixture.Configure,
                     () => Assert.Fail("Startup should fail on the damaged version.")));
 
             var indexingEngine = fixture.SearchEngine.IndexingEngine;

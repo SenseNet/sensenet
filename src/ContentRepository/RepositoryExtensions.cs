@@ -203,18 +203,18 @@ namespace SenseNet.Extensions.DependencyInjection
         }
 
         /// <summary>
-        /// Uses execution frames for startup catch-up on a supported local index engine and data provider.
+        /// Registers the execution frame provider for startup catch-up on a supported local index engine and data provider.
         /// </summary>
-        public static IServiceCollection UseExecutionFrameIndexCatchUp(this IServiceCollection services)
+        public static IServiceCollection AddSenseNetExecutionFrameIndexCatchUpProvider(this IServiceCollection services)
         {
             services.RemoveAll<IIndexCatchUpProvider>();
             return services.AddSingleton<IIndexCatchUpProvider, ExecutionFrameIndexCatchUpProvider>();
         }
 
         /// <summary>
-        /// Uses the legacy distributed activity queue for startup catch-up.
+        /// Registers the legacy provider for startup catch-up through the distributed activity queue.
         /// </summary>
-        public static IServiceCollection UseLegacyIndexCatchUp(this IServiceCollection services)
+        public static IServiceCollection AddSenseNetLegacyIndexCatchUpProvider(this IServiceCollection services)
         {
             services.RemoveAll<IIndexCatchUpProvider>();
             return services.AddSingleton<IIndexCatchUpProvider, LegacyIndexCatchUpProvider>();
