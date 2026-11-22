@@ -22,14 +22,14 @@ sealed class RepositoryClient(HttpClient http)
             return;
         }
 
-        throw new InvalidOperationException($"A tesztmappa már létezik. Válassz új futásnevet. {path}");
+        throw new InvalidOperationException($"Test folder {path} already exists. Choose a different run name.");
     }
 
     public async Task VerifyFixtureAsync(ContentState fixture)
     {
         var current = await ReadContentAsync(fixture.Path);
         if (current.Id != fixture.Id || current.Type != "Folder" || current.DisplayName != fixture.DisplayName)
-            throw new InvalidOperationException($"A tesztmappa eltér az előkészített példánytól. {fixture.Path}");
+            throw new InvalidOperationException($"The test folder at {fixture.Path} does not match the folder created for this run.");
     }
 
     public async Task<ContentState> CreateFolderAsync(string parent, string name, string? displayName = null)
@@ -39,7 +39,7 @@ sealed class RepositoryClient(HttpClient http)
             __ContentType = "Folder", Name = name, DisplayName = displayName ?? name,
             InheritableVersioningMode = "1", InheritableApprovingMode = "1"
         });
-        Console.WriteLine($"Mappa létrehozva {folder.Path}");
+        Console.WriteLine($"Created folder {folder.Path}");
         return folder;
     }
 
@@ -50,7 +50,7 @@ sealed class RepositoryClient(HttpClient http)
             __ContentType = "File", Name = name, DisplayName = displayName,
             VersioningMode = "1", ApprovingMode = "1"
         });
-        Console.WriteLine($"Fájl létrehozva {file.Path}");
+        Console.WriteLine($"Created file {file.Path}");
         return file;
     }
 
@@ -59,9 +59,9 @@ sealed class RepositoryClient(HttpClient http)
         var result = await SendAsync(HttpMethod.Post, $"{Entity(file.Id)}/CheckOut?{Fields}", new { });
         var draft = ReadContent(result, file.Path);
         if (!draft.Locked || draft.VersionId == file.VersionId)
-            throw new InvalidOperationException($"A checkout nem hozott létre külön, zárolt verziót. {file.Path}");
+            throw new InvalidOperationException($"Checking out {file.Path} did not create a separate locked version.");
 
-        Console.WriteLine($"Fájl kivéve szerkesztésre {file.Path} (piszkozat {draft.VersionId})");
+        Console.WriteLine($"Checked out {file.Path} (draft version {draft.VersionId})");
         return draft;
     }
 
@@ -70,9 +70,9 @@ sealed class RepositoryClient(HttpClient http)
         await SendAsync(HttpMethod.Post, $"{Entity(draft.Id)}/UndoCheckOut?metadata=no", new { });
         var current = await ReadContentAsync(draft.Path);
         if (current.Locked || current.VersionId != published.VersionId || current.DisplayName != published.DisplayName)
-            throw new InvalidOperationException($"A checkout visszavonása után eltér a publikus verzió. {draft.Path}");
+            throw new InvalidOperationException($"The published version of {draft.Path} did not match the expected state after undoing checkout.");
 
-        Console.WriteLine($"Checkout visszavonva {draft.Path} (eldobott verzió {draft.VersionId})");
+        Console.WriteLine($"Undid checkout of {draft.Path} (discarded version {draft.VersionId})");
     }
 
     public async Task PatchAsync(ContentState item, string field, string value)
@@ -81,15 +81,15 @@ sealed class RepositoryClient(HttpClient http)
             new Dictionary<string, string> { [field] = value });
         var updated = response.GetProperty("d");
         if (updated.GetProperty("VersionId").GetInt32() != item.VersionId || updated.GetProperty(field).GetString() != value)
-            throw new InvalidOperationException($"A módosított mező vagy verzió eltér a várttól. {item.Path} ({field})");
+            throw new InvalidOperationException($"The updated field or version of {item.Path} did not match the expected result ({field}).");
 
-        Console.WriteLine($"Tartalom módosítva {item.Path} ({field}={value})");
+        Console.WriteLine($"Updated {item.Path} ({field}={value})");
     }
 
     public async Task DeleteTreeAsync(ContentState folder)
     {
         await SendAsync(HttpMethod.Post, $"{Entity(folder.Id)}/Delete", new { permanent = true });
-        Console.WriteLine($"Részfa végleg törölve {folder.Path}");
+        Console.WriteLine($"Permanently deleted subtree {folder.Path}");
     }
 
     public async Task MoveTreeAsync(ContentState folder, string targetParent, string expectedPath)
@@ -100,14 +100,14 @@ sealed class RepositoryClient(HttpClient http)
         })).GetProperty("d");
         var errors = result.GetProperty("errors");
         if (errors.GetArrayLength() != 0)
-            throw new InvalidOperationException($"MoveBatch hiba {folder.Path}: {JsonSerializer.Serialize(errors)}");
+            throw new InvalidOperationException($"MoveBatch failed for {folder.Path}. {JsonSerializer.Serialize(errors)}");
 
         var moved = result.GetProperty("results");
         if (moved.GetArrayLength() != 1 || moved[0].GetProperty("Id").GetInt32() != folder.Id ||
             moved[0].GetProperty("Path").GetString() != expectedPath)
-            throw new InvalidOperationException($"A mozgatás eredménye eltér a várt célútvonaltól. {expectedPath}");
+            throw new InvalidOperationException($"The move result did not match the expected destination {expectedPath}.");
 
-        Console.WriteLine($"Részfa áthelyezve {folder.Path} → {expectedPath}");
+        Console.WriteLine($"Moved subtree {folder.Path} to {expectedPath}");
     }
 
     public async Task<IndexState> WaitForCommittedIndexAsync(IEnumerable<int> present, IEnumerable<int> absent)
@@ -126,8 +126,8 @@ sealed class RepositoryClient(HttpClient http)
             await Task.Delay(TimeSpan.FromSeconds(1));
         } while (elapsed.Elapsed < TimeSpan.FromSeconds(30));
 
-        throw new InvalidOperationException($"Az index 30 másodpercen belül nem érte el a várt állapotot. " +
-            $"Utolsó sorba állított aktivitás A{lastQueued}, mentett aktivitás A{index.LastActivityId}.");
+        throw new InvalidOperationException($"The index did not reach the expected state within 30 seconds. " +
+            $"Last queued activity A{lastQueued}, last committed activity A{index.LastActivityId}.");
     }
 
     public async Task<IndexState> ReadIndexAsync()
@@ -157,7 +157,7 @@ sealed class RepositoryClient(HttpClient http)
     {
         var item = data.GetProperty("d").Deserialize<ContentState>();
         if (item is null || item.Path != path || item.Id <= 0 || item.VersionId <= 0)
-            throw new InvalidOperationException($"A repository érvénytelen tartalmi adatot adott vissza. {path}");
+            throw new InvalidOperationException($"The repository returned invalid content data for {path}.");
 
         return item;
     }

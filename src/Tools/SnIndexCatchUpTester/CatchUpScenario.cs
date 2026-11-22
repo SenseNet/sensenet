@@ -56,13 +56,13 @@ sealed record ExpectedIndex(IndexDocumentCheck[] Present, ContentState[] Absent)
     {
         var index = await client.ReadIndexAsync();
         var passed = Report(index.LastActivityId >= minimumActivityId && index.Gaps.Length == 0,
-            $"Index checkpoint A{index.LastActivityId}, elvárt minimum A{minimumActivityId}, hézagok [{string.Join(", ", index.Gaps)}].");
+            $"Index checkpoint A{index.LastActivityId}, expected minimum A{minimumActivityId}, gaps [{string.Join(", ", index.Gaps)}].");
 
         foreach (var check in Present)
         {
             if (!index.VersionIds.Contains(check.VersionId))
             {
-                passed &= Report(false, $"Hiányzó indexverzió {check.VersionId} {check.Path}.");
+                passed &= Report(false, $"Version {check.VersionId} at {check.Path} is missing from the index.");
                 continue;
             }
 
@@ -78,15 +78,15 @@ sealed record ExpectedIndex(IndexDocumentCheck[] Present, ContentState[] Absent)
                 CompareField(document, "IsLastDraft", "yes", differences);
             }
 
-            var details = differences.Count == 0 ? "a várt mezők egyeznek" : string.Join(", ", differences);
-            passed &= Report(differences.Count == 0, $"Indexverzió {check.VersionId} {check.Path} ({details}).");
+            var details = differences.Count == 0 ? "field values match" : string.Join(", ", differences);
+            passed &= Report(differences.Count == 0, $"Indexed version {check.VersionId} at {check.Path} ({details}).");
         }
 
         foreach (var item in Absent)
         {
             var missing = !index.VersionIds.Contains(item.VersionId);
             passed &= Report(missing,
-                $"Törölt verzió {item.VersionId} {item.Path} ({(missing ? "hiányzik az indexből" : "még szerepel az indexben")}).");
+                $"Deleted version {item.VersionId} at {item.Path} ({(missing ? "absent from the index" : "still in the index")}).");
         }
 
         return passed;
@@ -94,14 +94,14 @@ sealed record ExpectedIndex(IndexDocumentCheck[] Present, ContentState[] Absent)
 
     private static void CompareField(JsonElement document, string field, string expected, List<string> differences)
     {
-        var actual = document.TryGetProperty(field, out var value) ? value.ToString() : "<hiányzik>";
+        var actual = document.TryGetProperty(field, out var value) ? value.ToString() : "<missing>";
         if (actual != expected)
-            differences.Add($"{field}={actual} (várt {expected})");
+            differences.Add($"{field}={actual} (expected {expected})");
     }
 
     private static bool Report(bool passed, string message)
     {
-        Console.WriteLine($"{(passed ? "OK" : "HIBA")} {message}");
+        Console.WriteLine($"{(passed ? "OK" : "FAIL")} {message}");
         return passed;
     }
 }

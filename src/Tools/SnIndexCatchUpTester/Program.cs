@@ -20,7 +20,7 @@ var apiKey = Environment.GetEnvironmentVariable("SN_INDEX_CATCHUP_API_KEY");
 var token = Environment.GetEnvironmentVariable("SN_INDEX_CATCHUP_BEARER_TOKEN");
 if (!string.IsNullOrWhiteSpace(apiKey) && !string.IsNullOrWhiteSpace(token))
 {
-    Console.Error.WriteLine("Állíts be egyetlen hitelesítési környezeti változót.");
+    Console.Error.WriteLine("Set only one authentication environment variable.");
     return 2;
 }
 
@@ -43,43 +43,43 @@ ContentState? fixture = null;
 
 try
 {
-    Console.WriteLine($"Tesztpéldány {repositoryUrl} | Tesztmappa {fixturePath}");
-    await WaitForWebAppAsync(1, "Indítsd el a teszt webappot.");
+    Console.WriteLine($"Test repository {repositoryUrl} | Test folder {fixturePath}");
+    await WaitForWebAppAsync(1, "Start the test web app.");
 
-    Console.WriteLine("[2/11] Tesztadatok előkészítése.");
+    WriteColoredLine("[2/11] Preparing test data.", ConsoleColor.Yellow);
     await client.EnsurePathIsFreeAsync(fixturePath);
     fixture = await client.CreateFolderAsync(parentPath, fixtureName, fixtureMarker);
     var scenario = await CatchUpScenario.PrepareAsync(client, fixture);
     var baseline = await client.WaitForCommittedIndexAsync(scenario.BaselineVersions, []);
-    Console.WriteLine($"Mentés előtti indexállapot A{baseline.LastActivityId}, üres hézaglista.");
+    Console.WriteLine($"Index checkpoint before backup A{baseline.LastActivityId}, no gaps.");
 
-    WaitForUser("[3/11] Állítsd le szabályosan a webappot.");
-    WaitForUser("[4/11] Másold a teljes indexkönyvtárat külön mentési helyre. A mintahostokban ez az App_Data/LocalIndex mappa.");
-    await WaitForWebAppAsync(5, "Indítsd el ugyanazt a webappot a jelenlegi indexszel.");
+    WaitForUser("[3/11] Shut down the web app gracefully.");
+    WaitForUser("[4/11] Back up the entire index directory to a separate location. The sample hosts use App_Data/LocalIndex.");
+    await WaitForWebAppAsync(5, "Start the same web app with the current index.");
 
-    Console.WriteLine("[6/11] Online tesztműveletek.");
+    WriteColoredLine("[6/11] Applying test changes while the web app is running.", ConsoleColor.Yellow);
     var expected = await scenario.ApplyChangesAsync(client);
     var updated = await client.WaitForCommittedIndexAsync(expected.Present.Select(check => check.VersionId),
         expected.Absent.Select(content => content.VersionId));
     if (updated.LastActivityId <= baseline.LastActivityId)
-        throw new InvalidOperationException("Az online módosítások után az index aktivitásazonosítója nem lépett előre.");
-    Console.WriteLine($"Módosítások utáni indexállapot A{updated.LastActivityId}, üres hézaglista.");
+        throw new InvalidOperationException("The index checkpoint did not advance after the online changes.");
+    Console.WriteLine($"Index checkpoint after changes A{updated.LastActivityId}, no gaps.");
 
-    WaitForUser("[7/11] Állítsd le szabályosan a webappot.");
-    WaitForUser("[8/11] Tedd félre a jelenlegi indexkönyvtárat, és másold a 4. lépésben mentett indexkönyvtárat az eredeti helyére.");
-    await WaitForWebAppAsync(9, "Indítsd el a webappot a visszamásolt indexszel és a 6. lépés utáni SQL-adatbázissal.");
+    WaitForUser("[7/11] Shut down the web app gracefully.");
+    WaitForUser("[8/11] Set aside the current index directory and restore the backup from step 4 to its original location.");
+    await WaitForWebAppAsync(9, "Start the web app with the restored index and the SQL database from the end of step 6.");
 
-    Console.WriteLine("[10/11] A visszaállítás utáni index ellenőrzése.");
+    WriteColoredLine("[10/11] Verifying the index after restore.", ConsoleColor.Yellow);
     var passed = await expected.VerifyAsync(client, fixture.Path, updated.LastActivityId);
-    Console.WriteLine(passed ? "A catch-up próba sikeres." : "A catch-up próba hibát talált.");
+    Console.WriteLine(passed ? "The catch-up test passed." : "The catch-up test failed.");
 
-    Console.WriteLine("[11/11] Takarítás.");
+    WriteColoredLine("[11/11] Cleaning up.", ConsoleColor.Yellow);
     if (!passed)
     {
-        Console.WriteLine("Írj t betűt és nyomj Entert a tesztadatok törléséhez, vagy nyomj Entert a megőrzésükhöz.");
+        WriteColoredLine("Type t and press Enter to delete the test data, or press Enter to keep it.", ConsoleColor.Cyan);
         if (!string.Equals(Console.ReadLine()?.Trim(), "t", StringComparison.OrdinalIgnoreCase))
         {
-            Console.WriteLine($"Megőrzött tesztmappa {fixture.Path}");
+            Console.WriteLine($"Kept test folder {fixture.Path}");
             return 1;
         }
     }
@@ -87,18 +87,18 @@ try
     await client.VerifyFixtureAsync(fixture);
     await client.DeleteTreeAsync(fixture);
     fixture = null;
-    WaitForUser("Rendezd a próba során félretett indexmásolatokat. A futó webapp az eredeti helyén lévő indexet használja.");
+    WaitForUser("Tidy up the index copies set aside during the test. The running web app uses the index in its original location.");
     return passed ? 0 : 1;
 }
 catch (WorkflowCancelledException)
 {
-    Console.WriteLine("A próba megszakadt.");
+    Console.WriteLine("The test was canceled.");
     ReportFixture();
     return 130;
 }
 catch (Exception error)
 {
-    Console.Error.WriteLine($"HIBA {error.Message}");
+    Console.Error.WriteLine($"ERROR {error.Message}");
     ReportFixture();
     return 1;
 }
@@ -118,11 +118,11 @@ async Task WaitForWebAppAsync(int step, string instruction)
         }
         catch (HttpRequestException error) when (error.StatusCode is null or System.Net.HttpStatusCode.ServiceUnavailable)
         {
-            Console.Error.WriteLine($"A webapp még nem érhető el. {error.Message}");
+            Console.Error.WriteLine($"The web app is not available yet. {error.Message}");
         }
         catch (TaskCanceledException)
         {
-            Console.Error.WriteLine("A webapp válaszára lejárt a várakozási idő.");
+            Console.Error.WriteLine("Timed out waiting for the web app to respond.");
         }
     }
 }
@@ -130,15 +130,15 @@ async Task WaitForWebAppAsync(int step, string instruction)
 void ReportFixture()
 {
     if (fixture is not null)
-        Console.WriteLine($"A megőrzött tesztadatok helye {fixture.Path}.");
+        Console.WriteLine($"Test data kept at {fixture.Path}.");
 }
 
 static void WaitForUser(string instruction)
 {
-    Console.WriteLine(instruction);
+    WriteColoredLine(instruction, ConsoleColor.Cyan);
     while (true)
     {
-        Console.WriteLine("Enter a folytatáshoz, q és Enter a megszakításhoz.");
+        Console.WriteLine("Press <enter> to continue, or type <q> and press <enter> to cancel.");
         var input = Console.ReadLine()?.Trim();
         if (input == "")
             return;
@@ -147,11 +147,31 @@ static void WaitForUser(string instruction)
     }
 }
 
+static void WriteColoredLine(string message, ConsoleColor color)
+{
+    if (Console.IsOutputRedirected)
+    {
+        Console.WriteLine(message);
+        return;
+    }
+
+    var previousColor = Console.ForegroundColor;
+    try
+    {
+        Console.ForegroundColor = color;
+        Console.WriteLine(message);
+    }
+    finally
+    {
+        Console.ForegroundColor = previousColor;
+    }
+}
+
 static void PrintUsage() => Console.WriteLine("""
-    Használat: SnIndexCatchUpTester <repository-url> <run-name>
-    A futásnév 1–40 kisbetű, szám vagy kötőjel, az első karakter betű vagy szám.
-    Tesztmappa: /Root/Content/index-catchup-<run-name>
-    Hitelesítés: SN_INDEX_CATCHUP_API_KEY vagy SN_INDEX_CATCHUP_BEARER_TOKEN.
+    Usage: SnIndexCatchUpTester <repository-url> <run-name>
+    Use 1 to 40 lowercase letters, digits, or hyphens for the run name. Start with a letter or digit.
+    Test folder: /Root/Content/index-catchup-<run-name>
+    Authentication: SN_INDEX_CATCHUP_API_KEY or SN_INDEX_CATCHUP_BEARER_TOKEN.
     """);
 
 sealed class WorkflowCancelledException : Exception;

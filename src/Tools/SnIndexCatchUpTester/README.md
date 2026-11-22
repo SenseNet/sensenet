@@ -16,7 +16,7 @@ Az app a kézi lépéseknél megáll. Az **Enter** a művelet elvégzését jelz
 | 3–4 | Állítsd le a webappot, majd másold le a teljes indexkönyvtárat egy külön helyre. |
 | 5–6 | Indítsd újra a webappot. Az app létrehoz, módosít, töröl és mozgat teszttartalmakat, valamint eldob egy zárolt piszkozatot. |
 | 7–9 | Állítsd le a webappot. Tedd félre a jelenlegi indexkönyvtárat, másold vissza a 4. lépés mentését, és indítsd el a webappot a 6. lépés utáni SQL-adatbázissal. |
-| 10 | Az app ellenőrzi az indexdokumentumokat, a törölt verzióazonosítók hiányát és az aktivitás-checkpointot. Minden ellenőrzés egy `OK` vagy `HIBA` sort kap. |
+| 10 | Az app ellenőrzi az indexdokumentumokat, a törölt verzióazonosítók hiányát és az aktivitás-checkpointot. Minden ellenőrzés egy `OK` vagy `FAIL` sort kap. |
 | 11 | Siker esetén az app törli a saját tesztmappáját, majd megvárja, amíg rendezed a félretett indexmásolatokat. Ha az indexellenőrzés hibát talál, `t` és Enter törli, az üres Enter megőrzi a tesztmappát. |
 
 A teszter minden sikeres tartalmi művelethez egy sorban kiírja a műveletet és az útvonalat. Az indexellenőrzés a mentés utáni létrehozást, az ismételt módosítást, a részfatörlést, a törölt útvonal újrafelhasználását, az eldobott piszkozatot és az érintetlen kontrollt fedi le. Az index trace-ben az `Execution frame catch-up from A… through A…` bejegyzéssel ellenőrizheted a visszajátszás indítását.
