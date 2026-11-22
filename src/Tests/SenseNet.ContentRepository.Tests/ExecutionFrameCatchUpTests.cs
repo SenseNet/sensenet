@@ -35,21 +35,24 @@ namespace SenseNet.ContentRepository.Tests
         }
 
         [TestMethod, TestCategory("IR")]
-        public async STT.Task ExecutionFrameCatchUp_LogsSkippedAndCoalescedActivities()
+        public async STT.Task ExecutionFrameCatchUp_AggregatesActivitiesBeforeSplittingDocumentWrites()
         {
-            const int deletedVersionId = int.MaxValue;
+            const int repeatedActivityCount = 250;
+            const int deletedVersionCount = 200;
             var cancel = CancellationToken.None;
             RepositoryFixture fixture = null;
             IndexingActivityStatus checkpoint = null;
             var coalescedFrom = 0;
             var coalescedThrough = 0;
             var skippedId = 0;
+            var updatedVersionId = 0;
 
             await Test(async () =>
             {
                 fixture = new RepositoryFixture();
                 var folder = new SystemFolder(Repository.Root) { Name = "frame-trace-target" };
                 await folder.SaveAsync(cancel);
+                updatedVersionId = folder.VersionId;
                 checkpoint = new IndexingActivityStatus
                 {
                     LastActivityId = await fixture.DataProvider.GetLastIndexingActivityIdAsync(cancel)
@@ -72,9 +75,9 @@ namespace SenseNet.ContentRepository.Tests
 
                 await RegisterUpdateAsync();
                 coalescedFrom = await RegisterUpdateAsync();
-                await RegisterUpdateAsync();
-                coalescedThrough = await RegisterUpdateAsync();
-                await RegisterUpdateAsync([deletedVersionId]);
+                for (var i = 1; i < repeatedActivityCount; i++)
+                    coalescedThrough = await RegisterUpdateAsync();
+                await RegisterUpdateAsync(Enumerable.Range(int.MaxValue - deletedVersionCount + 1, deletedVersionCount).ToArray());
                 var restore = new RestoreActivity { ActivityType = IndexingActivityType.Restore, Path = folder.Path };
                 await indexManager.RegisterActivityAsync(restore, cancel);
                 skippedId = restore.Id;
@@ -92,7 +95,10 @@ namespace SenseNet.ContentRepository.Tests
                     var activityLog = tracer.Lines.Single(line => line.Contains("Skipped activities"));
                     StringAssert.Contains(activityLog, $"Skipped activities [{skippedId}].");
                     StringAssert.Contains(activityLog, $"Coalesced activities [{coalescedFrom}-{coalescedThrough}].");
-                    Assert.IsTrue(tracer.Lines.Any(line => line.Contains($"Delete by VersionId [{deletedVersionId}].")));
+                    var writeLogs = tracer.Lines.Where(line => line.Contains("applied an index batch to the session")).ToArray();
+                    Assert.AreEqual(2, writeLogs.Length);
+                    Assert.AreEqual(1, writeLogs.Count(line => line.Contains($"Upsert by VersionId [{updatedVersionId}].")));
+                    Assert.IsTrue(writeLogs.Any(line => line.Contains($"{int.MaxValue}]")));
                 });
         }
 

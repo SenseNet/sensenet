@@ -18,7 +18,12 @@ namespace SenseNet.ContentRepository.Search.Indexing
 {
     internal sealed class ExecutionFrameIndexCatchUpProvider : IIndexCatchUpProvider
     {
-        private const int BatchSize = 200;
+        // Maximum number of activities per metadata page and aggregation window.
+        private const int ActivityBatchSize = 10_000;
+        // Maximum number of node heads loaded in one request.
+        private const int NodeHeadBatchSize = 200;
+        // Maximum number of versions per index document read or write batch.
+        private const int IndexDocumentBatchSize = 200;
         private const int MaxDocumentWorkers = 8;
         private readonly IDataStore _dataStore;
         private readonly ILogger<ExecutionFrameIndexCatchUpProvider> _logger;
@@ -60,13 +65,13 @@ namespace SenseNet.ContentRepository.Search.Indexing
             consoleOut?.WriteLine("Executing indexing activity frames. {0}-{1}", lowerId, upperId);
             using var session = engine.BeginCatchUp(cancellationToken);
             var excludedNodeTypes = indexManager.GetNotIndexedNodeTypes().ToHashSet();
-            var activities = new List<IndexingActivityMetadata>(BatchSize);
+            var activities = new List<IndexingActivityMetadata>((int)Math.Min(ActivityBatchSize, upperId - lowerId + 1));
             var scheduledVersions = Array.Empty<int>();
             var frameStartId = lowerId;
 
             for (var nextId = lowerId; nextId <= upperId;)
             {
-                var count = (int)Math.Min(BatchSize, upperId - nextId + 1);
+                var count = (int)Math.Min(ActivityBatchSize, upperId - nextId + 1);
                 var page = await LoadVerifiedPageAsync(dataProvider, (int)nextId, count, cancellationToken)
                     .ConfigureAwait(false);
 
@@ -90,7 +95,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
                     }
 
                     activities.Add(activity);
-                    if (activities.Count == BatchSize)
+                    if (activities.Count == ActivityBatchSize)
                     {
                         await WriteActivityBatchAsync(activities, scheduledVersions, indexManager, session,
                             excludedNodeTypes, cancellationToken).ConfigureAwait(false);
@@ -192,8 +197,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
                     NormalizePath(path), cancellationToken).ConfigureAwait(false));
             }
 
-            var nodeIds = documentNodes.Union(rebuildNodes).Where(id => id > 0).ToArray();
-            if (nodeIds.Length != 0)
+            foreach (var nodeIds in documentNodes.Union(rebuildNodes).Where(id => id > 0).Chunk(NodeHeadBatchSize))
             {
                 var heads = (await _dataStore.DataProvider.LoadNodeHeadsAsync(nodeIds, cancellationToken)
                     .ConfigureAwait(false)).ToDictionary(head => head.Id);
@@ -297,7 +301,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
                 return null;
 
             var rewrites = new List<int>();
-            foreach (var ids in versions.Chunk(BatchSize))
+            foreach (var ids in versions.Chunk(IndexDocumentBatchSize))
             {
                 var documents = await _dataStore.LoadIndexDocumentsAsync(ids, cancellationToken).ConfigureAwait(false);
                 foreach (var document in documents)
@@ -331,7 +335,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
                 MaxDegreeOfParallelism = Math.Min(MaxDocumentWorkers, Environment.ProcessorCount)
             };
 
-            foreach (var ids in versions.Where(id => id > 0).Chunk(BatchSize))
+            foreach (var ids in versions.Where(id => id > 0).Chunk(IndexDocumentBatchSize))
             {
                 var documents = (await _dataStore.LoadIndexDocumentsAsync(ids, cancellationToken).ConfigureAwait(false))
                     .ToDictionary(document => document.VersionId);
