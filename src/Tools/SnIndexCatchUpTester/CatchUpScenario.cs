@@ -5,6 +5,11 @@ sealed record CatchUpScenario(
     ContentState Replaced, ContentState ReplacedChild, ContentState Source, ContentState Moved, ContentState MovedChild,
     ContentState Published, ContentState Draft)
 {
+    private const int RepeatedUpdateCount = 24;
+    private const int DiscardedDraftUpdateCount = 12;
+    private const int TemporaryChildCount = 8;
+    private const int BulkMoveChildCount = 210;
+
     public IEnumerable<int> BaselineVersions => new[]
     {
         Root, Untouched, Update, Deleted, DeletedChild, Replaced, ReplacedChild, Source, Moved, MovedChild, Published, Draft
@@ -31,22 +36,47 @@ sealed record CatchUpScenario(
     public async Task<ExpectedIndex> ApplyChangesAsync(RepositoryClient client)
     {
         var created = await client.CreateFolderAsync(Root.Path, "created-after-backup");
-        await client.PatchAsync(Update, "DisplayName", "CatchupIntermediate");
-        await client.PatchAsync(Update, "DisplayName", "CatchupFinal");
+        for (var i = 1; i <= RepeatedUpdateCount; i++)
+        {
+            var displayName = i == RepeatedUpdateCount ? "CatchupFinal" : $"CatchupIntermediate{i:D2}";
+            await client.PatchAsync(Update, "DisplayName", displayName);
+        }
+        Console.WriteLine($"Expected catch-up upsert for VersionId {Update.VersionId} after {RepeatedUpdateCount} updates.");
+
+        for (var i = 1; i <= DiscardedDraftUpdateCount; i++)
+            await client.PatchAsync(Draft, "Description", $"CatchupDiscarded{i:D2}");
+        await client.UndoCheckOutAsync(Draft, Published);
+        Console.WriteLine($"Expected catch-up delete for VersionId {Draft.VersionId} after {DiscardedDraftUpdateCount} draft updates.");
+
+        var temporaryChildren = new List<ContentState>(TemporaryChildCount);
+        for (var i = 1; i <= TemporaryChildCount; i++)
+            temporaryChildren.Add(await client.CreateFolderAsync(Deleted.Path, $"temporary-{i:D2}"));
+        Console.WriteLine($"Temporary versions to delete during catch-up [{string.Join(", ", temporaryChildren.Select(child => child.VersionId))}].");
+
+        // The final AddTree covers more versions than fit in one catch-up write batch.
+        var movedChildren = new List<IndexDocumentCheck>(BulkMoveChildCount);
+        Console.WriteLine($"Creating {BulkMoveChildCount} children for the subtree move.");
+        for (var i = 1; i <= BulkMoveChildCount; i++)
+        {
+            var name = $"batch-child-{i:D3}";
+            var child = await client.CreateFolderAsync(Moved.Path, name);
+            movedChildren.Add(new IndexDocumentCheck(child.VersionId, $"{Replaced.Path}/{name}"));
+        }
+
         await client.DeleteTreeAsync(Deleted);
         await client.DeleteTreeAsync(Replaced);
         await client.MoveTreeAsync(Moved, Root.Path, Replaced.Path);
-        await client.PatchAsync(Draft, "Description", "CatchupDiscarded");
-        await client.UndoCheckOutAsync(Draft, Published);
+        Console.WriteLine($"The final AddTree covers {movedChildren.Count + 2} versions at {Replaced.Path}.");
 
         return new ExpectedIndex(
             [
                 new(Untouched.VersionId, Untouched.Path), new(created.VersionId, created.Path),
                 new(Update.VersionId, Update.Path, "catchupfinal"),
                 new(Moved.VersionId, Replaced.Path), new(MovedChild.VersionId, $"{Replaced.Path}/new-child"),
-                new(Published.VersionId, Published.Path, "catchuppublic", IsPublicAndDraft: true)
+                new(Published.VersionId, Published.Path, "catchuppublic", IsPublicAndDraft: true),
+                .. movedChildren
             ],
-            [Deleted, DeletedChild, Replaced, ReplacedChild, Draft]);
+            [Deleted, DeletedChild, Replaced, ReplacedChild, Draft, .. temporaryChildren]);
     }
 }
 

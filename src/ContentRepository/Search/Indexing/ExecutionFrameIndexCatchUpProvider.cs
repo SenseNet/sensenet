@@ -2,7 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading;
+using Microsoft.Extensions.Logging;
 using SenseNet.ContentRepository.Search.Indexing.Activities;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
@@ -19,10 +21,12 @@ namespace SenseNet.ContentRepository.Search.Indexing
         private const int BatchSize = 200;
         private const int MaxDocumentWorkers = 8;
         private readonly IDataStore _dataStore;
+        private readonly ILogger<ExecutionFrameIndexCatchUpProvider> _logger;
 
-        public ExecutionFrameIndexCatchUpProvider(IDataStore dataStore)
+        public ExecutionFrameIndexCatchUpProvider(IDataStore dataStore, ILogger<ExecutionFrameIndexCatchUpProvider> logger)
         {
             _dataStore = dataStore;
+            _logger = logger;
         }
 
         public bool BufferLiveActivities => true;
@@ -47,6 +51,8 @@ namespace SenseNet.ContentRepository.Search.Indexing
             if (lowerId > upperId)
             {
                 queue.InitializeFromCatchUp(status);
+                _logger.LogInformation("Execution frame catch-up was not needed. LastActivityId={LastActivityId}, Gaps=[].",
+                    status.LastActivityId);
                 return;
             }
 
@@ -56,6 +62,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
             var excludedNodeTypes = indexManager.GetNotIndexedNodeTypes().ToHashSet();
             var activities = new List<IndexingActivityMetadata>(BatchSize);
             var scheduledVersions = Array.Empty<int>();
+            var frameStartId = lowerId;
 
             for (var nextId = lowerId; nextId <= upperId;)
             {
@@ -73,9 +80,12 @@ namespace SenseNet.ContentRepository.Search.Indexing
                             excludedNodeTypes, cancellationToken).ConfigureAwait(false);
                         activities.Clear();
 
-                        scheduledVersions = await CloseFrameAsync(activity.Path,
+                        scheduledVersions = await CloseFrameAsync(activity,
                             page.Skip(i + 1).TakeWhile(item => item.ActivityType != IndexingActivityType.RemoveTree),
                             indexManager, session, excludedNodeTypes, cancellationToken).ConfigureAwait(false);
+                        SnTrace.Index.Write("Execution frame catch-up processed frame A{0} through A{1}.",
+                            frameStartId, activity.Id);
+                        frameStartId = (long)activity.Id + 1;
                         continue;
                     }
 
@@ -94,10 +104,14 @@ namespace SenseNet.ContentRepository.Search.Indexing
 
             await WriteActivityBatchAsync(activities, scheduledVersions, indexManager, session, excludedNodeTypes, cancellationToken)
                 .ConfigureAwait(false);
+            if (frameStartId <= upperId)
+                SnTrace.Index.Write("Execution frame catch-up processed frame A{0} through A{1}.", frameStartId, upperId);
 
             var completed = new IndexingActivityStatus { LastActivityId = upperId };
             await session.CommitAsync(completed, cancellationToken).ConfigureAwait(false);
             queue.InitializeFromCatchUp(completed);
+            _logger.LogInformation("Execution frame catch-up committed. LastActivityId={LastActivityId}, Gaps=[].",
+                completed.LastActivityId);
             op.Successful = true;
         }
 
@@ -133,6 +147,9 @@ namespace SenseNet.ContentRepository.Search.Indexing
             var rebuildNodes = new HashSet<int>();
             var documentNodes = new HashSet<int>();
             var trees = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var traceActivities = SnTrace.Index.Enabled && activities.Count > 0;
+            var skippedActivityIds = traceActivities ? new List<int>() : null;
+            var coalescedActivityIds = traceActivities ? new List<int>() : null;
 
             foreach (var activity in activities)
             {
@@ -142,19 +159,27 @@ namespace SenseNet.ContentRepository.Search.Indexing
                     case IndexingActivityType.UpdateDocument:
                         if (activity.VersionId <= 0)
                             throw new InvalidOperationException($"Missing version ID in indexing activity {activity.Id}.");
-                        versions.Add(activity.VersionId);
-                        documentNodes.Add(activity.NodeId);
+                        var addedVersion = versions.Add(activity.VersionId);
+                        var addedNode = documentNodes.Add(activity.NodeId);
                         var deleted = VersioningInfo.Deserialize(activity.Extension)?.Delete;
                         if (deleted != null)
-                            versions.UnionWith(deleted);
+                        {
+                            foreach (var versionId in deleted)
+                                addedVersion |= versions.Add(versionId);
+                        }
+                        if (!addedVersion && !addedNode)
+                            coalescedActivityIds?.Add(activity.Id);
                         break;
                     case IndexingActivityType.AddTree:
-                        trees.Add(activity.Path);
+                        if (!trees.Add(activity.Path))
+                            coalescedActivityIds?.Add(activity.Id);
                         break;
                     case IndexingActivityType.Rebuild:
-                        rebuildNodes.Add(activity.NodeId);
+                        if (!rebuildNodes.Add(activity.NodeId))
+                            coalescedActivityIds?.Add(activity.Id);
                         break;
                     case IndexingActivityType.Restore:
+                        skippedActivityIds?.Add(activity.Id);
                         break;
                     default:
                         throw new NotSupportedException($"Unknown catch-up activity type: {activity.ActivityType}.");
@@ -191,6 +216,12 @@ namespace SenseNet.ContentRepository.Search.Indexing
 
             await WriteVersionsAsync(versions, indexManager, session, excludedNodeTypes, cancellationToken)
                 .ConfigureAwait(false);
+
+            if (traceActivities && (skippedActivityIds.Count > 0 || coalescedActivityIds.Count > 0))
+            {
+                SnTrace.Index.Write(() => $"Execution frame catch-up activity batch A{activities[0].Id} through A{activities[^1].Id}. " +
+                    $"Skipped activities {FormatIdRanges(skippedActivityIds)}. Coalesced activities {FormatIdRanges(coalescedActivityIds)}.");
+            }
         }
 
         private static void AddChangedVersionFlags(HashSet<int> versions, NodeHead head,
@@ -215,11 +246,11 @@ namespace SenseNet.ContentRepository.Search.Indexing
             }
         }
 
-        private async STT.Task<int[]> CloseFrameAsync(string path, IEnumerable<IndexingActivityMetadata> nextFrame,
+        private async STT.Task<int[]> CloseFrameAsync(IndexingActivityMetadata activity, IEnumerable<IndexingActivityMetadata> nextFrame,
             IndexManager indexManager, IIndexCatchUpSession session, HashSet<int> excludedNodeTypes,
             CancellationToken cancellationToken)
         {
-            path = NormalizePath(path);
+            var path = NormalizePath(activity.Path);
             var current = await _dataStore.DataProvider.LoadIndexingSubtreeVersionIdsAsync(path, cancellationToken)
                 .ConfigureAwait(false);
             var versions = current.ToHashSet();
@@ -228,18 +259,26 @@ namespace SenseNet.ContentRepository.Search.Indexing
                 versions.UnionWith(session.GetVersions(term, cancellationToken).Select(version => version.VersionId));
 
             if (versions.Count == 0)
+            {
+                SnTrace.Index.Write("Execution frame catch-up RemoveTree found no affected versions at {0}. Skipped activities [{1}].",
+                    path, activity.Id);
                 return Array.Empty<int>();
+            }
 
             var rewrites = await PlanTreeRewritesAsync(versions, nextFrame, excludedNodeTypes, cancellationToken)
                 .ConfigureAwait(false);
             if (rewrites != null)
             {
                 await session.WriteIndexAsync(terms, Array.Empty<DocumentUpdate>(), cancellationToken).ConfigureAwait(false);
+                SnTrace.Index.Write("Execution frame catch-up RemoveTree A{0} applied a path deletion at {1} to the session. " +
+                    "Versions scheduled for rewrite in the next frame: {2}.", activity.Id, path, rewrites.Length);
                 return rewrites;
             }
 
             await WriteVersionsAsync(versions, indexManager, session, excludedNodeTypes, cancellationToken)
                 .ConfigureAwait(false);
+            SnTrace.Index.Write("Execution frame catch-up RemoveTree A{0} reconciled {1} versions by VersionId at {2}.",
+                activity.Id, versions.Count, path);
             return Array.Empty<int>();
         }
 
@@ -321,8 +360,47 @@ namespace SenseNet.ContentRepository.Search.Indexing
                     updates[i] = new DocumentUpdate { UpdateTerm = term, Document = document };
                 });
 
-                await session.WriteIndexAsync(deletions.Where(term => term != null).ToArray(),
-                    updates.Where(update => update != null).ToArray(), cancellationToken).ConfigureAwait(false);
+                var deleteTerms = deletions.Where(term => term != null).ToArray();
+                var documentUpdates = updates.Where(update => update != null).ToArray();
+                await session.WriteIndexAsync(deleteTerms, documentUpdates, cancellationToken).ConfigureAwait(false);
+
+                SnTrace.Index.Write(() => "Execution frame catch-up applied an index batch to the session. " +
+                    $"Delete by VersionId {FormatIdRanges(deleteTerms.Select(term => term.IntegerValue).Order())}. " +
+                    $"Upsert by VersionId {FormatIdRanges(documentUpdates.Select(update => update.Document.VersionId).Order())}.");
+            }
+        }
+
+        internal static string FormatIdRanges(IEnumerable<int> orderedIds)
+        {
+            using var ids = orderedIds.GetEnumerator();
+            if (!ids.MoveNext())
+                return "[]";
+
+            var result = new StringBuilder("[");
+            var start = ids.Current;
+            var end = start;
+            while (ids.MoveNext())
+            {
+                var id = ids.Current;
+                if ((long)end + 1 == id)
+                {
+                    end = id;
+                    continue;
+                }
+
+                AppendRange();
+                result.Append(", ");
+                start = end = id;
+            }
+
+            AppendRange();
+            return result.Append(']').ToString();
+
+            void AppendRange()
+            {
+                result.Append(start);
+                if (end != start)
+                    result.Append((long)end - start == 1 ? ", " : "-").Append(end);
             }
         }
     }

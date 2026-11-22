@@ -1,10 +1,14 @@
 using System;
+using System.Collections.Concurrent;
 using System.Linq;
 using System.Threading;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.InMemory;
 using SenseNet.ContentRepository.Search.Indexing;
+using SenseNet.ContentRepository.Search.Indexing.Activities;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Versioning;
 using SenseNet.Extensions.DependencyInjection;
@@ -12,6 +16,7 @@ using SenseNet.Search;
 using SenseNet.Search.Indexing;
 using SenseNet.Search.Querying;
 using SenseNet.Tests.Core;
+using ISnTracer = SenseNet.Diagnostics.ISnTracer;
 using STT = System.Threading.Tasks;
 
 namespace SenseNet.ContentRepository.Tests
@@ -19,6 +24,78 @@ namespace SenseNet.ContentRepository.Tests
     [TestClass]
     public class ExecutionFrameCatchUpTests : TestBase
     {
+        [TestMethod]
+        public void ExecutionFrameCatchUp_FormatsIdRanges()
+        {
+            Assert.AreEqual("[]", ExecutionFrameIndexCatchUpProvider.FormatIdRanges([]));
+            Assert.AreEqual("[100, 101, 105-107, 110, 113, 120-141]", ExecutionFrameIndexCatchUpProvider.FormatIdRanges(
+                [100, 101, 105, 106, 107, 110, 113, .. Enumerable.Range(120, 22)]));
+            Assert.AreEqual("[2147483645-2147483647]", ExecutionFrameIndexCatchUpProvider.FormatIdRanges(
+                [int.MaxValue - 2, int.MaxValue - 1, int.MaxValue]));
+        }
+
+        [TestMethod, TestCategory("IR")]
+        public async STT.Task ExecutionFrameCatchUp_LogsSkippedAndCoalescedActivities()
+        {
+            const int deletedVersionId = int.MaxValue;
+            var cancel = CancellationToken.None;
+            RepositoryFixture fixture = null;
+            IndexingActivityStatus checkpoint = null;
+            var coalescedFrom = 0;
+            var coalescedThrough = 0;
+            var skippedId = 0;
+
+            await Test(async () =>
+            {
+                fixture = new RepositoryFixture();
+                var folder = new SystemFolder(Repository.Root) { Name = "frame-trace-target" };
+                await folder.SaveAsync(cancel);
+                checkpoint = new IndexingActivityStatus
+                {
+                    LastActivityId = await fixture.DataProvider.GetLastIndexingActivityIdAsync(cancel)
+                };
+
+                var indexManager = Providers.Instance.IndexManager;
+                async STT.Task<int> RegisterUpdateAsync(int[] deletedVersions = null)
+                {
+                    var activity = new UpdateDocumentActivity
+                    {
+                        ActivityType = IndexingActivityType.UpdateDocument,
+                        NodeId = folder.Id,
+                        VersionId = folder.VersionId,
+                        Path = folder.Path,
+                        Versioning = new VersioningInfo { Delete = deletedVersions, Reindex = [] }
+                    };
+                    await indexManager.RegisterActivityAsync(activity, cancel);
+                    return activity.Id;
+                }
+
+                await RegisterUpdateAsync();
+                coalescedFrom = await RegisterUpdateAsync();
+                await RegisterUpdateAsync();
+                coalescedThrough = await RegisterUpdateAsync();
+                await RegisterUpdateAsync([deletedVersionId]);
+                var restore = new RestoreActivity { ActivityType = IndexingActivityType.Restore, Path = folder.Path };
+                await indexManager.RegisterActivityAsync(restore, cancel);
+                skippedId = restore.Id;
+            });
+
+            await fixture.SearchEngine.IndexingEngine.WriteActivityStatusToIndexAsync(checkpoint, cancel);
+            var tracer = new CatchUpTracer();
+            Test2(services => services.AddSenseNetExecutionFrameIndexCatchUpProvider().AddSingleton<ISnTracer>(tracer),
+                builder =>
+                {
+                    fixture.Configure(builder);
+                    builder.UseTraceCategories("Index");
+                }, () =>
+                {
+                    var activityLog = tracer.Lines.Single(line => line.Contains("Skipped activities"));
+                    StringAssert.Contains(activityLog, $"Skipped activities [{skippedId}].");
+                    StringAssert.Contains(activityLog, $"Coalesced activities [{coalescedFrom}-{coalescedThrough}].");
+                    Assert.IsTrue(tracer.Lines.Any(line => line.Contains($"Delete by VersionId [{deletedVersionId}].")));
+                });
+        }
+
         [TestMethod, TestCategory("IR")]
         public async STT.Task ExecutionFrameCatchUp_ReconcilesRemoveTreeGapAndReplaysCompletedActivities()
         {
@@ -190,6 +267,49 @@ namespace SenseNet.ContentRepository.Tests
             var actual = await indexingEngine.ReadActivityStatusFromIndexAsync(CancellationToken.None);
             Assert.AreEqual(checkpointStatus.LastActivityId, actual.LastActivityId);
             CollectionAssert.AreEqual(checkpointStatus.Gaps, actual.Gaps);
+        }
+
+        [TestMethod, TestCategory("IR")]
+        public async STT.Task ExecutionFrameCatchUp_LogsAnUpToDateIndex()
+        {
+            RepositoryFixture fixture = null;
+            var lastActivityId = 0;
+            var cancel = CancellationToken.None;
+
+            await Test(async () =>
+            {
+                fixture = new RepositoryFixture();
+                lastActivityId = await fixture.DataProvider.GetLastIndexingActivityIdAsync(cancel);
+                await fixture.SearchEngine.IndexingEngine.WriteActivityStatusToIndexAsync(
+                    new IndexingActivityStatus { LastActivityId = lastActivityId }, cancel);
+            });
+
+            var logger = new CatchUpLogger();
+            Test2(services => services.AddSenseNetExecutionFrameIndexCatchUpProvider()
+                    .AddSingleton<ILogger<ExecutionFrameIndexCatchUpProvider>>(logger), fixture.Configure,
+                () => Assert.AreEqual(
+                    $"Execution frame catch-up was not needed. LastActivityId={lastActivityId}, Gaps=[].", logger.Message));
+        }
+
+        private sealed class CatchUpTracer : ISnTracer
+        {
+            public ConcurrentQueue<string> Lines { get; } = new();
+            public void Write(string line) => Lines.Enqueue(line);
+            public void Flush() { }
+        }
+
+        private sealed class CatchUpLogger : ILogger<ExecutionFrameIndexCatchUpProvider>
+        {
+            public string Message { get; private set; }
+
+            public IDisposable BeginScope<TState>(TState state) => null;
+            public bool IsEnabled(LogLevel logLevel) => logLevel == LogLevel.Information;
+            public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception,
+                Func<TState, Exception, string> formatter)
+            {
+                if (IsEnabled(logLevel))
+                    Message = formatter(state, exception);
+            }
         }
 
         private sealed class RepositoryFixture

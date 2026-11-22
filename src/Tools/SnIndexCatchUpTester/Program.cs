@@ -64,6 +64,7 @@ try
     if (updated.LastActivityId <= baseline.LastActivityId)
         throw new InvalidOperationException("The index checkpoint did not advance after the online changes.");
     Console.WriteLine($"Index checkpoint after changes A{updated.LastActivityId}, no gaps.");
+    Console.WriteLine($"Expected catch-up range A{(long)baseline.LastActivityId + 1} through A{updated.LastActivityId}.");
 
     WaitForUser("[7/11] Shut down the web app gracefully.");
     WaitForUser("[8/11] Set aside the current index directory and restore the backup from step 4 to its original location.");
