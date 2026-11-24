@@ -18,6 +18,7 @@ using SenseNet.Search;
 using SenseNet.Storage.Diagnostics;
 using SenseNet.ContentRepository.Security.ApiKeys;
 using Exception = System.Exception;
+using STT = System.Threading.Tasks;
 
 namespace SenseNet.ContentRepository
 {
@@ -50,7 +51,8 @@ namespace SenseNet.ContentRepository
             return RepositoryInstance.RunStartup(() => StartCore(settings));
         }
 
-        private static RepositoryInstance StartCore(RepositoryStartSettings settings)
+        private static RepositoryInstance StartCore(RepositoryStartSettings settings,
+            Func<CancellationToken, STT.Task> rebuildEmptyIndex = null)
         {
             if (!settings.ExecutingPatches)
             {
@@ -62,7 +64,7 @@ namespace SenseNet.ContentRepository
                 //PackageManager.ExecuteAssemblyPatches(settings);
             }
 
-            var instance = RepositoryInstance.Start(settings);
+            var instance = RepositoryInstance.Start(settings, rebuildEmptyIndex);
             SystemAccount.Execute(() => Root);
             return instance;
         }
@@ -101,7 +103,14 @@ namespace SenseNet.ContentRepository
                 patchManager.ExecutePatchesOnBeforeStart();
 
                 repositoryStatus?.SetStatus("Calling Repository.Start");
-                repositoryInstance = StartCore((RepositoryStartSettings)builder);
+                var indexRebuiltDuringStartup = false;
+                repositoryInstance = StartCore(builder, initialData?.IndexDocuments == null
+                    ? async cancellationToken =>
+                    {
+                        await RebuildIndexAsync(builder, cancellationToken).ConfigureAwait(false);
+                        indexRebuiltDuringStartup = true;
+                    }
+                    : null);
 
                 var permissions = initialData?.Permissions;
                 if (permissions != null && permissions.Count > 0)
@@ -120,7 +129,7 @@ namespace SenseNet.ContentRepository
                                 initialData.IndexDocuments, CancellationToken.None)
                             .ConfigureAwait(false).GetAwaiter().GetResult();
                     }
-                    else
+                    else if (!indexRebuiltDuringStartup)
                     {
                         // make sure the index exists and contains documents
                         EnsureIndex(builder);
@@ -239,11 +248,17 @@ namespace SenseNet.ContentRepository
             if (indexDocExist)
                 return;
 
+            RebuildIndexAsync(builder, CancellationToken.None).GetAwaiter().GetResult();
+        }
+
+        private static async STT.Task RebuildIndexAsync(RepositoryBuilder builder, CancellationToken cancellationToken)
+        {
             // This scenario auto-generates the whole index from the database. The most common case is
             // when a new web app domain (usually a container) is started in a load balanced environment.
             Providers.Instance.RepositoryStatus?.SetStatus("Executing ClearAndPopulateAll");
 
             var populator = Providers.Instance.SearchManager.GetIndexPopulator();
+            var logger = builder.Services?.GetService<ILogger<RepositoryInstance>>();
             var indexCount = 0;
 
             populator.IndexingError += (sender, eventArgs) =>
@@ -258,7 +273,8 @@ namespace SenseNet.ContentRepository
 
             logger?.LogInformation("Rebuilding the index...");
 
-            populator.ClearAndPopulateAllAsync(CancellationToken.None, builder.Console ?? new LoggerConsole(logger)).GetAwaiter().GetResult();
+            await populator.ClearAndPopulateAllAsync(cancellationToken, builder.Console ?? new LoggerConsole(logger))
+                .ConfigureAwait(false);
 
             logger?.LogInformation($"Indexing of {indexCount} nodes finished.");
         }

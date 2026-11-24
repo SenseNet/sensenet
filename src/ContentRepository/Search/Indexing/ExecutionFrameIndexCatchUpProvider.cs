@@ -72,7 +72,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
             for (var nextId = lowerId; nextId <= upperId;)
             {
                 var count = (int)Math.Min(ActivityBatchSize, upperId - nextId + 1);
-                var page = await LoadVerifiedPageAsync(dataProvider, (int)nextId, count, cancellationToken)
+                var page = await LoadActivityPageAsync(dataProvider, (int)nextId, count, cancellationToken)
                     .ConfigureAwait(false);
 
                 for (var i = 0; i < page.Length; i++)
@@ -120,25 +120,27 @@ namespace SenseNet.ContentRepository.Search.Indexing
             op.Successful = true;
         }
 
-        private static async STT.Task<IndexingActivityMetadata[]> LoadVerifiedPageAsync(DataProvider dataProvider,
+        private static async STT.Task<IndexingActivityMetadata[]> LoadActivityPageAsync(DataProvider dataProvider,
             int fromId, int count, CancellationToken cancellationToken)
         {
             var toId = fromId + (count - 1);
-            for (var attempt = 0; ; attempt++)
+            var page = await dataProvider.LoadIndexingActivityMetadataAsync(fromId, toId, count, cancellationToken)
+                .ConfigureAwait(false);
+            var previousId = fromId - 1;
+            foreach (var activity in page)
             {
-                var page = await dataProvider.LoadIndexingActivityMetadataAsync(fromId, toId, count, cancellationToken)
-                    .ConfigureAwait(false);
-                var index = 0;
-                while (index < page.Length && index < count && page[index].Id == fromId + index)
-                    index++;
-                if (index == count && page.Length == count)
-                    return page;
-
-                // An identity hole and a lost activity look the same without additional log evidence.
-                if (attempt == 2)
-                    throw new InvalidOperationException($"Incomplete indexing activity history in range {fromId}-{toId}.");
-                await STT.Task.Delay(100, cancellationToken).ConfigureAwait(false);
+                if (activity.Id <= previousId || activity.Id > toId)
+                    throw new InvalidOperationException($"Unexpected indexing activity ID {activity.Id} in range {fromId}-{toId}.");
+                previousId = activity.Id;
             }
+
+            if (page.Length < count)
+            {
+                SnTrace.Index.Write(() => $"Execution frame catch-up activity page A{fromId} through A{toId}. " +
+                    $"Skipped missing activities {FormatIdRanges(Enumerable.Range(fromId, count).Except(page.Select(activity => activity.Id)))}.");
+            }
+
+            return page;
         }
 
         private async STT.Task WriteActivityBatchAsync(List<IndexingActivityMetadata> activities, int[] scheduledVersions,
@@ -290,7 +292,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
             IEnumerable<IndexingActivityMetadata> nextFrame, HashSet<int> excludedNodeTypes,
             CancellationToken cancellationToken)
         {
-            // Look ahead only within the verified page. A wider or ambiguous scope is reconciled by version.
+            // Look ahead only within the loaded page. A wider or ambiguous scope is reconciled by version.
             var following = nextFrame.ToArray();
             var directVersions = following
                 .Where(item => item.ActivityType is IndexingActivityType.AddDocument or IndexingActivityType.UpdateDocument)

@@ -276,6 +276,127 @@ namespace SenseNet.ContentRepository.Tests
         }
 
         [TestMethod, TestCategory("IR")]
+        [DataRow(true)]
+        [DataRow(false)]
+        public async STT.Task ExecutionFrameCatchUp_StartupAfterActivityHistoryWasPurged(bool emptyIndex)
+        {
+            var cancel = CancellationToken.None;
+            RepositoryFixture fixture = null;
+            var versionId = 0;
+            var lastAllocatedActivityId = 0;
+
+            await Test(async () =>
+            {
+                fixture = new RepositoryFixture();
+                var folder = new SystemFolder(Repository.Root) { Name = "frame-empty-index" };
+                await folder.SaveAsync(cancel);
+                versionId = folder.VersionId;
+                lastAllocatedActivityId = await fixture.DataProvider.GetLastIndexingActivityIdAsync(cancel);
+                Assert.IsTrue(lastAllocatedActivityId > 0);
+                await fixture.DataProvider.DeleteAllIndexingActivitiesAsync(cancel);
+            });
+
+            var engine = fixture.SearchEngine.IndexingEngine;
+            if (emptyIndex)
+                await engine.ClearIndexAsync(cancel);
+            await engine.WriteActivityStatusToIndexAsync(IndexingActivityStatus.Startup, cancel);
+            Assert.AreEqual(0, fixture.DataProvider.DB.IndexingActivities.Count);
+
+            var dataProvider = new RetainedActivityIdentityDataProvider(lastAllocatedActivityId);
+            void ConfigureServices(IServiceCollection services) => services.AddSenseNetExecutionFrameIndexCatchUpProvider()
+                .AddSingleton<DataProvider>(dataProvider);
+
+            async STT.Task AssertIndexAsync()
+            {
+                Assert.IsNotNull(engine.GetIndexDocumentByVersionId(versionId));
+                var status = await engine.ReadActivityStatusFromIndexAsync(cancel);
+                Assert.AreEqual(lastAllocatedActivityId, status.LastActivityId);
+                CollectionAssert.AreEqual(Array.Empty<int>(), status.Gaps);
+            }
+
+            await Test2(ConfigureServices, fixture.Configure, AssertIndexAsync);
+            await Test2(ConfigureServices, fixture.Configure, AssertIndexAsync);
+            Assert.AreEqual(emptyIndex ? 0 : 1, dataProvider.MetadataPageReads);
+        }
+
+        [TestMethod, TestCategory("IR")]
+        public async STT.Task ExecutionFrameCatchUp_SkipsMissingActivityAndReplaysItsNeighbors()
+        {
+            var cancel = CancellationToken.None;
+            RepositoryFixture fixture = null;
+            var precedingVersionId = 0;
+            var followingVersionId = 0;
+            var precedingActivityId = 0;
+            var missingActivityId = 0;
+            var lastActivityId = 0;
+
+            await Test(async () =>
+            {
+                fixture = new RepositoryFixture();
+                var preceding = new SystemFolder(Repository.Root) { Name = "frame-before-missing-activity" };
+                await preceding.SaveAsync(cancel);
+                precedingVersionId = preceding.VersionId;
+
+                var missing = new RestoreActivity { ActivityType = IndexingActivityType.Restore, Path = Repository.RootPath };
+                await Providers.Instance.IndexManager.RegisterActivityAsync(missing, cancel);
+                missingActivityId = missing.Id;
+
+                var following = new SystemFolder(Repository.Root) { Name = "frame-after-missing-activity" };
+                await following.SaveAsync(cancel);
+                followingVersionId = following.VersionId;
+
+                var activityTable = fixture.DataProvider.DB.IndexingActivities;
+                precedingActivityId = activityTable.Single(activity => activity.VersionId == precedingVersionId).IndexingActivityId;
+                lastActivityId = await fixture.DataProvider.GetLastIndexingActivityIdAsync(cancel);
+                activityTable.Remove(activityTable.Single(activity => activity.IndexingActivityId == missingActivityId));
+            });
+
+            var engine = fixture.SearchEngine.IndexingEngine;
+            await engine.WriteIndexAsync(
+                [new SnTerm(IndexFieldName.VersionId, precedingVersionId), new SnTerm(IndexFieldName.VersionId, followingVersionId)],
+                null, null, cancel);
+            await engine.WriteActivityStatusToIndexAsync(new IndexingActivityStatus
+            {
+                LastActivityId = missingActivityId,
+                Gaps = [precedingActivityId, missingActivityId]
+            }, cancel);
+
+            var tracer = new CatchUpTracer();
+            var dataProvider = new RetainedActivityIdentityDataProvider(lastActivityId);
+            await Test2(services => services.AddSenseNetExecutionFrameIndexCatchUpProvider()
+                    .AddSingleton<DataProvider>(dataProvider).AddSingleton<ISnTracer>(tracer),
+                builder =>
+                {
+                    fixture.Configure(builder);
+                    builder.UseTraceCategories("Index");
+                }, async () =>
+                {
+                    Assert.IsNotNull(engine.GetIndexDocumentByVersionId(precedingVersionId));
+                    Assert.IsNotNull(engine.GetIndexDocumentByVersionId(followingVersionId));
+                    var status = await engine.ReadActivityStatusFromIndexAsync(cancel);
+                    Assert.AreEqual(lastActivityId, status.LastActivityId);
+                    CollectionAssert.AreEqual(Array.Empty<int>(), status.Gaps);
+                    Assert.AreEqual(1, dataProvider.MetadataPageReads);
+                    Assert.IsTrue(tracer.Lines.Any(line => line.Contains($"Skipped missing activities [{missingActivityId}].")));
+                });
+        }
+
+        private sealed class RetainedActivityIdentityDataProvider(int lastAllocatedActivityId) : InMemoryDataProvider
+        {
+            public int MetadataPageReads { get; private set; }
+
+            public override async STT.Task<int> GetLastIndexingActivityIdAsync(CancellationToken cancellationToken) =>
+                Math.Max(lastAllocatedActivityId, await base.GetLastIndexingActivityIdAsync(cancellationToken).ConfigureAwait(false));
+
+            public override STT.Task<IndexingActivityMetadata[]> LoadIndexingActivityMetadataAsync(
+                int fromId, int toId, int count, CancellationToken cancellationToken)
+            {
+                MetadataPageReads++;
+                return base.LoadIndexingActivityMetadataAsync(fromId, toId, count, cancellationToken);
+            }
+        }
+
+        [TestMethod, TestCategory("IR")]
         public async STT.Task ExecutionFrameCatchUp_LogsAnUpToDateIndex()
         {
             RepositoryFixture fixture = null;

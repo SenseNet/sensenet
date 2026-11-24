@@ -791,6 +791,7 @@ namespace WebAppTests
                 platformSpecificExpectations: GetMsSqlPlatform(),
                 customizedExpectations: new Dictionary<Type, object>
                 {
+                    {typeof(IIndexCatchUpProvider), typeof(ExecutionFrameIndexCatchUpProvider)},
                     {typeof(IMessageProvider), typeof(DefaultMessageProvider)},
                     {typeof(IInstallPackageDescriptor), typeof(InstallPackageDescriptor)},
 
