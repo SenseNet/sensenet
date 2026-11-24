@@ -1,4 +1,5 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using System.Threading.Tasks;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.IntegrationTests.Infrastructure;
 using SenseNet.IntegrationTests.MsSql.Platforms;
 using SenseNet.IntegrationTests.TestCases;
@@ -14,10 +15,8 @@ namespace SenseNet.IntegrationTests.MsSql.MsSqlTests
             TestCase.Search_ReferenceField();
         }
 
-        //[TestMethod, TestCategory("Services")]
-        public void IntT_MsSql_Search_Bug2184_IndexDocumentDeserialization_InvalidEscapeSequence()
-        {
-            TestCase.Search_Bug2184_IndexDocumentDeserialization_InvalidEscapeSequence().GetAwaiter().GetResult();
-        }
+        [TestMethod]
+        public Task IntT_MsSql_Search_Bug2184_TextFieldsRoundTripThroughStoredIndexDocument() =>
+            TestCase.Search_Bug2184_TextFieldsRoundTripThroughStoredIndexDocument();
     }
 }
