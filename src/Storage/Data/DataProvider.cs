@@ -678,10 +678,10 @@ namespace SenseNet.ContentRepository.Storage.Data
             CancellationToken cancellationToken);
 
         /// <summary>
-        /// Gets the latest IndexingActivityId or 0.
+        /// Gets the last allocated indexing activity ID, or 0 if none has been allocated.
         /// </summary>
         /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
-        /// <returns>A Task that represents the asynchronous operation and wraps the latest IndexingActivity Id ot 0.</returns>
+        /// <returns>The last allocated indexing activity ID.</returns>
         public abstract Task<int> GetLastIndexingActivityIdAsync(
             CancellationToken cancellationToken);
 

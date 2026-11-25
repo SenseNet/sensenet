@@ -1368,10 +1368,7 @@ namespace SenseNet.ContentRepository.InMemory
         {
             cancellationToken.ThrowIfCancellationRequested();
             lock (DB.IndexingActivities)
-            {
-                var result = DB.IndexingActivities.Count == 0 ? 0 : DB.IndexingActivities.Max(r => r.IndexingActivityId);
-                return STT.Task.FromResult(result);
-            }
+                return STT.Task.FromResult(DB.IndexingActivities.LastAllocatedId);
         }
 
         public override Task<IndexingActivityMetadata[]> LoadIndexingActivityMetadataAsync(

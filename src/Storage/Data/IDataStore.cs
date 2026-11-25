@@ -547,7 +547,7 @@ namespace SenseNet.ContentRepository.Storage.Data
             CancellationToken cancellationToken);
 
         /// <summary>
-        /// Gets the latest IndexingActivityId or 0.
+        /// Gets the last allocated indexing activity ID, or 0 if none has been allocated.
         /// This method is used in the distributed indexing scenario.
         /// </summary>
         /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>

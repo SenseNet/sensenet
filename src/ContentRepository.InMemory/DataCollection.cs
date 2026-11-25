@@ -19,6 +19,8 @@ namespace SenseNet.ContentRepository.InMemory
         }
 
         private int _lastId;
+        internal int LastAllocatedId => Volatile.Read(ref _lastId);
+
         public int GetNextId()
         {
             return Interlocked.Increment(ref _lastId);

@@ -276,9 +276,10 @@ namespace SenseNet.ContentRepository.Tests
         }
 
         [TestMethod, TestCategory("IR")]
-        [DataRow(true)]
-        [DataRow(false)]
-        public async STT.Task ExecutionFrameCatchUp_StartupAfterActivityHistoryWasPurged(bool emptyIndex)
+        [DataRow(true, true)]
+        [DataRow(false, true)]
+        [DataRow(false, false)]
+        public async STT.Task ExecutionFrameCatchUp_StartupAfterFullReindex(bool emptyIndex, bool resetCheckpoint)
         {
             var cancel = CancellationToken.None;
             RepositoryFixture fixture = null;
@@ -293,18 +294,18 @@ namespace SenseNet.ContentRepository.Tests
                 versionId = folder.VersionId;
                 lastAllocatedActivityId = await fixture.DataProvider.GetLastIndexingActivityIdAsync(cancel);
                 Assert.IsTrue(lastAllocatedActivityId > 0);
-                await fixture.DataProvider.DeleteAllIndexingActivitiesAsync(cancel);
+                await Providers.Instance.SearchManager.GetIndexPopulator().ClearAndPopulateAllAsync(cancel);
+                Assert.AreEqual(0, fixture.DataProvider.DB.IndexingActivities.Count);
+                Assert.AreEqual(lastAllocatedActivityId, await fixture.DataProvider.GetLastIndexingActivityIdAsync(cancel));
             });
 
             var engine = fixture.SearchEngine.IndexingEngine;
             if (emptyIndex)
                 await engine.ClearIndexAsync(cancel);
-            await engine.WriteActivityStatusToIndexAsync(IndexingActivityStatus.Startup, cancel);
-            Assert.AreEqual(0, fixture.DataProvider.DB.IndexingActivities.Count);
+            if (resetCheckpoint)
+                await engine.WriteActivityStatusToIndexAsync(IndexingActivityStatus.Startup, cancel);
 
-            var dataProvider = new RetainedActivityIdentityDataProvider(lastAllocatedActivityId);
-            void ConfigureServices(IServiceCollection services) => services.AddSenseNetExecutionFrameIndexCatchUpProvider()
-                .AddSingleton<DataProvider>(dataProvider);
+            void ConfigureServices(IServiceCollection services) => services.AddSenseNetExecutionFrameIndexCatchUpProvider();
 
             async STT.Task AssertIndexAsync()
             {
@@ -316,7 +317,6 @@ namespace SenseNet.ContentRepository.Tests
 
             await Test2(ConfigureServices, fixture.Configure, AssertIndexAsync);
             await Test2(ConfigureServices, fixture.Configure, AssertIndexAsync);
-            Assert.AreEqual(emptyIndex ? 0 : 1, dataProvider.MetadataPageReads);
         }
 
         [TestMethod, TestCategory("IR")]
@@ -362,7 +362,7 @@ namespace SenseNet.ContentRepository.Tests
             }, cancel);
 
             var tracer = new CatchUpTracer();
-            var dataProvider = new RetainedActivityIdentityDataProvider(lastActivityId);
+            var dataProvider = new CountingActivityDataProvider();
             await Test2(services => services.AddSenseNetExecutionFrameIndexCatchUpProvider()
                     .AddSingleton<DataProvider>(dataProvider).AddSingleton<ISnTracer>(tracer),
                 builder =>
@@ -381,12 +381,9 @@ namespace SenseNet.ContentRepository.Tests
                 });
         }
 
-        private sealed class RetainedActivityIdentityDataProvider(int lastAllocatedActivityId) : InMemoryDataProvider
+        private sealed class CountingActivityDataProvider : InMemoryDataProvider
         {
             public int MetadataPageReads { get; private set; }
-
-            public override async STT.Task<int> GetLastIndexingActivityIdAsync(CancellationToken cancellationToken) =>
-                Math.Max(lastAllocatedActivityId, await base.GetLastIndexingActivityIdAsync(cancellationToken).ConfigureAwait(false));
 
             public override STT.Task<IndexingActivityMetadata[]> LoadIndexingActivityMetadataAsync(
                 int fromId, int toId, int count, CancellationToken cancellationToken)
