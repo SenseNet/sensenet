@@ -625,8 +625,6 @@ namespace SenseNet.OData
             string contentName, string displayName, bool isMultiStepSave, JObject model,
             bool skipBrokenReferences, CancellationToken cancel, bool importing = false)
         {
-            contentName = ContentNamingProvider.GetNameFromDisplayName(string.IsNullOrEmpty(contentName) ? displayName : contentName);
-
             var parent = await Retrier.RetryAsync(5, 2000,
                 () => Node.LoadAsync<GenericContent>(parentPath, cancel),
                 (node, _, _) => node != null).ConfigureAwait(false);
@@ -650,6 +648,10 @@ namespace SenseNet.OData
                         contentTypeName = nameof(File);
                 }
             }
+
+            contentName = string.IsNullOrEmpty(contentName)
+                ? ContentNamingProvider.GetNameFromDisplayName(displayName)
+                : ContentNamingProvider.GetNameForCreation(contentTypeName, contentName);
 
             Content content;
             Node template = null;
@@ -842,8 +844,8 @@ namespace SenseNet.OData
 
                                 if (isNew && field.Name == "Name" && jValue.Value != null)
                                 {
-                                    field.SetData(
-                                        ContentNamingProvider.GetNameFromDisplayName(jValue.Value.ToString()));
+                                    field.SetData(ContentNamingProvider.GetNameForCreation(
+                                        content.ContentType.Name, jValue.Value.ToString()));
                                     continue;
                                 }
 

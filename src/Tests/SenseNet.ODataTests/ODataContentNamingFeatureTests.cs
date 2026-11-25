@@ -93,6 +93,58 @@ namespace SenseNet.ODataTests
             }).ConfigureAwait(false);
         }
 
+        [DataTestMethod]
+        [DataRow("Aspects")]
+        [DataRow("aspects")]
+        public async Task OD_AspectCreateAndImportPreserveName(string aspectRootName)
+        {
+            await ODataTestAsync(async () =>
+            {
+                using var lowercase = ConfigureOption(nameof(ContentNaming.Lowercase), true);
+                var aspectRoot = Repository.AspectsFolder;
+                aspectRoot.Name = aspectRootName;
+                await aspectRoot.SaveAsync(CancellationToken.None).ConfigureAwait(false);
+                var parent = new Folder(aspectRoot) { Name = "nested" };
+                await parent.SaveAsync(CancellationToken.None).ConfigureAwait(false);
+
+                var createModel = new { __ContentType = "Aspect", Name = "Created_Aspect" };
+                var response = await ODataPostAsync("/OData.svc" + parent.Path, "",
+                    "models=" + JsonConvert.SerializeObject(new[] { createModel })).ConfigureAwait(false);
+                AssertNoError(response);
+                Assert.AreEqual("Created_Aspect", Content.Load(GetEntity(response).Id).Name);
+
+                const string displayName = "Named_Through&DisplayName";
+                var displayNameModel = new { __ContentType = "Aspect", DisplayName = displayName };
+                response = await ODataPostAsync("/OData.svc" + parent.Path, "",
+                    "models=" + JsonConvert.SerializeObject(new[] { displayNameModel })).ConfigureAwait(false);
+                AssertNoError(response);
+                var namedFromDisplayName = Content.Load(GetEntity(response).Id);
+                Assert.AreEqual("named_through-displayname", namedFromDisplayName.Name);
+                Assert.AreEqual(displayName, namedFromDisplayName.DisplayName);
+
+                const string importedName = "Imported_Aspect";
+                var path = RepositoryPath.Combine(parent.Path, importedName);
+                var importModel = new
+                {
+                    path,
+                    data = new
+                    {
+                        ContentName = importedName, ContentType = "Aspect",
+                        Fields = new { DisplayName = "Imported aspect" }
+                    }
+                };
+                var body = "models=" + JsonConvert.SerializeObject(new[] { importModel });
+                response = await ODataPostAsync("/OData.svc/('Root')/Import", "", body).ConfigureAwait(false);
+                AssertNoError(response);
+                var imported = Content.Load(path);
+                Assert.AreEqual(importedName, imported.Name);
+
+                response = await ODataPostAsync("/OData.svc/('Root')/Import", "", body).ConfigureAwait(false);
+                AssertNoError(response);
+                Assert.AreEqual(imported.Id, Content.Load(path).Id);
+            }).ConfigureAwait(false);
+        }
+
         private async System.Threading.Tasks.Task<Content> CreateFolderAsync(string displayName, string expectedName)
         {
             var root = CreateTestRoot();

@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Primitives;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SenseNet.Configuration;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.Services.Core.Operations;
 using SenseNet.Tests.Core;
@@ -147,26 +148,40 @@ namespace SenseNet.ContentRepository.Tests
   <Fields><Field name=""AppInfo"" type=""ShortText""><DisplayName>AppInfo</DisplayName></Field></Fields>
 </ContentType>";
 
-        [TestMethod]
-        public void UploadHandler_Create_ContentType()
+        [DataTestMethod]
+        [DataRow(false)]
+        [DataRow(true)]
+        [DoNotParallelize]
+        public void UploadHandler_Create_ContentType(bool lowercase)
         {
             Test(() =>
             {
-                var parent = Content.Load("/Root/System/Schema/ContentTypes/GenericContent");
+                var original = ContentNaming.Lowercase;
+                try
+                {
+                    ContentNaming.Lowercase = lowercase;
+                    var parent = Content.Load("/Root/System/Schema/ContentTypes/GenericContent");
+                    const string path = "/Root/System/Schema/ContentTypes/GenericContent/Folder/TestContent";
 
-                // ACT
-                UploadCtd(_ctd, parent, "ContentType", "TestContent");
+                    UploadCtd(_ctd, parent, "ContentType", "DifferentFileName.xml");
 
-                // ASSERT
-                Assert.IsNotNull(ContentType.GetByName("TestContent"));
+                    Assert.IsNotNull(ContentType.GetByName("TestContent"));
+                    var created = Content.Load(path);
+                    Assert.IsNotNull(created);
+                    Assert.AreEqual("TestContent", created.Name);
+                    Assert.AreEqual("ContentType", created.ContentType.Name);
 
-                var createdContent = Content.Load("/Root/System/Schema/ContentTypes/GenericContent/Folder/TestContent");
-                Assert.IsNotNull(createdContent);
-                Assert.AreEqual("ContentType", createdContent.ContentType.Name);
-
-                var createdText =
-                    RepositoryTools.GetStreamString(createdContent.ContentHandler.GetBinary("Binary").GetStream());
-                Assert.AreEqual(_ctd, createdText);
+                    var updatedCtd = _ctd.Replace("<Fields>", "<Description>Updated definition</Description><Fields>");
+                    UploadCtd(updatedCtd, parent, "ContentType", "DifferentFileName.xml");
+                    var updated = Content.Load(path);
+                    Assert.AreEqual(created.Id, updated.Id);
+                    Assert.AreEqual(updatedCtd,
+                        RepositoryTools.GetStreamString(updated.ContentHandler.GetBinary("Binary").GetStream()));
+                }
+                finally
+                {
+                    ContentNaming.Lowercase = original;
+                }
             });
         }
         [TestMethod]

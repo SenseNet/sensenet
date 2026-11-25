@@ -341,9 +341,8 @@ namespace SenseNet.ContentRepository
                 this.AspectDefinition = DefaultAspectDefinition;
 
             var parentPath = this.ParentPath;
-            if (String.Compare(parentPath, Repository.AspectsFolderPath, true) != 0)
-                if (!parentPath.StartsWith(Repository.AspectsFolderPath + "/"))
-                    throw new InvalidContentException(String.Concat("Aspect can only be under the '", Repository.AspectsFolderPath, "' folder."));
+            if (!RepositoryPath.IsInTree(parentPath, Repository.AspectsFolderPath))
+                throw new InvalidContentException(String.Concat("Aspect can only be under the '", Repository.AspectsFolderPath, "' folder."));
 
             try
             {

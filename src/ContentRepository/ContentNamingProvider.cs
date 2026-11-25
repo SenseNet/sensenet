@@ -76,6 +76,16 @@ namespace SenseNet.ContentRepository
         }
 
         /// <summary>
+        /// Converts a requested creation name, preserving identifiers of schema definitions.
+        /// </summary>
+        public static string GetNameForCreation(string contentTypeName, string name)
+        {
+            return contentTypeName is nameof(ContentType) or nameof(Aspect)
+                ? name
+                : GetNameFromDisplayName(name);
+        }
+
+        /// <summary>
         /// Validates the name. Called when the content is saving.
         /// </summary>
         public static void ValidateName(string name)
