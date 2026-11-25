@@ -1368,9 +1368,35 @@ namespace SenseNet.ContentRepository.InMemory
         {
             cancellationToken.ThrowIfCancellationRequested();
             lock (DB.IndexingActivities)
+                return STT.Task.FromResult(DB.IndexingActivities.LastAllocatedId);
+        }
+
+        public override Task<IndexingActivityMetadata[]> LoadIndexingActivityMetadataAsync(
+            int fromId, int toId, int count, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            lock (DB.IndexingActivities)
             {
-                var result = DB.IndexingActivities.Count == 0 ? 0 : DB.IndexingActivities.Max(r => r.IndexingActivityId);
+                var result = DB.IndexingActivities
+                    .Where(activity => activity.IndexingActivityId >= fromId && activity.IndexingActivityId <= toId)
+                    .OrderBy(activity => activity.IndexingActivityId)
+                    .Take(count)
+                    .Select(activity => new IndexingActivityMetadata(activity.IndexingActivityId, activity.ActivityType,
+                        activity.NodeId, activity.VersionId, activity.Path, activity.Extension))
+                    .ToArray();
                 return STT.Task.FromResult(result);
+            }
+        }
+
+        public override Task<int[]> LoadIndexingSubtreeVersionIdsAsync(string path, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            lock (DB)
+            {
+                var nodes = DB.Nodes.Where(node => RepositoryPath.IsInTree(node.Path, path))
+                    .Select(node => node.NodeId).ToHashSet();
+                return STT.Task.FromResult(DB.Versions.Where(version => nodes.Contains(version.NodeId))
+                    .Select(version => version.VersionId).ToArray());
             }
         }
 

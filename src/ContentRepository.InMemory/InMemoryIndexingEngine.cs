@@ -1,15 +1,17 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using SenseNet.Search;
 using SenseNet.Search.Indexing;
 using SenseNet.Search.Querying;
 using STT = System.Threading.Tasks;
 
 namespace SenseNet.ContentRepository.InMemory
 {
-    public class InMemoryIndexingEngine : IIndexingEngine
+    public class InMemoryIndexingEngine : IIndexingEngine, IIndexCatchUpEngine
     {
         private readonly InMemorySearchEngine _searchEngine;
         private InMemoryIndex Index => _searchEngine.Index;
@@ -72,19 +74,81 @@ namespace SenseNet.ContentRepository.InMemory
         public virtual STT.Task WriteIndexAsync(IEnumerable<SnTerm> deletions, IEnumerable<DocumentUpdate> updates, 
             IEnumerable<IndexDocument> additions, CancellationToken cancellationToken)
         {
+            WriteIndex(Index, deletions, updates, additions);
+            return STT.Task.CompletedTask;
+        }
+
+        private static void WriteIndex(InMemoryIndex index, IEnumerable<SnTerm> deletions,
+            IEnumerable<DocumentUpdate> updates, IEnumerable<IndexDocument> additions)
+        {
             if (deletions != null)
                 foreach (var term in deletions)
-                    Index.Delete(term);
+                    index.Delete(term);
 
             if (updates != null)
                 foreach (var update in updates)
-                    Index.Update(update.UpdateTerm, update.Document);
+                    index.Update(update.UpdateTerm, update.Document);
 
             if (additions != null)
                 foreach(var doc in additions)
-                    Index.AddDocument(doc);
+                    index.AddDocument(doc);
+        }
 
-            return STT.Task.CompletedTask;
+        public IIndexCatchUpSession BeginCatchUp(CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            return new CatchUpSession(_searchEngine);
+        }
+
+        private sealed class CatchUpSession : IIndexCatchUpSession
+        {
+            private readonly InMemorySearchEngine _searchEngine;
+            private readonly InMemoryIndex _originalIndex;
+            private InMemoryIndex _workingIndex;
+
+            private InMemoryIndex WorkingIndex => _workingIndex ?? throw new ObjectDisposedException(nameof(CatchUpSession));
+
+            public CatchUpSession(InMemorySearchEngine searchEngine)
+            {
+                _searchEngine = searchEngine;
+                _originalIndex = searchEngine.Index;
+                _workingIndex = _originalIndex.Clone();
+                _workingIndex.Analyzers = _originalIndex.Analyzers;
+            }
+
+            public IReadOnlyList<IndexCatchUpVersion> GetVersions(SnTerm term, CancellationToken cancellationToken)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                var documents = WorkingIndex.GetStoredFieldsByTerm(term);
+                return documents?.Select(document => new IndexCatchUpVersion(document.Item1,
+                    document.Item2.Any(field => field.Name == IndexFieldName.IsLastPublic && field.BooleanValue),
+                    document.Item2.Any(field => field.Name == IndexFieldName.IsLastDraft && field.BooleanValue)))
+                    .ToArray() ?? Array.Empty<IndexCatchUpVersion>();
+            }
+
+            public STT.Task WriteIndexAsync(IReadOnlyList<SnTerm> deletions, IReadOnlyList<DocumentUpdate> updates,
+                CancellationToken cancellationToken)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                WriteIndex(WorkingIndex, deletions, updates, null);
+                return STT.Task.CompletedTask;
+            }
+
+            public STT.Task CommitAsync(IndexingActivityStatus status, CancellationToken cancellationToken)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                var index = WorkingIndex;
+                index.WriteActivityStatus(status);
+                index.IndexDocumentPath = _originalIndex.IndexDocumentPath;
+                _searchEngine.Index = index;
+                _workingIndex = null;
+                return STT.Task.CompletedTask;
+            }
+
+            public void Dispose()
+            {
+                _workingIndex = null;
+            }
         }
 
         public IndexProperties GetIndexProperties()

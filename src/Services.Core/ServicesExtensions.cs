@@ -178,7 +178,7 @@ namespace SenseNet.Extensions.DependencyInjection
                 .AddSingleton<IPermissionFilterFactory, PermissionFilterFactory>()
 
                 .AddSingleton<ISearchManager, SearchManager>()
-                .AddSingleton<IIndexManager, IndexManager>()
+                .AddDefaultIndexManager()
                 .AddSingleton<IIndexPopulator, DocumentPopulator>()
                 .AddSingleton<IIndexingActivityFactory, IndexingActivityFactory>()
 

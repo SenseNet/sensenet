@@ -7,6 +7,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading;
 using STT=System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.i18n;
@@ -31,6 +32,42 @@ namespace SenseNet.ContentRepository.Tests
     public class IndexingTests : TestBase
     {
         private IDataStore DataStore => Providers.Instance.DataStore;
+
+        private sealed class RecordingIndexCatchUpProvider : IIndexCatchUpProvider
+        {
+            private readonly LegacyIndexCatchUpProvider _legacyProvider;
+
+            public RecordingIndexCatchUpProvider(IDataStore dataStore, IIndexingActivityFactory activityFactory)
+            {
+                _legacyProvider = new LegacyIndexCatchUpProvider(dataStore, activityFactory);
+            }
+
+            public int CallCount { get; private set; }
+
+            public async STT.Task CatchUpAsync(IndexManager indexManager, IndexingActivityStatus status,
+                TextWriter consoleOut, CancellationToken cancellationToken)
+            {
+                await _legacyProvider.CatchUpAsync(indexManager, status, consoleOut, cancellationToken).ConfigureAwait(false);
+                CallCount++;
+            }
+        }
+
+        [TestMethod, TestCategory("IR")]
+        [DataRow(false, 1)]
+        [DataRow(true, 0)]
+        public void Indexing_CatchUpProvider_IsUsedOnlyForLocalStartup(bool centralized, int expectedCallCount)
+        {
+            Test2(services => services.AddSingleton<IIndexCatchUpProvider>(provider =>
+                    new RecordingIndexCatchUpProvider(provider.GetRequiredService<IDataStore>(),
+                        provider.GetRequiredService<IIndexingActivityFactory>())),
+                builder => ((InMemoryIndexingEngine)Providers.Instance.SearchEngine.IndexingEngine).IndexIsCentralized = centralized,
+                () =>
+                {
+                    var provider = (RecordingIndexCatchUpProvider)Providers.Instance.Services
+                        .GetRequiredService<IIndexCatchUpProvider>();
+                    Assert.AreEqual(expectedCallCount, provider.CallCount);
+                });
+        }
 
         #region Text extraction
 

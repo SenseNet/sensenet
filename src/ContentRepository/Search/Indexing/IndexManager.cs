@@ -24,7 +24,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
     {
         private readonly IDataStore _dataStore;
         private readonly ISearchManager _searchManager;
-        private readonly IIndexingActivityFactory _indexingActivityFactory;
+        private readonly IIndexCatchUpProvider _catchUpProvider;
         private readonly ILogger<IndexManager> _logger;
 
         internal DistributedIndexingActivityQueue DistributedIndexingActivityQueue { get; }
@@ -32,10 +32,17 @@ namespace SenseNet.ContentRepository.Search.Indexing
 
         public IndexManager(IDataStore dataStore, ISearchManager searchManager, IIndexingActivityFactory indexingActivityFactory,
             ILogger<IndexManager> logger)
+            : this(dataStore, searchManager, indexingActivityFactory, logger,
+                new LegacyIndexCatchUpProvider(dataStore, indexingActivityFactory))
+        {
+        }
+
+        internal IndexManager(IDataStore dataStore, ISearchManager searchManager,
+            IIndexingActivityFactory indexingActivityFactory, ILogger<IndexManager> logger, IIndexCatchUpProvider catchUpProvider)
         {
             _dataStore = dataStore;
             _searchManager = searchManager;
-            _indexingActivityFactory = indexingActivityFactory;
+            _catchUpProvider = catchUpProvider;
             _logger = logger;
             DistributedIndexingActivityQueue = new DistributedIndexingActivityQueue(this, indexingActivityFactory);
             CentralizedIndexingActivityQueue = new CentralizedIndexingActivityQueue(indexingActivityFactory);
@@ -56,11 +63,24 @@ namespace SenseNet.ContentRepository.Search.Indexing
                 .ToArray();
         }
 
-        public async STT.Task StartAsync(TextWriter consoleOut, CancellationToken cancellationToken)
-        {
-            await IndexingEngine.StartAsync(consoleOut, cancellationToken).ConfigureAwait(false);
+        public STT.Task StartAsync(TextWriter consoleOut, CancellationToken cancellationToken) =>
+            StartAsync(consoleOut, cancellationToken, null);
 
-            CommitManager = IndexingEngine.IndexIsCentralized
+        internal async STT.Task StartAsync(TextWriter consoleOut, CancellationToken cancellationToken,
+            Func<CancellationToken, STT.Task> rebuildEmptyIndex)
+        {
+            var searchEngine = _searchManager.SearchEngine;
+            var indexingEngine = searchEngine.IndexingEngine;
+            var bufferActivities = _catchUpProvider.BufferLiveActivities && !indexingEngine.IndexIsCentralized;
+            if (bufferActivities)
+            {
+                DistributedIndexingActivityQueue.BeginBuffering();
+                searchEngine.SetIndexingInfo(ContentTypeManager.Instance.IndexingInfo);
+            }
+            await indexingEngine.StartAsync(consoleOut, cancellationToken).ConfigureAwait(false);
+
+            var centralized = indexingEngine.IndexIsCentralized;
+            CommitManager = centralized
                 ? (ICommitManager)new NoDelayCommitManager(this)
                 : new NearRealTimeCommitManager(this);
 
@@ -68,14 +88,30 @@ namespace SenseNet.ContentRepository.Search.Indexing
 
             CommitManager.Start();
 
-            if (IndexingEngine.IndexIsCentralized)
+            if (centralized)
             {
                 RestoreIndexIfNeeded();
                 CentralizedIndexingActivityQueue.Startup(consoleOut);
             }
             else
             {
-                DistributedIndexingActivityQueue.Startup(consoleOut);
+                var status = await indexingEngine.ReadActivityStatusFromIndexAsync(cancellationToken).ConfigureAwait(false);
+                if (bufferActivities && indexingEngine is IIndexCatchUpEngine && rebuildEmptyIndex != null &&
+                    status.LastActivityId == 0 && (status.Gaps?.Length ?? 0) == 0 &&
+                    !indexingEngine.GetIndexProperties().VersionIds.Any())
+                {
+                    // A new local index needs a full build. Its activity history may have been purged.
+                    var lastActivityId = await _dataStore.GetLastIndexingActivityIdAsync(cancellationToken).ConfigureAwait(false);
+                    DistributedIndexingActivityQueue.InitializeFromCatchUp(new IndexingActivityStatus { LastActivityId = lastActivityId });
+                    await rebuildEmptyIndex(cancellationToken).ConfigureAwait(false);
+                }
+                else
+                {
+                    await _catchUpProvider.CatchUpAsync(this, status, consoleOut, cancellationToken).ConfigureAwait(false);
+                }
+                if (bufferActivities)
+                    DistributedIndexingActivityQueue.ReleaseBufferedActivities();
+                IndexHealthMonitor.Start(consoleOut);
             }
         }
 

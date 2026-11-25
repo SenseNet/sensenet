@@ -678,12 +678,29 @@ namespace SenseNet.ContentRepository.Storage.Data
             CancellationToken cancellationToken);
 
         /// <summary>
-        /// Gets the latest IndexingActivityId or 0.
+        /// Gets the last allocated indexing activity ID, or 0 if none has been allocated.
         /// </summary>
         /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
-        /// <returns>A Task that represents the asynchronous operation and wraps the latest IndexingActivity Id ot 0.</returns>
+        /// <returns>The last allocated indexing activity ID.</returns>
         public abstract Task<int> GetLastIndexingActivityIdAsync(
             CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Reads activity log metadata from the inclusive ID range, ordered by ID.
+        /// </summary>
+        public virtual Task<IndexingActivityMetadata[]> LoadIndexingActivityMetadataAsync(
+            int fromId, int toId, int count, CancellationToken cancellationToken)
+        {
+            throw new NotSupportedException("This data provider does not support index catch-up metadata.");
+        }
+
+        /// <summary>
+        /// Reads the IDs of the current versions at the given path and below it.
+        /// </summary>
+        public virtual Task<int[]> LoadIndexingSubtreeVersionIdsAsync(string path, CancellationToken cancellationToken)
+        {
+            throw new NotSupportedException("This data provider does not support index catch-up subtree reads.");
+        }
 
         /// <summary>
         /// Gets indexing activities between the two provided ids.

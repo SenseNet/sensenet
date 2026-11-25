@@ -13,11 +13,13 @@ using Microsoft.Extensions.Logging;
 using SenseNet.Communication.Messaging;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Schema;
+using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Search.Querying;
 using SenseNet.TaskManagement.Core;
 using SenseNet.Tools;
 using EventId = SenseNet.Diagnostics.EventId;
+using STT = System.Threading.Tasks;
 
 namespace SenseNet.ContentRepository
 {
@@ -132,7 +134,8 @@ namespace SenseNet.ContentRepository
             }
         }
 
-        internal static RepositoryInstance Start(RepositoryStartSettings settings)
+        internal static RepositoryInstance Start(RepositoryStartSettings settings,
+            Func<CancellationToken, STT.Task> rebuildEmptyIndex = null)
         {
             if (!_started)
             {
@@ -145,7 +148,7 @@ namespace SenseNet.ContentRepository
                         _instance = instance;
                         _instance._logger = instance._settings.Services.GetService<ILogger<RepositoryInstance>>();
                         Providers.Instance.RepositoryStatus?.SetStatus("Starting subsystems");
-                        instance.DoStart();
+                        instance.DoStart(rebuildEmptyIndex);
                         Providers.Instance.RepositoryStatus?.SetStatus("Subsystems started");
                         _started = true;
                     }
@@ -153,7 +156,7 @@ namespace SenseNet.ContentRepository
             }
             return _instance;
         }
-        internal void DoStart()
+        internal void DoStart(Func<CancellationToken, STT.Task> rebuildEmptyIndex = null)
         {
             ConsoleWriteLine(false);
             ConsoleWriteLine(true, "Starting Repository.");
@@ -192,7 +195,7 @@ namespace SenseNet.ContentRepository
             // during creation as it would lead to a circular reference.
             _logger.LogInformation($"AccessProvider created: {AccessProvider.Current?.GetType().FullName}");
             using (new SystemAccount())
-                StartManagers();
+                StartManagers(rebuildEmptyIndex);
 
             LoggingSettings.SnTraceConfigurator.UpdateCategoriesBySettings();
             
@@ -206,7 +209,9 @@ namespace SenseNet.ContentRepository
         /// <summary>
         /// Starts IndexingEngine if it is not running.
         /// </summary>
-        public void StartIndexingEngine()
+        public void StartIndexingEngine() => StartIndexingEngine(null);
+
+        private void StartIndexingEngine(Func<CancellationToken, STT.Task> rebuildEmptyIndex)
         {
             if (IndexingEngineIsRunning)
             {
@@ -217,7 +222,10 @@ namespace SenseNet.ContentRepository
             ConsoleWriteLine(true, "Starting IndexingEngine.");
             var indexManager = Providers.Instance.IndexManager;
             _shutdownActions.Push(("Shutting down IndexingEngine.", indexManager.ShutDown));
-            indexManager.StartAsync(_settings.Console, CancellationToken.None).GetAwaiter().GetResult();
+            var start = rebuildEmptyIndex != null && indexManager.GetType() == typeof(IndexManager)
+                ? ((IndexManager)indexManager).StartAsync(_settings.Console, CancellationToken.None, rebuildEmptyIndex)
+                : indexManager.StartAsync(_settings.Console, CancellationToken.None);
+            start.GetAwaiter().GetResult();
             Providers.Instance.SearchManager.SearchEngine.SetIndexingInfo(ContentTypeManager.Instance.IndexingInfo);
             ConsoleWriteLine(true, "IndexingEngine has started.");
         }
@@ -263,7 +271,7 @@ namespace SenseNet.ContentRepository
         {
             return AppDomain.CurrentDomain.GetAssemblies().Select(a => a.FullName).ToArray();
         }
-        private void StartManagers()
+        private void StartManagers(Func<CancellationToken, STT.Task> rebuildEmptyIndex)
         {
             object dummy;
             IClusterChannel channel = null;
@@ -313,7 +321,7 @@ namespace SenseNet.ContentRepository
                 SnQuery.SetPermissionFilterFactory(Providers.Instance.PermissionFilterFactory);
 
                 if (_settings.StartIndexingEngine)
-                    StartIndexingEngine();
+                    StartIndexingEngine(rebuildEmptyIndex);
                 else
                     ConsoleWriteLine(true, "IndexingEngine is not started.");
 

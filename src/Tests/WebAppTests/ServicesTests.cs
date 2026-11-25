@@ -345,6 +345,7 @@ namespace WebAppTests
                 // Search
                 {typeof(ISearchManager), typeof(SearchManager)},
                 {typeof(IIndexManager), typeof(IndexManager)},
+                {typeof(IIndexCatchUpProvider), typeof(LegacyIndexCatchUpProvider)},
                 {typeof(IIndexPopulator), typeof(DocumentPopulator)},
                 {typeof(IIndexingActivityFactory), typeof(IndexingActivityFactory)},
 
@@ -790,6 +791,7 @@ namespace WebAppTests
                 platformSpecificExpectations: GetMsSqlPlatform(),
                 customizedExpectations: new Dictionary<Type, object>
                 {
+                    {typeof(IIndexCatchUpProvider), typeof(ExecutionFrameIndexCatchUpProvider)},
                     {typeof(IMessageProvider), typeof(DefaultMessageProvider)},
                     {typeof(IInstallPackageDescriptor), typeof(InstallPackageDescriptor)},
 

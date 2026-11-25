@@ -143,6 +143,8 @@ namespace SenseNet.IntegrationTests.MsSql.MsSqlTests
         [TestMethod]
         public Task IntT_MsSql_DP_IA_GetLastIndexingActivityId() { return TestCase.DP_IA_GetLastIndexingActivityId(); }
         [TestMethod]
+        public Task IntT_MsSql_DP_IA_LoadCatchUpMetadataAndSubtree() => TestCase.DP_IA_LoadCatchUpMetadataAndSubtree();
+        [TestMethod]
         public Task IntT_MsSql_DP_IA_LoadIndexingActivities_Page() { return TestCase.DP_IA_LoadIndexingActivities_Page(); }
         [TestMethod]
         public Task IntT_MsSql_DP_IA_LoadIndexingActivities_PageUnprocessed() { return TestCase.DP_IA_LoadIndexingActivities_PageUnprocessed(); }

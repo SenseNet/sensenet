@@ -2,15 +2,18 @@
 using System.Reflection;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Logging;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Email;
 using SenseNet.ContentRepository.Packaging;
+using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Security.ApiKeys;
 using SenseNet.ContentRepository.Security.Cryptography;
 using SenseNet.ContentRepository.Security.MultiFactor;
 using SenseNet.ContentRepository.Storage;
+using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.Diagnostics;
 using SenseNet.Packaging;
 using SenseNet.Preview;
@@ -183,6 +186,38 @@ namespace SenseNet.Extensions.DependencyInjection
         public static IServiceCollection AddSenseNetDefaultRepositoryServices(this IServiceCollection services)
         {
             return services.AddSenseNetCryptoServiceProvider<DefaultCryptoServiceProvider>();
+        }
+
+        /// <summary>
+        /// Registers the index manager and its default startup catch-up provider.
+        /// </summary>
+        public static IServiceCollection AddDefaultIndexManager(this IServiceCollection services)
+        {
+            services.TryAddSingleton<IIndexCatchUpProvider, LegacyIndexCatchUpProvider>();
+            return services.AddSingleton<IIndexManager>(provider => new IndexManager(
+                provider.GetRequiredService<IDataStore>(),
+                provider.GetRequiredService<ISearchManager>(),
+                provider.GetRequiredService<IIndexingActivityFactory>(),
+                provider.GetRequiredService<ILogger<IndexManager>>(),
+                provider.GetRequiredService<IIndexCatchUpProvider>()));
+        }
+
+        /// <summary>
+        /// Registers the execution frame provider for startup catch-up on a supported local index engine and data provider.
+        /// </summary>
+        public static IServiceCollection AddSenseNetExecutionFrameIndexCatchUpProvider(this IServiceCollection services)
+        {
+            services.RemoveAll<IIndexCatchUpProvider>();
+            return services.AddSingleton<IIndexCatchUpProvider, ExecutionFrameIndexCatchUpProvider>();
+        }
+
+        /// <summary>
+        /// Registers the legacy provider for startup catch-up through the distributed activity queue.
+        /// </summary>
+        public static IServiceCollection AddSenseNetLegacyIndexCatchUpProvider(this IServiceCollection services)
+        {
+            services.RemoveAll<IIndexCatchUpProvider>();
+            return services.AddSingleton<IIndexCatchUpProvider, LegacyIndexCatchUpProvider>();
         }
 
         /// <summary>

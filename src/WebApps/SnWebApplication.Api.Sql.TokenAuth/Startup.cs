@@ -93,6 +93,7 @@ namespace SnWebApplication.Api.Sql.TokenAuth
                         .UseLucene29LocalSearchEngine(searchEngineLogger,
                             Path.Combine(Environment.CurrentDirectory, "App_Data", "LocalIndex"));
                 })
+                .AddSenseNetExecutionFrameIndexCatchUpProvider()
                 .AddEFCSecurityDataProvider()
                 .AddSenseNetMsSqlProviders(configureInstallation: installOptions =>
                 {

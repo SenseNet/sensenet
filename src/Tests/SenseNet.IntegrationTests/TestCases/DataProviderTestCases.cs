@@ -1564,6 +1564,33 @@ namespace SenseNet.IntegrationTests.TestCases
                 Assert.AreEqual(lastId, result);
             });
         }
+        public async Task DP_IA_LoadCatchUpMetadataAndSubtree()
+        {
+            await IntegrationTestAsync(async () =>
+            {
+                var root = CreateTestRoot();
+                var cancel = CancellationToken.None;
+                var previousId = await DP.GetLastIndexingActivityIdAsync(cancel);
+                var branch = new SystemFolder(root) { Name = "catch_up" };
+                await branch.SaveAsync(cancel);
+                var child = new SystemFolder(branch) { Name = "child" };
+                await child.SaveAsync(cancel);
+                var sibling = new SystemFolder(root) { Name = "catchXup" };
+                await sibling.SaveAsync(cancel);
+                var other = new SystemFolder(sibling) { Name = "child" };
+                await other.SaveAsync(cancel);
+
+                var upperId = await DP.GetLastIndexingActivityIdAsync(cancel);
+                var page = await DP.LoadIndexingActivityMetadataAsync(previousId + 1, upperId, 2, cancel);
+                CollectionAssert.AreEqual(new[] { previousId + 1, previousId + 2 }, page.Select(a => a.Id).ToArray());
+                CollectionAssert.AreEqual(new[] { branch.VersionId, child.VersionId }, page.Select(a => a.VersionId).ToArray());
+                Assert.IsTrue(page.All(a => a.ActivityType == IndexingActivityType.AddDocument));
+
+                var versions = await DP.LoadIndexingSubtreeVersionIdsAsync(branch.Path.ToUpperInvariant(), cancel);
+                CollectionAssert.AreEquivalent(new[] { branch.VersionId, child.VersionId }, versions);
+            });
+        }
+
         public async Task DP_IA_LoadIndexingActivities_Page()
         {
             await IndexingActivityTest(async (firstId, lastId) =>
