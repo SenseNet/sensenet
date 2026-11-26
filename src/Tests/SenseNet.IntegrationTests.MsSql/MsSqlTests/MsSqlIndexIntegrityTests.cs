@@ -75,7 +75,9 @@ public class MsSqlIndexIntegrityTests
             Assert.IsFalse(rows[1].IndexingEnabled);
             Assert.AreEqual(new DateTime(2020, 1, 1, 0, 0, 2, DateTimeKind.Utc), rows[0].VersionModificationDateUtc);
 
-            var current = (await provider.ReadIntegrityVersionsAsync(new[] { 42 }, excluded, timeout.Token)).Single();
+            // Put the matching ID after more than 4,000 characters to catch a truncated string parameter.
+            var selectedIds = Enumerable.Range(10_000, 1000).Append(42).ToArray();
+            var current = (await provider.ReadIntegrityVersionsAsync(selectedIds, excluded, timeout.Token)).Single();
             Assert.AreEqual(new DateTime(2020, 1, 1, 0, 0, 4, DateTimeKind.Utc), current.VersionModificationDateUtc);
             Assert.IsTrue(current.VersionTimestamp > rows[0].VersionTimestamp);
         }
