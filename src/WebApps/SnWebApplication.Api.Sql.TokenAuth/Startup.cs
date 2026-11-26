@@ -100,6 +100,7 @@ namespace SnWebApplication.Api.Sql.TokenAuth
                     Configuration.Bind("sensenet:install:mssql", installOptions);
                 })
                 .AddSenseNetOData()
+                .AddSenseNetIndexIntegrityChecker(Configuration.GetSection("sensenet:indexIntegrity"))
                 .AddSenseNetWebHooks()
                 .AddSenseNetWopi()
                 .AddSenseNetSemanticKernel(options =>
