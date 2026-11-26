@@ -15,7 +15,7 @@ Enable the checker in the host configuration and restart the webapp.
 }
 ```
 
-The host selects the provider at startup. A custom host with sensenet authentication and OData can call `AddSenseNetIndexIntegrityChecker<TProvider>` with its `sensenet:indexIntegrity` configuration section. The provider implements `IIndexIntegrityProvider` and declares whether it supports checking and repair.
+The host selects the provider at startup. A custom host with sensenet authentication and OData references `SenseNet.IndexIntegrity` and calls `AddSenseNetIndexIntegrityChecker<TProvider>` with its `sensenet:indexIntegrity` configuration section. The provider implements `IIndexIntegrityProvider` and declares whether it supports checking and repair.
 
 ## Admin endpoints
 

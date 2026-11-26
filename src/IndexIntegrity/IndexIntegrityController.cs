@@ -96,8 +96,9 @@ internal sealed class IndexIntegrityController(IndexIntegrityFileStore files, In
             return Reject(StatusCodes.Status404NotFound, "report_not_found");
 
         response.ContentType = "application/x-ndjson";
-        ODataRequest.ResponseSize = lease.Stream.Length;
-        response.ContentLength = ODataRequest.ResponseSize;
+        var reportLength = lease.Stream.Length;
+        response.ContentLength = reportLength;
+        SetResponseSize(reportLength);
         response.Headers.ContentDisposition = $"attachment; filename=\"comparison-{check:D}.jsonl\"";
         await response.StartAsync(HttpContext.RequestAborted).ConfigureAwait(false);
         await lease.Stream.CopyToAsync(response.Body, HttpContext.RequestAborted).ConfigureAwait(false);

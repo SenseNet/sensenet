@@ -101,6 +101,7 @@ public class IndexIntegrityControllerTests : ODataTestBase
                 var download = await RequestAsync(HttpMethods.Get, Route + "GetReport", $"?checkId={checkId:D}&$format=table");
                 Assert.AreEqual(200, download.Response.StatusCode, ResponseText(download));
                 Assert.AreEqual("application/x-ndjson", download.Response.ContentType);
+                Assert.AreEqual(download.Response.Body.Length, download.GetODataRequest().ResponseSize);
                 Assert.AreEqual($"attachment; filename=\"comparison-{checkId:D}.jsonl\"",
                     download.Response.Headers.ContentDisposition.ToString());
                 var lines = ResponseText(download)
