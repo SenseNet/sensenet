@@ -28,6 +28,8 @@ The operations are available on the repository root to sensenet administrators. 
 | `GET /OData.svc/('Root')/IndexIntegrity/GetReport?checkId={checkId}` | Downloads the completed JSONL report. Add `&view=status` for JSON status and `&repairId={repairId}` for repair status. An unfinished download returns `202` with `Retry-After`. |
 | `POST /OData.svc/('Root')/IndexIntegrity/Repair` | Queues a repair for `{"checkId":"{checkId}","differenceIds":[1,5]}` or `{"checkId":"{checkId}","kinds":["NotInIndex"]}`. The `Location` header includes the repair ID. |
 
+Send `{"checkId":"{checkId}","kinds":"All"}` to select every difference in the report. The keyword is case-insensitive and can also be the sole value in the `kinds` array. An empty report completes with zero selected differences.
+
 The POSTs accept an optional `Idempotency-Key` while the original run is retained. An active integrity run for the same index or an incompatible repair report returns `409`. A provider that lacks the requested operation returns `501`. Use explicit difference IDs for a selection made in a filtered report view.
 
 ## Report and storage

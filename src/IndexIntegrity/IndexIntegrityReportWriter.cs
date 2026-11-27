@@ -139,19 +139,24 @@ internal sealed class IndexIntegrityReportWriter : IDisposable
                 if (row.GetProperty("differences").GetInt64() != expectedId - 1 ||
                     await reader.ReadLineAsync(cancel).ConfigureAwait(false) != null)
                     throw new InvalidDataException("The integrity report summary does not match its records.");
-                if (selected.Count == 0 || ids.Count > 0 && ids.Count != selected.Count)
+                if (!request.SelectsAll && (selected.Count == 0 || ids.Count > 0 && ids.Count != selected.Count))
                     throw new InvalidIntegritySelectionException();
                 return selected;
             }
             var difference = row.Deserialize<IndexIntegritySelection>(IndexIntegrityFileStore.Json)!;
             if (row.GetProperty("type").GetString() != "difference" || difference.DifferenceId != expectedId++)
                 throw new InvalidDataException("Invalid integrity difference record.");
-            if (ids.Contains(difference.DifferenceId) || kinds.Contains(difference.Kind))
+            if (request.SelectsAll || ids.Contains(difference.DifferenceId) || kinds.Contains(difference.Kind))
                 selected.Add(difference);
         }
         throw new InvalidDataException("The integrity report has no summary.");
     }
 }
 
-internal sealed record IntegritySelectionRequest(long[]? DifferenceIds, DifferenceKind[]? Kinds);
+internal sealed record IntegritySelectionRequest(long[]? DifferenceIds, DifferenceKind[]? Kinds)
+{
+    internal static IntegritySelectionRequest All { get; } = new(null, null);
+    internal bool SelectsAll => DifferenceIds == null && Kinds == null;
+}
+
 internal sealed class InvalidIntegritySelectionException : Exception;

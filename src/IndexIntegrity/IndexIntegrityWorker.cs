@@ -131,6 +131,9 @@ internal sealed class IndexIntegrityWorker(IndexIntegrityFileStore files, IIndex
             FileShare.Read));
         run.Summary = SummarizeRepair(selected.Count, repairedVersions, counts);
         files.Save(run);
+        if (selected.Count == 0)
+            return;
+
         try
         {
             await provider.RepairAsync(work, selected, item =>

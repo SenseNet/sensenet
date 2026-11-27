@@ -45,7 +45,7 @@ internal sealed class IndexIntegrityController(IndexIntegrityFileStore files, In
     [ContentTypes(N.CT.PortalRoot)]
     [AllowedRoles(N.R.Administrators)]
     public async Task<object> Repair(string checkId, object[]? differenceIds = null,
-        object[]? kinds = null)
+        object? kinds = null)
     {
         if (!Guid.TryParse(checkId, out var check))
             return Reject(StatusCodes.Status400BadRequest, "invalid_check_id");
@@ -60,17 +60,26 @@ internal sealed class IndexIntegrityController(IndexIntegrityFileStore files, In
             return await StartRunAsync(check, new(differenceIds.Cast<long>().Distinct().Order().ToArray(), null));
         }
 
+        var keyword = kinds switch
+        {
+            string value => value,
+            object[] { Length: 1 } values => values[0] as string,
+            _ => null
+        };
+        if (string.Equals(keyword, nameof(IntegritySelectionRequest.All), StringComparison.OrdinalIgnoreCase))
+            return await StartRunAsync(check, IntegritySelectionRequest.All);
+
+        if (kinds is not object[] { Length: > 0 } kindValues)
+            return Reject(StatusCodes.Status400BadRequest, "invalid_selection");
+
         var selectedKinds = new HashSet<DifferenceKind>();
-        foreach (var value in kinds!)
+        foreach (var value in kindValues)
         {
             if (value is not string name || !Enum.TryParse<DifferenceKind>(name, true, out var kind) ||
                 !string.Equals(name, kind.ToString(), StringComparison.OrdinalIgnoreCase) || !Enum.IsDefined(kind))
                 return Reject(StatusCodes.Status400BadRequest, "invalid_selection");
             selectedKinds.Add(kind);
         }
-        if (selectedKinds.Count == 0)
-            return Reject(StatusCodes.Status400BadRequest, "invalid_selection");
-
         return await StartRunAsync(check, new(null, selectedKinds.Order().ToArray()));
     }
 

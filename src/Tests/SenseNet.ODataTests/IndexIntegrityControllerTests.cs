@@ -100,7 +100,7 @@ public class IndexIntegrityControllerTests : ODataTestBase
                 Assert.AreEqual(200, status.StatusCode, status.Result);
                 using var statusJson = JsonDocument.Parse(status.Result);
                 Assert.AreEqual("completed", statusJson.RootElement.GetProperty("status").GetString());
-                Assert.AreEqual(1L, statusJson.RootElement.GetProperty("summary").GetProperty("differences").GetInt64());
+                Assert.AreEqual(2L, statusJson.RootElement.GetProperty("summary").GetProperty("differences").GetInt64());
 
                 var download = await RequestAsync(HttpMethods.Get, Route + "GetReport", $"?checkId={checkId:D}&$format=table");
                 Assert.AreEqual(200, download.Response.StatusCode, ResponseText(download));
@@ -115,8 +115,8 @@ public class IndexIntegrityControllerTests : ODataTestBase
                     difference.RootElement.GetProperty("sqlNodeTimestamp").GetString());
                 Assert.IsTrue(difference.RootElement.TryGetProperty("nodeModificationDateUtc", out _));
                 Assert.IsFalse(difference.RootElement.TryGetProperty("docId", out _));
-                using var summary = JsonDocument.Parse(lines[1]);
-                Assert.AreEqual(1L, summary.RootElement.GetProperty("differences").GetInt64());
+                using var summary = JsonDocument.Parse(lines[^1]);
+                Assert.AreEqual(2L, summary.RootElement.GetProperty("differences").GetInt64());
 
                 var invalid = await ODataPostAsync(Route + "Repair", null,
                     $$"""{"checkId":"{{checkId:D}}","differenceIds":[1.4]}""");
@@ -149,9 +149,29 @@ public class IndexIntegrityControllerTests : ODataTestBase
                 Assert.AreEqual(200, previousStatus.StatusCode, previousStatus.Result);
                 Assert.AreEqual(repairStatus.Result, previousStatus.Result);
 
+                var allRepair = await RequestAsync(HttpMethods.Post, Route + "Repair",
+                    body: $$"""{"checkId":"{{checkId:D}}","kinds":"aLl"}""",
+                    setup: request => request.Headers["Idempotency-Key"] = "all");
+                Assert.AreEqual(202, allRepair.Response.StatusCode, ResponseText(allRepair));
+                var allRepairId = Body(allRepair).GetProperty("repairId").GetGuid();
+                await WaitForCompletion(fileStore, checkId, allRepairId);
+
+                var repeatAll = await RequestAsync(HttpMethods.Post, Route + "Repair",
+                    body: $$"""{"checkId":"{{checkId:D}}","kinds":["ALL"]}""",
+                    setup: request => request.Headers["Idempotency-Key"] = "all");
+                Assert.AreEqual(200, repeatAll.Response.StatusCode, ResponseText(repeatAll));
+                var allStatus = Body(repeatAll);
+                Assert.AreEqual(allRepairId, allStatus.GetProperty("repairId").GetGuid());
+                Assert.AreEqual(2, allStatus.GetProperty("summary").GetProperty("selectedDifferences").GetInt32());
+                Assert.AreEqual(2, allStatus.GetProperty("summary").GetProperty("repairedVersions").GetInt32());
+
+                var incompatibleSelection = await ODataPostAsync(Route + "Repair", null,
+                    $$"""{"checkId":"{{checkId:D}}","differenceIds":[1],"kinds":"All"}""");
+                Assert.AreEqual(400, incompatibleSelection.StatusCode, incompatibleSelection.Result);
+
                 var listed = (await GetRunsAsync()).Single();
                 Assert.AreEqual(checkId, listed.CheckId);
-                CollectionAssert.AreEquivalent(new[] { repairId, repairByKindId }, listed.RepairIds);
+                CollectionAssert.AreEquivalent(new[] { repairId, repairByKindId, allRepairId }, listed.RepairIds);
 
                 var fake = (FakeProvider)services.GetRequiredService<IIndexIntegrityProvider>();
                 fake.ProviderId = "replacement";
@@ -159,6 +179,7 @@ public class IndexIntegrityControllerTests : ODataTestBase
                 Assert.AreEqual(409, incompatible.Response.StatusCode);
                 Assert.AreEqual("incompatible_provider", Body(incompatible).GetProperty("error").GetString());
 
+                fake.ReportDifferences = false;
                 var use = fileStore.OpenReport(checkId)!;
                 Guid nextId;
                 try
@@ -175,6 +196,16 @@ public class IndexIntegrityControllerTests : ODataTestBase
                 var remaining = (await GetRunsAsync()).Single();
                 Assert.AreEqual(nextId, remaining.CheckId);
                 Assert.AreEqual(0, remaining.RepairIds.Length);
+
+                var emptyRepair = await RequestAsync(HttpMethods.Post, Route + "Repair",
+                    body: $$"""{"checkId":"{{nextId:D}}","kinds":"All"}""");
+                Assert.AreEqual(202, emptyRepair.Response.StatusCode, ResponseText(emptyRepair));
+                var emptyRepairId = Body(emptyRepair).GetProperty("repairId").GetGuid();
+                await WaitForCompletion(fileStore, nextId, emptyRepairId);
+                var emptyStatus = await RequestAsync(HttpMethods.Get, Route + "GetReport",
+                    $"?checkId={nextId:D}&view=status&repairId={emptyRepairId:D}");
+                Assert.AreEqual(200, emptyStatus.Response.StatusCode, ResponseText(emptyStatus));
+                Assert.AreEqual(0, Body(emptyStatus).GetProperty("summary").GetProperty("selectedDifferences").GetInt32());
             }
             finally
             {
@@ -267,6 +298,7 @@ public class IndexIntegrityControllerTests : ODataTestBase
     private sealed class FakeProvider : IIndexIntegrityProvider
     {
         public string ProviderId { get; set; } = "fake";
+        public bool ReportDifferences { get; set; } = true;
         public int RepairFormatVersion => 1;
         public IndexIntegrityCapabilities GetCapabilities() => new(true, true, "test-index");
 
@@ -274,10 +306,15 @@ public class IndexIntegrityControllerTests : ODataTestBase
             Action<Difference> report, CancellationToken cancellationToken)
         {
             var utc = DateTimeOffset.UtcNow;
-            report(new(DifferenceKind.NotInIndex, 42, NodeId: 21)
+            if (ReportDifferences)
             {
-                Database = new DatabaseVersion(42, 17, 21, 9_007_199_254_740_993, 42, 42, utc.UtcDateTime, utc.UtcDateTime)
-            });
+                report(new(DifferenceKind.NotInIndex, 42, NodeId: 21)
+                {
+                    Database = new DatabaseVersion(42, 17, 21, 9_007_199_254_740_993, 42, 42, utc.UtcDateTime,
+                        utc.UtcDateTime)
+                });
+                report(new(DifferenceKind.DifferentVersionTimestamp, 43, NodeId: 22));
+            }
             var phase = new IndexIntegrityPhase(utc, utc, 0, utc);
             return Task.FromResult(new IndexIntegrityCheckResult(new(1, 0, 0), 1, 2, 3, 2, [],
                 phase, phase, phase));
@@ -286,8 +323,9 @@ public class IndexIntegrityControllerTests : ODataTestBase
         public Task RepairAsync(IndexIntegrityWork work, IReadOnlyList<IndexIntegritySelection> selection,
             Action<IndexIntegrityRepairItem> report, CancellationToken cancellationToken)
         {
-            var item = selection.Single();
-            report(new(item.DifferenceId, item.VersionId, "repaired"));
+            Assert.IsTrue(selection.Count > 0);
+            foreach (var item in selection)
+                report(new(item.DifferenceId, item.VersionId, "repaired"));
             return Task.CompletedTask;
         }
     }
