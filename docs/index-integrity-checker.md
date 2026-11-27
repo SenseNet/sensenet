@@ -44,7 +44,7 @@ The default provider reloads the selected version's current SQL and Lucene data.
 
 Normal repository writes and indexing continue during repair. The writer checks its Lucene revision before applying a batch. A SQL change after the repair reads the source can still go undetected while its indexing activity is pending. For example, a repair can add a version to Lucene after that version has been deleted in SQL. The repair can report `repaired` even if the indexed document is stale. Successful processing of the normal indexing activity typically corrects the index. The discrepancy can persist if that activity fails to apply the change.
 
-Repair is applied in bounded batches. A stopped or failed repair can have completed earlier batches. Submitting a new repair rereads the current state. A saved report may still be downloaded after a compatible host change, and repair requires the saved provider identifier and repair format version to match the active provider.
+Repair is applied in bounded batches. A stopped or failed repair can have completed earlier batches. Submitting a new repair rereads the current state. Each repair keeps its status and JSONL results under its own `repairId` for as long as its check is retained, including after subsequent repairs. A saved report may still be downloaded after a compatible host change, and repair requires the saved provider identifier and repair format version to match the active provider.
 
 ## Building across the two repositories
 

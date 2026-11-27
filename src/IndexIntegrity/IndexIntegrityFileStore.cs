@@ -180,7 +180,7 @@ internal sealed class IndexIntegrityFileStore(IWebHostEnvironment environment, I
         run.Summary = IndexIntegrityWorker.SummarizeRepair(selected.GetInt32(), repaired, counts);
     }
 
-    public void CleanPrevious(IntegrityRun current)
+    public void CleanPreviousChecks(IntegrityRun current)
     {
         lock (_sync)
         {

@@ -54,8 +54,8 @@ internal sealed class IndexIntegrityWorker(IndexIntegrityFileStore files, IIndex
             if (run.ProviderId != provider.ProviderId || run.RepairFormatVersion != provider.RepairFormatVersion ||
                 run.SourceId != capabilities.SourceId || (run.IsRepair ? !capabilities.CanRepair : !capabilities.CanCheck))
                 throw new InvalidDataException("The integrity provider or source changed before the run started.");
-            if (job.Selection == null)
-                files.CleanPrevious(run);
+            if (!run.IsRepair)
+                files.CleanPreviousChecks(run);
             var scratch = files.ScratchPath(run.CheckId);
             Directory.CreateDirectory(scratch);
             var work = new IndexIntegrityWork(scratch, () => files.CheckCapacity(run.CheckId));
@@ -127,7 +127,8 @@ internal sealed class IndexIntegrityWorker(IndexIntegrityFileStore files, IIndex
             .ConfigureAwait(false);
         var counts = new Dictionary<string, int>(StringComparer.Ordinal);
         var repairedVersions = new HashSet<int>();
-        using var results = File.CreateText(files.RepairPath(run));
+        using var results = new StreamWriter(File.Open(files.RepairPath(run), FileMode.CreateNew, FileAccess.Write,
+            FileShare.Read));
         run.Summary = SummarizeRepair(selected.Count, repairedVersions, counts);
         files.Save(run);
         try

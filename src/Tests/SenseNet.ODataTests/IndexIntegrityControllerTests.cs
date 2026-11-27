@@ -127,6 +127,9 @@ public class IndexIntegrityControllerTests : ODataTestBase
                 Assert.AreEqual(202, repair.Response.StatusCode, ResponseText(repair));
                 var repairId = Body(repair).GetProperty("repairId").GetGuid();
                 await WaitForCompletion(fileStore, checkId, repairId);
+                var repairResultsPath = fileStore.RepairPath(fileStore.Read(checkId, repairId)!);
+                var repairResults = await IoFile.ReadAllTextAsync(repairResultsPath);
+                Assert.IsFalse(string.IsNullOrEmpty(repairResults));
                 var repairStatus = await ODataGetAsync(Route + "GetReport", $"{statusQuery}&repairId={repairId:D}");
                 using var repairJson = JsonDocument.Parse(repairStatus.Result);
                 Assert.AreEqual(1, repairJson.RootElement.GetProperty("summary").GetProperty("repairedVersions").GetInt32());
@@ -137,6 +140,14 @@ public class IndexIntegrityControllerTests : ODataTestBase
                 using var byKind = JsonDocument.Parse(repairByKind.Result);
                 var repairByKindId = byKind.RootElement.GetProperty("repairId").GetGuid();
                 await WaitForCompletion(fileStore, checkId, repairByKindId);
+
+                Assert.AreNotEqual(repairId, repairByKindId);
+                var secondResultsPath = fileStore.RepairPath(fileStore.Read(checkId, repairByKindId)!);
+                Assert.IsTrue(IoFile.Exists(secondResultsPath));
+                Assert.AreEqual(repairResults, await IoFile.ReadAllTextAsync(repairResultsPath));
+                var previousStatus = await ODataGetAsync(Route + "GetReport", $"{statusQuery}&repairId={repairId:D}");
+                Assert.AreEqual(200, previousStatus.StatusCode, previousStatus.Result);
+                Assert.AreEqual(repairStatus.Result, previousStatus.Result);
 
                 var listed = (await GetRunsAsync()).Single();
                 Assert.AreEqual(checkId, listed.CheckId);
