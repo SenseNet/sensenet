@@ -55,17 +55,17 @@ internal sealed class IndexIntegrityFileStore(IWebHostEnvironment environment, I
             return ReadState(StatePath(checkId, id));
     }
 
-    public (Guid CheckId, Guid[] RepairIds)[] ListRunIds()
+    public (IntegrityRun Check, IntegrityRun[] Repairs)[] ListRuns()
     {
         lock (_sync)
         {
             return AllStates().GroupBy(run => run.CheckId)
-                .OrderByDescending(runs => runs.First(run => !run.IsRepair).QueuedAtUtc)
-                .ThenBy(runs => runs.Key)
-                .Select(runs => (runs.Key, runs.Where(run => run.IsRepair)
+                .Select(runs => (Check: runs.First(run => !run.IsRepair), Repairs: runs.Where(run => run.IsRepair)
                     .OrderByDescending(run => run.QueuedAtUtc)
                     .ThenBy(run => run.Id)
-                    .Select(run => run.Id).ToArray()))
+                    .ToArray()))
+                .OrderByDescending(run => run.Check.QueuedAtUtc)
+                .ThenBy(run => run.Check.Id)
                 .ToArray();
         }
     }

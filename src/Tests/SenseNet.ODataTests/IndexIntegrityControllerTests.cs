@@ -170,8 +170,15 @@ public class IndexIntegrityControllerTests : ODataTestBase
                 Assert.AreEqual(400, incompatibleSelection.StatusCode, incompatibleSelection.Result);
 
                 var listed = (await GetRunsAsync()).Single();
-                Assert.AreEqual(checkId, listed.CheckId);
-                CollectionAssert.AreEquivalent(new[] { repairId, repairByKindId, allRepairId }, listed.RepairIds);
+                Assert.AreEqual(checkId, listed.GetProperty("checkId").GetGuid());
+                AssertListedRunState(listed, fileStore.Read(checkId, checkId)!);
+                Assert.IsFalse(listed.TryGetProperty("repairIds", out _));
+                var listedRepairs = listed.GetProperty("repairs").EnumerateArray().ToArray();
+                CollectionAssert.AreEquivalent(new[] { repairId, repairByKindId, allRepairId },
+                    listedRepairs.Select(run => run.GetProperty("repairId").GetGuid()).ToArray());
+                foreach (var listedRepair in listedRepairs)
+                    AssertListedRunState(listedRepair,
+                        fileStore.Read(checkId, listedRepair.GetProperty("repairId").GetGuid())!);
 
                 var fake = (FakeProvider)services.GetRequiredService<IIndexIntegrityProvider>();
                 fake.ProviderId = "replacement";
@@ -189,13 +196,13 @@ public class IndexIntegrityControllerTests : ODataTestBase
                     await WaitForCompletion(fileStore, nextId, nextId);
                     Assert.IsTrue(IoFile.Exists(fileStore.ReportPath(checkId)));
                     CollectionAssert.AreEqual(new[] { nextId, checkId }, (await GetRunsAsync())
-                        .Select(run => run.CheckId).ToArray());
+                        .Select(run => run.GetProperty("checkId").GetGuid()).ToArray());
                 }
                 finally { use.Dispose(); }
                 Assert.IsNull(fileStore.Read(checkId, checkId));
                 var remaining = (await GetRunsAsync()).Single();
-                Assert.AreEqual(nextId, remaining.CheckId);
-                Assert.AreEqual(0, remaining.RepairIds.Length);
+                Assert.AreEqual(nextId, remaining.GetProperty("checkId").GetGuid());
+                Assert.AreEqual(0, remaining.GetProperty("repairs").GetArrayLength());
 
                 var emptyRepair = await RequestAsync(HttpMethods.Post, Route + "Repair",
                     body: $$"""{"checkId":"{{nextId:D}}","kinds":"All"}""");
@@ -217,15 +224,20 @@ public class IndexIntegrityControllerTests : ODataTestBase
         });
     }
 
-    private async System.Threading.Tasks.Task<(Guid CheckId, Guid[] RepairIds)[]> GetRunsAsync()
+    private async System.Threading.Tasks.Task<JsonElement[]> GetRunsAsync()
     {
         var response = await RequestAsync(HttpMethods.Get, Route + "GetRuns");
         Assert.AreEqual(200, response.Response.StatusCode, ResponseText(response));
         Assert.AreEqual("no-store", response.Response.Headers.CacheControl.ToString());
-        return Body(response).GetProperty("checks").EnumerateArray()
-            .Select(check => (check.GetProperty("checkId").GetGuid(),
-                check.GetProperty("repairIds").EnumerateArray().Select(id => id.GetGuid()).ToArray()))
-            .ToArray();
+        return Body(response).GetProperty("checks").EnumerateArray().ToArray();
+    }
+
+    private static void AssertListedRunState(JsonElement listed, IntegrityRun saved)
+    {
+        Assert.AreEqual(saved.Status, listed.GetProperty("status").GetString());
+        Assert.IsFalse(listed.TryGetProperty("finishedAtUtc", out _));
+        Assert.AreEqual(saved.StartedAtUtc!.Value, listed.GetProperty("startedAtUtc").GetDateTimeOffset());
+        Assert.AreEqual(saved.DurationMs!.Value, listed.GetProperty("durationMs").GetInt64());
     }
 
     private async System.Threading.Tasks.Task<HttpContext> RequestAsync(string method, string path,

@@ -24,11 +24,13 @@ The operations are available on the repository root to sensenet administrators. 
 | Request | Result |
 | --- | --- |
 | `POST /OData.svc/('Root')/IndexIntegrity/StartCheck` | Queues a full check. Send an empty body or `{}`. The response includes the check ID and a `Location` header for status polling. |
-| `GET /OData.svc/('Root')/IndexIntegrity/GetRuns` | Lists retained checks and their repairs, newest first. Returns `{"checks":[{"checkId":"…","repairIds":["…"]}]}`. A check without repairs has an empty `repairIds` array. |
+| `GET /OData.svc/('Root')/IndexIntegrity/GetRuns` | Lists retained checks and their repairs, newest first. Each check includes `checkId`, status, start time, duration, and a `repairs` array with the same details for each `repairId`. |
 | `GET /OData.svc/('Root')/IndexIntegrity/GetReport?checkId={checkId}` | Downloads the completed JSONL report. Add `&view=status` for JSON status and `&repairId={repairId}` for repair status. An unfinished download returns `202` with `Retry-After`. |
 | `POST /OData.svc/('Root')/IndexIntegrity/Repair` | Queues a repair for `{"checkId":"{checkId}","differenceIds":[1,5]}` or `{"checkId":"{checkId}","kinds":["NotInIndex"]}`. The `Location` header includes the repair ID. |
 
 Send `{"checkId":"{checkId}","kinds":"All"}` to select every difference in the report. The keyword is case-insensitive and can also be the sole value in the `kinds` array. An empty report completes with zero selected differences.
+
+`GetRuns` returns `status`, `startedAtUtc` in UTC, and `durationMs` in milliseconds for each check and repair. The start time is `null` until the run starts. Duration is recorded when a started run ends. A check without repairs has an empty `repairs` array.
 
 The POSTs accept an optional `Idempotency-Key` while the original run is retained. An active integrity run for the same index or an incompatible repair report returns `409`. A provider that lacks the requested operation returns `501`. Use explicit difference IDs for a selection made in a filtered report view.
 

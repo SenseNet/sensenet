@@ -36,8 +36,20 @@ internal sealed class IndexIntegrityController(IndexIntegrityFileStore files, In
         HttpContext.Response.Headers.CacheControl = "no-store";
         return new
         {
-            checks = files.ListRunIds().Select(run => new { checkId = run.CheckId, repairIds = run.RepairIds })
-                .ToArray()
+            checks = files.ListRuns().Select(run => new
+            {
+                checkId = run.Check.Id,
+                status = run.Check.Status,
+                startedAtUtc = run.Check.StartedAtUtc,
+                durationMs = run.Check.DurationMs,
+                repairs = run.Repairs.Select(repair => new
+                {
+                    repairId = repair.Id,
+                    status = repair.Status,
+                    startedAtUtc = repair.StartedAtUtc,
+                    durationMs = repair.DurationMs
+                }).ToArray()
+            }).ToArray()
         };
     }
 
