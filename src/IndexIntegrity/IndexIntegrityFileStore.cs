@@ -30,7 +30,8 @@ internal sealed record IntegrityRun(Guid CheckId, Guid Id, string SourceId, stri
 internal sealed class IndexIntegrityFileStore(IWebHostEnvironment environment, IndexIntegrityOptions options,
     TimeProvider clock, ILogger<IndexIntegrityFileStore> logger)
 {
-    internal const string ReportFileName = "comparison.jsonl";
+    internal const string ReportFileName = "comparison.csv";
+    internal const string JsonReportFileName = "comparison.jsonl";
 
     internal static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web)
     {
@@ -130,7 +131,9 @@ internal sealed class IndexIntegrityFileStore(IWebHostEnvironment environment, I
             var path = ReportPath(checkId);
             if (!File.Exists(path))
             {
-                path = Path.Combine(RunPath(checkId), $"comparison-{checkId:D}.jsonl");
+                path = Path.Combine(RunPath(checkId), JsonReportFileName);
+                if (!File.Exists(path))
+                    path = Path.Combine(RunPath(checkId), $"comparison-{checkId:D}.jsonl");
                 if (!File.Exists(path))
                     return null;
             }
@@ -319,6 +322,7 @@ internal sealed class IndexIntegrityFileStore(IWebHostEnvironment environment, I
     {
         private Action? _release = release;
         public FileStream Stream { get; } = stream;
+        public bool IsCsv => Path.GetFileName(Stream.Name) == ReportFileName;
         public void Dispose()
         {
             var callback = Interlocked.Exchange(ref _release, null);

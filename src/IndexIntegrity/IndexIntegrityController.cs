@@ -129,11 +129,14 @@ internal sealed class IndexIntegrityController(IndexIntegrityFileStore files, In
         if (lease == null)
             return Reject(StatusCodes.Status404NotFound, "report_not_found");
 
-        response.ContentType = "application/x-ndjson";
+        var (contentType, fileName) = lease.IsCsv
+            ? ("text/csv; charset=utf-8", IndexIntegrityFileStore.ReportFileName)
+            : ("application/x-ndjson", IndexIntegrityFileStore.JsonReportFileName);
+        response.ContentType = contentType;
         var reportLength = lease.Stream.Length;
         response.ContentLength = reportLength;
         SetResponseSize(reportLength);
-        response.Headers.ContentDisposition = $"attachment; filename=\"{IndexIntegrityFileStore.ReportFileName}\"";
+        response.Headers.ContentDisposition = $"attachment; filename=\"{fileName}\"";
         await response.StartAsync(HttpContext.RequestAborted).ConfigureAwait(false);
         await lease.Stream.CopyToAsync(response.Body, HttpContext.RequestAborted).ConfigureAwait(false);
         return null;

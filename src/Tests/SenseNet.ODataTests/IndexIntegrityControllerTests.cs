@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using System.Threading;
@@ -13,6 +14,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.VisualBasic.FileIO;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
@@ -31,6 +33,10 @@ namespace SenseNet.ODataTests;
 public class IndexIntegrityControllerTests : ODataTestBase
 {
     private const string Route = "/OData.svc/('Root')/IndexIntegrity/";
+    private const string CsvHeader = "differenceId,kind,versionId,nodeId,field,expected,actual,repairableByVersionId," +
+        "nodeModificationDateUtc,versionModificationDateUtc,sqlNodeTimestamp,sqlVersionTimestamp," +
+        "indexNodeTimestamp,indexVersionTimestamp";
+    private const string InvalidFieldValue = "hibás, \"érték\"\r\nmásodik sor";
 
     [TestMethod]
     public void IndexIntegrity_IsOptIn()
@@ -106,38 +112,37 @@ public class IndexIntegrityControllerTests : ODataTestBase
 
                 var download = await RequestAsync(HttpMethods.Get, Route + "GetReport", $"?checkId={checkId:D}&$format=table");
                 Assert.AreEqual(200, download.Response.StatusCode, ResponseText(download));
-                Assert.AreEqual("application/x-ndjson", download.Response.ContentType);
+                Assert.AreEqual("text/csv; charset=utf-8", download.Response.ContentType);
                 Assert.AreEqual(download.Response.Body.Length, download.GetODataRequest().ResponseSize);
-                Assert.AreEqual("attachment; filename=\"comparison.jsonl\"",
+                Assert.AreEqual("attachment; filename=\"comparison.csv\"",
                     download.Response.Headers.ContentDisposition.ToString());
                 var reportPath = fileStore.ReportPath(checkId);
-                Assert.AreEqual("comparison.jsonl", Path.GetFileName(reportPath));
+                Assert.AreEqual("comparison.csv", Path.GetFileName(reportPath));
                 Assert.IsTrue(IoFile.Exists(reportPath));
-                var lines = ResponseText(download)
-                    .Split('\n', StringSplitOptions.RemoveEmptyEntries);
-                Assert.AreEqual(2, lines.Length);
-                using var difference = JsonDocument.Parse(lines[0]);
-                Assert.AreEqual(1L, difference.RootElement.GetProperty("differenceId").GetInt64());
-                Assert.AreEqual("9007199254740993",
-                    difference.RootElement.GetProperty("sqlNodeTimestamp").GetString());
-                Assert.IsTrue(difference.RootElement.TryGetProperty("nodeModificationDateUtc", out _));
-                Assert.IsFalse(difference.RootElement.TryGetProperty("docId", out _));
-                Assert.IsFalse(difference.RootElement.TryGetProperty("type", out _));
-                using var secondDifference = JsonDocument.Parse(lines[1]);
-                Assert.AreEqual(2L, secondDifference.RootElement.GetProperty("differenceId").GetInt64());
-                Assert.IsFalse(secondDifference.RootElement.TryGetProperty("type", out _));
+                var csvText = ResponseText(download);
+                StringAssert.StartsWith(csvText, CsvHeader + "\r\n");
+                StringAssert.Contains(csvText, "\"hibás, \"\"érték\"\"\r\nmásodik sor\"");
+                using var csv = new TextFieldParser(new StringReader(csvText));
+                csv.SetDelimiters(",");
+                CollectionAssert.AreEqual(CsvHeader.Split(','), csv.ReadFields());
+                var difference = csv.ReadFields()!;
+                Assert.AreEqual(14, difference.Length);
+                Assert.AreEqual("1", difference[0]);
+                Assert.AreEqual("NotInIndex", difference[1]);
+                Assert.AreEqual("true", difference[7]);
+                StringAssert.EndsWith(difference[8], "Z");
+                Assert.AreEqual("9007199254740993", difference[10]);
+                Assert.AreEqual("", difference[12]);
+                var secondDifference = csv.ReadFields()!;
+                Assert.AreEqual(14, secondDifference.Length);
+                Assert.AreEqual("2", secondDifference[0]);
+                Assert.AreEqual("IsLastDraft", secondDifference[4]);
+                Assert.AreEqual(InvalidFieldValue, secondDifference[6]);
+                Assert.IsNull(csv.ReadFields());
                 using var summary = JsonDocument.Parse(await IoFile.ReadAllTextAsync(fileStore.SummaryPath(checkId)));
                 Assert.AreEqual(2L, summary.RootElement.GetProperty("differences").GetInt64());
-                Assert.AreEqual(2, summary.RootElement.GetProperty("schemaVersion").GetInt32());
+                Assert.AreEqual(3, summary.RootElement.GetProperty("schemaVersion").GetInt32());
                 Assert.IsFalse(summary.RootElement.TryGetProperty("type", out _));
-
-                var legacyReportPath = Path.Combine(Path.GetDirectoryName(reportPath)!, $"comparison-{checkId:D}.jsonl");
-                IoFile.Move(reportPath, legacyReportPath);
-                var legacyDownload = await RequestAsync(HttpMethods.Get, Route + "GetReport", $"?checkId={checkId:D}");
-                Assert.AreEqual(200, legacyDownload.Response.StatusCode, ResponseText(legacyDownload));
-                Assert.AreEqual("attachment; filename=\"comparison.jsonl\"",
-                    legacyDownload.Response.Headers.ContentDisposition.ToString());
-                Assert.AreEqual(ResponseText(download), ResponseText(legacyDownload));
 
                 var invalid = await ODataPostAsync(Route + "Repair", null,
                     $$"""{"checkId":"{{checkId:D}}","differenceIds":[1.4]}""");
@@ -201,6 +206,31 @@ public class IndexIntegrityControllerTests : ODataTestBase
                     AssertListedRunState(listedRepair,
                         fileStore.Read(checkId, listedRepair.GetProperty("repairId").GetGuid())!);
 
+                const string legacyRow = """{"differenceId":1,"kind":"NotInIndex","versionId":42,"repairableByVersionId":true}""";
+                var legacyContent = legacyRow + "\n";
+                var legacyBytes = Encoding.UTF8.GetBytes(legacyContent);
+                var jsonReportPath = Path.ChangeExtension(reportPath, ".jsonl");
+                await IoFile.WriteAllBytesAsync(jsonReportPath, legacyBytes);
+                IoFile.Delete(reportPath);
+                var legacyCheck = fileStore.Read(checkId, checkId)!;
+                legacyCheck.ReportHash = Convert.ToHexString(SHA256.HashData(legacyBytes));
+                legacyCheck.ReportLength = legacyBytes.LongLength;
+                legacyCheck.Summary = JsonSerializer.SerializeToElement(new { schemaVersion = 2, differences = 1L });
+                fileStore.Save(legacyCheck);
+
+                var legacyDownload = await RequestAsync(HttpMethods.Get, Route + "GetReport", $"?checkId={checkId:D}");
+                Assert.AreEqual(200, legacyDownload.Response.StatusCode, ResponseText(legacyDownload));
+                Assert.AreEqual("application/x-ndjson", legacyDownload.Response.ContentType);
+                Assert.AreEqual("attachment; filename=\"comparison.jsonl\"",
+                    legacyDownload.Response.Headers.ContentDisposition.ToString());
+                Assert.AreEqual(legacyContent, ResponseText(legacyDownload));
+
+                var legacyReportPath = Path.Combine(Path.GetDirectoryName(reportPath)!, $"comparison-{checkId:D}.jsonl");
+                IoFile.Move(jsonReportPath, legacyReportPath);
+                var legacyRepair = await RequestAsync(HttpMethods.Post, Route + "Repair", body: repairBody);
+                Assert.AreEqual(202, legacyRepair.Response.StatusCode, ResponseText(legacyRepair));
+                await WaitForCompletion(fileStore, checkId, Body(legacyRepair).GetProperty("repairId").GetGuid());
+
                 var fake = (FakeProvider)services.GetRequiredService<IIndexIntegrityProvider>();
                 fake.ProviderId = "replacement";
                 var incompatible = await RequestAsync(HttpMethods.Post, Route + "Repair", body: repairBody);
@@ -227,7 +257,7 @@ public class IndexIntegrityControllerTests : ODataTestBase
 
                 var emptyDownload = await RequestAsync(HttpMethods.Get, Route + "GetReport", $"?checkId={nextId:D}");
                 Assert.AreEqual(200, emptyDownload.Response.StatusCode, ResponseText(emptyDownload));
-                Assert.AreEqual(0L, emptyDownload.Response.Body.Length);
+                Assert.AreEqual(CsvHeader + "\r\n", ResponseText(emptyDownload));
 
                 var emptyRepair = await RequestAsync(HttpMethods.Post, Route + "Repair",
                     body: $$"""{"checkId":"{{nextId:D}}","kinds":"All"}""");
@@ -350,7 +380,7 @@ public class IndexIntegrityControllerTests : ODataTestBase
                     Database = new DatabaseVersion(42, 17, 21, 9_007_199_254_740_993, 42, 42, utc.UtcDateTime,
                         utc.UtcDateTime)
                 });
-                report(new(DifferenceKind.DifferentVersionTimestamp, 43, NodeId: 22));
+                report(new(DifferenceKind.InvalidField, 43, NodeId: 22, Field: "IsLastDraft", Actual: InvalidFieldValue));
             }
             var phase = new IndexIntegrityPhase(utc, utc, 0, utc);
             return Task.FromResult(new IndexIntegrityCheckResult(new(1, 0, 0), 1, 2, 3, 2, [],

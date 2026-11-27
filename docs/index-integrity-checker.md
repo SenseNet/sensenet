@@ -25,7 +25,7 @@ The operations are available on the repository root to sensenet administrators. 
 | --- | --- |
 | `POST /OData.svc/('Root')/IndexIntegrity/StartCheck` | Queues a full check. Send an empty body or `{}`. The response includes the check ID and a `Location` header for status polling. |
 | `GET /OData.svc/('Root')/IndexIntegrity/GetRuns` | Lists retained checks and their repairs, newest first. Each check includes `checkId`, status, start time, duration, and a `repairs` array with the same details for each `repairId`. |
-| `GET /OData.svc/('Root')/IndexIntegrity/GetReport?checkId={checkId}` | Downloads the completed JSONL report. Add `&view=status` for JSON status and `&repairId={repairId}` for repair status. An unfinished download returns `202` with `Retry-After`. |
+| `GET /OData.svc/('Root')/IndexIntegrity/GetReport?checkId={checkId}` | Downloads the completed comparison report. Add `&view=status` for JSON status and `&repairId={repairId}` for repair status. An unfinished download returns `202` with `Retry-After`. |
 | `POST /OData.svc/('Root')/IndexIntegrity/Repair` | Queues a repair for `{"checkId":"{checkId}","differenceIds":[1,5]}` or `{"checkId":"{checkId}","kinds":["NotInIndex"]}`. The `Location` header includes the repair ID. |
 
 Send `{"checkId":"{checkId}","kinds":"All"}` to select every difference in the report. The keyword is case-insensitive and can also be the sole value in the `kinds` array. An empty report completes with zero selected differences.
@@ -36,7 +36,11 @@ The POSTs accept an optional `Idempotency-Key` while the original run is retaine
 
 ## Report and storage
 
-The `comparison.jsonl` report contains one record per detected difference. A check with no differences produces an empty report. The check summary is saved as `summary.json` in the same directory and is also available in the `summary` property of `GetReport?checkId={checkId}&view=status`. In schema version 2, the difference records and summary omit the `type` field. Retained schema version 1 reports include the summary as their final line. Reports stored under the previous `comparison-{checkId}.jsonl` name remain available for download and repair.
+Schema version 3 writes `comparison.csv` in UTF-8 with comma-separated columns and one record per detected difference. The file includes the header even when there are no differences. Missing values are empty cells. The check summary is saved as `summary.json` in the same directory and is also available in the `summary` property of `GetReport?checkId={checkId}&view=status`. Retained JSONL reports from schema versions 1 and 2 remain available for download and repair.
+
+```csv
+differenceId,kind,versionId,nodeId,field,expected,actual,repairableByVersionId,nodeModificationDateUtc,versionModificationDateUtc,sqlNodeTimestamp,sqlVersionTimestamp,indexNodeTimestamp,indexVersionTimestamp
+```
 
 The node and version modification dates, when available, are recorded as UTC. The row versions are decimal strings so a browser can preserve their full precision. The summary records the start, end and duration of the check and its SQL, Lucene and comparison phases. SQL and Lucene snapshots are independently captured, so live indexing can produce transient differences.
 
