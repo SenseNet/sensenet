@@ -24,6 +24,7 @@ The operations are available on the repository root to sensenet administrators. 
 | Request | Result |
 | --- | --- |
 | `POST /OData.svc/('Root')/IndexIntegrity/StartCheck` | Queues a full check. Send an empty body or `{}`. The response includes the check ID and a `Location` header for status polling. |
+| `GET /OData.svc/('Root')/IndexIntegrity/GetRuns` | Lists retained checks and their repairs, newest first. Returns `{"checks":[{"checkId":"…","repairIds":["…"]}]}`. A check without repairs has an empty `repairIds` array. |
 | `GET /OData.svc/('Root')/IndexIntegrity/GetReport?checkId={checkId}` | Downloads the completed JSONL report. Add `&view=status` for JSON status and `&repairId={repairId}` for repair status. An unfinished download returns `202` with `Retry-After`. |
 | `POST /OData.svc/('Root')/IndexIntegrity/Repair` | Queues a repair for `{"checkId":"{checkId}","differenceIds":[1,5]}` or `{"checkId":"{checkId}","kinds":["NotInIndex"]}`. The `Location` header includes the repair ID. |
 

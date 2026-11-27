@@ -55,6 +55,21 @@ internal sealed class IndexIntegrityFileStore(IWebHostEnvironment environment, I
             return ReadState(StatePath(checkId, id));
     }
 
+    public (Guid CheckId, Guid[] RepairIds)[] ListRunIds()
+    {
+        lock (_sync)
+        {
+            return AllStates().GroupBy(run => run.CheckId)
+                .OrderByDescending(runs => runs.First(run => !run.IsRepair).QueuedAtUtc)
+                .ThenBy(runs => runs.Key)
+                .Select(runs => (runs.Key, runs.Where(run => run.IsRepair)
+                    .OrderByDescending(run => run.QueuedAtUtc)
+                    .ThenBy(run => run.Id)
+                    .Select(run => run.Id).ToArray()))
+                .ToArray();
+        }
+    }
+
     public void Save(IntegrityRun run)
     {
         lock (_sync)
@@ -262,7 +277,8 @@ internal sealed class IndexIntegrityFileStore(IWebHostEnvironment environment, I
             yield break;
         foreach (var path in Directory.EnumerateFiles(repairs, "*.json"))
         {
-            if (ReadState(path) is { } repair && repair.CheckId == id && repair.IsRepair)
+            if (Guid.TryParseExact(Path.GetFileNameWithoutExtension(path), "D", out var repairId) &&
+                ReadState(path) is { } repair && repair.CheckId == id && repair.Id == repairId && repair.IsRepair)
                 yield return repair;
         }
     }

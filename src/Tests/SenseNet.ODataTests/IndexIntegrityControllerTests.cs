@@ -68,8 +68,12 @@ public class IndexIntegrityControllerTests : ODataTestBase
                 User.Current = User.Visitor;
                 var anonymous = await ODataPostAsync(Route + "StartCheck", null, "{}");
                 Assert.IsTrue(anonymous.StatusCode is 403 or 404, anonymous.Result);
+                var anonymousRuns = await ODataGetAsync(Route + "GetRuns", null);
+                Assert.IsTrue(anonymousRuns.StatusCode is 403 or 404, anonymousRuns.Result);
 
                 User.Current = User.Administrator;
+                Assert.AreEqual(0, (await GetRunsAsync()).Length);
+
                 var cookie = await RequestAsync(HttpMethods.Post, Route + "StartCheck", body: "{}",
                     setup: request =>
                     {
@@ -131,7 +135,12 @@ public class IndexIntegrityControllerTests : ODataTestBase
                     $$"""{"checkId":"{{checkId:D}}","kinds":["NotInIndex"]}""");
                 Assert.AreEqual(202, repairByKind.StatusCode, repairByKind.Result);
                 using var byKind = JsonDocument.Parse(repairByKind.Result);
-                await WaitForCompletion(fileStore, checkId, byKind.RootElement.GetProperty("repairId").GetGuid());
+                var repairByKindId = byKind.RootElement.GetProperty("repairId").GetGuid();
+                await WaitForCompletion(fileStore, checkId, repairByKindId);
+
+                var listed = (await GetRunsAsync()).Single();
+                Assert.AreEqual(checkId, listed.CheckId);
+                CollectionAssert.AreEquivalent(new[] { repairId, repairByKindId }, listed.RepairIds);
 
                 var fake = (FakeProvider)services.GetRequiredService<IIndexIntegrityProvider>();
                 fake.ProviderId = "replacement";
@@ -140,15 +149,21 @@ public class IndexIntegrityControllerTests : ODataTestBase
                 Assert.AreEqual("incompatible_provider", Body(incompatible).GetProperty("error").GetString());
 
                 var use = fileStore.OpenReport(checkId)!;
+                Guid nextId;
                 try
                 {
                     var next = await RequestAsync(HttpMethods.Post, Route + "StartCheck", body: "{}");
-                    var nextId = Body(next).GetProperty("checkId").GetGuid();
+                    nextId = Body(next).GetProperty("checkId").GetGuid();
                     await WaitForCompletion(fileStore, nextId, nextId);
                     Assert.IsTrue(IoFile.Exists(fileStore.ReportPath(checkId)));
+                    CollectionAssert.AreEqual(new[] { nextId, checkId }, (await GetRunsAsync())
+                        .Select(run => run.CheckId).ToArray());
                 }
                 finally { use.Dispose(); }
                 Assert.IsNull(fileStore.Read(checkId, checkId));
+                var remaining = (await GetRunsAsync()).Single();
+                Assert.AreEqual(nextId, remaining.CheckId);
+                Assert.AreEqual(0, remaining.RepairIds.Length);
             }
             finally
             {
@@ -158,6 +173,17 @@ public class IndexIntegrityControllerTests : ODataTestBase
                     Directory.Delete(root, recursive: true);
             }
         });
+    }
+
+    private async System.Threading.Tasks.Task<(Guid CheckId, Guid[] RepairIds)[]> GetRunsAsync()
+    {
+        var response = await RequestAsync(HttpMethods.Get, Route + "GetRuns");
+        Assert.AreEqual(200, response.Response.StatusCode, ResponseText(response));
+        Assert.AreEqual("no-store", response.Response.Headers.CacheControl.ToString());
+        return Body(response).GetProperty("checks").EnumerateArray()
+            .Select(check => (check.GetProperty("checkId").GetGuid(),
+                check.GetProperty("repairIds").EnumerateArray().Select(id => id.GetGuid()).ToArray()))
+            .ToArray();
     }
 
     private async System.Threading.Tasks.Task<HttpContext> RequestAsync(string method, string path,

@@ -28,6 +28,19 @@ internal sealed class IndexIntegrityController(IndexIntegrityFileStore files, In
     [AllowedRoles(N.R.Administrators)]
     public Task<object> StartCheck() => StartRunAsync(null, null);
 
+    [ODataFunction(Category = "Indexing")]
+    [ContentTypes(N.CT.PortalRoot)]
+    [AllowedRoles(N.R.Administrators)]
+    public object GetRuns()
+    {
+        HttpContext.Response.Headers.CacheControl = "no-store";
+        return new
+        {
+            checks = files.ListRunIds().Select(run => new { checkId = run.CheckId, repairIds = run.RepairIds })
+                .ToArray()
+        };
+    }
+
     [ODataAction(Category = "Indexing")]
     [ContentTypes(N.CT.PortalRoot)]
     [AllowedRoles(N.R.Administrators)]
