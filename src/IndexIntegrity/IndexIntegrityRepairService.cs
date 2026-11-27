@@ -2,10 +2,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using STT = System.Threading.Tasks;
 using SenseNet.ContentRepository.Storage.Data;
+using SenseNet.Search;
 using SenseNet.Search.Indexing.Integrity;
 
 namespace SenseNet.ContentRepository.Search.Indexing.Integrity;
@@ -105,11 +107,17 @@ internal sealed class IndexIntegrityRepairService(IDataStore dataStore)
                 try
                 {
                     var document = indexManager.CompleteIndexDocument(row);
-                    if (document?.VersionId == id && document.GetIntegerValue("Id") == row.NodeId)
-                        updates.Add(new(id, document));
+                    if (document == null ||
+                        !document.Fields.TryGetValue(IndexFieldName.VersionId, out var versionField) ||
+                        versionField.Type != IndexValueType.Int || versionField.IntegerValue != id ||
+                        !document.Fields.TryGetValue(IndexFieldName.NodeId, out var nodeField) ||
+                        nodeField.Type != IndexValueType.Int || nodeField.IntegerValue != row.NodeId)
+                        continue;
+                    updates.Add(new(id, document));
                 }
                 catch (Exception e) when (e is FormatException or ArgumentException or InvalidOperationException
-                                             or System.IO.InvalidDataException or Newtonsoft.Json.JsonException)
+                                             or System.IO.InvalidDataException or Newtonsoft.Json.JsonException
+                                             or SerializationException)
                 {
                     // Other selected versions can be repaired when this source document is malformed.
                 }
