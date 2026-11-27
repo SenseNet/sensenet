@@ -30,6 +30,8 @@ internal sealed record IntegrityRun(Guid CheckId, Guid Id, string SourceId, stri
 internal sealed class IndexIntegrityFileStore(IWebHostEnvironment environment, IndexIntegrityOptions options,
     TimeProvider clock, ILogger<IndexIntegrityFileStore> logger)
 {
+    internal const string ReportFileName = "comparison.jsonl";
+
     internal static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web)
     {
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
@@ -42,7 +44,8 @@ internal sealed class IndexIntegrityFileStore(IWebHostEnvironment environment, I
     private readonly HashSet<Guid> _deferred = new();
 
     public string ScratchPath(Guid checkId) => Path.Combine(RunPath(checkId), "scratch");
-    public string ReportPath(Guid checkId) => Path.Combine(RunPath(checkId), $"comparison-{checkId:D}.jsonl");
+    public string ReportPath(Guid checkId) => Path.Combine(RunPath(checkId), ReportFileName);
+    public string SummaryPath(Guid checkId) => Path.Combine(RunPath(checkId), "summary.json");
     public string RepairPath(IntegrityRun repair) => Path.Combine(RunPath(repair.CheckId), "repairs", $"{repair.Id:D}.jsonl");
     private string RunPath(Guid id) => Path.Combine(_root, id.ToString("D"));
     private string StatePath(Guid checkId, Guid id) => checkId == id
@@ -121,9 +124,17 @@ internal sealed class IndexIntegrityFileStore(IWebHostEnvironment environment, I
     {
         lock (_sync)
         {
-            if (Read(checkId, checkId)?.Status != "completed" || !File.Exists(ReportPath(checkId)))
+            if (Read(checkId, checkId)?.Status != "completed")
                 return null;
-            var stream = new FileStream(ReportPath(checkId), FileMode.Open, FileAccess.Read, FileShare.Read,
+
+            var path = ReportPath(checkId);
+            if (!File.Exists(path))
+            {
+                path = Path.Combine(RunPath(checkId), $"comparison-{checkId:D}.jsonl");
+                if (!File.Exists(path))
+                    return null;
+            }
+            var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read,
                 64 * 1024, FileOptions.Asynchronous | FileOptions.SequentialScan);
             _readers[checkId] = _readers.GetValueOrDefault(checkId) + 1;
             return new(stream, () => ReleaseReport(checkId));

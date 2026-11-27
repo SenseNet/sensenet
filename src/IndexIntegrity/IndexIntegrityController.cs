@@ -133,7 +133,7 @@ internal sealed class IndexIntegrityController(IndexIntegrityFileStore files, In
         var reportLength = lease.Stream.Length;
         response.ContentLength = reportLength;
         SetResponseSize(reportLength);
-        response.Headers.ContentDisposition = $"attachment; filename=\"comparison-{check:D}.jsonl\"";
+        response.Headers.ContentDisposition = $"attachment; filename=\"{IndexIntegrityFileStore.ReportFileName}\"";
         await response.StartAsync(HttpContext.RequestAborted).ConfigureAwait(false);
         await lease.Stream.CopyToAsync(response.Body, HttpContext.RequestAborted).ConfigureAwait(false);
         return null;

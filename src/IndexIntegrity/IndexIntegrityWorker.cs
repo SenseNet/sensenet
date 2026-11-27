@@ -100,22 +100,25 @@ internal sealed class IndexIntegrityWorker(IndexIntegrityFileStore files, IIndex
 
     private async Task CheckAsync(IntegrityRun run, IndexIntegrityWork work, long timestamp, CancellationToken cancel)
     {
-        var path = files.ReportPath(run.CheckId);
         var partial = Path.Combine(work.ScratchDirectory, "comparison.partial");
+        var summaryPartial = Path.Combine(work.ScratchDirectory, "summary.partial");
+        JsonElement summary;
         using (var writer = new IndexIntegrityReportWriter(partial, work.CheckCapacity))
         {
             var result = await provider.CheckAsync(work, writer.Write, cancel).ConfigureAwait(false);
             cancel.ThrowIfCancellationRequested();
             run.FinishedAtUtc = clock.GetUtcNow();
             run.DurationMs = (long)clock.GetElapsedTime(timestamp).TotalMilliseconds;
-            run.Summary = writer.Finish(result, run);
+            summary = writer.Finish(result, run, summaryPartial);
         }
         await using (var stream = File.OpenRead(partial))
         {
             run.ReportLength = stream.Length;
             run.ReportHash = Convert.ToHexString(await SHA256.HashDataAsync(stream, cancel).ConfigureAwait(false));
         }
-        File.Move(partial, path);
+        File.Move(partial, files.ReportPath(run.CheckId));
+        File.Move(summaryPartial, files.SummaryPath(run.CheckId));
+        run.Summary = summary;
     }
 
     private async Task RepairAsync(IntegrityRun run, IndexIntegrityWork work,

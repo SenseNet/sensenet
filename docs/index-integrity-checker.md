@@ -36,7 +36,9 @@ The POSTs accept an optional `Idempotency-Key` while the original run is retaine
 
 ## Report and storage
 
-The report contains all detected differences, followed by a summary. The node and version modification dates, when available, are recorded as UTC. The row versions are decimal strings so a browser can preserve their full precision. The summary records the start, end and duration of the check and its SQL, Lucene and comparison phases. SQL and Lucene snapshots are independently captured, so live indexing can produce transient differences.
+The `comparison.jsonl` report contains one record per detected difference. A check with no differences produces an empty report. The check summary is saved as `summary.json` in the same directory and is also available in the `summary` property of `GetReport?checkId={checkId}&view=status`. In schema version 2, the difference records and summary omit the `type` field. Retained schema version 1 reports include the summary as their final line. Reports stored under the previous `comparison-{checkId}.jsonl` name remain available for download and repair.
+
+The node and version modification dates, when available, are recorded as UTC. The row versions are decimal strings so a browser can preserve their full precision. The summary records the start, end and duration of the check and its SQL, Lucene and comparison phases. SQL and Lucene snapshots are independently captured, so live indexing can produce transient differences.
 
 For example, with a 40-second allowance, the client compares the later available SQL modification date with the check start minus 40 seconds. A date at or after the boundary marks the difference as uncertain. A row with no SQL modification date has unknown timing. This classification is a client-side interpretation of the report.
 

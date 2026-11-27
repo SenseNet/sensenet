@@ -100,23 +100,44 @@ public class IndexIntegrityControllerTests : ODataTestBase
                 Assert.AreEqual(200, status.StatusCode, status.Result);
                 using var statusJson = JsonDocument.Parse(status.Result);
                 Assert.AreEqual("completed", statusJson.RootElement.GetProperty("status").GetString());
-                Assert.AreEqual(2L, statusJson.RootElement.GetProperty("summary").GetProperty("differences").GetInt64());
+                var statusSummary = statusJson.RootElement.GetProperty("summary");
+                Assert.AreEqual(2L, statusSummary.GetProperty("differences").GetInt64());
+                Assert.IsFalse(statusSummary.TryGetProperty("type", out _));
 
                 var download = await RequestAsync(HttpMethods.Get, Route + "GetReport", $"?checkId={checkId:D}&$format=table");
                 Assert.AreEqual(200, download.Response.StatusCode, ResponseText(download));
                 Assert.AreEqual("application/x-ndjson", download.Response.ContentType);
                 Assert.AreEqual(download.Response.Body.Length, download.GetODataRequest().ResponseSize);
-                Assert.AreEqual($"attachment; filename=\"comparison-{checkId:D}.jsonl\"",
+                Assert.AreEqual("attachment; filename=\"comparison.jsonl\"",
                     download.Response.Headers.ContentDisposition.ToString());
+                var reportPath = fileStore.ReportPath(checkId);
+                Assert.AreEqual("comparison.jsonl", Path.GetFileName(reportPath));
+                Assert.IsTrue(IoFile.Exists(reportPath));
                 var lines = ResponseText(download)
                     .Split('\n', StringSplitOptions.RemoveEmptyEntries);
+                Assert.AreEqual(2, lines.Length);
                 using var difference = JsonDocument.Parse(lines[0]);
+                Assert.AreEqual(1L, difference.RootElement.GetProperty("differenceId").GetInt64());
                 Assert.AreEqual("9007199254740993",
                     difference.RootElement.GetProperty("sqlNodeTimestamp").GetString());
                 Assert.IsTrue(difference.RootElement.TryGetProperty("nodeModificationDateUtc", out _));
                 Assert.IsFalse(difference.RootElement.TryGetProperty("docId", out _));
-                using var summary = JsonDocument.Parse(lines[^1]);
+                Assert.IsFalse(difference.RootElement.TryGetProperty("type", out _));
+                using var secondDifference = JsonDocument.Parse(lines[1]);
+                Assert.AreEqual(2L, secondDifference.RootElement.GetProperty("differenceId").GetInt64());
+                Assert.IsFalse(secondDifference.RootElement.TryGetProperty("type", out _));
+                using var summary = JsonDocument.Parse(await IoFile.ReadAllTextAsync(fileStore.SummaryPath(checkId)));
                 Assert.AreEqual(2L, summary.RootElement.GetProperty("differences").GetInt64());
+                Assert.AreEqual(2, summary.RootElement.GetProperty("schemaVersion").GetInt32());
+                Assert.IsFalse(summary.RootElement.TryGetProperty("type", out _));
+
+                var legacyReportPath = Path.Combine(Path.GetDirectoryName(reportPath)!, $"comparison-{checkId:D}.jsonl");
+                IoFile.Move(reportPath, legacyReportPath);
+                var legacyDownload = await RequestAsync(HttpMethods.Get, Route + "GetReport", $"?checkId={checkId:D}");
+                Assert.AreEqual(200, legacyDownload.Response.StatusCode, ResponseText(legacyDownload));
+                Assert.AreEqual("attachment; filename=\"comparison.jsonl\"",
+                    legacyDownload.Response.Headers.ContentDisposition.ToString());
+                Assert.AreEqual(ResponseText(download), ResponseText(legacyDownload));
 
                 var invalid = await ODataPostAsync(Route + "Repair", null,
                     $$"""{"checkId":"{{checkId:D}}","differenceIds":[1.4]}""");
@@ -194,7 +215,7 @@ public class IndexIntegrityControllerTests : ODataTestBase
                     var next = await RequestAsync(HttpMethods.Post, Route + "StartCheck", body: "{}");
                     nextId = Body(next).GetProperty("checkId").GetGuid();
                     await WaitForCompletion(fileStore, nextId, nextId);
-                    Assert.IsTrue(IoFile.Exists(fileStore.ReportPath(checkId)));
+                    Assert.IsTrue(IoFile.Exists(legacyReportPath));
                     CollectionAssert.AreEqual(new[] { nextId, checkId }, (await GetRunsAsync())
                         .Select(run => run.GetProperty("checkId").GetGuid()).ToArray());
                 }
@@ -203,6 +224,10 @@ public class IndexIntegrityControllerTests : ODataTestBase
                 var remaining = (await GetRunsAsync()).Single();
                 Assert.AreEqual(nextId, remaining.GetProperty("checkId").GetGuid());
                 Assert.AreEqual(0, remaining.GetProperty("repairs").GetArrayLength());
+
+                var emptyDownload = await RequestAsync(HttpMethods.Get, Route + "GetReport", $"?checkId={nextId:D}");
+                Assert.AreEqual(200, emptyDownload.Response.StatusCode, ResponseText(emptyDownload));
+                Assert.AreEqual(0L, emptyDownload.Response.Body.Length);
 
                 var emptyRepair = await RequestAsync(HttpMethods.Post, Route + "Repair",
                     body: $$"""{"checkId":"{{nextId:D}}","kinds":"All"}""");

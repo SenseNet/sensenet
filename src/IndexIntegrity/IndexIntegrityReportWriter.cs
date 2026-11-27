@@ -36,7 +36,6 @@ internal sealed class IndexIntegrityReportWriter : IDisposable
         _counts[difference.Kind] = _counts.GetValueOrDefault(difference.Kind) + 1;
         WriteLine(new
         {
-            type = "difference",
             differenceId = ++_differences,
             difference.Kind,
             versionId = id is > 0 ? id : null,
@@ -59,12 +58,11 @@ internal sealed class IndexIntegrityReportWriter : IDisposable
             _checkCapacity();
     }
 
-    public JsonElement Finish(IndexIntegrityCheckResult result, IntegrityRun run)
+    public JsonElement Finish(IndexIntegrityCheckResult result, IntegrityRun run, string summaryPath)
     {
         var summary = JsonSerializer.SerializeToElement(new
         {
-            type = "summary",
-            schemaVersion = 1,
+            schemaVersion = 2,
             status = _differences == 0 ? "consistent" : "differences",
             run.ProviderId,
             run.RepairFormatVersion,
@@ -90,9 +88,13 @@ internal sealed class IndexIntegrityReportWriter : IDisposable
             },
             sourceSnapshotsIndependent = true
         }, IndexIntegrityFileStore.Json);
-        WriteLine(summary);
         _writer.Flush();
         _stream.Flush(flushToDisk: true);
+        using (var summaryStream = File.Create(summaryPath))
+        {
+            JsonSerializer.Serialize(summaryStream, summary, IndexIntegrityFileStore.Json);
+            summaryStream.Flush(flushToDisk: true);
+        }
         _checkCapacity();
         return summary;
     }
@@ -129,27 +131,36 @@ internal sealed class IndexIntegrityReportWriter : IDisposable
         var kinds = request.Kinds == null ? new HashSet<DifferenceKind>() : new HashSet<DifferenceKind>(request.Kinds);
         var selected = new List<IndexIntegritySelection>();
         using var reader = new StreamReader(stream, leaveOpen: true);
-        long expectedId = 1;
-        while (await reader.ReadLineAsync(cancel).ConfigureAwait(false) is { } line)
+        var summary = check.Summary ?? throw new InvalidDataException("The integrity report has no summary.");
+        var differenceCount = summary.GetProperty("differences").GetInt64();
+        var hasInlineSummary = summary.GetProperty("schemaVersion").GetInt32() == 1;
+        for (long expectedId = 1; expectedId <= differenceCount; expectedId++)
         {
+            var line = await reader.ReadLineAsync(cancel).ConfigureAwait(false)
+                ?? throw new InvalidDataException("The integrity report has fewer differences than its summary.");
             using var record = JsonDocument.Parse(line);
             var row = record.RootElement;
-            if (row.GetProperty("type").GetString() == "summary")
-            {
-                if (row.GetProperty("differences").GetInt64() != expectedId - 1 ||
-                    await reader.ReadLineAsync(cancel).ConfigureAwait(false) != null)
-                    throw new InvalidDataException("The integrity report summary does not match its records.");
-                if (!request.SelectsAll && (selected.Count == 0 || ids.Count > 0 && ids.Count != selected.Count))
-                    throw new InvalidIntegritySelectionException();
-                return selected;
-            }
-            var difference = row.Deserialize<IndexIntegritySelection>(IndexIntegrityFileStore.Json)!;
-            if (row.GetProperty("type").GetString() != "difference" || difference.DifferenceId != expectedId++)
+            var difference = row.Deserialize<IndexIntegritySelection>(IndexIntegrityFileStore.Json);
+            if (difference == null || difference.DifferenceId != expectedId ||
+                hasInlineSummary && row.GetProperty("type").GetString() != "difference")
                 throw new InvalidDataException("Invalid integrity difference record.");
             if (request.SelectsAll || ids.Contains(difference.DifferenceId) || kinds.Contains(difference.Kind))
                 selected.Add(difference);
         }
-        throw new InvalidDataException("The integrity report has no summary.");
+        if (hasInlineSummary)
+        {
+            var line = await reader.ReadLineAsync(cancel).ConfigureAwait(false)
+                ?? throw new InvalidDataException("The integrity report has no summary.");
+            using var record = JsonDocument.Parse(line);
+            var row = record.RootElement;
+            if (row.GetProperty("type").GetString() != "summary" || row.GetProperty("differences").GetInt64() != differenceCount)
+                throw new InvalidDataException("The integrity report summary does not match its records.");
+        }
+        if (await reader.ReadLineAsync(cancel).ConfigureAwait(false) != null)
+            throw new InvalidDataException("The integrity report contains unexpected records.");
+        if (!request.SelectsAll && (selected.Count == 0 || ids.Count > 0 && ids.Count != selected.Count))
+            throw new InvalidIntegritySelectionException();
+        return selected;
     }
 }
 
