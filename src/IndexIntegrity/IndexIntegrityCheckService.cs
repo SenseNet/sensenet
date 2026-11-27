@@ -56,12 +56,29 @@ internal sealed class IndexIntegrityCheckService(IIndexManager indexManager, Tim
             gaps = reader.Activity.Gaps ?? Array.Empty<int>();
             maxDoc = reader.MaxDoc;
             var count = 0;
+
+            void CheckExportCapacity()
+            {
+                index.Flush();
+                issues.Flush();
+                work.CheckCapacity();
+            }
+
+            void CountExportedRecord()
+            {
+                if (++count % 4096 == 0)
+                    CheckExportCapacity();
+            }
+
             reader.Export(work.ScratchDirectory, row =>
             {
                 index.WriteLine(JsonSerializer.Serialize(row, SnapshotJson));
-                if (++count % 4096 == 0) work.CheckCapacity();
-            }, difference => issues.WriteLine(JsonSerializer.Serialize(
-                new ExportedIssue(difference, difference.Index), SnapshotJson)), cancel);
+                CountExportedRecord();
+            }, difference =>
+            {
+                issues.WriteLine(JsonSerializer.Serialize(new ExportedIssue(difference, difference.Index), SnapshotJson));
+                CountExportedRecord();
+            }, CheckExportCapacity, cancel);
         }
         var indexPhase = FinishPhase(started, timestamp, captured);
         work.CheckCapacity();
