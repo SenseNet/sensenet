@@ -211,8 +211,9 @@ internal sealed class IndexIntegrityFileStore(IWebHostEnvironment environment, I
     {
         lock (_sync)
         {
+            // On Unix, DriveInfo queries the filesystem containing the supplied directory.
             if (Size(RunPath(checkId)) > options.MaxRunBytes || Size(_root) > options.MaxTotalBytes ||
-                new DriveInfo(Path.GetPathRoot(_root)!).AvailableFreeSpace < options.MinimumFreeBytes)
+                new DriveInfo(_root).AvailableFreeSpace < options.MinimumFreeBytes)
                 throw new IOException("The index integrity storage limit was reached.");
         }
     }
