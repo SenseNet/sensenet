@@ -106,6 +106,7 @@ namespace SnWebApplication.Api.Sql.LocalAuth
                     Configuration.Bind("sensenet:install:mssql", installOptions);
                 })
                 .AddSenseNetOData()
+                .AddSenseNetIndexIntegrityChecker(Configuration.GetSection("sensenet:indexIntegrity"))
                 .AddSenseNetWebHooks()
                 .AddSenseNetWopi()
                 .AddSenseNetSemanticKernel(options =>

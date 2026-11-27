@@ -261,6 +261,7 @@ paket-files/
 **/App_Data/LuceneIndex
 **/App_Data/LocalIndex
 **/App_Data/IndexBackup
+**/App_Data/index-integrity-check
 **/App_Data/Logs
 /src/WebApps/**/install-services-core
 .github/*.md

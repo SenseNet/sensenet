@@ -27,7 +27,7 @@ namespace SenseNet.ContentRepository.Storage.Data
     /// <summary>
     /// Data provider base class for relational databases.
     /// </summary>
-    public abstract class RelationalDataProviderBase : DataProvider
+    public abstract partial class RelationalDataProviderBase : DataProvider
     {
         protected int IndexBlockSize = 100;
 

@@ -562,6 +562,9 @@ namespace SenseNet.OData.Writers
 
         private async Task WriteOperationResultAsync(object result, HttpContext httpContext, ODataRequest odataReq, int allCount)
         {
+            if (result == null && httpContext.Response.HasStarted)
+                return;
+
             if (result is Content content)
             {
                 await WriteSingleContentAsync(content, httpContext, odataReq)

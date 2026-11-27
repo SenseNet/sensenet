@@ -20,4 +20,7 @@ public class ODataController
     /// Gets the current content.
     /// </summary>
     public Content Content { get; internal set; }
+
+    /// <summary>Records the response size for an operation that writes directly to the HTTP response.</summary>
+    protected void SetResponseSize(long size) => ODataRequest.ResponseSize = size;
 }
